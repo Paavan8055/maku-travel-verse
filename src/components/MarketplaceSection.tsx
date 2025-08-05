@@ -9,9 +9,9 @@ const MarketplaceSection = () => {
       name: "Family Adventures",
       icon: Users,
       color: "bg-gradient-to-br from-travel-ocean to-blue-600",
-      description: "Kid-friendly destinations with activities for all ages",
-      features: ["Family rooms", "Kids clubs", "Safety certified", "Educational tours"],
-      destinations: 1240,
+      description: "Curated family-friendly hotels with kids' clubs, activity bundles, and adjoining rooms (30% of bookings)",
+      features: ["Family rooms", "Kids clubs", "Gold Coast 4.5★", "Bali 4.6★"],
+      destinations: "2,400+ reviews",
       deals: "Up to 40% off",
       image: "https://images.unsplash.com/photo-1511593358241-7eea1f3c84e5?w=400&h=300&fit=crop"
     },
@@ -20,9 +20,9 @@ const MarketplaceSection = () => {
       name: "Solo Journeys",
       icon: User,
       color: "bg-gradient-to-br from-travel-adventure to-purple-600",
-      description: "Perfect for independent travelers seeking adventure",
-      features: ["Solo-friendly", "Group activities", "Safe locations", "Cultural immersion"],
-      destinations: 950,
+      description: "Single-room deals, co-working spaces, and community meet-ups for independent travellers (25% of bookings)",
+      features: ["Solo-friendly", "Bangkok hostels", "Melbourne boutique", "Singapore business"],
+      destinations: "1,800+ reviews",
       deals: "Special solo rates",
       image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop"
     },
@@ -31,9 +31,9 @@ const MarketplaceSection = () => {
       name: "Pet-Friendly Travel",
       icon: Dog,
       color: "bg-gradient-to-br from-travel-forest to-green-600",
-      description: "Bring your furry friends on amazing adventures",
-      features: ["Pet-friendly hotels", "Dog parks", "Pet services", "Vet nearby"],
-      destinations: 680,
+      description: "10,000+ pet-friendly stays personally vetted by our team, plus dog parks and pet services (15% of bookings)",
+      features: ["Pet-friendly hotels", "Byron Bay resorts", "Adelaide vineyards", "Perth beachfront"],
+      destinations: "1,200+ verified",
       deals: "Pets stay free",
       image: "https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=400&h=300&fit=crop"
     },
@@ -42,9 +42,9 @@ const MarketplaceSection = () => {
       name: "Spiritual Retreats",
       icon: Sparkles,
       color: "bg-gradient-to-br from-travel-gold to-amber-600",
-      description: "Find inner peace and spiritual awakening",
-      features: ["Meditation centers", "Wellness spas", "Sacred sites", "Mindful activities"],
-      destinations: 420,
+      description: "Yoga retreats, meditation centers, and temple tours across India, Thailand, and Bali (10% of bookings)",
+      features: ["Rishikesh ashrams", "Ubud wellness", "Chiang Mai temples", "Sacred sites"],
+      destinations: "800+ retreats",
       deals: "Wellness packages",
       image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop"
     }
@@ -58,8 +58,7 @@ const MarketplaceSection = () => {
             Four Unique <span className="hero-text">Travel Experiences</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Discover your perfect travel style across our specialized marketplaces, 
-            each curated for different types of adventurers.
+            Choose the experience that fits you best—tailored by our Agentic AI engine that learns your preferences and matches you with perfect destinations.
           </p>
         </div>
 
@@ -136,8 +135,8 @@ const MarketplaceSection = () => {
                   Travel Fund Manager
                 </h3>
                 <p className="text-xl text-white/90 mb-8 leading-relaxed">
-                  Save, plan, and budget for your dream trips with our smart travel fund management. 
-                  Set goals, track progress, and get rewarded for achieving your travel dreams.
+                  Collaborative savings platform with over AUD 1.2 million deposited by Australian families since January 2025. 
+                  Save together, travel together with milestone rewards and progress tracking.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -152,16 +151,16 @@ const MarketplaceSection = () => {
 
                 <div className="flex items-center justify-center mt-8 space-x-8 text-white/80">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">$2.5M+</div>
-                    <div className="text-sm">Saved by travelers</div>
+                    <div className="text-2xl font-bold">AUD 750</div>
+                    <div className="text-sm">Average fund size</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">15K+</div>
-                    <div className="text-sm">Dream trips funded</div>
+                    <div className="text-2xl font-bold">25%</div>
+                    <div className="text-sm">Monthly growth</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">98%</div>
-                    <div className="text-sm">Goal achievement rate</div>
+                    <div className="text-2xl font-bold">3,200</div>
+                    <div className="text-sm">Active groups</div>
                   </div>
                 </div>
               </div>

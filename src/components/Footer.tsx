@@ -54,7 +54,7 @@ const Footer = () => {
                 Never Miss a Travel Deal
               </h3>
               <p className="text-xl text-white/90 mb-8">
-                Get exclusive offers, travel tips, and destination guides delivered to your inbox.
+                Get exclusive offers, travel tips, and destination guides delivered to your inbox from Australia's newest travel platform.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -69,7 +69,7 @@ const Footer = () => {
               </div>
               
               <p className="text-sm text-white/70 mt-4">
-                Join 500K+ travelers saving on their dream trips
+                Join 50,000+ monthly travellers trusted by Maku.travel
               </p>
             </div>
           </div>
@@ -88,8 +88,7 @@ const Footer = () => {
               </div>
               
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Building life's travel stories through unique marketplace experiences. 
-                Your adventure awaits with Maku, your trusted travel companion.
+                Founded in Sydney, June 2024. Building life's travel stories through AI-powered marketplace experiences with 1.5 million+ hotels globally via Amadeus & HotelBeds APIs.
               </p>
 
               <div className="flex items-center mb-4">
@@ -175,15 +174,15 @@ const Footer = () => {
               <div className="space-y-3 mb-6">
                 <div className="flex items-center text-muted-foreground">
                   <Mail className="h-4 w-4 mr-2" />
-                  <span>hello@maku.travel</span>
+                  <span>support@maku.travel</span>
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Phone className="h-4 w-4 mr-2" />
-                  <span>+1 (555) 123-4567</span>
+                  <span>+61 2 8000 1234</span>
                 </div>
                 <div className="flex items-start text-muted-foreground">
                   <MapPin className="h-4 w-4 mr-2 mt-0.5" />
-                  <span>123 Travel Street<br />Adventure City, AC 12345</span>
+                  <span>Level 15, 1 Macquarie Place<br />Sydney NSW 2000, Australia</span>
                 </div>
               </div>
 
@@ -212,7 +211,7 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-muted-foreground text-sm">
-              © 2024 Maku.travel. All rights reserved. Building life's travel stories worldwide.
+              © 2025 Maku.travel Pty Ltd. All rights reserved. IATA accreditation applied July 15, 2025.
             </div>
             
             <div className="flex items-center space-x-6 text-sm">

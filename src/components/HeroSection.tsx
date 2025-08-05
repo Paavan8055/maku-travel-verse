@@ -132,21 +132,21 @@ const HeroSection = () => {
             </p>
             
             <div className="relative mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 hero-text bg-white bg-clip-text text-transparent font-['Playfair_Display']">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 hero-text bg-white bg-clip-text text-transparent font-['Playfair_Display']">
                 Build Your Life's Travel Story
               </h2>
               <p className="text-lg text-white/80 max-w-xl mx-auto">
-                Discover amazing destinations across our four unique marketplaces
+                Book hotels, flights & car rentals in one place—trusted by 50,000+ monthly travellers across Australia and Southeast Asia.
               </p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button className="btn-primary text-lg px-8 py-4">
-                Start Your Journey
+                Find Hotels
               </Button>
               
               <Button variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 text-lg px-8 py-4">
-                Watch Travel Stories
+                Book Flights
               </Button>
             </div>
           </div>
