@@ -44,6 +44,47 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_items: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          id: string
+          item_details: Json
+          item_type: string
+          quantity: number | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          id?: string
+          item_details: Json
+          item_type: string
+          quantity?: number | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          id?: string
+          item_details?: Json
+          item_type?: string
+          quantity?: number | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_items_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_data: Json
@@ -82,6 +123,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string | null
+          currency: string | null
+          id: string
+          payment_method_id: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          payment_method_id?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          payment_method_id?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       price_alerts: {
         Row: {
@@ -195,10 +280,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cancel_booking: {
+        Args: { p_booking_id: string }
+        Returns: Json
+      }
+      get_user_bookings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      booking_status: "pending" | "confirmed" | "cancelled"
+      payment_status:
+        | "requires_payment"
+        | "processing"
+        | "succeeded"
+        | "failed"
+        | "refunded"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -325,6 +423,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_status: ["pending", "confirmed", "cancelled"],
+      payment_status: [
+        "requires_payment",
+        "processing",
+        "succeeded",
+        "failed",
+        "refunded",
+      ],
+    },
   },
 } as const
