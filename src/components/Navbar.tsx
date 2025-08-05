@@ -1,12 +1,20 @@
 import { useState } from "react";
-import { Search, User, ShoppingCart, Menu, X, Globe, Heart, Users, Dog, Sparkles } from "lucide-react";
+import { Search, User, ShoppingCart, Menu, X, Globe, Heart, Users, Dog, Sparkles, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const marketplaces = [
     { name: "Family", icon: Users, color: "text-travel-ocean", description: "Perfect family getaways" },
@@ -14,6 +22,31 @@ const Navbar = () => {
     { name: "Pet", icon: Dog, color: "text-travel-forest", description: "Pet-friendly destinations" },
     { name: "Spiritual", icon: Sparkles, color: "text-travel-gold", description: "Mindful travel experiences" }
   ];
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to sign out",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Signed out",
+          description: "You have been successfully signed out"
+        });
+        navigate('/');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <nav className="floating-nav fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-[95%] max-w-7xl mx-auto">
@@ -85,9 +118,43 @@ const Navbar = () => {
               </span>
             </Button>
             
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                      <AvatarFallback>
+                        {user.email?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuItem className="flex-col items-start">
+                    <div className="font-medium">{user.user_metadata?.first_name || 'User'}</div>
+                    <div className="text-sm text-muted-foreground">{user.email}</div>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem>My Bookings</DropdownMenuItem>
+                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/auth')}
+                className="text-foreground hover:text-primary"
+              >
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
 
@@ -129,9 +196,15 @@ const Navbar = () => {
             <div className="flex items-center justify-between pt-4 border-t border-border">
               <Button variant="ghost">Deals</Button>
               <Button variant="ghost">Travel Fund</Button>
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-              </Button>
+              {user ? (
+                <Button variant="ghost" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
+              ) : (
+                <Button variant="ghost" onClick={() => navigate('/auth')}>
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         </div>
