@@ -14,7 +14,182 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agentic_orchestrations: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          id: string
+          orchestration_type: string
+          status: string | null
+          trip_id: string | null
+          user_id: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          orchestration_type: string
+          status?: string | null
+          trip_id?: string | null
+          user_id: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          orchestration_type?: string
+          status?: string | null
+          trip_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          booking_data: Json
+          booking_reference: string
+          booking_type: string
+          created_at: string | null
+          currency: string | null
+          id: string
+          status: string
+          total_amount: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_data: Json
+          booking_reference: string
+          booking_type: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          status?: string
+          total_amount?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_data?: Json
+          booking_reference?: string
+          booking_type?: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          status?: string
+          total_amount?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      price_alerts: {
+        Row: {
+          created_at: string | null
+          destination: string
+          id: string
+          is_active: boolean | null
+          max_price: number | null
+          travel_dates_end: string | null
+          travel_dates_start: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          destination: string
+          id?: string
+          is_active?: boolean | null
+          max_price?: number | null
+          travel_dates_end?: string | null
+          travel_dates_start?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          destination?: string
+          id?: string
+          is_active?: boolean | null
+          max_price?: number | null
+          travel_dates_end?: string | null
+          travel_dates_start?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          rating: number
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          rating: number
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          rating?: number
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
