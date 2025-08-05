@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import Index from "./pages/Index";
 import Hotels from "./pages/Hotels";
+import SearchPage from "./pages/Search";
+import BookingSelectPage from "./pages/BookingSelect";
+import BookingExtrasPage from "./pages/BookingExtras";
 import PartnerPortal from "./pages/PartnerPortal";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -21,7 +24,10 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/hotels" element={<Hotels />} />
+            <Route path="/booking/select" element={<BookingSelectPage />} />
+            <Route path="/booking/extras" element={<BookingExtrasPage />} />
             <Route path="/partner-portal" element={<PartnerPortal />} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
