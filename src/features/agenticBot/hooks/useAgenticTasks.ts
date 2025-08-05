@@ -21,31 +21,23 @@ export const useAgenticTasks = () => {
 
   // Fetch tasks status periodically
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        // TODO: Get actual user ID from auth context
-        const userTasks = await getAgenticTaskStatus('current_user');
-        setTasks(userTasks);
-        
-        // Calculate overall progress
-        const runningTasks = userTasks.filter(task => task.status === 'running');
-        if (runningTasks.length > 0) {
-          const avgProgress = runningTasks.reduce((sum, task) => sum + task.progress, 0) / runningTasks.length;
-          setProgress(avgProgress);
-        } else {
-          setProgress(0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch agentic tasks:', error);
-      }
-    };
-
-    // Initial fetch
-    fetchTasks();
-
-    // Poll every 3 seconds for active tasks
-    const interval = setInterval(fetchTasks, 3000);
-    return () => clearInterval(interval);
+    // Disable API polling until backend endpoints are implemented
+    // This prevents console errors from non-existent API endpoints
+    
+    // Initialize with empty state
+    setTasks([]);
+    setProgress(0);
+    
+    // TODO: Implement when backend is ready
+    // const fetchTasks = async () => {
+    //   try {
+    //     const userTasks = await getAgenticTaskStatus('current_user');
+    //     setTasks(userTasks);
+    //     // ... rest of implementation
+    //   } catch (error) {
+    //     console.error('Failed to fetch agentic tasks:', error);
+    //   }
+    // };
   }, []);
 
   const createTask = useCallback(async (intent: string, params: any) => {
