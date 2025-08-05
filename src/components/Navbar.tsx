@@ -82,7 +82,11 @@ const Navbar = () => {
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-6 w-80">
                     {marketplaces.map((marketplace) => (
-                      <div key={marketplace.name} className="group cursor-pointer">
+                      <div 
+                        key={marketplace.name} 
+                        className="group cursor-pointer"
+                        onClick={() => navigate(`/search?vertical=${marketplace.name.toLowerCase()}`)}
+                      >
                         <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted transition-colors">
                           <marketplace.icon className={`h-6 w-6 ${marketplace.color}`} />
                           <div>
@@ -98,11 +102,19 @@ const Navbar = () => {
             </NavigationMenuList>
           </NavigationMenu>
 
-          <Button variant="ghost" className="text-foreground hover:text-primary">
+          <Button 
+            variant="ghost" 
+            className="text-foreground hover:text-primary"
+            onClick={() => navigate('/hotels')}
+          >
             Deals
           </Button>
           
-          <Button variant="ghost" className="text-foreground hover:text-primary">
+          <Button 
+            variant="ghost" 
+            className="text-foreground hover:text-primary"
+            onClick={() => navigate('/dashboard')}
+          >
             Travel Fund
           </Button>
 
@@ -136,8 +148,8 @@ const Navbar = () => {
                     <div className="text-sm text-muted-foreground">{user.email}</div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>My Bookings</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>Profile</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>My Bookings</DropdownMenuItem>
                   <DropdownMenuItem>Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>

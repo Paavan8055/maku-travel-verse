@@ -221,7 +221,10 @@ const Hotels = () => {
                         ))}
                       </div>
 
-                      <Button className="w-full btn-primary">
+                      <Button 
+                        className="w-full btn-primary"
+                        onClick={() => window.location.href = `/booking/select?type=hotel&id=${hotel.id}`}
+                      >
                         View Details
                       </Button>
                     </CardContent>

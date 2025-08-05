@@ -141,7 +141,10 @@ const SearchSection = () => {
               </div>
 
               <div className="flex justify-center">
-                <Button className="btn-primary text-lg px-12 py-4">
+                <Button 
+                  className="btn-primary text-lg px-12 py-4"
+                  onClick={() => window.location.href = `/search?type=hotels&destination=${encodeURIComponent(destination)}`}
+                >
                   <Search className="mr-2 h-5 w-5" />
                   Search Hotels
                 </Button>
@@ -215,7 +218,10 @@ const SearchSection = () => {
               </div>
 
               <div className="flex justify-center">
-                <Button className="btn-primary text-lg px-12 py-4">
+                <Button 
+                  className="btn-primary text-lg px-12 py-4"
+                  onClick={() => window.location.href = `/search?type=flights`}
+                >
                   <Search className="mr-2 h-5 w-5" />
                   Search Flights
                 </Button>
@@ -280,7 +286,10 @@ const SearchSection = () => {
               </div>
 
               <div className="flex justify-center">
-                <Button className="btn-primary text-lg px-12 py-4">
+                <Button 
+                  className="btn-primary text-lg px-12 py-4"
+                  onClick={() => window.location.href = `/search?type=cars`}
+                >
                   <Search className="mr-2 h-5 w-5" />
                   Search Cars
                 </Button>
@@ -329,7 +338,10 @@ const SearchSection = () => {
               </div>
 
               <div className="flex justify-center">
-                <Button className="btn-primary text-lg px-12 py-4">
+                <Button 
+                  className="btn-primary text-lg px-12 py-4"
+                  onClick={() => window.location.href = `/search?type=activities`}
+                >
                   <Search className="mr-2 h-5 w-5" />
                   Search Activities
                 </Button>

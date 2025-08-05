@@ -236,7 +236,10 @@ const FeaturedListings = () => {
                       </Badge>
                     </div>
 
-                    <Button className="w-full mt-4 btn-primary">
+                    <Button 
+                      className="w-full mt-4 btn-primary"
+                      onClick={() => window.location.href = `/booking/select?type=hotel&id=${hotel.id}`}
+                    >
                       Book Now
                     </Button>
                   </CardContent>
@@ -299,7 +302,10 @@ const FeaturedListings = () => {
                         <div className="text-xs text-muted-foreground">per person</div>
                       </div>
                       
-                      <Button className="btn-primary">
+                      <Button 
+                        className="btn-primary"
+                        onClick={() => window.location.href = `/booking/select?type=flight&id=${flight.id}`}
+                      >
                         Book Flight
                       </Button>
                     </div>
@@ -363,7 +369,10 @@ const FeaturedListings = () => {
                         <div className="text-xs text-muted-foreground">per person</div>
                       </div>
                       
-                      <Button className="btn-primary">
+                      <Button 
+                        className="btn-primary"
+                        onClick={() => window.location.href = `/booking/select?type=activity&id=${activity.id}`}
+                      >
                         Book Now
                       </Button>
                     </div>
