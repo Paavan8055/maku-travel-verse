@@ -4,6 +4,7 @@ import SearchSection from "@/components/SearchSection";
 import MarketplaceSection from "@/components/MarketplaceSection";
 import FeaturedListings from "@/components/FeaturedListings";
 import Footer from "@/components/Footer";
+import ChatWidget from "@/features/makuBot/components/ChatWidget";
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
       <MarketplaceSection />
       <FeaturedListings />
       <Footer />
+      <ChatWidget userVertical="Solo" />
     </div>
   );
 };
