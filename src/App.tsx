@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
+import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
+import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
 import Index from "./pages/Index";
 import Hotels from "./pages/Hotels";
 import SearchPage from "./pages/Search";
@@ -22,9 +24,16 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <MakuBotProvider>
+          <AgenticBotProvider>
+            <Toaster />
+            <Sonner />
+        <BrowserRouter 
+          future={{ 
+            v7_startTransition: true,
+            v7_relativeSplatPath: true 
+          }}
+        >
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<SearchPage />} />
@@ -40,6 +49,8 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+          </AgenticBotProvider>
+        </MakuBotProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
