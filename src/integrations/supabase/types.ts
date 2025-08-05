@@ -124,6 +124,76 @@ export type Database = {
         }
         Relationships: []
       }
+      fund_balances: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      fund_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          status: string
+          stripe_session_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -209,6 +279,9 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          points: number | null
+          total_distance: number | null
+          trips_booked: number | null
           updated_at: string | null
           user_id: string
         }
@@ -219,6 +292,9 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          points?: number | null
+          total_distance?: number | null
+          trips_booked?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -229,6 +305,9 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          points?: number | null
+          total_distance?: number | null
+          trips_booked?: number | null
           updated_at?: string | null
           user_id?: string
         }
@@ -286,6 +365,14 @@ export type Database = {
       }
       get_user_bookings: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_user_fund_balance: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_user_fund_transactions: {
+        Args: { p_user_id: string; p_limit?: number }
         Returns: Json
       }
     }
