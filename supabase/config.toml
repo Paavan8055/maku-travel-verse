@@ -73,15 +73,6 @@ verify_jwt = true
 [functions.stripe-webhook]
 verify_jwt = false
 
-[functions.create-fund-topup]
-verify_jwt = true
-
-[functions.fund-withdrawal]
-verify_jwt = true
-
-[functions.fund-webhook]
-verify_jwt = false
-
 [analytics]
 enabled = false
 port = 54327

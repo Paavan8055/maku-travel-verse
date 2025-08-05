@@ -1,4 +1,3 @@
-import { LayoutWithSidebar } from "@/components/LayoutWithSidebar";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SearchSection from "@/components/SearchSection";
@@ -12,18 +11,16 @@ import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
 const Index = () => {
   return (
     <AgenticBotProvider defaultVertical="Solo">
-      <LayoutWithSidebar>
-        <div className="min-h-screen bg-background">
-          <Navbar />
-          <HeroSection />
-          <SearchSection />
-          <MarketplaceSection />
-          <FeaturedListings />
-          <Footer />
-          <ChatWidget userVertical="Solo" />
-          <AgenticWidget />
-        </div>
-      </LayoutWithSidebar>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <HeroSection />
+        <SearchSection />
+        <MarketplaceSection />
+        <FeaturedListings />
+        <Footer />
+        <ChatWidget userVertical="Solo" />
+        <AgenticWidget />
+      </div>
     </AgenticBotProvider>
   );
 };
