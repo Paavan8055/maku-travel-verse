@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, MapPin, Wifi, Car, Utensils, Heart, ChevronLeft, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
+import { OffersWidget, LocalTipsPanel } from "@/features/bookingEnhancements";
 
 const BookingSelectPage = () => {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
@@ -72,6 +73,9 @@ const BookingSelectPage = () => {
     
     window.location.href = `/booking/extras?${queryParams}`;
   };
+
+  // Extract destination from hotel data for offers and tips
+  const destination = hotel.location.split(',')[1]?.trim() || 'BALI';
 
   return (
     <div className="min-h-screen bg-background">
@@ -297,27 +301,33 @@ const BookingSelectPage = () => {
 
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex justify-between items-center text-sm">
-                    <span>Current Balance:</span>
-                    <span className="font-bold">${fundBalance}</span>
-                  </div>
-                  {addFundContribution && (
-                    <div className="flex justify-between items-center text-sm mt-1">
-                      <span>After Contribution:</span>
-                      <span className="font-bold text-primary">${fundBalance + fundContribution}</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                     <span>Current Balance:</span>
+                     <span className="font-bold">${fundBalance}</span>
+                   </div>
+                   {addFundContribution && (
+                     <div className="flex justify-between items-center text-sm mt-1">
+                       <span>After Contribution:</span>
+                       <span className="font-bold text-primary">${fundBalance + fundContribution}</span>
+                     </div>
+                   )}
+                 </div>
+               </CardContent>
+             </Card>
 
-            {/* Continue Button */}
-            <Button 
-              onClick={handleContinue}
-              disabled={!selectedRoom}
-              className="w-full btn-primary h-12"
-            >
-              Continue to Extras
-            </Button>
+             {/* Booking Enhancements */}
+             <div className="space-y-4">
+               <OffersWidget route={`${hotel.location}-DESTINATION`} limit={2} />
+               <LocalTipsPanel locationId={destination.toUpperCase()} />
+             </div>
+
+             {/* Continue Button */}
+             <Button 
+               onClick={handleContinue}
+               disabled={!selectedRoom}
+               className="w-full btn-primary h-12"
+             >
+               Continue to Extras
+             </Button>
           </div>
         </div>
       </div>

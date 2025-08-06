@@ -1,0 +1,328 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { fetchUserPreferences, saveUserPreferences, fetchPassportInfo, fetchPaymentMethods } from "@/lib/bookingDataClient";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { Calendar, MapPin, CreditCard, CheckCircle, Zap, Users } from "lucide-react";
+
+interface BookingFormData {
+  destination: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  roomType?: string;
+  preferences?: any;
+}
+
+interface OneClickBookingProps {
+  bookingData: BookingFormData;
+  onBookingComplete?: (bookingId: string) => void;
+}
+
+export default function OneClickBooking({ bookingData, onBookingComplete }: OneClickBookingProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [canOneClick, setCanOneClick] = useState(false);
+  const [userPreferences, setUserPreferences] = useState<any>(null);
+  const [passportInfo, setPassportInfo] = useState<any>(null);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [prefilledData, setPrefilledData] = useState<BookingFormData>({
+    destination: "",
+    checkIn: "",
+    checkOut: "",
+    guests: 1
+  });
+
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Merge booking data with prefilled data
+    setPrefilledData(prev => ({
+      ...prev,
+      ...bookingData
+    }));
+  }, [bookingData]);
+
+  const loadUserData = async () => {
+    if (!user) return;
+
+    try {
+      const [preferences, passport, payments] = await Promise.all([
+        fetchUserPreferences(user.id),
+        fetchPassportInfo(user.id),
+        fetchPaymentMethods(user.id)
+      ]);
+
+      setUserPreferences(preferences);
+      setPassportInfo(passport);
+      setPaymentMethods(payments);
+
+      // Check if one-click booking is possible
+      const hasVerifiedPassport = passport?.verified === true;
+      const hasPaymentMethod = payments && payments.length > 0;
+      setCanOneClick(hasVerifiedPassport && hasPaymentMethod);
+
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  const handleOneClickBook = async () => {
+    if (!user || !canOneClick) return;
+
+    setLoading(true);
+    
+    try {
+      // Simulate booking API call
+      const bookingPayload = {
+        user_id: user.id,
+        destination: prefilledData.destination,
+        check_in_date: prefilledData.checkIn,
+        check_out_date: prefilledData.checkOut,
+        guest_count: prefilledData.guests,
+        room_type: userPreferences?.room_type || 'standard',
+        preferences: userPreferences,
+        passport_verified: passportInfo?.verified,
+        payment_method_id: paymentMethods.find(p => p.is_default)?.id || paymentMethods[0]?.id
+      };
+
+      // TODO: Replace with actual booking API call
+      console.log('One-click booking:', bookingPayload);
+      
+      // Simulate successful booking
+      const mockBookingId = `booking_${Date.now()}`;
+      
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API delay
+
+      toast({
+        title: "Booking confirmed! 🎉",
+        description: `Your booking has been confirmed. Reference: ${mockBookingId}`,
+      });
+
+      onBookingComplete?.(mockBookingId);
+
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast({
+        title: "Booking failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegularBooking = () => {
+    toast({
+      title: "Redirecting to full booking flow",
+      description: "Taking you to the detailed booking process...",
+    });
+    // TODO: Navigate to full booking flow
+  };
+
+  if (!user) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6 text-center">
+          <p className="text-muted-foreground">Please sign in to continue with booking.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Complete Your Booking
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Booking Summary */}
+        <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+          <h3 className="font-semibold flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Booking Summary
+          </h3>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Destination:</span>
+              <p className="font-medium">{prefilledData.destination || "Not selected"}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Dates:</span>
+              <p className="font-medium">
+                {prefilledData.checkIn && prefilledData.checkOut 
+                  ? `${prefilledData.checkIn} - ${prefilledData.checkOut}`
+                  : "Not selected"
+                }
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Guests:</span>
+              <p className="font-medium flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {prefilledData.guests}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Room Type:</span>
+              <p className="font-medium capitalize">
+                {userPreferences?.room_type || "Standard"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Setup Form for missing data */}
+        {(!prefilledData.destination || !prefilledData.checkIn || !prefilledData.checkOut) && (
+          <div className="space-y-4">
+            <h3 className="font-semibold">Complete Your Trip Details</h3>
+            
+            <div className="space-y-3">
+              <Input
+                placeholder="Where are you going?"
+                value={prefilledData.destination}
+                onChange={(e) => setPrefilledData(prev => ({ ...prev, destination: e.target.value }))}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm text-muted-foreground">Check-in</label>
+                <Input
+                  type="date"
+                  value={prefilledData.checkIn}
+                  onChange={(e) => setPrefilledData(prev => ({ ...prev, checkIn: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Check-out</label>
+                <Input
+                  type="date"
+                  value={prefilledData.checkOut}
+                  onChange={(e) => setPrefilledData(prev => ({ ...prev, checkOut: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <Select
+              value={prefilledData.guests.toString()}
+              onValueChange={(value) => setPrefilledData(prev => ({ ...prev, guests: parseInt(value) }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[1,2,3,4,5,6].map(num => (
+                  <SelectItem key={num} value={num.toString()}>
+                    {num} Guest{num > 1 ? 's' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Readiness Status */}
+        <div className="space-y-3">
+          <h3 className="font-semibold">Booking Readiness</h3>
+          
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              {passportInfo?.verified ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <div className="h-5 w-5 rounded-full border-2 border-muted" />
+              )}
+              <span className="text-sm">
+                Passport verified
+                {!passportInfo?.verified && (
+                  <Badge variant="outline" className="ml-2">Setup needed</Badge>
+                )}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {paymentMethods.length > 0 ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <div className="h-5 w-5 rounded-full border-2 border-muted" />
+              )}
+              <span className="text-sm">
+                Payment method saved
+                {paymentMethods.length === 0 && (
+                  <Badge variant="outline" className="ml-2">Setup needed</Badge>
+                )}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {userPreferences ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <div className="h-5 w-5 rounded-full border-2 border-muted" />
+              )}
+              <span className="text-sm">
+                Preferences set
+                {!userPreferences && (
+                  <Badge variant="outline" className="ml-2">Optional</Badge>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Booking Actions */}
+        <div className="space-y-3">
+          {canOneClick && prefilledData.destination && prefilledData.checkIn && prefilledData.checkOut ? (
+            <Button
+              onClick={handleOneClickBook}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold"
+              size="lg"
+            >
+              {loading ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  One-Click Book Now
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleRegularBooking}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              Continue with Full Booking
+            </Button>
+          )}
+          
+          {canOneClick && (
+            <p className="text-xs text-center text-muted-foreground">
+              ⚡ One-click booking enabled with verified passport and saved payment method
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

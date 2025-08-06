@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import Navbar from "@/components/Navbar";
+import { OneClickBooking } from "@/features/bookingEnhancements";
 
 const BookingExtrasPage = () => {
   const [selectedExtras, setSelectedExtras] = useState<Record<string, any>>({});
@@ -417,7 +418,20 @@ const BookingExtrasPage = () => {
                   </div>
                 </div>
 
-                <Button onClick={handleContinue} className="w-full mt-6 btn-primary h-12">
+                
+                {/* One-Click Booking Integration */}
+                <div className="mt-6">
+                  <OneClickBooking 
+                    bookingData={{
+                      destination: "Bali",
+                      checkIn: "2024-02-01", 
+                      checkOut: "2024-02-05",
+                      guests: 2
+                    }}
+                  />
+                </div>
+
+                <Button onClick={handleContinue} className="w-full mt-4 btn-primary h-12">
                   Continue to Payment
                 </Button>
                 

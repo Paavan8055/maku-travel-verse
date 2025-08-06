@@ -102,7 +102,16 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
 - `dynamic_offers` - Time-limited offers and discounts
 - `local_insights` - Community-curated local tips and advice
 
-### Edge Functions
+### Integrating Booking Enhancements
 
-- `validate-passport` - OCR-based passport validation service
-- `generate-offers` - Automated offer generation based on booking patterns
+1. **Deploy edge functions:**
+   ```bash
+   supabase functions deploy validate-passport generate-offers --project-ref YOUR_REF
+   ```
+
+2. **Run tests:**
+   ```bash
+   npm test
+   ```
+
+3. **Restart your dev server and enjoy one-click, personalized booking!**
