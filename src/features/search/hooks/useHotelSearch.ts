@@ -39,15 +39,28 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("Hotel search criteria:", criteria);
+    
     if (!criteria.destination || !criteria.checkIn || !criteria.checkOut) {
+      console.log("Missing search criteria, not searching");
       return;
     }
 
     const searchHotels = async () => {
+      console.log("Starting hotel search...");
       setLoading(true);
       setError(null);
 
       try {
+        console.log("Calling unified-search function with:", {
+          type: 'hotel',
+          destination: criteria.destination,
+          checkIn: criteria.checkIn,
+          checkOut: criteria.checkOut,
+          guests: criteria.guests,
+          providers: ['hotelbeds', 'travelport']
+        });
+
         // Call unified search with real providers
         const { data, error: functionError } = await supabase.functions.invoke('unified-search', {
           body: {
@@ -60,13 +73,17 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
           }
         });
 
+        console.log("Unified search response:", { data, error: functionError });
+
         if (functionError) {
           throw functionError;
         }
 
-        if (data?.hotels) {
+        if (data?.hotels && data.hotels.length > 0) {
+          console.log("Found real hotel data:", data.hotels.length, "hotels");
           setHotels(data.hotels);
         } else {
+          console.log("No real hotel data, using mock data");
           // Fallback to mock data for development
           setHotels(generateMockHotels(criteria));
         }
