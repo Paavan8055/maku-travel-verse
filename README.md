@@ -115,3 +115,14 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
    ```
 
 3. **Restart your dev server and enjoy one-click, personalized booking!**
+
+### Unified Search Integration
+
+1. Add search pages and components under `/src/pages/search/` and `/src/features/search/`.
+
+2. Deploy Supabase functions:
+   ```bash
+   supabase functions deploy flight-search hotel-search activity-search --project-ref YOUR_REF
+   ```
+
+3. Restart dev server and verify styles match existing layout/colors.
