@@ -101,19 +101,6 @@ const HeroSection = () => {
       {/* Hero Content */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center text-white px-6 max-w-4xl">
-          {/* 3D Globe Concept */}
-          <div className="mb-8 flex justify-center">
-            <div className="relative">
-              <div className="w-32 h-32 bg-gradient-to-br from-travel-ocean to-travel-adventure rounded-full flex items-center justify-center animate-float">
-                <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <Play className="h-8 w-8 text-white ml-1" />
-                </div>
-              </div>
-              {/* Orbiting elements */}
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-travel-gold rounded-full animate-pulse-soft" />
-              <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-travel-coral rounded-full animate-pulse-soft" />
-            </div>
-          </div>
 
           <div className="animate-fadeIn">
             <div className="flex items-center justify-center mb-4">
