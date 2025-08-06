@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
-import { OffersWidget, LocalTipsPanel } from "@/features/bookingEnhancements";
+import { OffersWidget, LocalTipsPanel } from "@/features/bookingEnhancements/components";
 
 const BookingSelectPage = () => {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
