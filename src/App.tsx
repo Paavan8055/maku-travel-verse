@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +9,6 @@ import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
 import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
 import Index from "./pages/Index";
 import Hotels from "./pages/Hotels";
-import SearchPage from "./pages/Search";
 import SearchHub from "./pages/search/index";
 import HotelSearchPage from "./pages/search/hotels";
 import FlightSearchPage from "./pages/search/flights";
@@ -52,7 +52,6 @@ const App = () => (
             <Route path="/dashboard/bookings/:id" element={<BookingDetails />} />
             <Route path="/partner-portal" element={<PartnerPortal />} />
             <Route path="/auth" element={<Auth />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
