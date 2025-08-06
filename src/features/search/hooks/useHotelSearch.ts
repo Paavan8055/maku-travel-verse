@@ -48,13 +48,15 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
       setError(null);
 
       try {
-        // Call Supabase edge function for hotel search
-        const { data, error: functionError } = await supabase.functions.invoke('hotel-search', {
+        // Call unified search with real providers
+        const { data, error: functionError } = await supabase.functions.invoke('unified-search', {
           body: {
+            type: 'hotel',
             destination: criteria.destination,
             checkIn: criteria.checkIn,
             checkOut: criteria.checkOut,
-            guests: criteria.guests
+            guests: criteria.guests,
+            providers: ['hotelbeds', 'travelport']
           }
         });
 

@@ -3,6 +3,7 @@ import { Clock, Plane, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RealBookingButton } from "@/components/RealBookingButton";
 
 interface Flight {
   id: string;
@@ -120,9 +121,13 @@ export const FlightCard = ({ flight }: FlightCardProps) => {
               </p>
               <p className="text-sm text-muted-foreground">per person</p>
             </div>
-            <Button onClick={handleSelectFlight} className="w-full">
-              Select Flight
-            </Button>
+            <RealBookingButton
+              bookingType="flight"
+              bookingData={flight}
+              amount={flight.price}
+              currency="USD"
+              className="w-full"
+            />
           </div>
         </div>
       </CardContent>

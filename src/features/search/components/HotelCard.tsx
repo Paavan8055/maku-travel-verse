@@ -3,6 +3,7 @@ import { MapPin, Star, Wifi, Car, Utensils, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RealBookingButton } from "@/components/RealBookingButton";
 
 interface Hotel {
   id: string;
@@ -161,9 +162,13 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                     {hotel.currency}{hotel.totalPrice}
                   </p>
                 </div>
-                <Button onClick={handleSelectHotel} className="w-full">
-                  Choose Room
-                </Button>
+                <RealBookingButton
+                  bookingType="hotel"
+                  bookingData={hotel}
+                  amount={hotel.totalPrice}
+                  currency="USD"
+                  className="w-full"
+                />
               </div>
             </div>
           </div>

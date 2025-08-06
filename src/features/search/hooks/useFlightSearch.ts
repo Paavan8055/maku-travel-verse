@@ -47,14 +47,16 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
       setError(null);
 
       try {
-        // Call Supabase edge function for flight search
-        const { data, error: functionError } = await supabase.functions.invoke('flight-search', {
+        // Call unified search with real providers
+        const { data, error: functionError } = await supabase.functions.invoke('unified-search', {
           body: {
+            type: 'flight',
             origin: criteria.origin,
             destination: criteria.destination,
             departureDate: criteria.departureDate,
             returnDate: criteria.returnDate,
-            passengers: criteria.passengers
+            passengers: criteria.passengers,
+            providers: ['amadeus', 'travelport']
           }
         });
 
