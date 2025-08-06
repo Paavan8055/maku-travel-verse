@@ -124,6 +124,45 @@ export type Database = {
         }
         Relationships: []
       }
+      dynamic_offers: {
+        Row: {
+          airline: string | null
+          created_at: string | null
+          description: string | null
+          discount_pct: number | null
+          hotel_chain: string | null
+          id: string
+          is_active: boolean | null
+          offer_type: string | null
+          route: string
+          valid_until: string
+        }
+        Insert: {
+          airline?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount_pct?: number | null
+          hotel_chain?: string | null
+          id?: string
+          is_active?: boolean | null
+          offer_type?: string | null
+          route: string
+          valid_until: string
+        }
+        Update: {
+          airline?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount_pct?: number | null
+          hotel_chain?: string | null
+          id?: string
+          is_active?: boolean | null
+          offer_type?: string | null
+          route?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
       fund_balances: {
         Row: {
           balance: number
@@ -193,6 +232,114 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      local_insights: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_featured: boolean | null
+          location_id: string
+          rating: number | null
+          source: string | null
+          tip_type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_featured?: boolean | null
+          location_id: string
+          rating?: number | null
+          source?: string | null
+          tip_type: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_featured?: boolean | null
+          location_id?: string
+          rating?: number | null
+          source?: string | null
+          tip_type?: string
+        }
+        Relationships: []
+      }
+      passport_info: {
+        Row: {
+          country: string
+          created_at: string | null
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          passport_number: string | null
+          updated_at: string | null
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          country: string
+          created_at?: string | null
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          passport_number?: string | null
+          updated_at?: string | null
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          country?: string
+          created_at?: string | null
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          passport_number?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          created_at: string | null
+          expiry_month: number | null
+          expiry_year: number | null
+          id: string
+          is_default: boolean | null
+          last4: string | null
+          provider: string
+          type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expiry_month?: number | null
+          expiry_year?: number | null
+          id?: string
+          is_default?: boolean | null
+          last4?: string | null
+          provider: string
+          type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expiry_month?: number | null
+          expiry_year?: number | null
+          id?: string
+          is_default?: boolean | null
+          last4?: string | null
+          provider?: string
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       payments: {
         Row: {
@@ -353,6 +500,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_data: Json | null
+          item_id: string
+          item_type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_data?: Json | null
+          item_id: string
+          item_type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_data?: Json | null
+          item_id?: string
+          item_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          id: string
+          language: string | null
+          meal_preferences: string[] | null
+          preferred_airlines: string[] | null
+          room_type: string | null
+          seat_class: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          language?: string | null
+          meal_preferences?: string[] | null
+          preferred_airlines?: string[] | null
+          room_type?: string | null
+          seat_class?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          language?: string | null
+          meal_preferences?: string[] | null
+          preferred_airlines?: string[] | null
+          room_type?: string | null
+          seat_class?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      visa_documents: {
+        Row: {
+          country: string
+          created_at: string | null
+          doc_type: string
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          country: string
+          created_at?: string | null
+          doc_type: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          country?: string
+          created_at?: string | null
+          doc_type?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

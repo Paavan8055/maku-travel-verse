@@ -71,3 +71,38 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Database & Booking Enhancements
+
+### New Booking Tables & APIs
+
+1. **Review and run migrations:**
+   ```bash
+   supabase db push
+   ```
+
+2. **Deploy edge functions:**
+   ```bash
+   supabase functions deploy validate-passport generate-offers --project-ref YOUR_REF
+   ```
+
+3. **Components available:**
+   - `UserPreferencesForm` - Capture and update user travel preferences
+   - `PaymentVault` - Manage saved payment methods  
+   - `OffersWidget` - Display dynamic offers and discounts
+   - `LocalTipsPanel` - Show local insights and tips
+
+### Database Tables Created
+
+- `user_preferences` - Store user travel preferences (airlines, seat class, etc.)
+- `payment_methods` - Securely store payment method details
+- `passport_info` - Store passport information and verification status
+- `saved_favorites` - User's favorite hotels, flights, and experiences
+- `visa_documents` - Track visa applications and documentation
+- `dynamic_offers` - Time-limited offers and discounts
+- `local_insights` - Community-curated local tips and advice
+
+### Edge Functions
+
+- `validate-passport` - OCR-based passport validation service
+- `generate-offers` - Automated offer generation based on booking patterns
