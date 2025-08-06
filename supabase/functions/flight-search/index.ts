@@ -67,6 +67,90 @@ serve(async (req) => {
           carry: true,
           checked: false
         }
+      },
+      {
+        id: "flight-amadeus-3",
+        airline: "Emirates",
+        airlineCode: "EK",
+        flightNumber: "EK413",
+        aircraft: "Airbus A380",
+        origin,
+        destination,
+        departureTime: "22:15",
+        arrivalTime: "05:45+1",
+        duration: 450,
+        stops: "1",
+        price: 1299,
+        currency: "$",
+        availableSeats: 24,
+        cabin: "Business",
+        baggage: {
+          carry: true,
+          checked: true
+        }
+      },
+      {
+        id: "flight-amadeus-4",
+        airline: "Singapore Airlines",
+        airlineCode: "SQ",
+        flightNumber: "SQ231",
+        aircraft: "Boeing 777",
+        origin,
+        destination,
+        departureTime: "10:30",
+        arrivalTime: "16:20",
+        duration: 350,
+        stops: "0",
+        price: 899,
+        currency: "$",
+        availableSeats: 16,
+        cabin: "Premium Economy",
+        baggage: {
+          carry: true,
+          checked: true
+        }
+      },
+      {
+        id: "flight-amadeus-5",
+        airline: "Jetstar",
+        airlineCode: "JQ",
+        flightNumber: "JQ506",
+        aircraft: "Airbus A321",
+        origin,
+        destination,
+        departureTime: "06:45",
+        arrivalTime: "11:00",
+        duration: 255,
+        stops: "0",
+        price: 299,
+        currency: "$",
+        availableSeats: 45,
+        cabin: "Economy",
+        baggage: {
+          carry: true,
+          checked: false
+        }
+      },
+      {
+        id: "flight-amadeus-6",
+        airline: "Cathay Pacific",
+        airlineCode: "CX",
+        flightNumber: "CX162",
+        aircraft: "Boeing 777",
+        origin,
+        destination,
+        departureTime: "16:55",
+        arrivalTime: "23:10",
+        duration: 375,
+        stops: "1",
+        price: 756,
+        currency: "$",
+        availableSeats: 19,
+        cabin: "Economy",
+        baggage: {
+          carry: true,
+          checked: true
+        }
       }
     ];
 

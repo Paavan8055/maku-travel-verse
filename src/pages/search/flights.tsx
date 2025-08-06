@@ -17,7 +17,10 @@ const FlightSearchPage = () => {
   const [filters, setFilters] = useState({
     stops: "any",
     airline: "any",
-    departure: "any"
+    departure: "any",
+    arrival: "any",
+    cabin: "any",
+    baggage: "any"
   });
 
   const searchCriteria = {
@@ -36,6 +39,11 @@ const FlightSearchPage = () => {
       if (priceRange[1] < 2000 && flight.price > priceRange[1]) return false;
       if (filters.stops !== "any" && flight.stops !== filters.stops) return false;
       if (filters.airline !== "any" && flight.airline !== filters.airline) return false;
+      if (filters.cabin !== "any" && flight.cabin.toLowerCase() !== filters.cabin) return false;
+      if (filters.baggage !== "any") {
+        if (filters.baggage === "included" && (!flight.baggage?.checked || !flight.baggage?.carry)) return false;
+        if (filters.baggage === "carry-only" && !flight.baggage?.carry) return false;
+      }
       return true;
     })
     .sort((a, b) => {
@@ -46,6 +54,10 @@ const FlightSearchPage = () => {
           return a.duration - b.duration;
         case "departure":
           return a.departureTime.localeCompare(b.departureTime);
+        case "arrival":
+          return a.arrivalTime.localeCompare(b.arrivalTime);
+        case "stops":
+          return parseInt(a.stops) - parseInt(b.stops);
         default:
           return 0;
       }
@@ -117,6 +129,39 @@ const FlightSearchPage = () => {
                       <SelectItem value="qantas">Qantas</SelectItem>
                       <SelectItem value="jetstar">Jetstar</SelectItem>
                       <SelectItem value="virgin">Virgin Australia</SelectItem>
+                      <SelectItem value="emirates">Emirates</SelectItem>
+                      <SelectItem value="singapore">Singapore Airlines</SelectItem>
+                      <SelectItem value="cathay">Cathay Pacific</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-3 block">Cabin Class</label>
+                  <Select value={filters.cabin} onValueChange={(value) => setFilters({...filters, cabin: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any class</SelectItem>
+                      <SelectItem value="economy">Economy</SelectItem>
+                      <SelectItem value="premium">Premium Economy</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="first">First Class</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-3 block">Baggage</label>
+                  <Select value={filters.baggage} onValueChange={(value) => setFilters({...filters, baggage: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any baggage</SelectItem>
+                      <SelectItem value="included">Checked bag included</SelectItem>
+                      <SelectItem value="carry-only">Carry-on only</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -133,11 +178,13 @@ const FlightSearchPage = () => {
                   <SelectTrigger className="w-48">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="price">Best Price</SelectItem>
-                    <SelectItem value="duration">Shortest Duration</SelectItem>
-                    <SelectItem value="departure">Departure Time</SelectItem>
-                  </SelectContent>
+                    <SelectContent>
+                      <SelectItem value="price">Best Price</SelectItem>
+                      <SelectItem value="duration">Shortest Duration</SelectItem>
+                      <SelectItem value="departure">Departure Time</SelectItem>
+                      <SelectItem value="arrival">Arrival Time</SelectItem>
+                      <SelectItem value="stops">Fewest Stops</SelectItem>
+                    </SelectContent>
                 </Select>
               </div>
               <Badge variant="secondary">

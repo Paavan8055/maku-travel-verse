@@ -18,7 +18,10 @@ const ActivitySearchPage = () => {
   const [filters, setFilters] = useState({
     category: [] as string[],
     duration: "any",
-    difficulty: "any"
+    difficulty: "any",
+    ageGroup: "any",
+    groupSize: "any",
+    accessibility: [] as string[]
   });
 
   const searchCriteria = {
@@ -36,6 +39,7 @@ const ActivitySearchPage = () => {
       if (filters.category.length > 0 && !filters.category.includes(activity.category)) return false;
       if (filters.duration !== "any" && activity.duration !== filters.duration) return false;
       if (filters.difficulty !== "any" && activity.difficulty !== filters.difficulty) return false;
+      if (filters.ageGroup !== "any" && activity.ageGroup !== filters.ageGroup) return false;
       return true;
     })
     .sort((a, b) => {
@@ -102,7 +106,7 @@ const ActivitySearchPage = () => {
                 <div>
                   <label className="text-sm font-medium mb-3 block">Category</label>
                   <div className="space-y-2">
-                    {["Adventure", "Cultural", "Food & Drink", "Nature", "Sightseeing", "Water Sports"].map((category) => (
+                    {["Adventure", "Cultural", "Food & Drink", "Nature", "Sightseeing", "Water Sports", "Wellness", "Photography", "Wildlife", "Historical", "Nightlife", "Shopping"].map((category) => (
                       <div key={category} className="flex items-center space-x-2">
                         <Checkbox
                           id={`category-${category}`}
@@ -144,6 +148,38 @@ const ActivitySearchPage = () => {
                       <SelectItem value="easy">Easy</SelectItem>
                       <SelectItem value="moderate">Moderate</SelectItem>
                       <SelectItem value="challenging">Challenging</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-3 block">Age Group</label>
+                  <Select value={filters.ageGroup} onValueChange={(value) => setFilters({...filters, ageGroup: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any age</SelectItem>
+                      <SelectItem value="family">Family Friendly</SelectItem>
+                      <SelectItem value="adult">Adults Only</SelectItem>
+                      <SelectItem value="senior">Senior Friendly</SelectItem>
+                      <SelectItem value="kids">Kids Special</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-3 block">Group Size</label>
+                  <Select value={filters.groupSize} onValueChange={(value) => setFilters({...filters, groupSize: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any size</SelectItem>
+                      <SelectItem value="small">Small (1-6 people)</SelectItem>
+                      <SelectItem value="medium">Medium (7-15 people)</SelectItem>
+                      <SelectItem value="large">Large (16+ people)</SelectItem>
+                      <SelectItem value="private">Private Tour</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

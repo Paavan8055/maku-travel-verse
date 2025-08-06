@@ -19,7 +19,10 @@ const HotelSearchPage = () => {
   const [filters, setFilters] = useState({
     starRating: [] as string[],
     amenities: [] as string[],
-    propertyType: "any"
+    propertyType: "any",
+    mealPlan: "any",
+    accessibility: [] as string[],
+    guestRating: [0, 10]
   });
 
   const searchCriteria = {
@@ -37,6 +40,8 @@ const HotelSearchPage = () => {
       if (priceRange[1] < 500 && hotel.pricePerNight > priceRange[1]) return false;
       if (filters.starRating.length > 0 && !filters.starRating.includes(hotel.starRating.toString())) return false;
       if (filters.propertyType !== "any" && hotel.propertyType !== filters.propertyType) return false;
+      if (filters.guestRating[0] > 0 && hotel.rating < filters.guestRating[0]) return false;
+      if (filters.guestRating[1] < 10 && hotel.rating > filters.guestRating[1]) return false;
       return true;
     })
     .sort((a, b) => {
@@ -138,6 +143,9 @@ const HotelSearchPage = () => {
                       <SelectItem value="resort">Resort</SelectItem>
                       <SelectItem value="apartment">Apartment</SelectItem>
                       <SelectItem value="boutique">Boutique</SelectItem>
+                      <SelectItem value="villa">Villa</SelectItem>
+                      <SelectItem value="hostel">Hostel</SelectItem>
+                      <SelectItem value="bnb">Bed & Breakfast</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -145,7 +153,7 @@ const HotelSearchPage = () => {
                 <div>
                   <label className="text-sm font-medium mb-3 block">Amenities</label>
                   <div className="space-y-2">
-                    {["WiFi", "Pool", "Gym", "Spa", "Parking", "Restaurant"].map((amenity) => (
+                    {["WiFi", "Pool", "Gym", "Spa", "Parking", "Restaurant", "Room Service", "Concierge", "Business Center", "Pet Friendly"].map((amenity) => (
                       <div key={amenity} className="flex items-center space-x-2">
                         <Checkbox
                           id={`amenity-${amenity}`}

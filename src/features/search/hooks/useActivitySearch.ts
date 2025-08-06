@@ -32,6 +32,8 @@ interface Activity {
   included: string[];
   cancellationPolicy: string;
   instantConfirmation: boolean;
+  ageGroup?: string;
+  meetingPoint?: string;
 }
 
 export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
