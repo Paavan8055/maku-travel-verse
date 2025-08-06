@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import hero1 from "@/assets/hero-1.jpg";
 import hero2 from "@/assets/hero-2.jpg";
 import hero3 from "@/assets/hero-3.jpg";
-import makuMascot from "@/assets/maku-mascot.png";
+
 
 const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -138,19 +138,6 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Maku Mascot */}
-          <div className="absolute bottom-8 right-8 hidden md:block">
-            <div className="relative group cursor-pointer">
-              <img
-                src={makuMascot}
-                alt="Maku - Your Travel Companion"
-                className="w-24 h-24 animate-float group-hover:scale-110 transition-transform duration-300"
-              />
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-3 py-1 rounded-full text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                Hi, I'm Maku! 🐕
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
