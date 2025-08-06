@@ -9,6 +9,10 @@ import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotCont
 import Index from "./pages/Index";
 import Hotels from "./pages/Hotels";
 import SearchPage from "./pages/Search";
+import SearchHub from "./pages/search/index";
+import HotelSearchPage from "./pages/search/hotels";
+import FlightSearchPage from "./pages/search/flights";
+import ActivitySearchPage from "./pages/search/activities";
 import BookingSelectPage from "./pages/BookingSelect";
 import BookingExtrasPage from "./pages/BookingExtras";
 import CheckoutPage from "./pages/Checkout";
@@ -36,7 +40,10 @@ const App = () => (
         >
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/search" element={<SearchPage />} />
+            <Route path="/search" element={<SearchHub />} />
+            <Route path="/search/hotels" element={<HotelSearchPage />} />
+            <Route path="/search/flights" element={<FlightSearchPage />} />
+            <Route path="/search/activities" element={<ActivitySearchPage />} />
             <Route path="/hotels" element={<Hotels />} />
             <Route path="/booking/select" element={<BookingSelectPage />} />
             <Route path="/booking/extras" element={<BookingExtrasPage />} />
