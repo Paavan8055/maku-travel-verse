@@ -88,83 +88,44 @@ const HotelSearchPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Filters Sidebar */}
+          {/* Recommendations Sidebar */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  Filters
+                <CardTitle className="text-lg font-semibold">
+                  Recommended for {searchParams.get("destination")}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium mb-3 block">Price per night</label>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    max={500}
-                    step={25}
-                    className="mb-2"
-                  />
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>${priceRange[0]}</span>
-                    <span>${priceRange[1]}</span>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <h4 className="font-medium text-sm mb-1">🏖️ Overwater Villas</h4>
+                    <p className="text-xs text-muted-foreground">Experience luxury over crystal clear waters</p>
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-3 block">Star Rating</label>
-                  <div className="space-y-2">
-                    {["5", "4", "3", "2", "1"].map((rating) => (
-                      <div key={rating} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`rating-${rating}`}
-                          checked={filters.starRating.includes(rating)}
-                          onCheckedChange={(checked) => handleStarRatingChange(rating, checked as boolean)}
-                        />
-                        <label htmlFor={`rating-${rating}`} className="text-sm">
-                          {rating} {"★".repeat(parseInt(rating))}
-                        </label>
-                      </div>
-                    ))}
+                  
+                  <div className="p-3 bg-muted rounded-lg">
+                    <h4 className="font-medium text-sm mb-1">🤿 Diving Packages</h4>
+                    <p className="text-xs text-muted-foreground">Explore vibrant coral reefs and marine life</p>
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-3 block">Property Type</label>
-                  <Select value={filters.propertyType} onValueChange={(value) => setFilters({...filters, propertyType: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="any">Any type</SelectItem>
-                      <SelectItem value="hotel">Hotel</SelectItem>
-                      <SelectItem value="resort">Resort</SelectItem>
-                      <SelectItem value="apartment">Apartment</SelectItem>
-                      <SelectItem value="boutique">Boutique</SelectItem>
-                      <SelectItem value="villa">Villa</SelectItem>
-                      <SelectItem value="hostel">Hostel</SelectItem>
-                      <SelectItem value="bnb">Bed & Breakfast</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-3 block">Amenities</label>
-                  <div className="space-y-2">
-                    {["WiFi", "Pool", "Gym", "Spa", "Parking", "Restaurant", "Room Service", "Concierge", "Business Center", "Pet Friendly"].map((amenity) => (
-                      <div key={amenity} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`amenity-${amenity}`}
-                          checked={filters.amenities.includes(amenity)}
-                          onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
-                        />
-                        <label htmlFor={`amenity-${amenity}`} className="text-sm">
-                          {amenity}
-                        </label>
-                      </div>
-                    ))}
+                  
+                  <div className="p-3 bg-muted rounded-lg">
+                    <h4 className="font-medium text-sm mb-1">🍽️ All-Inclusive Resorts</h4>
+                    <p className="text-xs text-muted-foreground">Hassle-free dining and activities</p>
+                  </div>
+                  
+                  <div className="p-3 bg-muted rounded-lg">
+                    <h4 className="font-medium text-sm mb-1">💑 Honeymoon Suites</h4>
+                    <p className="text-xs text-muted-foreground">Romantic getaways with private beaches</p>
+                  </div>
+                  
+                  <div className="p-3 bg-muted rounded-lg">
+                    <h4 className="font-medium text-sm mb-1">🛥️ Island Hopping</h4>
+                    <p className="text-xs text-muted-foreground">Visit multiple atolls and local islands</p>
+                  </div>
+                  
+                  <div className="p-3 bg-muted rounded-lg">
+                    <h4 className="font-medium text-sm mb-1">🌅 Sunrise Yoga</h4>
+                    <p className="text-xs text-muted-foreground">Start your day with beach meditation</p>
                   </div>
                 </div>
               </CardContent>
