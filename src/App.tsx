@@ -32,29 +32,29 @@ const App = () => (
           <AgenticBotProvider>
             <Toaster />
             <Sonner />
-        <BrowserRouter 
-          future={{ 
-            v7_startTransition: true,
-            v7_relativeSplatPath: true 
-          }}
-        >
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/search" element={<SearchHub />} />
-            <Route path="/search/hotels" element={<HotelSearchPage />} />
-            <Route path="/search/flights" element={<FlightSearchPage />} />
-            <Route path="/search/activities" element={<ActivitySearchPage />} />
-            <Route path="/hotels" element={<Hotels />} />
-            <Route path="/booking/select" element={<BookingSelectPage />} />
-            <Route path="/booking/extras" element={<BookingExtrasPage />} />
-            <Route path="/booking/checkout" element={<CheckoutPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/bookings/:id" element={<BookingDetails />} />
-            <Route path="/partner-portal" element={<PartnerPortal />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+            <BrowserRouter 
+              future={{ 
+                v7_startTransition: true,
+                v7_relativeSplatPath: true 
+              }}
+            >
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/search" element={<SearchHub />} />
+                <Route path="/search/hotels" element={<HotelSearchPage />} />
+                <Route path="/search/flights" element={<FlightSearchPage />} />
+                <Route path="/search/activities" element={<ActivitySearchPage />} />
+                <Route path="/hotels" element={<Hotels />} />
+                <Route path="/booking/select" element={<BookingSelectPage />} />
+                <Route path="/booking/extras" element={<BookingExtrasPage />} />
+                <Route path="/booking/checkout" element={<CheckoutPage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/bookings/:id" element={<BookingDetails />} />
+                <Route path="/partner-portal" element={<PartnerPortal />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
           </AgenticBotProvider>
         </MakuBotProvider>
       </AuthProvider>
