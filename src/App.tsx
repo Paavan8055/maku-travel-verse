@@ -13,6 +13,9 @@ import SearchHub from "./pages/search/index";
 import HotelSearchPage from "./pages/search/hotels";
 import FlightSearchPage from "./pages/search/flights";
 import ActivitySearchPage from "./pages/search/activities";
+import CarRentalPage from "./pages/CarRental";
+import DealsPage from "./pages/Deals";
+import PartnersPage from "./pages/Partners";
 import BookingSelectPage from "./pages/BookingSelect";
 import BookingExtrasPage from "./pages/BookingExtras";
 import CheckoutPage from "./pages/Checkout";
@@ -45,6 +48,9 @@ const App = () => (
                 <Route path="/search/flights" element={<FlightSearchPage />} />
                 <Route path="/search/activities" element={<ActivitySearchPage />} />
                 <Route path="/hotels" element={<Hotels />} />
+                <Route path="/car-rental" element={<CarRentalPage />} />
+                <Route path="/deals" element={<DealsPage />} />
+                <Route path="/partners" element={<PartnersPage />} />
                 <Route path="/booking/select" element={<BookingSelectPage />} />
                 <Route path="/booking/extras" element={<BookingExtrasPage />} />
                 <Route path="/booking/checkout" element={<CheckoutPage />} />

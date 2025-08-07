@@ -1,27 +1,19 @@
 import { useState } from "react";
-import { Search, User, ShoppingCart, Menu, X, Globe, Heart, Users, Dog, Sparkles, LogOut } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Car, MapPin, Gift, Users as UsersIcon, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [language, setLanguage] = useState("EN");
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const marketplaces = [
-    { name: "Family", icon: Users, color: "text-travel-ocean", description: "Perfect family getaways" },
-    { name: "Solo", icon: User, color: "text-travel-adventure", description: "Adventures for solo travelers" },
-    { name: "Pet", icon: Dog, color: "text-travel-forest", description: "Pet-friendly destinations" },
-    { name: "Spiritual", icon: Sparkles, color: "text-travel-gold", description: "Mindful travel experiences" }
-  ];
 
   const handleSignOut = async () => {
     try {
@@ -49,87 +41,96 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="floating-nav fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-[95%] max-w-7xl mx-auto">
-      <div className="flex items-center justify-between px-6 py-4">
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <Globe className="h-8 w-8 text-primary animate-pulse-soft" />
-          <span className="text-2xl font-bold hero-text font-['Playfair_Display']">Maku.travel</span>
-        </div>
-
-        {/* Desktop Search Bar */}
-        <div className="hidden lg:flex items-center flex-1 max-w-2xl mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Where do you want to go?"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input pl-11 pr-4 py-3 text-lg w-full"
-            />
+    <nav className="sticky top-0 z-50 bg-white border-b border-border">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div 
+            className="flex items-center space-x-2 cursor-pointer" 
+            onClick={() => navigate('/')}
+          >
+            <div className="text-2xl font-bold bg-gradient-to-r from-travel-sky to-travel-ocean bg-clip-text text-transparent">
+              Maku Travel
+            </div>
           </div>
-        </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center space-x-6">
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent text-foreground hover:text-primary">
-                  Explore
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="grid gap-3 p-6 w-80">
-                    {marketplaces.map((marketplace) => (
-                      <div 
-                        key={marketplace.name} 
-                        className="group cursor-pointer"
-                        onClick={() => navigate(`/search?vertical=${marketplace.name.toLowerCase()}`)}
-                      >
-                        <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted transition-colors">
-                          <marketplace.icon className={`h-6 w-6 ${marketplace.color}`} />
-                          <div>
-                            <div className="font-semibold">{marketplace.name}</div>
-                            <div className="text-sm text-muted-foreground">{marketplace.description}</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-
-          <Button 
-            variant="ghost" 
-            className="text-foreground hover:text-primary"
-            onClick={() => navigate('/hotels')}
-          >
-            Deals
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            className="text-foreground hover:text-primary"
-            onClick={() => navigate('/dashboard')}
-          >
-            Travel Fund
-          </Button>
-
-          <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="icon" className="relative">
-              <Heart className="h-5 w-5" />
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/search/hotels')}
+            >
+              <span>Hotels</span>
             </Button>
             
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-travel-coral text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                2
-              </span>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/search/flights')}
+            >
+              <Plane className="h-4 w-4" />
+              <span>Flights</span>
             </Button>
             
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/search/activities')}
+            >
+              <MapPin className="h-4 w-4" />
+              <span>Activities</span>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/car-rental')}
+            >
+              <Car className="h-4 w-4" />
+              <span>Car Rental</span>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/deals')}
+            >
+              <Gift className="h-4 w-4" />
+              <span>Deals</span>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/partners')}
+            >
+              <UsersIcon className="h-4 w-4" />
+              <span>Partners</span>
+            </Button>
+          </div>
+
+          {/* Right Side Actions */}
+          <div className="flex items-center space-x-4">
+            {/* Language Selector */}
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-16 h-8 border-none bg-transparent">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="EN">EN</SelectItem>
+                <SelectItem value="ES">ES</SelectItem>
+                <SelectItem value="FR">FR</SelectItem>
+                <SelectItem value="DE">DE</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Help Link */}
+            <Button variant="ghost" className="text-foreground hover:text-primary text-sm">
+              Help
+            </Button>
+
+            {/* User Authentication */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -160,67 +161,98 @@ const Navbar = () => {
               </DropdownMenu>
             ) : (
               <Button 
-                variant="ghost" 
                 onClick={() => navigate('/auth')}
-                className="text-foreground hover:text-primary"
+                className="bg-travel-ocean hover:bg-travel-ocean/90 text-white px-6"
               >
                 Sign In
               </Button>
             )}
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-border py-4 animate-slideIn">
+            <div className="space-y-2">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/search/hotels');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Hotels
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/search/flights');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <Plane className="mr-2 h-4 w-4" />
+                Flights
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/search/activities');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <MapPin className="mr-2 h-4 w-4" />
+                Activities
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/car-rental');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <Car className="mr-2 h-4 w-4" />
+                Car Rental
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/deals');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <Gift className="mr-2 h-4 w-4" />
+                Deals
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/partners');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <UsersIcon className="mr-2 h-4 w-4" />
+                Partners
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden border-t border-border mt-4 pt-4 px-6 pb-6 animate-slideIn">
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-              <Input
-                type="text"
-                placeholder="Where do you want to go?"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input pl-11 pr-4 py-3 w-full"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              {marketplaces.map((marketplace) => (
-                <div key={marketplace.name} className="flex items-center space-x-2 p-3 rounded-xl hover:bg-muted transition-colors cursor-pointer">
-                  <marketplace.icon className={`h-5 w-5 ${marketplace.color}`} />
-                  <span className="font-medium">{marketplace.name}</span>
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <Button variant="ghost">Deals</Button>
-              <Button variant="ghost">Travel Fund</Button>
-              {user ? (
-                <Button variant="ghost" onClick={handleSignOut}>
-                  Sign Out
-                </Button>
-              ) : (
-                <Button variant="ghost" onClick={() => navigate('/auth')}>
-                  Sign In
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </nav>
   );
 };
