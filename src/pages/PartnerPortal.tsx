@@ -32,6 +32,7 @@ const PartnerPortal = () => {
   const [newProperty, setNewProperty] = useState({ name: "", location: "", type: "Hotel" });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
 
   const stats = [
     { title: "Total Bookings", value: "1,234", change: "+12%", icon: Calendar, color: "text-travel-ocean" },
@@ -173,6 +174,45 @@ const PartnerPortal = () => {
                   setIsAddOpen(false);
                   setNewProperty({ name: "", location: "", type: "Hotel" });
                 }}>Save</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Configure Integrations Dialog */}
+          <Dialog open={isIntegrationsOpen} onOpenChange={setIsIntegrationsOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Configure Integrations</DialogTitle>
+                <DialogDescription>
+                  Manage your API connections and notification settings.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Booking Engine API</p>
+                    <p className="text-sm text-muted-foreground">Enable inventory sync</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Payment Gateway (Stripe)</p>
+                    <p className="text-sm text-muted-foreground">Process payouts and charges</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Notification Service</p>
+                    <p className="text-sm text-muted-foreground">Email & SMS alerts</p>
+                  </div>
+                  <Switch />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsIntegrationsOpen(false)}>Cancel</Button>
+                <Button className="btn-primary" onClick={() => { toast({ title: 'Integrations saved' }); setIsIntegrationsOpen(false); }}>Save</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -791,7 +831,7 @@ const PartnerPortal = () => {
                         </div>
                       </div>
 
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full" onClick={() => setIsIntegrationsOpen(true)}>
                         <Settings className="h-4 w-4 mr-2" />
                         Configure Integrations
                       </Button>
