@@ -17,6 +17,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 
 const PartnerPortal = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -26,6 +28,9 @@ const PartnerPortal = () => {
     { id: 3, type: "payment", message: "Payment processed: $1,250", time: "3 hours ago", read: true }
   ]);
   const [supplierType, setSupplierType] = useState("hotel");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newProperty, setNewProperty] = useState({ name: "", location: "", type: "Hotel" });
+  const { toast } = useToast();
 
   const stats = [
     { title: "Total Bookings", value: "1,234", change: "+12%", icon: Calendar, color: "text-travel-ocean" },
@@ -118,12 +123,55 @@ const PartnerPortal = () => {
               <Button variant="outline" size="icon">
                 <Settings className="h-4 w-4" />
               </Button>
-              <Button className="btn-primary">
+              <Button className="btn-primary" onClick={() => setIsAddOpen(true)} aria-label="Add a new property">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Property
               </Button>
             </div>
           </div>
+
+          {/* Add Property Dialog */}
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Property</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="prop-name">Property Name</Label>
+                    <Input id="prop-name" value={newProperty.name} onChange={(e) => setNewProperty(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Ocean View Resort" />
+                  </div>
+                  <div>
+                    <Label htmlFor="prop-location">Location</Label>
+                    <Input id="prop-location" value={newProperty.location} onChange={(e) => setNewProperty(p => ({ ...p, location: e.target.value }))} placeholder="City, Country" />
+                  </div>
+                </div>
+                <div>
+                  <Label>Type</Label>
+                  <Select value={newProperty.type} onValueChange={(v) => setNewProperty(p => ({ ...p, type: v }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Hotel">Hotel</SelectItem>
+                      <SelectItem value="Flight">Flight</SelectItem>
+                      <SelectItem value="Car">Car Rental</SelectItem>
+                      <SelectItem value="Activity">Activity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+                <Button className="btn-primary" onClick={() => {
+                  toast({ title: "Property created", description: `${newProperty.name || 'Untitled'} in ${newProperty.location || 'Unknown'}` });
+                  setIsAddOpen(false);
+                  setNewProperty({ name: "", location: "", type: "Hotel" });
+                }}>Save</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-6 mb-8">
