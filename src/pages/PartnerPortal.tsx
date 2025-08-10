@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   BarChart3, Building, Car, Plane, Users, TrendingUp, 
   DollarSign, Calendar, MapPin, Settings, Bell, Upload,
@@ -31,6 +31,7 @@ const PartnerPortal = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newProperty, setNewProperty] = useState({ name: "", location: "", type: "Hotel" });
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const stats = [
     { title: "Total Bookings", value: "1,234", change: "+12%", icon: Calendar, color: "text-travel-ocean" },
@@ -280,23 +281,39 @@ const PartnerPortal = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-3">
-                      <Button variant="outline" className="h-16 flex-col text-xs">
+                      <Button variant="outline" className="h-16 flex-col text-xs" onClick={() => setIsAddOpen(true)}>
                         <Building className="h-5 w-5 mb-1" />
                         <span>Add Property</span>
                       </Button>
-                      <Button variant="outline" className="h-16 flex-col text-xs">
+                      <Button variant="outline" className="h-16 flex-col text-xs" onClick={() => fileInputRef.current?.click()}>
                         <Camera className="h-5 w-5 mb-1" />
                         <span>Upload Photos</span>
                       </Button>
-                      <Button variant="outline" className="h-16 flex-col text-xs">
+                      <Button variant="outline" className="h-16 flex-col text-xs" onClick={() => { setActiveTab('listings'); toast({ title: 'Availability', description: 'Go to Listings to manage availability and rates' }); }}>
                         <Calendar className="h-5 w-5 mb-1" />
                         <span>Availability</span>
                       </Button>
-                      <Button variant="outline" className="h-16 flex-col text-xs">
+                      <Button variant="outline" className="h-16 flex-col text-xs" onClick={() => setActiveTab('analytics')}>
                         <BarChart3 className="h-5 w-5 mb-1" />
                         <span>Reports</span>
                       </Button>
                     </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        const count = e.target.files?.length || 0;
+                        if (count) {
+                          toast({ title: 'Photos selected', description: `${count} photo${count > 1 ? 's' : ''} ready to upload` });
+                        } else {
+                          toast({ title: 'No files selected', description: 'Please choose photos to upload' });
+                        }
+                        e.currentTarget.value = '';
+                      }}
+                    />
                     
                     <div className="mt-6 p-4 bg-gradient-to-r from-travel-ocean/10 to-travel-forest/10 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
