@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
+import { Link } from "react-router-dom";
 
 const PartnersPage = () => {
   const [formData, setFormData] = useState({
@@ -106,8 +107,8 @@ const PartnersPage = () => {
             <Button size="lg" className="bg-travel-ocean hover:bg-travel-ocean/90">
               Become a Partner
             </Button>
-            <Button size="lg" variant="outline">
-              Partner Portal Login
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto" aria-label="Open Partner Portal">
+              <Link to="/partner-portal">Partner Portal Login</Link>
             </Button>
           </div>
         </div>
