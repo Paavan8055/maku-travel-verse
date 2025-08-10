@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 
 const PartnerPortal = () => {
@@ -136,6 +136,9 @@ const PartnerPortal = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New Property</DialogTitle>
+                <DialogDescription>
+                  Fill in details to create a new listing.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -614,7 +617,10 @@ const PartnerPortal = () => {
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-2xl font-bold">Notifications & Alerts</h3>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setNotifications((prev) => prev.map(n => ({ ...n, read: true })));
+                    toast({ title: 'All alerts marked as read' });
+                  }}>
                     Mark All as Read
                   </Button>
                 </div>
