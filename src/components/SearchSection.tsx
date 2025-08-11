@@ -305,9 +305,19 @@ const [segments, setSegments] = useState<Segment[]>([
                       : (!flightFrom || !flightTo || !flightDepart || (tripType === "roundtrip" && !flightReturn))
                   }
                   onClick={() => {
+                    const toCode = (text: string) => {
+                      if (!text) return "";
+                      const m = text.match(/\(([A-Za-z0-9]{3,4})\)/);
+                      if (m) return m[1].toUpperCase();
+                      const t = text.trim().toUpperCase();
+                      if (t.length === 3) return t;
+                      // fallback: take last 3 letters if looks like "City (CODE)" wasn't used
+                      return t.slice(-3);
+                    };
+
                     const base: Record<string, string> = {
-                      cabin: cabinClass,
-                      trip: tripType,
+                      cabinClass: cabinClass,
+                      tripType: tripType,
                       passengers: String(adults + children + infants),
                       adults: String(adults),
                       children: String(children),
@@ -316,22 +326,22 @@ const [segments, setSegments] = useState<Segment[]>([
 
                     if (tripType === "multicity") {
                       const segs = segments.map((s) => ({
-                        from: s.from,
-                        to: s.to,
+                        origin: toCode(s.from),
+                        destination: toCode(s.to),
                         date: s.date ? format(s.date, "yyyy-MM-dd") : "",
                       }));
                       const params = new URLSearchParams(base);
                       params.set("segments", JSON.stringify(segs));
-                      window.location.href = `/search?type=flights&${params.toString()}`;
+                      window.location.href = `/search/flights?${params.toString()}`;
                     } else {
                       const params = new URLSearchParams({
                         ...base,
-                        origin: flightFrom,
-                        destination: flightTo,
+                        origin: toCode(flightFrom),
+                        destination: toCode(flightTo),
                         departureDate: flightDepart ? format(flightDepart, "yyyy-MM-dd") : "",
                         returnDate: tripType === "roundtrip" && flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
                       });
-                      window.location.href = `/search?type=flights&${params.toString()}`;
+                      window.location.href = `/search/flights?${params.toString()}`;
                     }
                   }}
                 >
