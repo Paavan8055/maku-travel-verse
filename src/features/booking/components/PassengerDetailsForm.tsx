@@ -69,8 +69,6 @@ const PassengerSchema = z.object({
   phone: z
     .string()
     .regex(/^\+?[1-9]\d{7,14}$/i, "Use international format, e.g., +15551234567"),
-  knownTraveler: z.string().optional(),
-  redress: z.string().optional(),
 });
 
 export type PassengerFormData = z.infer<typeof PassengerSchema>;
@@ -207,24 +205,14 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
               render={() => (
                 <PhoneInput
                   international
-                  defaultCountry="AU"
+                  
                   value={all.phone as any}
                   onChange={(val) => setValue("phone", (val || "") as any, { shouldValidate: true })}
-                  placeholder="+61412345678"
+                  placeholder="+123456789"
                 />
               )}
             />
             {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="mb-2 block">Known Traveler (optional)</Label>
-              <Input {...register("knownTraveler")} placeholder="KTN" />
-            </div>
-            <div>
-              <Label className="mb-2 block">Redress (optional)</Label>
-              <Input {...register("redress")} placeholder="Redress" />
-            </div>
           </div>
         </div>
 
