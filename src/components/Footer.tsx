@@ -3,48 +3,91 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import makuMascot from "@/assets/maku-mascot.png";
-
 const Footer = () => {
   const footerLinks = {
-    company: [
-      { name: "About Maku.travel", href: "#" },
-      { name: "Careers", href: "#" },
-      { name: "Press", href: "#" },
-      { name: "Partner Portal", href: "#" },
-      { name: "Investor Relations", href: "#" }
-    ],
-    marketplaces: [
-      { name: "Family Adventures", href: "#" },
-      { name: "Solo Journeys", href: "#" },
-      { name: "Pet-Friendly Travel", href: "#" },
-      { name: "Spiritual Retreats", href: "#" },
-      { name: "Travel Fund Manager", href: "#" }
-    ],
-    support: [
-      { name: "Help Center", href: "#" },
-      { name: "Safety & Security", href: "#" },
-      { name: "Cancellation Policy", href: "#" },
-      { name: "Verified Reviews", href: "#" },
-      { name: "Contact Us", href: "#" }
-    ],
-    legal: [
-      { name: "Privacy Policy", href: "#" },
-      { name: "Terms of Service", href: "#" },
-      { name: "Cookie Policy", href: "#" },
-      { name: "GDPR", href: "#" },
-      { name: "Accessibility", href: "#" }
-    ]
+    company: [{
+      name: "About Maku.travel",
+      href: "#"
+    }, {
+      name: "Careers",
+      href: "#"
+    }, {
+      name: "Press",
+      href: "#"
+    }, {
+      name: "Partner Portal",
+      href: "#"
+    }, {
+      name: "Investor Relations",
+      href: "#"
+    }],
+    marketplaces: [{
+      name: "Family Adventures",
+      href: "#"
+    }, {
+      name: "Solo Journeys",
+      href: "#"
+    }, {
+      name: "Pet-Friendly Travel",
+      href: "#"
+    }, {
+      name: "Spiritual Retreats",
+      href: "#"
+    }, {
+      name: "Travel Fund Manager",
+      href: "#"
+    }],
+    support: [{
+      name: "Help Center",
+      href: "#"
+    }, {
+      name: "Safety & Security",
+      href: "#"
+    }, {
+      name: "Cancellation Policy",
+      href: "#"
+    }, {
+      name: "Verified Reviews",
+      href: "#"
+    }, {
+      name: "Contact Us",
+      href: "#"
+    }],
+    legal: [{
+      name: "Privacy Policy",
+      href: "#"
+    }, {
+      name: "Terms of Service",
+      href: "#"
+    }, {
+      name: "Cookie Policy",
+      href: "#"
+    }, {
+      name: "GDPR",
+      href: "#"
+    }, {
+      name: "Accessibility",
+      href: "#"
+    }]
   };
-
-  const socialLinks = [
-    { icon: Facebook, href: "#", name: "Facebook" },
-    { icon: Twitter, href: "#", name: "Twitter" },
-    { icon: Instagram, href: "#", name: "Instagram" },
-    { icon: Youtube, href: "#", name: "YouTube" }
-  ];
-
-  return (
-    <footer className="bg-gradient-to-b from-background to-muted/50 border-t border-border">
+  const socialLinks = [{
+    icon: Facebook,
+    href: "#",
+    name: "Facebook"
+  }, {
+    icon: Twitter,
+    href: "#",
+    name: "Twitter"
+  }, {
+    icon: Instagram,
+    href: "#",
+    name: "Instagram"
+  }, {
+    icon: Youtube,
+    href: "#",
+    name: "YouTube"
+  }];
+  return <footer className="bg-gradient-to-b from-background to-muted/50 border-t border-border">
       {/* Newsletter Section */}
       <div className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
@@ -58,11 +101,7 @@ const Footer = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 bg-white/10 border-white/30 text-white placeholder:text-white/70"
-                />
+                <Input type="email" placeholder="Enter your email" className="flex-1 bg-white/10 border-white/30 text-white placeholder:text-white/70" />
                 <Button variant="secondary" className="btn-secondary whitespace-nowrap">
                   Subscribe Now
                 </Button>
@@ -82,39 +121,19 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12 items-start animate-fade-in">
             {/* Brand */}
             <div>
-              <div className="flex items-center space-x-3 mb-8">
-                <div className="p-2 rounded-xl bg-gradient-primary">
-                  <Globe className="h-8 w-8 text-white animate-pulse-soft" />
-                </div>
-                <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent font-playfair">
-                  Maku.travel
-                </span>
-              </div>
-              <p className="text-foreground/80 mb-8 leading-relaxed text-lg font-medium">
-                Founded in Sydney, June 2024. Building life's travel stories through AI-powered marketplace experiences with 1.5 million+ hotels globally via Amadeus & HotelBeds APIs.
-              </p>
+              
+              
               <div className="flex items-center mb-8 p-4 bg-gradient-to-r from-travel-sunset/10 to-travel-ocean/10 rounded-2xl border border-primary/20">
-                <img
-                  src={makuMascot}
-                  alt="Maku Mascot"
-                  className="w-16 h-16 mr-4 drop-shadow-lg"
-                />
+                <img src={makuMascot} alt="Maku Mascot" className="w-16 h-16 mr-4 drop-shadow-lg" />
                 <div>
                   <div className="font-bold text-xl text-primary">Meet Maku!</div>
                   <div className="text-secondary font-medium">Your travel companion</div>
                 </div>
               </div>
               <div className="flex space-x-4">
-                {socialLinks.map((social) => (
-                  <Button
-                    key={social.name}
-                    variant="outline"
-                    size="icon"
-                    className="w-12 h-12 rounded-full border-2 border-primary/30 hover:border-primary hover:bg-gradient-primary hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-elegant"
-                  >
+                {socialLinks.map(social => <Button key={social.name} variant="outline" size="icon" className="w-12 h-12 rounded-full border-2 border-primary/30 hover:border-primary hover:bg-gradient-primary hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-elegant">
                     <social.icon className="h-6 w-6" />
-                  </Button>
-                ))}
+                  </Button>)}
               </div>
             </div>
 
@@ -122,13 +141,11 @@ const Footer = () => {
             <div>
               <h4 className="font-semibold text-lg mb-4 text-foreground">Company</h4>
               <ul className="space-y-3">
-                {footerLinks.company.map((link) => (
-                  <li key={link.name}>
+                {footerLinks.company.map(link => <li key={link.name}>
                     <a href={link.href} className="story-link text-muted-foreground hover:text-primary transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </div>
 
@@ -136,13 +153,11 @@ const Footer = () => {
             <div>
               <h4 className="font-semibold text-lg mb-4 text-foreground">Marketplaces</h4>
               <ul className="space-y-3">
-                {footerLinks.marketplaces.map((link) => (
-                  <li key={link.name}>
+                {footerLinks.marketplaces.map(link => <li key={link.name}>
                     <a href={link.href} className="story-link text-muted-foreground hover:text-secondary transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </div>
 
@@ -150,13 +165,11 @@ const Footer = () => {
             <div>
               <h4 className="font-semibold text-lg mb-4 text-foreground">Support</h4>
               <ul className="space-y-3">
-                {footerLinks.support.map((link) => (
-                  <li key={link.name}>
+                {footerLinks.support.map(link => <li key={link.name}>
                     <a href={link.href} className="story-link text-muted-foreground hover:text-travel-sunset transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </div>
 
@@ -199,17 +212,13 @@ const Footer = () => {
               © 2025 Maku.travel Pty Ltd. All rights reserved. IATA accreditation applied July 15, 2025.
             </div>
             <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-              {footerLinks.legal.map((link, idx) => (
-                <a key={link.name} href={link.href} className="hover:text-primary story-link">
+              {footerLinks.legal.map((link, idx) => <a key={link.name} href={link.href} className="hover:text-primary story-link">
                   {link.name}
-                </a>
-              ))}
+                </a>)}
             </nav>
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
