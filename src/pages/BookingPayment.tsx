@@ -5,11 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
+import { Link } from "react-router-dom";
 
 const BookingPaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessing] = useState(false);
+  const [bookingId] = useState(() => `confirmed-${Date.now()}`);
 
   useEffect(() => {
     document.title = "Payment | Maku Travel";
@@ -44,15 +46,7 @@ const BookingPaymentPage = () => {
 
   const handlePayment = async () => {
     if (!agreeToTerms) return;
-
-    setIsProcessing(true);
-
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      // Redirect to confirmation
-      window.location.href = `/dashboard/bookings/confirmed-${Date.now()}`;
-    }, 3000);
+    // In a real integration, trigger payment here, then navigate to details.
   };
 
   return (
@@ -349,18 +343,16 @@ const BookingPaymentPage = () => {
                 )}
 
                 <Button
-                  onClick={handlePayment}
-                  disabled={!agreeToTerms || isProcessing}
+                  asChild
+                  disabled={!agreeToTerms}
                   className="w-full mt-6 btn-primary h-12"
                 >
-                  {isProcessing ? (
-                    <>Processing...</>
-                  ) : (
-                    <>
+                  <Link to={`/dashboard/bookings/${bookingId}`}>
+                    <span className="inline-flex items-center">
                       <Check className="mr-2 h-4 w-4" />
                       Confirm & Pay ${bookingDetails.total}
-                    </>
-                  )}
+                    </span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
