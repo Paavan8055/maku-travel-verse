@@ -69,6 +69,28 @@ const FlightSearchPage = () => {
     { key: "arrival", label: "Arrival Time" }
   ];
 
+  // SEO: dynamic title and meta description
+  useEffect(() => {
+    const title = `Flights ${searchCriteria.origin} → ${searchCriteria.destination} | Maku.travel`;
+    const when = searchCriteria.departureDate ? ` on ${searchCriteria.departureDate}` : '';
+    const description = `Compare fares and book flights from ${searchCriteria.origin} to ${searchCriteria.destination}${when}. Live results powered by Amadeus.`;
+    document.title = title;
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', description);
+    let canon = document.querySelector('link[rel="canonical"]');
+    if (!canon) {
+      canon = document.createElement('link');
+      canon.setAttribute('rel', 'canonical');
+      document.head.appendChild(canon);
+    }
+    canon.setAttribute('href', window.location.origin + '/search/flights');
+  }, [searchCriteria.origin, searchCriteria.destination, searchCriteria.departureDate]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

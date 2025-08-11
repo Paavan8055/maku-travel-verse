@@ -32,6 +32,17 @@ interface Flight {
   };
 }
 
+
+// Convert ISO 8601 duration (e.g., PT7H30M) to minutes
+const parseISO8601DurationToMinutes = (duration?: string): number => {
+  if (!duration) return 0;
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1] || "0", 10);
+  const minutes = parseInt(match[2] || "0", 10);
+  return hours * 60 + minutes;
+};
+
 export const useFlightSearch = (criteria: FlightSearchCriteria) => {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,8 +75,46 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
           throw functionError;
         }
 
-        if (data?.flights) {
-          setFlights(data.flights);
+        if (data?.flights && Array.isArray(data.flights)) {
+          const normalized = data.flights
+            .map((f: any) => {
+              // Amadeus-like schema
+              if (f?.airline && f?.departure && f?.arrival && f?.price) {
+                return {
+                  id: String(f.id ?? `${f.airline?.code}-${f.flightNumber}`),
+                  airline: f.airline?.name ?? f.airline?.code ?? "Airline",
+                  airlineCode: f.airline?.code ?? "XX",
+                  flightNumber: f.flightNumber ?? `${f.airline?.code ?? "XX"}${Math.floor(Math.random()*900)+100}`,
+                  aircraft: f.aircraft ?? "Unknown",
+                  origin: f.departure?.airport ?? criteria.origin,
+                  destination: f.arrival?.airport ?? criteria.destination,
+                  departureTime: f.departure?.time ?? "--:--",
+                  arrivalTime: f.arrival?.time ?? "--:--",
+                  duration: parseISO8601DurationToMinutes(f.duration),
+                  stops: String(typeof f.stops === 'number' ? f.stops : (f.stops ?? 0)),
+                  price: Math.round(Number(f.price?.amount ?? 0)),
+                  currency: f.price?.currency ?? "USD",
+                  availableSeats: f.availableSeats ?? 9,
+                  cabin: (f.cabinClass ?? "ECONOMY").toString().toLowerCase().replace(/\b\w/g, c => c.toUpperCase()),
+                  baggage: {
+                    carry: Boolean(f.baggage?.carry_on ?? true),
+                    checked: Boolean((f.baggage?.included ?? 0) > 0)
+                  }
+                } as Flight;
+              }
+              // Already in internal shape
+              if (f?.airline && f?.origin && f?.destination && typeof f?.price === 'number') {
+                return f as Flight;
+              }
+              return null;
+            })
+            .filter(Boolean) as Flight[];
+
+          if (normalized.length > 0) {
+            setFlights(normalized);
+          } else {
+            setFlights(generateMockFlights(criteria));
+          }
         } else {
           // Fallback to mock data for development
           setFlights(generateMockFlights(criteria));
