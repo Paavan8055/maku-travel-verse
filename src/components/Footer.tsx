@@ -6,84 +6,84 @@ const Footer = () => {
   const footerLinks = {
     company: [{
       name: "About Maku.travel",
-      href: "#"
+      href: "/"
     }, {
       name: "Careers",
-      href: "#"
+      href: "/partners?tab=careers"
     }, {
       name: "Press",
-      href: "#"
+      href: "/partners?tab=press"
     }, {
       name: "Partner Portal",
-      href: "#"
+      href: "/partner-portal"
     }, {
       name: "Investor Relations",
-      href: "#"
+      href: "/partners?tab=investors"
     }],
     marketplaces: [{
       name: "Family Adventures",
-      href: "#"
+      href: "/search/hotels?vertical=family"
     }, {
       name: "Solo Journeys",
-      href: "#"
+      href: "/search/hotels?vertical=solo"
     }, {
       name: "Pet-Friendly Travel",
-      href: "#"
+      href: "/search/hotels?vertical=pet"
     }, {
       name: "Spiritual Retreats",
-      href: "#"
+      href: "/search/hotels?vertical=spiritual"
     }, {
       name: "Travel Fund Manager",
-      href: "#"
+      href: "/partners?tab=fund"
     }],
     support: [{
       name: "Help Center",
-      href: "#"
+      href: "/partners?tab=help"
     }, {
       name: "Safety & Security",
-      href: "#"
+      href: "/partners?tab=safety"
     }, {
       name: "Cancellation Policy",
-      href: "#"
+      href: "/partners?tab=policies"
     }, {
       name: "Verified Reviews",
-      href: "#"
+      href: "/search/hotels?verified=true"
     }, {
       name: "Contact Us",
-      href: "#"
+      href: "mailto:support@maku.travel"
     }],
     legal: [{
       name: "Privacy Policy",
-      href: "#"
+      href: "/partners?tab=privacy"
     }, {
       name: "Terms of Service",
-      href: "#"
+      href: "/partners?tab=terms"
     }, {
       name: "Cookie Policy",
-      href: "#"
+      href: "/partners?tab=cookies"
     }, {
       name: "GDPR",
-      href: "#"
+      href: "/partners?tab=gdpr"
     }, {
       name: "Accessibility",
-      href: "#"
+      href: "/partners?tab=accessibility"
     }]
   };
   const socialLinks = [{
     icon: Facebook,
-    href: "#",
+    href: "https://facebook.com/maku.travel",
     name: "Facebook"
   }, {
     icon: Twitter,
-    href: "#",
+    href: "https://twitter.com/maku_travel",
     name: "Twitter"
   }, {
     icon: Instagram,
-    href: "#",
+    href: "https://instagram.com/maku.travel",
     name: "Instagram"
   }, {
     icon: Youtube,
-    href: "#",
+    href: "https://youtube.com",
     name: "YouTube"
   }];
 return <footer className="bg-primary text-primary-foreground">
@@ -109,11 +109,11 @@ return <footer className="bg-primary text-primary-foreground">
             <div>
               <h4 className="font-semibold text-lg mb-4">Services</h4>
               <ul className="space-y-3">
-                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Hotels & Accommodation</a></li>
-                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Flight Booking</a></li>
-                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Tours & Activities</a></li>
-                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Car Rentals</a></li>
-                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Travel Deals</a></li>
+                <li><a href="/search/hotels" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Hotels & Accommodation</a></li>
+                <li><a href="/search/flights" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Flight Booking</a></li>
+                <li><a href="/search/activities" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Tours & Activities</a></li>
+                <li><a href="/car-rental" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Car Rentals</a></li>
+                <li><a href="/deals" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Travel Deals</a></li>
               </ul>
             </div>
 
@@ -141,6 +141,8 @@ return <footer className="bg-primary text-primary-foreground">
                     key={social.name}
                     href={social.href}
                     aria-label={social.name}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 transition-colors"
                   >
                     <social.icon className="h-5 w-5" />
