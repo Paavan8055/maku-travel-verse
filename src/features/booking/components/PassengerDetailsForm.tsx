@@ -49,21 +49,6 @@ const PassengerSchema = z.object({
     .max(15)
     .transform((v) => v.toUpperCase())
     .refine((v) => /^[A-Z0-9]+$/.test(v), { message: "Alphanumeric only" }),
-  issuingCountry: z
-    .string()
-    .min(2)
-    .max(3)
-    .transform((v) => v.toUpperCase())
-    .refine((v) => /^[A-Z]{2,3}$/.test(v), { message: "Use 2-3 letter ISO code" }),
-  passportExpiry: z.string().refine((v) => {
-    const d = new Date(v);
-    if (Number.isNaN(d.getTime())) return false;
-    const sixMonthsFromNow = new Date();
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    return d > sixMonthsFromNow; // common rule: 6+ months validity
-  }, {
-    message: "Passport must be valid for at least 6 months from today",
-  }),
   email: z.string().email(),
   phone: z
     .string()
@@ -176,16 +161,6 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
             <Label className="mb-2 block">Passport Number</Label>
             <Input {...register("passportNumber")} placeholder="X1234567" onChange={(e)=>setValue("passportNumber", e.target.value.toUpperCase() as any, { shouldValidate: true })} />
             {errors.passportNumber && <p className="text-xs text-destructive mt-1">{errors.passportNumber.message}</p>}
-          </div>
-          <div>
-            <Label className="mb-2 block">Issuing Country (ISO)</Label>
-            <Input {...register("issuingCountry")} placeholder="US / IND" onChange={(e)=>setValue("issuingCountry", e.target.value.toUpperCase() as any, { shouldValidate: true })} />
-            {errors.issuingCountry && <p className="text-xs text-destructive mt-1">{errors.issuingCountry.message}</p>}
-          </div>
-          <div>
-            <Label className="mb-2 block">Passport Expiry</Label>
-            <Input type="date" {...register("passportExpiry")} />
-            {errors.passportExpiry && <p className="text-xs text-destructive mt-1">{errors.passportExpiry.message}</p>}
           </div>
         </div>
 
