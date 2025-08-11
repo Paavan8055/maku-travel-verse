@@ -27,6 +27,13 @@ serve(async (req) => {
 
   try {
     const body: BookingPaymentParams = await req.json();
+    const { bookingType, bookingData, amount, currency, customerInfo } = (body as any) ?? {};
+    console.log('create-card-payment-intent init', {
+      bookingType,
+      amount,
+      currency,
+      hasCustomerEmail: !!customerInfo?.email,
+    });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
