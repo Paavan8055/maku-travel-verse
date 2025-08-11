@@ -38,7 +38,13 @@ const HeroSection = () => {
       {/* Hero Carousel */}
       <div className="relative h-full">
         {heroSlides.map((slide, index) => <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
-            <img src={slide.image} alt={slide.title} className="h-full w-full object-cover" />
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className="h-full w-full object-cover"
+              loading={index === currentSlide ? "eager" : "lazy"}
+              decoding="async"
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
           </div>)}
       </div>
