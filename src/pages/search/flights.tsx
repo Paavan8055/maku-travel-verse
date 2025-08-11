@@ -39,6 +39,8 @@ const FlightSearchPage = () => {
   );
   const [passengersInput, setPassengersInput] = useState(searchParams.get("passengers") || searchParams.get("guests") || "1");
 
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
   const searchCriteria = {
     origin: searchParams.get("origin") || "SYD",
     destination: searchParams.get("destination") || "BOM",
@@ -422,10 +424,61 @@ const FlightSearchPage = () => {
                                 </div>
                               )}
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              Show details
-                            </div>
+                            <button
+                              type="button"
+                              className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
+                              aria-expanded={!!expanded[flight.id]}
+                              onClick={() => setExpanded((prev) => ({ ...prev, [flight.id]: !prev[flight.id] }))}
+                            >
+                              {expanded[flight.id] ? "Hide details" : "Show details"}
+                            </button>
                           </div>
+
+                          {expanded[flight.id] && (
+                            <div className="mt-4 rounded-lg border bg-card/50 p-4 text-sm">
+                              <div className="grid gap-4 md:grid-cols-3">
+                                <div>
+                                  <div className="font-medium mb-2">Itinerary</div>
+                                  {Array.isArray(flight.segments) ? (
+                                    <ul className="space-y-2">
+                                      {flight.segments.map((seg: any, idx: number) => (
+                                        <li key={idx} className="flex items-start justify-between">
+                                          <div>
+                                            <div className="text-foreground">{seg.departure?.airport} → {seg.arrival?.airport}</div>
+                                            <div className="text-xs text-muted-foreground">
+                                              {formatTime(seg.departure?.time || "")} - {formatTime(seg.arrival?.time || "")}
+                                            </div>
+                                          </div>
+                                          {seg.flightNumber && (
+                                            <Badge variant="secondary">{seg.flightNumber}</Badge>
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <div className="text-muted-foreground">Direct flight</div>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <div className="font-medium mb-2">Cabin & Aircraft</div>
+                                  <div className="text-muted-foreground">
+                                    {flight.cabin || "Economy"} • {flight.aircraft || "Aircraft"}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1">{flight.flightNumber}</div>
+                                </div>
+
+                                <div>
+                                  <div className="font-medium mb-2">Baggage</div>
+                                  <ul className="space-y-1 text-muted-foreground">
+                                    <li>Carry-on: {flight.baggage?.carry ? "Included" : "—"}</li>
+                                    <li>Checked: {flight.baggage?.checked ? "Included" : "—"}</li>
+                                    <li>Seats left: {flight.availableSeats}</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
