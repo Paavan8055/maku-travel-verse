@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import PhoneInput from "react-phone-number-input";
 
 // Schema reflecting common airline/APIS requirements
 const PassengerSchema = z.object({
@@ -83,6 +84,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
   const {
     register,
     setValue,
+    control,
     watch,
     formState: { errors, isValid },
   } = useForm<PassengerFormData>({
@@ -199,7 +201,19 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
           </div>
           <div>
             <Label className="mb-2 block">Mobile</Label>
-            <Input {...register("phone")} placeholder="+15551234567" />
+            <Controller
+              name="phone"
+              control={control}
+              render={() => (
+                <PhoneInput
+                  international
+                  defaultCountry="AU"
+                  value={all.phone as any}
+                  onChange={(val) => setValue("phone", (val || "") as any, { shouldValidate: true })}
+                  placeholder="+61412345678"
+                />
+              )}
+            />
             {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
