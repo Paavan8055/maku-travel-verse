@@ -189,12 +189,28 @@ const SearchSection = () => {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                   <Input
+                    id="flight-to"
+                    name="flight-to"
                     type="text"
                     placeholder="To"
                     value={flightTo}
                     onChange={(e) => setFlightTo(e.target.value)}
                     className="search-input pl-11"
+                    autoComplete="address-level2"
+                    spellCheck={false}
+                    inputMode="text"
+                    list="airport-to"
                   />
+                  <datalist id="airport-to">
+                    <option value="Sydney (SYD)" />
+                    <option value="Melbourne (MEL)" />
+                    <option value="Auckland (AKL)" />
+                    <option value="Los Angeles (LAX)" />
+                    <option value="New York (JFK)" />
+                    <option value="London Heathrow (LHR)" />
+                    <option value="Tokyo Haneda (HND)" />
+                    <option value="Singapore Changi (SIN)" />
+                  </datalist>
                 </div>
 
                 <Popover>
