@@ -47,6 +47,7 @@ export const Dashboard: React.FC = () => {
   const [cancelling, setCancelling] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
   const fetchBookings = async () => {
     try {
@@ -130,8 +131,10 @@ export const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
     fetchBookings();
-  }, []);
+  }, [authLoading, user]);
 
   return (
     <AuthGuard>

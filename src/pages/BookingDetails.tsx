@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Download, Calendar, Users, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface BookingDetailsData {
   id: string;
@@ -47,6 +48,7 @@ const BookingDetailsInner: React.FC = () => {
   const [booking, setBooking] = useState<BookingDetailsData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
   const fetchBookingDetails = async () => {
     if (!id) return;
@@ -141,8 +143,10 @@ const BookingDetailsInner: React.FC = () => {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
     fetchBookingDetails();
-  }, [id]);
+  }, [id, user, authLoading]);
 
   if (loading) {
     return (
