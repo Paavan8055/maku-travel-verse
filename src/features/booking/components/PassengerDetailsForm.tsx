@@ -95,14 +95,14 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
         <p className="text-xs text-muted-foreground mb-4">
           Enter names exactly as on the passport. Use A–Z only (no accents). Passport must have 6+ months validity.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
           <div>
             <Label className="mb-2 block">Title</Label>
             <Select value={all.title} onValueChange={(v) => setValue("title", v as PassengerFormData["title"], { shouldValidate: true })}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Title" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-card z-50">
                 {(["MR","MRS","MS","MSTR","MISS"] as const).map(t => (
                   <SelectItem key={t} value={t}>{t}</SelectItem>
                 ))}
@@ -129,7 +129,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4">
           <div>
             <Label className="mb-2 block">Date of Birth</Label>
             <Input type="date" {...register("dateOfBirth")} />
@@ -138,10 +138,10 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
           <div>
             <Label className="mb-2 block">Gender</Label>
             <Select value={all.gender} onValueChange={(v) => setValue("gender", v as PassengerFormData["gender"], { shouldValidate: true })}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Gender" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-card z-50">
                 <SelectItem value="M">Male</SelectItem>
                 <SelectItem value="F">Female</SelectItem>
                 <SelectItem value="U">Unspecified</SelectItem>
@@ -156,7 +156,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4">
           <div>
             <Label className="mb-2 block">Passport Number</Label>
             <Input {...register("passportNumber")} placeholder="X1234567" onChange={(e)=>setValue("passportNumber", e.target.value.toUpperCase() as any, { shouldValidate: true })} />
@@ -164,7 +164,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4">
           <div>
             <Label className="mb-2 block">Email</Label>
             <Input type="email" {...register("email")} placeholder="name@example.com" />
