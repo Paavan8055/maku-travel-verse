@@ -110,33 +110,6 @@ const CheckoutPage = () => {
               </CardContent>
             </Card>
 
-            {/* Terms & Conditions */}
-            <Card className="travel-card">
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-3">
-                  <Checkbox 
-                    id="terms"
-                    checked={agreeToTerms}
-                    onCheckedChange={(checked) => setAgreeToTerms(checked === true)}
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="terms" className="text-sm cursor-pointer">
-                      I agree to the{" "}
-                      <Button variant="link" className="h-auto p-0 text-primary underline">
-                        Terms & Conditions
-                      </Button>{" "}
-                      and{" "}
-                      <Button variant="link" className="h-auto p-0 text-primary underline">
-                        Privacy Policy
-                      </Button>
-                    </label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      By proceeding, you acknowledge that you have read and understood our cancellation policy.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Booking Summary */}
