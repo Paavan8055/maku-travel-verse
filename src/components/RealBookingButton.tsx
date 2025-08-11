@@ -59,7 +59,7 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
   };
   if (!showBookingForm) {
     return <Button onClick={() => setShowBookingForm(true)} className={`btn-primary h-12 ${className}`} size="lg">
-        Book Now - {currency} {amount}
+        Continue - {currency} {amount}
       </Button>;
   }
   return <Card className="travel-card">
