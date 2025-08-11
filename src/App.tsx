@@ -21,6 +21,8 @@ import BookingBaggagePage from "./pages/BookingBaggage";
 import BookingExtrasPage from "./pages/BookingExtras";
 import CheckoutPage from "./pages/Checkout";
 import BookingPaymentPage from "./pages/BookingPayment";
+import BookingConfirmationPage from "./pages/BookingConfirmation";
+import BookingCancelledPage from "./pages/BookingCancelled";
 import { Dashboard } from "./pages/Dashboard";
 import { BookingDetails } from "./pages/BookingDetails";
 import PartnerPortal from "./pages/PartnerPortal";
@@ -60,6 +62,8 @@ const App = () => (
                   <Route path="/booking/extras" element={<BookingExtrasPage />} />
                   <Route path="/booking/checkout" element={<CheckoutPage />} />
                   <Route path="/booking/payment" element={<BookingPaymentPage />} />
+                  <Route path="/booking/confirmation" element={<BookingConfirmationPage />} />
+                  <Route path="/booking/cancelled" element={<BookingCancelledPage />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/bookings/:id" element={<BookingDetails />} />
                   <Route path="/partner-portal" element={<PartnerPortal />} />

@@ -5,13 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
-import { Link } from "react-router-dom";
+import { useBookingPayment } from "@/features/booking/hooks/useBookingPayment";
+
 
 const BookingPaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [isProcessing] = useState(false);
-  const [bookingId] = useState(() => `confirmed-${Date.now()}`);
+  const { createBookingPayment, isLoading } = useBookingPayment();
 
   useEffect(() => {
     document.title = "Payment | Maku Travel";
@@ -44,9 +44,33 @@ const BookingPaymentPage = () => {
     checked: params.get("checked") || "",
   };
 
-  const handlePayment = async () => {
+  const handleCheckout = async () => {
     if (!agreeToTerms) return;
-    // In a real integration, trigger payment here, then navigate to details.
+
+    let passenger: any = null;
+    try {
+      passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
+    } catch {}
+
+    const customerInfo = {
+      email: passenger?.email || 'guest@example.com',
+      firstName: passenger?.firstName || 'GUEST',
+      lastName: passenger?.lastName || 'USER',
+      phone: passenger?.phone,
+    };
+
+    const result = await createBookingPayment({
+      bookingType: isFlightCheckout ? 'flight' : 'hotel',
+      bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
+      amount: isFlightCheckout ? flightParams.amount : bookingDetails.total,
+      currency: isFlightCheckout ? flightParams.currency : 'USD',
+      customerInfo,
+      paymentMethod: paymentMethod as 'card' | 'fund' | 'split',
+    });
+
+    if (result.success && result.booking?.status === 'confirmed') {
+      window.location.href = `/dashboard/bookings/${result.booking.id}`;
+    }
   };
 
   return (
@@ -343,16 +367,18 @@ const BookingPaymentPage = () => {
                 )}
 
                 <Button
-                  asChild
-                  disabled={!agreeToTerms}
+                  onClick={handleCheckout}
+                  disabled={!agreeToTerms || isLoading}
                   className="w-full mt-6 btn-primary h-12"
                 >
-                  <Link to={`/dashboard/bookings/${bookingId}`}>
-                    <span className="inline-flex items-center">
+                  {isLoading ? (
+                    <>Processing...</>
+                  ) : (
+                    <>
                       <Check className="mr-2 h-4 w-4" />
-                      Confirm & Pay ${bookingDetails.total}
-                    </span>
-                  </Link>
+                      Confirm & Pay ${isFlightCheckout ? flightParams.amount.toFixed(2) : bookingDetails.total}
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
