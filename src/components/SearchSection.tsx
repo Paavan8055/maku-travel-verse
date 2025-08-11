@@ -14,6 +14,12 @@ const SearchSection = () => {
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("2");
   const [activeTab, setActiveTab] = useState("hotels");
+  // Flights state
+  const [flightFrom, setFlightFrom] = useState("");
+  const [flightTo, setFlightTo] = useState("");
+  const [flightDepart, setFlightDepart] = useState<Date>();
+  const [flightReturn, setFlightReturn] = useState<Date>();
+  const [flightPassengers, setFlightPassengers] = useState("1");
 
   const searchTabs = [
     { id: "hotels", label: "Hotels", icon: Building },
@@ -158,6 +164,8 @@ const SearchSection = () => {
                   <Input
                     type="text"
                     placeholder="From"
+                    value={flightFrom}
+                    onChange={(e) => setFlightFrom(e.target.value)}
                     className="search-input pl-11"
                   />
                 </div>
@@ -167,6 +175,8 @@ const SearchSection = () => {
                   <Input
                     type="text"
                     placeholder="To"
+                    value={flightTo}
+                    onChange={(e) => setFlightTo(e.target.value)}
                     className="search-input pl-11"
                   />
                 </div>
@@ -175,12 +185,14 @@ const SearchSection = () => {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="search-input justify-start text-left font-normal">
                       <Calendar className="mr-2 h-4 w-4" />
-                      Departure
+                      {flightDepart ? format(flightDepart, "MMM dd") : "Departure"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <CalendarComponent
                       mode="single"
+                      selected={flightDepart}
+                      onSelect={setFlightDepart}
                       initialFocus
                       className="pointer-events-auto"
                     />
@@ -191,19 +203,21 @@ const SearchSection = () => {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="search-input justify-start text-left font-normal">
                       <Calendar className="mr-2 h-4 w-4" />
-                      Return
+                      {flightReturn ? format(flightReturn, "MMM dd") : "Return"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <CalendarComponent
                       mode="single"
+                      selected={flightReturn}
+                      onSelect={setFlightReturn}
                       initialFocus
                       className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
 
-                <Select defaultValue="1">
+                <Select value={flightPassengers} onValueChange={setFlightPassengers}>
                   <SelectTrigger className="search-input">
                     <Users className="mr-2 h-4 w-4" />
                     <SelectValue />
@@ -220,7 +234,17 @@ const SearchSection = () => {
               <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  onClick={() => window.location.href = `/search?type=flights`}
+                  disabled={!flightFrom || !flightTo || !flightDepart}
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      origin: flightFrom,
+                      destination: flightTo,
+                      departureDate: flightDepart ? format(flightDepart, "yyyy-MM-dd") : "",
+                      returnDate: flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
+                      passengers: flightPassengers
+                    });
+                    window.location.href = `/search?type=flights&${params.toString()}`;
+                  }}
                 >
                   <Search className="mr-2 h-5 w-5" />
                   Search Flights
