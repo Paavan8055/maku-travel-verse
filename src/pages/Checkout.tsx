@@ -7,11 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
+import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
 
 const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [passengerValid, setPassengerValid] = useState(false);
+  const [passenger, setPassenger] = useState<PassengerFormData | null>(null);
   
   // Mock data from URL params in real app
   const bookingDetails = {
@@ -63,36 +66,8 @@ const CheckoutPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Payment Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Guest Information */}
-            <Card className="travel-card">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-bold mb-4">Guest Information</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">First Name</label>
-                    <Input placeholder="John" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Last Name</label>
-                    <Input placeholder="Doe" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
-                    <Input type="email" placeholder="john@example.com" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Phone</label>
-                    <Input type="tel" placeholder="+1 (555) 123-4567" />
-                  </div>
-                </div>
-                
-                <div className="mt-4">
-                  <label className="block text-sm font-medium mb-2">Special Requests</label>
-                  <Input placeholder="Any special requirements or requests..." />
-                </div>
-              </CardContent>
-            </Card>
+            {/* Passenger Details */}
+            <PassengerDetailsForm onChange={(data, valid) => { setPassenger(data); setPassengerValid(valid); }} />
 
             {/* Payment Method */}
             <Card className="travel-card">
@@ -283,7 +258,7 @@ const CheckoutPage = () => {
 
                 <Button 
                   onClick={handlePayment}
-                  disabled={!agreeToTerms || isProcessing}
+                  disabled={!agreeToTerms || isProcessing || !passengerValid}
                   className="w-full mt-6 btn-primary h-12"
                 >
                   {isProcessing ? (
