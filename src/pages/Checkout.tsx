@@ -44,16 +44,16 @@ const CheckoutPage = () => {
   };
 
   const goToPayment = () => {
-    if (!passengerValid) return;
     try {
-      if (passenger) sessionStorage.setItem('passengerInfo', JSON.stringify(passenger));
+      if (passengerValid && passenger) {
+        sessionStorage.setItem('passengerInfo', JSON.stringify(passenger));
+      }
     } catch (e) {
       // no-op
     }
     const search = typeof window !== 'undefined' ? window.location.search : '';
     navigate(`/booking/payment${search}`);
   };
-
   const handlePayment = async () => {
     if (!agreeToTerms) return;
     
@@ -102,7 +102,6 @@ const CheckoutPage = () => {
                 <Button
                   className="btn-primary h-12"
                   size="lg"
-                  disabled={!passengerValid}
                   onClick={goToPayment}
                 >
                   Continue to Payment
