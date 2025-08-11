@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SearchSection from "@/components/SearchSection";
 import MarketplaceSection from "@/components/MarketplaceSection";
+import MarketplacePills from "@/components/MarketplacePills";
 import FeaturedListings from "@/components/FeaturedListings";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/features/makuBot/components/ChatWidget";
@@ -13,6 +14,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
+      <MarketplacePills />
       <SearchSection />
       <MarketplaceSection />
       <FeaturedListings />

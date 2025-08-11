@@ -50,7 +50,7 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto">
           <div className="travel-card bg-gradient-hero text-white p-8 md:p-12 text-center">
             <div className="max-w-3xl mx-auto">
-              <h3 className="text-3xl md:text-4xl font-bold mb-4 font-['Playfair_Display']">
+              <h3 className="text-3xl md:text-4xl font-bold mb-4 font-playfair">
                 Never Miss a Travel Deal
               </h3>
               <p className="text-xl text-white/90 mb-8">
@@ -79,22 +79,20 @@ const Footer = () => {
       {/* Main Footer Content */}
       <div className="py-20 px-6 bg-gradient-to-br from-primary/5 via-secondary/5 to-travel-ocean/5">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 md:gap-12 lg:gap-16 items-start justify-items-center md:justify-items-start animate-fade-in">
-            {/* Brand Section */}
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12 items-start animate-fade-in">
+            {/* Brand */}
+            <div>
               <div className="flex items-center space-x-3 mb-8">
                 <div className="p-2 rounded-xl bg-gradient-primary">
                   <Globe className="h-8 w-8 text-white animate-pulse-soft" />
                 </div>
-                <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent font-['Playfair_Display']">
+                <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent font-playfair">
                   Maku.travel
                 </span>
               </div>
-              
               <p className="text-foreground/80 mb-8 leading-relaxed text-lg font-medium">
                 Founded in Sydney, June 2024. Building life's travel stories through AI-powered marketplace experiences with 1.5 million+ hotels globally via Amadeus & HotelBeds APIs.
               </p>
-
               <div className="flex items-center mb-8 p-4 bg-gradient-to-r from-travel-sunset/10 to-travel-ocean/10 rounded-2xl border border-primary/20">
                 <img
                   src={makuMascot}
@@ -106,7 +104,6 @@ const Footer = () => {
                   <div className="text-secondary font-medium">Your travel companion</div>
                 </div>
               </div>
-
               <div className="flex space-x-4">
                 {socialLinks.map((social) => (
                   <Button
@@ -123,16 +120,11 @@ const Footer = () => {
 
             {/* Company */}
             <div>
-              <h4 className="font-bold text-xl mb-6 text-primary bg-gradient-primary bg-clip-text text-transparent">
-                Company
-              </h4>
-              <ul className="space-y-4">
+              <h4 className="font-semibold text-lg mb-4 text-foreground">Company</h4>
+              <ul className="space-y-3">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
-                    <a 
-                      href={link.href} 
-                      className="text-foreground/70 hover:text-primary transition-colors font-medium text-lg hover:translate-x-1 inline-block transition-transform duration-200"
-                    >
+                    <a href={link.href} className="story-link text-muted-foreground hover:text-primary transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
                   </li>
@@ -142,16 +134,11 @@ const Footer = () => {
 
             {/* Marketplaces */}
             <div>
-              <h4 className="font-bold text-xl mb-6 text-secondary bg-gradient-to-r from-travel-sunset to-travel-ocean bg-clip-text text-transparent">
-                Marketplaces
-              </h4>
-              <ul className="space-y-4">
+              <h4 className="font-semibold text-lg mb-4 text-foreground">Marketplaces</h4>
+              <ul className="space-y-3">
                 {footerLinks.marketplaces.map((link) => (
                   <li key={link.name}>
-                    <a 
-                      href={link.href} 
-                      className="text-foreground/70 hover:text-secondary transition-colors font-medium text-lg hover:translate-x-1 inline-block transition-transform duration-200"
-                    >
+                    <a href={link.href} className="story-link text-muted-foreground hover:text-secondary transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
                   </li>
@@ -161,16 +148,11 @@ const Footer = () => {
 
             {/* Support */}
             <div>
-              <h4 className="font-bold text-xl mb-6 text-travel-sunset">
-                Support
-              </h4>
-              <ul className="space-y-4">
+              <h4 className="font-semibold text-lg mb-4 text-foreground">Support</h4>
+              <ul className="space-y-3">
                 {footerLinks.support.map((link) => (
                   <li key={link.name}>
-                    <a 
-                      href={link.href} 
-                      className="text-foreground/70 hover:text-travel-sunset transition-colors font-medium text-lg hover:translate-x-1 inline-block transition-transform duration-200"
-                    >
+                    <a href={link.href} className="story-link text-muted-foreground hover:text-travel-sunset transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
                   </li>
@@ -180,10 +162,8 @@ const Footer = () => {
 
             {/* Contact & Legal */}
             <div>
-              <h4 className="font-bold text-xl mb-6 text-travel-ocean">
-                Contact
-              </h4>
-              <div className="space-y-4 mb-8">
+              <h4 className="font-semibold text-lg mb-4 text-foreground">Contact</h4>
+              <div className="space-y-4 mb-2">
                 <div className="flex items-center text-foreground/80 hover:text-travel-ocean transition-colors">
                   <div className="p-2 rounded-lg bg-travel-ocean/10 mr-3">
                     <Mail className="h-5 w-5 text-travel-ocean" />
@@ -204,19 +184,6 @@ const Footer = () => {
                 </div>
               </div>
 
-              <h5 className="font-bold text-lg mb-4 text-foreground">Legal</h5>
-              <ul className="space-y-3">
-                {footerLinks.legal.map((link) => (
-                  <li key={link.name}>
-                    <a 
-                      href={link.href} 
-                      className="text-foreground/60 hover:text-primary transition-colors font-medium hover:translate-x-1 inline-block transition-transform duration-200"
-                    >
-                      {link.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
@@ -227,21 +194,17 @@ const Footer = () => {
       {/* Bottom Section */}
       <div className="py-8 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-muted-foreground text-sm">
               © 2025 Maku.travel Pty Ltd. All rights reserved. IATA accreditation applied July 15, 2025.
             </div>
-            
-            <div className="flex items-center space-x-6 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-muted-foreground">All systems operational</span>
-              </div>
-              
-              <div className="text-muted-foreground">
-                Made with ❤️ for travelers
-              </div>
-            </div>
+            <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              {footerLinks.legal.map((link, idx) => (
+                <a key={link.name} href={link.href} className="hover:text-primary story-link">
+                  {link.name}
+                </a>
+              ))}
+            </nav>
           </div>
         </div>
       </div>

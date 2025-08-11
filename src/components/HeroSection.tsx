@@ -75,7 +75,7 @@ const HeroSection = () => {
               </span>
             </div>
             
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 font-['Playfair_Display'] leading-tight">
+            <h1 className="text-6xl md:text-7xl font-bold mb-6 font-playfair leading-tight">
               {heroSlides[currentSlide].title}
             </h1>
             
@@ -84,7 +84,7 @@ const HeroSection = () => {
             </p>
             
             <div className="relative mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 hero-text bg-white bg-clip-text text-transparent font-['Playfair_Display']">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 hero-text bg-white bg-clip-text text-transparent font-playfair">
                 Build Your Life's Travel Story
               </h2>
               <p className="text-lg text-white/80 max-w-xl mx-auto">

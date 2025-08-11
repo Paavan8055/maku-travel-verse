@@ -90,7 +90,9 @@ export default {
 				'floating': 'var(--shadow-floating)'
 			},
 			fontFamily: {
-				sans: ['Inter', 'system-ui', 'sans-serif']
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				inter: ['Inter', 'system-ui', 'sans-serif'],
+				playfair: ['"Playfair Display"', 'serif']
 			},
 			keyframes: {
 				'accordion-down': {
