@@ -53,6 +53,7 @@ const CheckoutPage = () => {
       // no-op
     }
     const search = typeof window !== 'undefined' ? window.location.search : '';
+    if (location.pathname.startsWith('/booking/payment')) return;
     navigate(`/booking/payment${search}`);
   };
   const handlePayment = async () => {
@@ -100,16 +101,8 @@ const CheckoutPage = () => {
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
                 <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
-                <Button asChild className="btn-primary h-12" size="lg">
-                  <Link to={`/booking/payment${location.search || ''}`} onClick={() => {
-                    try {
-                      if (passengerValid && passenger) {
-                        sessionStorage.setItem('passengerInfo', JSON.stringify(passenger));
-                      }
-                    } catch (e) {}
-                  }}>
-                    Continue to Payment
-                  </Link>
+                <Button onClick={goToPayment} className="btn-primary h-12" size="lg">
+                  Continue to Payment
                 </Button>
               </CardContent>
             </Card>
