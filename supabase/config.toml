@@ -73,6 +73,28 @@ verify_jwt = true
 [functions.stripe-webhook]
 verify_jwt = false
 
+# Public search functions for guest access
+[functions.unified-search]
+verify_jwt = false
+
+[functions.amadeus-flight-search]
+verify_jwt = false
+
+[functions.hotelbeds-search]
+verify_jwt = false
+
+[functions.hotel-search]
+verify_jwt = false
+
+[functions.flight-search]
+verify_jwt = false
+
+[functions.activity-search]
+verify_jwt = false
+
+[functions.travelport-search]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327
