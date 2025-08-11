@@ -88,6 +88,51 @@ const BookingPaymentPage = () => {
     checked: params.get("checked") || "",
   };
 
+  const ensurePaymentIntent = async () => {
+    try {
+      if (clientSecret && bookingId) return;
+
+      let passenger: any = null;
+      try {
+        passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
+      } catch {}
+
+      const customerInfo = {
+        email: passenger?.email || 'guest@example.com',
+        firstName: passenger?.firstName || 'GUEST',
+        lastName: passenger?.lastName || 'USER',
+        phone: passenger?.phone,
+      };
+
+      const { data, error } = await supabase.functions.invoke('create-card-payment-intent', {
+        body: {
+          bookingType: isFlightCheckout ? 'flight' : 'hotel',
+          bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
+          amount: isFlightCheckout ? flightParams.amount : bookingDetails.total,
+          currency: isFlightCheckout ? flightParams.currency : 'USD',
+          customerInfo,
+        },
+      });
+
+      if (error || !data?.success) {
+        console.error(error?.message || data?.error || 'Failed to create payment');
+        return;
+      }
+
+      setClientSecret(data.payment.clientSecret);
+      setBookingId(data.booking.id);
+    } catch (e) {
+      console.error('ensurePaymentIntent error', e);
+    }
+  };
+
+  useEffect(() => {
+    if ((paymentGateway === 'card' || paymentGateway === 'stripe') && !clientSecret && stripePromise) {
+      ensurePaymentIntent();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentGateway, stripePromise]);
+
   const handleCheckout = async () => {
     if (!agreeToTerms) return;
 
@@ -107,18 +152,8 @@ const BookingPaymentPage = () => {
     if ((paymentGateway === 'card' || paymentGateway === 'stripe')) {
       try {
         if (!clientSecret || !bookingId) {
-          const { data, error } = await supabase.functions.invoke('create-card-payment-intent', {
-            body: {
-              bookingType: isFlightCheckout ? 'flight' : 'hotel',
-              bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
-              amount: isFlightCheckout ? flightParams.amount : bookingDetails.total,
-              currency: isFlightCheckout ? flightParams.currency : 'USD',
-              customerInfo,
-            },
-          });
-          if (error || !data?.success) throw new Error(error?.message || data?.error || 'Failed to create payment');
-          setClientSecret(data.payment.clientSecret);
-          setBookingId(data.booking.id);
+          await ensurePaymentIntent();
+          return; // Let the card form mount; user can click again to confirm
         }
 
         if (!confirmFn) throw new Error('Card form not ready');
@@ -424,7 +459,7 @@ const BookingPaymentPage = () => {
 
                 <Button
                   onClick={handleCheckout}
-                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto" || ((paymentGateway === 'card' || paymentGateway === 'stripe') && (!clientSecret))}
+                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto" || ((paymentGateway === 'card' || paymentGateway === 'stripe') && (!confirmFn))}
                   className="w-full mt-6 btn-primary h-12"
                 >
                   {isLoading ? (
