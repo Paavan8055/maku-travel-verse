@@ -82,14 +82,16 @@ const FlightSearchPage = () => {
       return time;
     }
   };
-  const getHourFrom = (time: string) => {
+  function getHourFrom(time: string) {
     if (!time) return 0;
     try {
       if (time.includes("T")) return new Date(time).getHours();
       const [h] = time.split(":");
       return parseInt(h || "0", 10);
-    } catch { return 0; }
-  };
+    } catch {
+      return 0;
+    }
+  }
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
