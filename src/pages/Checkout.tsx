@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ChevronLeft, CreditCard, Shield, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,7 @@ const CheckoutPage = () => {
   const [passengerValid, setPassengerValid] = useState(false);
   const [passenger, setPassenger] = useState<PassengerFormData | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Booking details (hotel fallback) and flight params from URL
   const bookingDetails = {
@@ -99,12 +100,16 @@ const CheckoutPage = () => {
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
                 <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
-                <Button
-                  className="btn-primary h-12"
-                  size="lg"
-                  onClick={goToPayment}
-                >
-                  Continue to Payment
+                <Button asChild className="btn-primary h-12" size="lg">
+                  <Link to={`/booking/payment${location.search || ''}`} onClick={() => {
+                    try {
+                      if (passengerValid && passenger) {
+                        sessionStorage.setItem('passengerInfo', JSON.stringify(passenger));
+                      }
+                    } catch (e) {}
+                  }}>
+                    Continue to Payment
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
