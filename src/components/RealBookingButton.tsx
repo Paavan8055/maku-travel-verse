@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useBookingPayment } from '@/features/booking/hooks/useBookingPayment';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { CreditCard, Shield, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 interface RealBookingButtonProps {
   bookingType: 'flight' | 'hotel' | 'activity';
   bookingData: any;
@@ -37,6 +38,7 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
     createBookingPayment,
     isLoading
   } = useBookingPayment();
+  const navigate = useNavigate();
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerInfo.email || !customerInfo.firstName || !customerInfo.lastName) {
@@ -58,9 +60,27 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
     }
   };
   if (!showBookingForm) {
-    return <Button onClick={() => setShowBookingForm(true)} className={`btn-primary h-12 ${className}`} size="lg">
+    return (
+      <Button
+        onClick={() => {
+          if (bookingType === 'flight') {
+            const params = new URLSearchParams({
+              flightId: bookingData?.id || '',
+              fareType: bookingData?.fareType || 'basic',
+              amount: String(amount),
+              currency
+            });
+            navigate(`/booking/baggage?${params.toString()}`);
+          } else {
+            setShowBookingForm(true);
+          }
+        }}
+        className={`btn-primary h-12 ${className}`}
+        size="lg"
+      >
         Continue - {currency} {amount}
-      </Button>;
+      </Button>
+    );
   }
   return <Card className="travel-card">
       
