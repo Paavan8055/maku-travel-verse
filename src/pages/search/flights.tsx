@@ -12,6 +12,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
+import { useCurrency } from "@/features/currency/CurrencyProvider";
 
 const FlightSearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -88,10 +89,13 @@ const FlightSearchPage = () => {
 
   const { flights, loading, error } = useFlightSearch(searchCriteria);
 
+  const { convert, formatCurrency } = useCurrency();
+
   const filteredAndSortedFlights = flights
-    .filter(flight => {
-      if (priceRange[0] > 0 && flight.price < priceRange[0]) return false;
-      if (priceRange[1] < 2000 && flight.price > priceRange[1]) return false;
+    .map((f: any) => ({ ...f, _displayPrice: convert(f.price, (f.currency || "USD")) }))
+    .filter((flight: any) => {
+      if (priceRange[0] > 0 && flight._displayPrice < priceRange[0]) return false;
+      if (priceRange[1] < 2000 && flight._displayPrice > priceRange[1]) return false;
       const depHour = getHourFrom(flight.departureTime);
       if (depHour < departureTimeRange[0] || depHour > departureTimeRange[1]) return false;
       if (filters.stops !== "any" && flight.stops !== filters.stops) return false;
@@ -99,9 +103,9 @@ const FlightSearchPage = () => {
       if (filters.cabin !== "any" && flight.cabin.toLowerCase() !== filters.cabin) return false;
       return true;
     })
-    .sort((a, b) => {
+    .sort((a: any, b: any) => {
       switch (sortBy) {
-        case "price": return a.price - b.price;
+        case "price": return a._displayPrice - b._displayPrice;
         case "duration": return a.duration - b.duration;
         case "departure": return a.departureTime.localeCompare(b.departureTime);
         case "arrival": return a.arrivalTime.localeCompare(b.arrivalTime);
@@ -516,8 +520,8 @@ const FlightSearchPage = () => {
                       className="mb-2"
                     />
                     <div className="flex justify-between text-sm">
-                      <span>US$ {priceRange[0]}</span>
-                      <span>US$ {priceRange[1]}</span>
+                      <span>{formatCurrency(priceRange[0])}</span>
+                      <span>{formatCurrency(priceRange[1])}</span>
                     </div>
                   </div>
 
