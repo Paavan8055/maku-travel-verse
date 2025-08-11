@@ -38,30 +38,85 @@ export const DestinationAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-// Global airports lazy loader (fallback to local AIRPORTS)
+// Global airports loader with localStorage TTL cache
 const GLOBAL_AIRPORTS_URL =
   "https://raw.githubusercontent.com/mwgg/Airports/master/airports.json"; // community-maintained
+const GLOBAL_AIRPORTS_STORAGE_KEY = "maku_global_airports_iata_v1";
+const GLOBAL_AIRPORTS_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14 days
+
 let GLOBAL_AIRPORTS_CACHE: Destination[] | null = null;
 let GLOBAL_AIRPORTS_LOADING: Promise<Destination[]> | null = null;
+let GLOBAL_AIRPORTS_ABORT: AbortController | null = null;
+
+function normalizeString(str: string | undefined) {
+  return (str || "").toLowerCase();
+}
+
+function buildSearchKey(a: Destination) {
+  return [
+    (a as any).code || "",
+    a.city || "",
+    a.name || "",
+    a.country || ""
+  ]
+    .map((s) => normalizeString(String(s)))
+    .join(" ");
+}
+
+function tryLoadFromStorage(): Destination[] | null {
+  try {
+    const raw = localStorage.getItem(GLOBAL_AIRPORTS_STORAGE_KEY);
+    if (!raw) return null;
+    const { ts, list } = JSON.parse(raw) as { ts: number; list: Destination[] };
+    if (Date.now() - ts > GLOBAL_AIRPORTS_TTL_MS) return null;
+    // ensure search keys
+    (list as any[]).forEach((d) => {
+      if (!(d as any)._s) (d as any)._s = buildSearchKey(d);
+    });
+    return list;
+  } catch {
+    return null;
+  }
+}
+
+function saveToStorage(list: Destination[]) {
+  try {
+    const payload = JSON.stringify({ ts: Date.now(), list });
+    localStorage.setItem(GLOBAL_AIRPORTS_STORAGE_KEY, payload);
+  } catch {
+    // storage full or disabled; ignore
+  }
+}
 
 async function loadGlobalAirports(): Promise<Destination[]> {
   if (GLOBAL_AIRPORTS_CACHE) return GLOBAL_AIRPORTS_CACHE;
+  const fromStorage = tryLoadFromStorage();
+  if (fromStorage) {
+    GLOBAL_AIRPORTS_CACHE = fromStorage;
+    return fromStorage;
+  }
   if (!GLOBAL_AIRPORTS_LOADING) {
-    GLOBAL_AIRPORTS_LOADING = fetch(GLOBAL_AIRPORTS_URL)
+    GLOBAL_AIRPORTS_ABORT = new AbortController();
+    GLOBAL_AIRPORTS_LOADING = fetch(GLOBAL_AIRPORTS_URL, { signal: GLOBAL_AIRPORTS_ABORT.signal })
       .then((r) => r.json())
       .then((data: Record<string, any>) => {
         // Transform into Destination[]; keep only entries with IATA code
         const list: Destination[] = Object.values(data)
           .filter((a: any) => a && a.iata && String(a.iata).length === 3)
-          .map((a: any) => ({
-            id: a.iata,
-            name: `${a.city || a.name} (${a.iata}) - ${a.name}`.trim(),
-            city: a.city || undefined,
-            country: a.country || "",
-            code: a.iata,
-            type: "airport" as const,
-          }));
+          .map((a: any) => {
+            const d: Destination = {
+              id: a.iata,
+              name: `${a.city || a.name} (${a.iata}) - ${a.name}`.trim(),
+              city: a.city || undefined,
+              country: a.country || "",
+              code: a.iata,
+              type: "airport" as const,
+            };
+            (d as any)._s = buildSearchKey(d);
+            return d;
+          });
         GLOBAL_AIRPORTS_CACHE = list;
+        saveToStorage(list);
         return list;
       })
       .catch(() => {
@@ -79,27 +134,27 @@ useEffect(() => {
     const timeoutId = setTimeout(async () => {
       const q = value.toLowerCase();
 
-      // Prefer global dataset; fallback to local AIRPORTS
+      // Prefer global dataset; fallback to local AIRPORTS (indexed)
       const global = await loadGlobalAirports();
       const dataset: Destination[] = (global && global.length > 0)
         ? global
-        : AIRPORTS.map((a) => ({
-            id: a.iata,
-            name: `${a.city} (${a.iata}) - ${a.name}`,
-            city: a.city,
-            country: a.country,
-            code: a.iata,
-            type: "airport" as const,
-          }));
+        : AIRPORTS.map((a) => {
+            const d: Destination = {
+              id: a.iata,
+              name: `${a.city} (${a.iata}) - ${a.name}`,
+              city: a.city,
+              country: a.country,
+              code: a.iata,
+              type: "airport" as const,
+            };
+            (d as any)._s = buildSearchKey(d);
+            return d;
+          });
 
       if (!active) return;
 
       const matches = dataset
-        .filter((d) =>
-          [d.code, d.city, d.name, d.country]
-            .filter(Boolean)
-            .some((s) => String(s).toLowerCase().includes(q))
-        )
+        .filter((d) => ((d as any)._s as string).includes(q))
         .slice(0, 12);
 
       setSuggestions(matches);
@@ -208,34 +263,36 @@ useEffect(() => {
         </Button>
       </div>
 
-      {showSuggestions && (suggestions.length > 0 || loading) && (
-        <div
-          ref={suggestionsRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+{showSuggestions && (
+  <div
+    ref={suggestionsRef}
+    className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+  >
+    {loading ? (
+      <div className="p-4 text-center">
+        <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">Loading airports…</p>
+      </div>
+    ) : suggestions.length > 0 ? (
+      suggestions.map((destination) => (
+        <button
+          key={destination.id}
+          onClick={() => handleSuggestionClick(destination)}
+          className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0"
         >
-          {loading ? (
-            <div className="p-4 text-center">
-              <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Searching destinations...</p>
+          <span className="text-lg">{getTypeIcon(destination.type)}</span>
+            <div className="flex-1">
+              <div className="font-medium text-foreground">{destination.name}</div>
+              <div className="text-sm text-muted-foreground">{destination.country}</div>
             </div>
-          ) : (
-            suggestions.map((destination) => (
-              <button
-                key={destination.id}
-                onClick={() => handleSuggestionClick(destination)}
-                className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0"
-              >
-                <span className="text-lg">{getTypeIcon(destination.type)}</span>
-                  <div className="flex-1">
-                    <div className="font-medium text-foreground">{destination.name}</div>
-                    <div className="text-sm text-muted-foreground">{destination.type === 'airport' ? destination.country : destination.country}</div>
-                  </div>
-                <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
-              </button>
-            ))
-          )}
-        </div>
-      )}
+          <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
+        </button>
+      ))
+    ) : (
+      <div className="p-3 text-center text-sm text-muted-foreground">No matches found</div>
+    )}
+  </div>
+)}
     </div>
   );
 };
