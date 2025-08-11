@@ -82,7 +82,8 @@ export default {
 			backgroundImage: {
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-sunset': 'var(--gradient-sunset)',
-				'gradient-ocean': 'var(--gradient-ocean)'
+				'gradient-ocean': 'var(--gradient-ocean)',
+				'gradient-pink-orange': 'var(--gradient-pink-orange)'
 			},
 			boxShadow: {
 				'soft': 'var(--shadow-soft)',
