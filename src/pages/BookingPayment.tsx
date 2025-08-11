@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, CreditCard, Shield, Check } from "lucide-react";
+import { ChevronLeft, CreditCard, Shield, Check, Coins, BadgeDollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useBookingPayment } from "@/features/booking/hooks/useBookingPayment";
 
 const BookingPaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentGateway, setPaymentGateway] = useState<"stripe" | "card" | "afterpay" | "crypto">("stripe");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const { createBookingPayment, isLoading } = useBookingPayment();
 
@@ -110,50 +111,45 @@ const BookingPaymentPage = () => {
 
                 <div className="space-y-4">
                   {/* Payment Options */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    {/* Stripe */}
                     <div
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        paymentMethod === "card"
-                          ? "border-primary bg-primary/5"
-                          : "border-border"
-                      }`}
-                      onClick={() => setPaymentMethod("card")}
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentGateway === 'stripe' ? 'border-primary bg-primary/5' : 'border-border'}`}
+                      onClick={() => { setPaymentGateway('stripe'); setPaymentMethod('card'); }}
                     >
                       <div className="flex items-center space-x-3">
                         <CreditCard className="h-5 w-5" />
-                        <span className="font-medium">Credit Card</span>
+                        <span className="font-medium">Stripe</span>
                       </div>
                     </div>
 
+                    {/* Credit/Debit Card */}
                     <div
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        paymentMethod === "fund"
-                          ? "border-primary bg-primary/5"
-                          : "border-border"
-                      }`}
-                      onClick={() => setPaymentMethod("fund")}
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentGateway === 'card' ? 'border-primary bg-primary/5' : 'border-border'}`}
+                      onClick={() => { setPaymentGateway('card'); setPaymentMethod('card'); }}
                     >
                       <div className="flex items-center space-x-3">
-                        <Shield className="h-5 w-5" />
-                        <span className="font-medium">Travel Fund</span>
+                        <CreditCard className="h-5 w-5" />
+                        <span className="font-medium">Credit/Debit Card</span>
                       </div>
                     </div>
 
-                    <div
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        paymentMethod === "split"
-                          ? "border-primary bg-primary/5"
-                          : "border-border"
-                      }`}
-                      onClick={() => setPaymentMethod("split")}
-                    >
+                    {/* Afterpay - Coming soon */}
+                    <div className="p-4 border-2 rounded-xl relative transition-all opacity-60 cursor-not-allowed border-border">
                       <div className="flex items-center space-x-3">
-                        <div className="flex">
-                          <CreditCard className="h-5 w-5" />
-                          <Shield className="h-5 w-5 -ml-2" />
-                        </div>
-                        <span className="font-medium">Split Payment</span>
+                        <BadgeDollarSign className="h-5 w-5" />
+                        <span className="font-medium">Afterpay</span>
                       </div>
+                      <span className="absolute top-2 right-2 text-xs text-muted-foreground">Coming soon</span>
+                    </div>
+
+                    {/* Crypto.com - Coming soon */}
+                    <div className="p-4 border-2 rounded-xl relative transition-all opacity-60 cursor-not-allowed border-border">
+                      <div className="flex items-center space-x-3">
+                        <Coins className="h-5 w-5" />
+                        <span className="font-medium">Crypto.com</span>
+                      </div>
+                      <span className="absolute top-2 right-2 text-xs text-muted-foreground">Coming soon</span>
                     </div>
                   </div>
 
@@ -368,7 +364,7 @@ const BookingPaymentPage = () => {
 
                 <Button
                   onClick={handleCheckout}
-                  disabled={!agreeToTerms || isLoading}
+                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto"}
                   className="w-full mt-6 btn-primary h-12"
                 >
                   {isLoading ? (
