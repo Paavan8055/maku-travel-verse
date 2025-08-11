@@ -8,16 +8,17 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { bookingId, sessionId } = await req.json();
+    const { bookingId, sessionId, paymentIntentId } = await req.json();
 
-    if (!bookingId || !sessionId) {
+    if (!bookingId || (!sessionId && !paymentIntentId)) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing bookingId or sessionId" }),
+        JSON.stringify({ success: false, error: "Missing bookingId or payment identifier" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
@@ -40,7 +41,7 @@ serve(async (req) => {
       );
     }
 
-    // Verify booking belongs to user
+    // Verify booking belongs to user (or exists)
     const serviceClient = createClient(supabaseUrl, supabaseServiceRole, { auth: { persistSession: false } });
     const { data: bookingRows, error: bookingErr } = await serviceClient
       .from("bookings")
@@ -61,37 +62,47 @@ serve(async (req) => {
     const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
     const stripe = new Stripe(stripeSecret, { apiVersion: "2023-10-16" });
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["payment_intent"],
-    });
+    let paid = false;
+    let amountTotal = 0; // cents
+    let currency = booking.currency ?? "USD";
+    let derivedPaymentIntentId: string | undefined = undefined;
+    let paymentStatus = "processing";
 
-    const paid = session.payment_status === "paid" || (session.status === "complete" && session.mode === "payment");
-    const amountTotal = session.amount_total ?? 0; // in cents
-    const currency = session.currency?.toUpperCase() ?? booking.currency ?? "USD";
-    const paymentIntentId = typeof session.payment_intent === "object" && session.payment_intent
-      ? (session.payment_intent as any).id
-      : undefined;
+    if (sessionId) {
+      const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["payment_intent"] });
+      paid = session.payment_status === "paid" || (session.status === "complete" && session.mode === "payment");
+      amountTotal = session.amount_total ?? 0;
+      currency = session.currency?.toUpperCase() ?? currency;
+      derivedPaymentIntentId = typeof session.payment_intent === "object" && session.payment_intent
+        ? (session.payment_intent as any).id
+        : undefined;
+      paymentStatus = session.payment_status || "processing";
+    } else if (paymentIntentId) {
+      const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+      paid = pi.status === "succeeded";
+      amountTotal = pi.amount_received || pi.amount || 0;
+      currency = (pi.currency || currency).toUpperCase();
+      derivedPaymentIntentId = pi.id;
+      paymentStatus = pi.status;
+    }
 
-    // Insert payment record
+    // Insert payment record (idempotent-ish via unique combo could be added in DB)
     const { error: paymentErr } = await serviceClient.from("payments").insert({
       booking_id: bookingId,
       amount: amountTotal / 100,
       currency,
-      status: paid ? "succeeded" : session.payment_status || "processing",
-      stripe_payment_intent_id: paymentIntentId,
+      status: paid ? "succeeded" : paymentStatus,
+      stripe_payment_intent_id: derivedPaymentIntentId,
     });
-
     if (paymentErr) {
       console.error("Payment insert error:", paymentErr);
     }
 
-    // Update booking status if paid
     if (paid) {
       const { error: bookingUpdateErr } = await serviceClient
         .from("bookings")
         .update({ status: "confirmed" })
         .eq("id", bookingId);
-
       if (bookingUpdateErr) {
         console.error("Booking update error:", bookingUpdateErr);
       }
@@ -101,7 +112,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         booking: { id: bookingId, status: paid ? "confirmed" : booking.status },
-        payment: { status: paid ? "succeeded" : session.payment_status },
+        payment: { status: paid ? "succeeded" : paymentStatus },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );

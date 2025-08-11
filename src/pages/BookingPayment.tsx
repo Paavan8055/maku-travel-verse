@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, CreditCard, Shield, Check, Coins, BadgeDollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +7,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Navbar from "@/components/Navbar";
 import { useBookingPayment } from "@/features/booking/hooks/useBookingPayment";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { supabase } from "@/integrations/supabase/client";
+
+const StripeCardForm: React.FC<{ setConfirm: (fn: () => Promise<any>) => void }> = ({ setConfirm }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  useEffect(() => {
+    setConfirm(async () => {
+      if (!stripe || !elements) throw new Error('Stripe not ready');
+      const result = await stripe.confirmPayment({ elements, redirect: 'if_required' });
+      if ((result as any).error) {
+        throw new Error((result as any).error.message || 'Payment failed');
+      }
+      return result;
+    });
+  }, [stripe, elements, setConfirm]);
+
+  return <PaymentElement options={{ layout: 'tabs' }} />;
+};
 
 
 const BookingPaymentPage = () => {
@@ -15,9 +35,31 @@ const BookingPaymentPage = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const { createBookingPayment, isLoading } = useBookingPayment();
 
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<any>(null);
+  const [confirmFn, setConfirmFn] = useState<null | (() => Promise<any>)>(null);
+
+
   useEffect(() => {
     document.title = "Payment | Maku Travel";
   }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('get-stripe-publishable-key');
+        if (data?.publishableKey) {
+          const { loadStripe } = await import('@stripe/stripe-js');
+          setStripePromise(loadStripe(data.publishableKey));
+        }
+      } catch (e) {
+        console.error('Stripe init error', e);
+      }
+    };
+    init();
+  }, []);
+
 
   // Booking details (hotel fallback) and flight params from URL
   const bookingDetails = {
@@ -61,6 +103,41 @@ const BookingPaymentPage = () => {
       phone: passenger?.phone,
     };
 
+    // If using on-site card collection (Stripe Elements)
+    if ((paymentGateway === 'card' || paymentGateway === 'stripe')) {
+      try {
+        if (!clientSecret || !bookingId) {
+          const { data, error } = await supabase.functions.invoke('create-card-payment-intent', {
+            body: {
+              bookingType: isFlightCheckout ? 'flight' : 'hotel',
+              bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
+              amount: isFlightCheckout ? flightParams.amount : bookingDetails.total,
+              currency: isFlightCheckout ? flightParams.currency : 'USD',
+              customerInfo,
+            },
+          });
+          if (error || !data?.success) throw new Error(error?.message || data?.error || 'Failed to create payment');
+          setClientSecret(data.payment.clientSecret);
+          setBookingId(data.booking.id);
+        }
+
+        if (!confirmFn) throw new Error('Card form not ready');
+        const result: any = await confirmFn();
+        const piId = result?.paymentIntent?.id;
+        if (!piId || !bookingId) throw new Error('Missing payment intent or booking');
+        // Verify and finalize booking
+        await supabase.functions.invoke('verify-booking-payment', {
+          body: { bookingId, paymentIntentId: piId },
+        });
+        window.location.href = `/booking/confirmation?booking_id=${bookingId}`;
+        return;
+      } catch (err) {
+        console.error('Card confirmation failed', err);
+        return;
+      }
+    }
+
+    // Fallback to redirect-based flow
     const result = await createBookingPayment({
       bookingType: isFlightCheckout ? 'flight' : 'hotel',
       bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
@@ -154,39 +231,21 @@ const BookingPaymentPage = () => {
                     </div>
                   </div>
 
-                  {/* Card Details */}
+                  {/* Card Details via Stripe Elements */}
                   {(paymentMethod === "card" || paymentMethod === "split") && (
                     <div className="space-y-4 mt-6">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Card Number
-                        </label>
-                        <Input placeholder="1234 5678 9012 3456" />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Expiry Date
-                          </label>
-                          <Input placeholder="MM/YY" />
+                      {clientSecret && stripePromise ? (
+                        <Elements stripe={stripePromise} options={{ clientSecret }}>
+                          <StripeCardForm setConfirm={setConfirmFn} />
+                        </Elements>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">
+                          Secure card form is loading...
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            CVV
-                          </label>
-                          <Input placeholder="123" />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Cardholder Name
-                        </label>
-                        <Input placeholder="John Doe" />
-                      </div>
+                      )}
                     </div>
                   )}
+
 
                   {/* Fund Balance Info */}
                   {(paymentMethod === "fund" || paymentMethod === "split") && (
@@ -365,7 +424,7 @@ const BookingPaymentPage = () => {
 
                 <Button
                   onClick={handleCheckout}
-                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto"}
+                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto" || ((paymentGateway === 'card' || paymentGateway === 'stripe') && (!clientSecret))}
                   className="w-full mt-6 btn-primary h-12"
                 >
                   {isLoading ? (
