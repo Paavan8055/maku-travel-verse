@@ -101,6 +101,9 @@ verify_jwt = false
 [functions.amadeus-locations-autocomplete]
 verify_jwt = false
 
+[functions.verify-booking-payment]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327
