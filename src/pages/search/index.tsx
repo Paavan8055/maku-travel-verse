@@ -9,6 +9,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import { format } from "date-fns";
+import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 
 const SearchHub = () => {
   const navigate = useNavigate();
@@ -60,10 +61,17 @@ const SearchHub = () => {
                   <label className="text-sm font-medium text-foreground">Destination</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Where to?"
+                    <DestinationAutocomplete
                       value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
+                      onChange={setDestination}
+                      onDestinationSelect={(d) => {
+                        if (activeTab === 'flights') {
+                          setDestination(d.code ?? d.city ?? d.name);
+                        } else {
+                          setDestination(d.city ?? d.name);
+                        }
+                      }}
+                      placeholder="City or airport (IATA)"
                       className="pl-10"
                     />
                   </div>

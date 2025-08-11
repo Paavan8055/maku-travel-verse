@@ -4,11 +4,14 @@ import { MapPin, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { AIRPORTS } from "@/data/airports";
 
 interface Destination {
   id: string;
   name: string;
+  city?: string;
   country: string;
+  code?: string; // IATA code
   type: "city" | "airport" | "landmark";
   coordinates?: [number, number];
 }
@@ -35,33 +38,48 @@ export const DestinationAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Mock destinations database - In production, this would come from your geolocation API
-  const mockDestinations: Destination[] = [
-    { id: "1", name: "Paris", country: "France", type: "city", coordinates: [2.3522, 48.8566] },
-    { id: "2", name: "Tokyo", country: "Japan", type: "city", coordinates: [139.6917, 35.6895] },
-    { id: "3", name: "New York", country: "United States", type: "city", coordinates: [-74.0060, 40.7128] },
-    { id: "4", name: "London", country: "United Kingdom", type: "city", coordinates: [-0.1276, 51.5074] },
-    { id: "5", name: "Sydney", country: "Australia", type: "city", coordinates: [151.2093, -33.8688] },
-    { id: "6", name: "Dubai", country: "UAE", type: "city", coordinates: [55.2708, 25.2048] },
-    { id: "7", name: "Bali", country: "Indonesia", type: "city", coordinates: [115.0920, -8.4095] },
-    { id: "8", name: "Rome", country: "Italy", type: "city", coordinates: [12.4964, 41.9028] },
-    { id: "9", name: "Barcelona", country: "Spain", type: "city", coordinates: [2.1734, 41.3851] },
-    { id: "10", name: "Maldives", country: "Maldives", type: "city", coordinates: [73.2207, 3.2028] }
-  ];
+  // Using AIRPORTS dataset for autocomplete
 
   useEffect(() => {
-    if (value.length >= 2) {
+    if (value.trim().length >= 2) {
       setLoading(true);
-      // Simulate API delay
       const timeoutId = setTimeout(() => {
-        const filtered = mockDestinations.filter(dest =>
-          dest.name.toLowerCase().includes(value.toLowerCase()) ||
-          dest.country.toLowerCase().includes(value.toLowerCase())
-        );
-        setSuggestions(filtered);
+        const q = value.toLowerCase();
+        const airportMatches = AIRPORTS.filter(a =>
+          a.iata.toLowerCase().includes(q) ||
+          a.city.toLowerCase().includes(q) ||
+          a.name.toLowerCase().includes(q) ||
+          a.country.toLowerCase().includes(q)
+        ).slice(0, 8).map(a => ({
+          id: a.iata,
+          name: `${a.city} (${a.iata}) - ${a.name}`,
+          city: a.city,
+          country: a.country,
+          code: a.iata,
+          type: "airport" as const,
+        }));
+
+        const cityMap = new Map<string, { city: string; country: string }>();
+        AIRPORTS.forEach(a => {
+          const key = `${a.city}|${a.country}`;
+          if (!cityMap.has(key)) cityMap.set(key, { city: a.city, country: a.country });
+        });
+        const cityMatches = Array.from(cityMap.values())
+          .filter(c => c.city.toLowerCase().includes(q) || c.country.toLowerCase().includes(q))
+          .slice(0, 5)
+          .map((c, idx) => ({
+            id: `city-${c.city}-${idx}`,
+            name: `${c.city}, ${c.country}`,
+            city: c.city,
+            country: c.country,
+            type: "city" as const,
+          }));
+
+        const merged = [...airportMatches, ...cityMatches].slice(0, 10);
+        setSuggestions(merged);
         setShowSuggestions(true);
         setLoading(false);
-      }, 300);
+      }, 250);
 
       return () => clearTimeout(timeoutId);
     } else {
@@ -178,10 +196,10 @@ export const DestinationAutocomplete = ({
                 className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0"
               >
                 <span className="text-lg">{getTypeIcon(destination.type)}</span>
-                <div className="flex-1">
-                  <div className="font-medium text-foreground">{destination.name}</div>
-                  <div className="text-sm text-muted-foreground">{destination.country}</div>
-                </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">{destination.name}</div>
+                    <div className="text-sm text-muted-foreground">{destination.type === 'airport' ? destination.country : destination.country}</div>
+                  </div>
                 <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
               </button>
             ))
