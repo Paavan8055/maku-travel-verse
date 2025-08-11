@@ -162,9 +162,6 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
             <Input {...register("passportNumber")} placeholder="X1234567" onChange={(e)=>setValue("passportNumber", e.target.value.toUpperCase() as any, { shouldValidate: true })} />
             {errors.passportNumber && <p className="text-xs text-destructive mt-1">{errors.passportNumber.message}</p>}
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4">
           <div>
             <Label className="mb-2 block">Email</Label>
             <Input type="email" {...register("email")} placeholder="name@example.com" />
@@ -176,6 +173,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
             {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
           </div>
         </div>
+
 
         <p className="text-xs text-muted-foreground mt-4">
           By continuing, you certify that the provided information is accurate and may be shared with airlines and border authorities for APIS/secure flight screening.
