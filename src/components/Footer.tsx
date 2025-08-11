@@ -1,8 +1,7 @@
-import { Globe, Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import makuMascot from "@/assets/maku-mascot.png";
+
 const Footer = () => {
   const footerLinks = {
     company: [{
@@ -87,135 +86,94 @@ const Footer = () => {
     href: "#",
     name: "YouTube"
   }];
-  return <footer className="bg-gradient-to-b from-background to-muted/50 border-t border-border">
-      {/* Newsletter Section */}
+return <footer className="bg-primary text-primary-foreground">
+      {/* Main Footer Content */}
       <div className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="travel-card bg-gradient-hero text-white p-8 md:p-12 text-center">
-            <div className="max-w-3xl mx-auto">
-              <h3 className="text-3xl md:text-4xl font-bold mb-4 font-playfair">
-                Never Miss a Travel Deal
-              </h3>
-              <p className="text-xl text-white/90 mb-8">
-                Get exclusive offers, travel tips, and destination guides delivered to your inbox from Australia's newest travel platform.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <Input type="email" placeholder="Enter your email" className="flex-1 bg-white/10 border-white/30 text-white placeholder:text-white/70" />
-                <Button variant="secondary" className="btn-secondary whitespace-nowrap">
-                  Subscribe Now
-                </Button>
-              </div>
-              
-              <p className="text-sm text-white/70 mt-4">
-                Join 50,000+ monthly travellers trusted by Maku.travel
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Footer Content */}
-      <div className="py-20 px-6 bg-gradient-to-br from-primary/5 via-secondary/5 to-travel-ocean/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12 items-start animate-fade-in">
-            {/* Brand */}
-            <div>
-              
-              
-              <div className="flex items-center mb-8 p-4 bg-gradient-to-r from-travel-sunset/10 to-travel-ocean/10 rounded-2xl border border-primary/20">
-                <img src={makuMascot} alt="Maku Mascot" className="w-16 h-16 mr-4 drop-shadow-lg" />
-                <div>
-                  <div className="font-bold text-xl text-primary">Meet Maku!</div>
-                  <div className="text-secondary font-medium">Your travel companion</div>
-                </div>
-              </div>
-              <div className="flex space-x-4">
-                {socialLinks.map(social => <Button key={social.name} variant="outline" size="icon" className="w-12 h-12 rounded-full border-2 border-primary/30 hover:border-primary hover:bg-gradient-primary hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-elegant">
-                    <social.icon className="h-6 w-6" />
-                  </Button>)}
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 lg:gap-16">
             {/* Company */}
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-foreground">Company</h4>
+              <h4 className="font-semibold text-lg mb-4">Company</h4>
               <ul className="space-y-3">
-                {footerLinks.company.map(link => <li key={link.name}>
-                    <a href={link.href} className="story-link text-muted-foreground hover:text-primary transition-colors text-sm md:text-base">
+                {footerLinks.company.map(link => (
+                  <li key={link.name}>
+                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
-                  </li>)}
+                  </li>
+                ))}
               </ul>
             </div>
 
-            {/* Marketplaces */}
+            {/* Services */}
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-foreground">Marketplaces</h4>
+              <h4 className="font-semibold text-lg mb-4">Services</h4>
               <ul className="space-y-3">
-                {footerLinks.marketplaces.map(link => <li key={link.name}>
-                    <a href={link.href} className="story-link text-muted-foreground hover:text-secondary transition-colors text-sm md:text-base">
-                      {link.name}
-                    </a>
-                  </li>)}
+                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Hotels & Accommodation</a></li>
+                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Flight Booking</a></li>
+                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Tours & Activities</a></li>
+                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Car Rentals</a></li>
+                <li><a href="#" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Travel Deals</a></li>
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-foreground">Support</h4>
+              <h4 className="font-semibold text-lg mb-4">Support</h4>
               <ul className="space-y-3">
-                {footerLinks.support.map(link => <li key={link.name}>
-                    <a href={link.href} className="story-link text-muted-foreground hover:text-travel-sunset transition-colors text-sm md:text-base">
+                {footerLinks.support.map(link => (
+                  <li key={link.name}>
+                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
                       {link.name}
                     </a>
-                  </li>)}
+                  </li>
+                ))}
               </ul>
             </div>
 
-            {/* Contact & Legal */}
+            {/* Follow / Newsletter */}
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-foreground">Contact</h4>
-              <div className="space-y-4 mb-2">
-                <div className="flex items-center text-foreground/80 hover:text-travel-ocean transition-colors">
-                  <div className="p-2 rounded-lg bg-travel-ocean/10 mr-3">
-                    <Mail className="h-5 w-5 text-travel-ocean" />
-                  </div>
-                  <span className="font-medium">support@maku.travel</span>
-                </div>
-                <div className="flex items-center text-foreground/80 hover:text-travel-ocean transition-colors">
-                  <div className="p-2 rounded-lg bg-travel-ocean/10 mr-3">
-                    <Phone className="h-5 w-5 text-travel-ocean" />
-                  </div>
-                  <span className="font-medium">+61 2 8000 1234</span>
-                </div>
-                <div className="flex items-start text-foreground/80 hover:text-travel-ocean transition-colors">
-                  <div className="p-2 rounded-lg bg-travel-ocean/10 mr-3">
-                    <MapPin className="h-5 w-5 text-travel-ocean" />
-                  </div>
-                  <span className="font-medium">Level 15, 1 Macquarie Place<br />Sydney NSW 2000, Australia</span>
-                </div>
+              <h4 className="font-semibold text-lg mb-4">Follow</h4>
+              <p className="text-sm text-primary-foreground/80 mb-4">Stay connected for travel updates and exclusive deals</p>
+              <div className="flex items-center gap-3 mb-6">
+                {socialLinks.map(social => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    aria-label={social.name}
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 transition-colors"
+                  >
+                    <social.icon className="h-5 w-5" />
+                  </a>
+                ))}
               </div>
-
+              <p className="text-sm text-primary-foreground/80 mb-2">Subscribe to our newsletter</p>
+              <div className="flex gap-2">
+                <Input type="email" placeholder="Your email" className="bg-white/15 border-white/20 placeholder:text-white/70 text-white" />
+                <Button className="bg-white/20 hover:bg-white/30 text-white" aria-label="Subscribe">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <Separator />
-
       {/* Bottom Section */}
-      <div className="py-8 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-muted-foreground text-sm">
-              © 2025 Maku.travel Pty Ltd. All rights reserved. IATA accreditation applied July 15, 2025.
+      <div className="border-t border-white/15">
+        <div className="py-6 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-playfair font-bold">Maku</span>
+                <span className="text-sm text-primary-foreground/80">2025 Maku Travel. All rights reserved.</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-6 text-primary-foreground/90">
+                <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /><span className="text-sm">Secure Booking</span></div>
+                <div className="flex items-center gap-2"><Headphones className="h-4 w-4" /><span className="text-sm">24/7 Support</span></div>
+                <div className="flex items-center gap-2"><BadgeCheck className="h-4 w-4" /><span className="text-sm">Best Price Guarantee</span></div>
+              </div>
             </div>
-            <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-              {footerLinks.legal.map((link, idx) => <a key={link.name} href={link.href} className="hover:text-primary story-link">
-                  {link.name}
-                </a>)}
-            </nav>
           </div>
         </div>
       </div>
