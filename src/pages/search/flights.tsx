@@ -137,6 +137,51 @@ const FlightSearchPage = () => {
     return `${hours}h ${mins}m`;
   };
 
+  const formatDateLabel = (time: string) => {
+    try {
+      if (time && time.includes("T")) {
+        const d = new Date(time);
+        return {
+          date: format(d, "dd MMM yyyy"),
+          day: format(d, "EEEE"),
+          full: `${format(d, "dd MMM yyyy")} • ${format(d, "EEEE")}`,
+        };
+      }
+    } catch {}
+    return { date: "", day: "", full: "" };
+  };
+
+  const humanizeISODuration = (iso?: string) => {
+    if (!iso) return "";
+    const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+    const h = parseInt(m?.[1] || "0", 10);
+    const min = parseInt(m?.[2] || "0", 10);
+    if (!h && !min) return "";
+    return `${h ? `${h}h` : ""} ${min ? `${min}m` : ""}`.trim();
+  };
+
+  const diffMinutes = (a?: string, b?: string) => {
+    try {
+      if (!a || !b) return 0;
+      if (a.includes("T") && b.includes("T")) {
+        const da = new Date(a).getTime();
+        const db = new Date(b).getTime();
+        return Math.max(0, Math.round((db - da) / 60000));
+      }
+      return 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  const formatLayover = (arr?: string, nextDep?: string, airport?: string) => {
+    const mins = diffMinutes(arr, nextDep);
+    if (!mins) return "";
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}h ${m}m layover${airport ? ` - ${airport}` : ""}`;
+  };
+
   const handleSelectFlight = (flight: any) => {
     navigate(`/booking-select?type=flight&id=${flight.id}&origin=${searchCriteria.origin}&destination=${searchCriteria.destination}`);
   };
@@ -617,51 +662,79 @@ const FlightSearchPage = () => {
                             </button>
                           </div>
 
-                          {expanded[flight.id] && (
-                            <div className="mt-4 rounded-lg border bg-card/50 p-4 text-sm">
-                              <div className="grid gap-4 md:grid-cols-3">
-                                <div>
-                                  <div className="font-medium mb-2">Itinerary</div>
-                                  {Array.isArray(flight.segments) ? (
-                                    <ul className="space-y-2">
-                                      {flight.segments.map((seg: any, idx: number) => (
-                                        <li key={idx} className="flex items-start justify-between">
-                                          <div>
-                                            <div className="text-foreground">{seg.departure?.airport} → {seg.arrival?.airport}</div>
-                                            <div className="text-xs text-muted-foreground">
-                                              {formatTime(seg.departure?.time || "")} - {formatTime(seg.arrival?.time || "")}
+                            {expanded[flight.id] && (
+                              <div className="mt-4 rounded-lg border bg-card/50 p-4">
+                                <div className="grid gap-6 md:grid-cols-3 text-sm">
+                                  {/* Timeline like Travala */}
+                                  <div className="md:col-span-2">
+                                    <div className="text-xs text-muted-foreground mb-3">
+                                      {formatDateLabel(flight.departureTime).full}
+                                    </div>
+                                    {Array.isArray(flight.segments) && flight.segments.length > 0 ? (
+                                      <ol className="relative pl-4 border-l">
+                                        {flight.segments.map((seg: any, idx: number) => (
+                                          <li key={idx} className="mb-6">
+                                            <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-primary" />
+                                            <div className="flex items-start justify-between">
+                                              <div>
+                                                <div className="font-medium text-foreground">
+                                                  {formatTime(seg.departure?.time || "")} {seg.departure?.airport}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                  Flight no: {seg.flightNumber || flight.flightNumber} • Cabin: {flight.cabin}
+                                                </div>
+                                              </div>
+                                              <div className="text-xs text-muted-foreground">
+                                                {humanizeISODuration(seg.duration)}
+                                              </div>
                                             </div>
-                                          </div>
-                                          {seg.flightNumber && (
-                                            <Badge variant="secondary">{seg.flightNumber}</Badge>
-                                          )}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  ) : (
-                                    <div className="text-muted-foreground">Direct flight</div>
-                                  )}
-                                </div>
-
-                                <div>
-                                  <div className="font-medium mb-2">Cabin & Aircraft</div>
-                                  <div className="text-muted-foreground">
-                                    {flight.cabin || "Economy"} • {flight.aircraft || "Aircraft"}
+                                            <div className="mt-2">
+                                              <div className="font-medium text-foreground">
+                                                {formatTime(seg.arrival?.time || "")} {seg.arrival?.airport}
+                                              </div>
+                                              {idx < flight.segments.length - 1 && (
+                                                <div className="mt-3 flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                                                  <Clock className="h-3.5 w-3.5" />
+                                                  <span>{formatLayover(seg.arrival?.time, flight.segments[idx + 1]?.departure?.time, flight.segments[idx + 1]?.departure?.airport) || "Layover"}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ol>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        <div className="text-sm">{flight.airline}</div>
+                                        <div className="text-xs text-muted-foreground">Flight no: {flight.flightNumber} • Cabin: {flight.cabin}</div>
+                                      </div>
+                                    )}
+                                    <div className="mt-2 text-xs text-muted-foreground">
+                                      Arrive at destination {formatDateLabel(flight.arrivalTime).full} • {flight.destination}
+                                    </div>
                                   </div>
-                                  <div className="text-xs text-muted-foreground mt-1">{flight.flightNumber}</div>
-                                </div>
 
-                                <div>
-                                  <div className="font-medium mb-2">Baggage</div>
-                                  <ul className="space-y-1 text-muted-foreground">
-                                    <li>Carry-on: {flight.baggage?.carry ? "Included" : "—"}</li>
-                                    <li>Checked: {flight.baggage?.checked ? "Included" : "—"}</li>
-                                    <li>Seats left: {flight.availableSeats}</li>
-                                  </ul>
+                                  {/* Side facts */}
+                                  <div className="space-y-3">
+                                    <div>
+                                      <div className="font-medium mb-1">Baggage</div>
+                                      <ul className="space-y-1 text-muted-foreground">
+                                        <li>Carry-on: {flight.baggage?.carry ? "Included" : "—"}</li>
+                                        <li>Checked: {flight.baggage?.checked ? "Included" : "—"}</li>
+                                      </ul>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium mb-1">Aircraft</div>
+                                      <div className="text-muted-foreground">{flight.aircraft || "—"}</div>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium mb-1">Seats left</div>
+                                      <div className="text-muted-foreground">{flight.availableSeats}</div>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+
                         </CardContent>
                       </Card>
                     ))}
