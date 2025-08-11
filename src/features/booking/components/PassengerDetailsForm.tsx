@@ -167,7 +167,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
             {errors.gender && <p className="text-xs text-destructive mt-1">{errors.gender.message}</p>}
           </div>
           <div>
-            <Label className="mb-2 block">Nationality (ISO)</Label>
+            <Label className="mb-2 block">Nationality</Label>
             <Input {...register("nationality")} placeholder="US / IND" onChange={(e)=>setValue("nationality", e.target.value.toUpperCase() as any, { shouldValidate: true })} />
             {errors.nationality && <p className="text-xs text-destructive mt-1">{errors.nationality.message}</p>}
           </div>
