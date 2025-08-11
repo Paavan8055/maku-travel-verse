@@ -14,6 +14,8 @@ import { format } from "date-fns";
 import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { FareSelectionDialog } from "@/features/search/components/FareSelectionDialog";
+import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
+import MultiCitySegments, { Segment as FlightSegment } from "@/components/search/MultiCitySegments";
 
 const FlightSearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -58,23 +60,23 @@ const FlightSearchPage = () => {
   }, [adults, children, infants]);
 
   // Multi-city legs
-  const [legs, setLegs] = useState<Array<{ origin: string; destination: string; date?: Date }>>(() => {
+  const [segments, setSegments] = useState<FlightSegment[]>(() => {
     const segsParam = searchParams.get("segments");
     if (segsParam) {
       try {
         const segs = JSON.parse(decodeURIComponent(segsParam));
         if (Array.isArray(segs)) {
           return segs.map((s: any) => ({
-            origin: s.origin || "",
-            destination: s.destination || "",
+            from: s.from || s.origin || "",
+            to: s.to || s.destination || "",
             date: s.date ? new Date(s.date) : undefined,
           }));
         }
       } catch {}
     }
     return [
-      { origin: originInput || (searchParams.get("origin") || ""), destination: destinationInput || (searchParams.get("destination") || ""), date: departDate },
-      { origin: "", destination: "", date: undefined },
+      { from: originInput || (searchParams.get("origin") || ""), to: destinationInput || (searchParams.get("destination") || ""), date: departDate },
+      { from: "", to: "", date: undefined },
     ];
   });
 
@@ -320,11 +322,23 @@ const FlightSearchPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
               <div className="md:col-span-1">
                 <label className="text-xs text-muted-foreground mb-1 block">From</label>
-                <Input value={originInput} onChange={(e)=>setOriginInput(e.target.value)} placeholder="SYD" />
+                <DestinationAutocomplete
+                  value={originInput}
+                  onChange={setOriginInput}
+                  onDestinationSelect={(d) => setOriginInput(d.code ? `${d.city} (${d.code})` : d.name)}
+                  placeholder="From"
+                  className="w-full"
+                />
               </div>
               <div className="md:col-span-1">
                 <label className="text-xs text-muted-foreground mb-1 block">To</label>
-                <Input value={destinationInput} onChange={(e)=>setDestinationInput(e.target.value)} placeholder="BOM" />
+                <DestinationAutocomplete
+                  value={destinationInput}
+                  onChange={setDestinationInput}
+                  onDestinationSelect={(d) => setDestinationInput(d.code ? `${d.city} (${d.code})` : d.name)}
+                  placeholder="To"
+                  className="w-full"
+                />
               </div>
               <div className="md:col-span-1">
                 <label className="text-xs text-muted-foreground mb-1 block">Departure</label>
@@ -373,8 +387,17 @@ const FlightSearchPage = () => {
                   className="w-full"
                   disabled={!((originInput || searchCriteria.origin) && (destinationInput || searchCriteria.destination))}
                   onClick={() => {
-                    const origin = originInput || searchCriteria.origin;
-                    const destination = destinationInput || searchCriteria.destination;
+                    const toCode = (text: string) => {
+                      if (!text) return "";
+                      const m = text.match(/\(([A-Za-z0-9]{3,4})\)/);
+                      if (m) return m[1].toUpperCase();
+                      const t = text.trim().toUpperCase();
+                      if (t.length === 3) return t;
+                      return t.slice(-3);
+                    };
+
+                    const origin = toCode(originInput || searchCriteria.origin);
+                    const destination = toCode(destinationInput || searchCriteria.destination);
 
                     const chosenDepart = departDate || (searchCriteria.departureDate ? new Date(searchCriteria.departureDate) : new Date());
                     const departStr = format(chosenDepart, "yyyy-MM-dd");
@@ -400,63 +423,31 @@ const FlightSearchPage = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {legs.map((leg, idx) => (
-                <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-3">
-                  <div className="md:col-span-2">
-                    <label className="text-xs text-muted-foreground mb-1 block">From</label>
-                    <Input value={leg.origin} onChange={(e)=>{
-                      const v = e.target.value; setLegs((prev)=> prev.map((l,i)=> i===idx ? { ...l, origin: v } : l));
-                    }} placeholder="SYD" />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="text-xs text-muted-foreground mb-1 block">To</label>
-                    <Input value={leg.destination} onChange={(e)=>{
-                      const v = e.target.value; setLegs((prev)=> prev.map((l,i)=> i===idx ? { ...l, destination: v } : l));
-                    }} placeholder="BOM" />
-                  </div>
-                  <div className="md:col-span-1">
-                    <label className="text-xs text-muted-foreground mb-1 block">Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {leg.date ? format(leg.date, "MMM dd, yyyy") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={leg.date}
-                          onSelect={(d) => setLegs((prev)=> prev.map((l,i)=> i===idx ? { ...l, date: d } : l))}
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="md:col-span-1 flex items-end justify-end gap-2">
-                    {legs.length > 1 && (
-                      <Button variant="outline" onClick={() => setLegs((prev) => prev.filter((_, i) => i !== idx))}>Remove</Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setLegs((prev) => prev.length >= 5 ? prev : [...prev, { origin: "", destination: "", date: undefined }])}
-                >
-                  Add flight
-                </Button>
+              <MultiCitySegments
+                segments={segments}
+                onChange={setSegments}
+                onAdd={() => setSegments((prev) => (prev.length >= 5 ? prev : [...prev, { from: "", to: "", date: undefined }]))}
+                onRemove={(index) => setSegments((prev) => prev.filter((_, i) => i !== index))}
+              />
+              <div className="flex items-center justify-end">
                 <Button
                   onClick={() => {
-                    const valid = legs.filter(l => l.origin && l.destination && l.date);
+                    const toCode = (text: string) => {
+                      if (!text) return "";
+                      const m = text.match(/\(([A-Za-z0-9]{3,4})\)/);
+                      if (m) return m[1].toUpperCase();
+                      const t = text.trim().toUpperCase();
+                      if (t.length === 3) return t;
+                      return t.slice(-3);
+                    };
+
+                    const valid = segments.filter((s) => s.from && s.to && s.date);
                     if (valid.length === 0) return;
                     const first = valid[0];
                     const params = new URLSearchParams();
                     params.set("tripType", "multicity");
-                    params.set("origin", first.origin);
-                    params.set("destination", first.destination);
+                    params.set("origin", toCode(first.from));
+                    params.set("destination", toCode(first.to));
                     params.set("departureDate", format(first.date as Date, "yyyy-MM-dd"));
                     params.set("returnDate", "");
                     params.set("passengers", String(totalPassengers));
@@ -464,7 +455,13 @@ const FlightSearchPage = () => {
                     params.set("children", String(children));
                     params.set("infants", String(infants));
                     params.set("cabinClass", cabinClass);
-                    params.set("segments", encodeURIComponent(JSON.stringify(valid.map((s) => ({ origin: s.origin, destination: s.destination, date: format(s.date as Date, "yyyy-MM-dd") })))));
+
+                    const segs = valid.map((s) => ({
+                      origin: toCode(s.from),
+                      destination: toCode(s.to),
+                      date: format(s.date as Date, "yyyy-MM-dd"),
+                    }));
+                    params.set("segments", JSON.stringify(segs));
                     navigate(`/search/flights?${params.toString()}`);
                   }}
                 >
