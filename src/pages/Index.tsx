@@ -7,7 +7,7 @@ import MarketplacePills from "@/components/MarketplacePills";
 import FeaturedListings from "@/components/FeaturedListings";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/features/makuBot/components/ChatWidget";
-import AgenticInlinePanel from "@/features/agenticBot/components/AgenticInlinePanel";
+import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
 
 const Index = () => {
   return (
@@ -18,14 +18,9 @@ const Index = () => {
       <SearchSection />
       <MarketplaceSection />
       <FeaturedListings />
-
-      {/* Inline Agentic Bot section */}
-      <div className="my-16">
-        <AgenticInlinePanel userVertical="Solo" />
-      </div>
-
       <Footer />
       <ChatWidget userVertical="Solo" />
+      <AgenticWidget />
     </div>
   );
 };
