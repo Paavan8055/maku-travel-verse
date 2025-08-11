@@ -24,38 +24,25 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const userClient = createClient(supabaseUrl, supabaseAnon);
-
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData } = await userClient.auth.getUser(token);
-    const user = userData?.user;
-
-    if (!user) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Unauthorized" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
-      );
-    }
-
-    // Verify booking belongs to user (or exists)
+    // Service client (bypasses RLS)
     const serviceClient = createClient(supabaseUrl, supabaseServiceRole, { auth: { persistSession: false } });
+
+    // Load booking with extra fields for the confirmation letter
     const { data: bookingRows, error: bookingErr } = await serviceClient
       .from("bookings")
-      .select("id, user_id, status, currency")
+      .select("id, user_id, status, currency, booking_reference, booking_data, total_amount, created_at")
       .eq("id", bookingId)
       .limit(1);
 
     if (bookingErr) throw bookingErr;
     const booking = bookingRows?.[0];
 
-    if (!booking || booking.user_id !== user.id) {
+    if (!booking) {
       return new Response(
-        JSON.stringify({ success: false, error: "Booking not found or not owned by user" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        JSON.stringify({ success: false, error: "Booking not found" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
       );
     }
 
@@ -111,8 +98,21 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        booking: { id: bookingId, status: paid ? "confirmed" : booking.status },
-        payment: { status: paid ? "succeeded" : paymentStatus },
+        booking: {
+          id: bookingId,
+          booking_reference: booking.booking_reference,
+          status: paid ? "confirmed" : booking.status,
+          total_amount: (booking.total_amount ?? (amountTotal / 100)) || 0,
+          currency,
+          booking_data: booking.booking_data,
+          created_at: booking.created_at,
+        },
+        payment: {
+          status: paid ? "succeeded" : paymentStatus,
+          amount: amountTotal / 100,
+          currency,
+          intent_id: derivedPaymentIntentId,
+        },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
