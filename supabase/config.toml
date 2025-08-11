@@ -70,6 +70,9 @@ port = 54330
 [functions.create-booking]
 verify_jwt = true
 
+[functions.create-booking-payment]
+verify_jwt = false
+
 [functions.stripe-webhook]
 verify_jwt = false
 
