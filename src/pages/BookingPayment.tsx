@@ -71,7 +71,7 @@ const BookingPaymentPage = () => {
     });
 
     if (result.success && result.booking?.status === 'confirmed') {
-      window.location.href = `/dashboard/bookings/${result.booking.id}`;
+      window.location.href = `/booking/confirmation?booking_id=${result.booking.id}`;
     }
   };
 

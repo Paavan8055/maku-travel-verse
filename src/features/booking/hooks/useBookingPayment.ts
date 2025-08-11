@@ -65,7 +65,7 @@ export const useBookingPayment = () => {
       // If there's a checkout URL, redirect to Stripe
       if (data.payment.checkoutUrl) {
         console.log('Redirecting to Stripe checkout:', data.payment.checkoutUrl);
-        window.open(data.payment.checkoutUrl, '_blank');
+        window.location.href = data.payment.checkoutUrl;
       }
 
       return data;
