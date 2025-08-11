@@ -71,31 +71,13 @@ const [segments, setSegments] = useState<Segment[]>([
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Destination Input */}
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                  <Input
-                    type="text"
-                    placeholder="Where are you going?"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    className="search-input pl-11"
-                  />
-                  {destination && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
-                      {popularDestinations
-                        .filter(dest => dest.toLowerCase().includes(destination.toLowerCase()))
-                        .map((dest, index) => (
-                          <div
-                            key={index}
-                            className="p-3 hover:bg-muted cursor-pointer flex items-center space-x-2"
-                            onClick={() => setDestination(dest)}
-                          >
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span>{dest}</span>
-                          </div>
-                        ))
-                      }
-                    </div>
-                  )}
+<DestinationAutocomplete
+  value={destination}
+  onChange={setDestination}
+  onDestinationSelect={(d) => setDestination(d.code ? `${d.city ?? d.name} (${d.code})` : d.name)}
+  placeholder="Where are you going?"
+  className="search-input"
+/>
                 </div>
 
                 {/* Check-in Date */}

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AIRPORTS } from "@/data/airports";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Destination {
   id: string;
@@ -129,12 +130,32 @@ async function loadGlobalAirports(): Promise<Destination[]> {
 
 useEffect(() => {
   let active = true;
-  if (value.trim().length >= 2) {
+  const q = value.trim();
+  if (q.length >= 2) {
     setLoading(true);
-    const timeoutId = setTimeout(async () => {
-      const q = value.toLowerCase();
 
-      // Prefer global dataset; fallback to local AIRPORTS (indexed)
+    const timeoutId = setTimeout(async () => {
+      try {
+        // 1) Try server-powered Amadeus autocomplete first
+        const { data, error } = await supabase.functions.invoke(
+          'amadeus-locations-autocomplete',
+          { body: { query: q, types: ['CITY','AIRPORT'], limit: 12 } }
+        );
+
+        if (!active) return;
+
+        if (!error && data && Array.isArray(data.results) && data.results.length > 0) {
+          setSuggestions(data.results as Destination[]);
+          setShowSuggestions(true);
+          setLoading(false);
+          return;
+        }
+      } catch (_) {
+        // ignore and fall back
+      }
+
+      // 2) Fallback: local/global dataset search
+      const qLower = q.toLowerCase();
       const global = await loadGlobalAirports();
       const dataset: Destination[] = (global && global.length > 0)
         ? global
@@ -145,7 +166,7 @@ useEffect(() => {
               city: a.city,
               country: a.country,
               code: a.iata,
-              type: "airport" as const,
+              type: 'airport' as const,
             };
             (d as any)._s = buildSearchKey(d);
             return d;
@@ -154,7 +175,7 @@ useEffect(() => {
       if (!active) return;
 
       const matches = dataset
-        .filter((d) => ((d as any)._s as string).includes(q))
+        .filter((d) => ((d as any)._s as string).includes(qLower))
         .slice(0, 12);
 
       setSuggestions(matches);
