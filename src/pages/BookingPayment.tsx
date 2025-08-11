@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { ChevronLeft, CreditCard, Shield, Check, Coins, BadgeDollarSign, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,12 +11,13 @@ import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const StripeCardForm: React.FC<{ setConfirm: (fn: () => Promise<any>) => void }> = ({ setConfirm }) => {
+const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Promise<any>) | null>> }> = ({ setConfirm }) => {
   const stripe = useStripe();
   const elements = useElements();
 
   useEffect(() => {
-    setConfirm(async () => {
+    // Provide a stable function value to React state setter
+    setConfirm(() => async () => {
       if (!stripe || !elements) throw new Error('Stripe not ready');
       const result = await stripe.confirmPayment({ elements, redirect: 'if_required' });
       if ((result as any).error) {
@@ -24,10 +25,14 @@ const StripeCardForm: React.FC<{ setConfirm: (fn: () => Promise<any>) => void }>
       }
       return result;
     });
+
+    // Cleanup: unset confirm function on unmount or when deps change
+    return () => setConfirm(() => null);
   }, [stripe, elements, setConfirm]);
 
   return <PaymentElement options={{ layout: 'tabs' }} />;
 };
+
 
 
 const BookingPaymentPage = () => {
@@ -145,6 +150,11 @@ const BookingPaymentPage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentGateway, stripePromise]);
+
+  // Reset confirm function when payment context changes
+  useEffect(() => {
+    setConfirmFn(null);
+  }, [clientSecret, paymentGateway]);
 
   const handleCheckout = async () => {
     if (!agreeToTerms) return;
