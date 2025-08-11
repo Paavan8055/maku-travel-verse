@@ -20,6 +20,7 @@ import BookingSelectPage from "./pages/BookingSelect";
 import BookingBaggagePage from "./pages/BookingBaggage";
 import BookingExtrasPage from "./pages/BookingExtras";
 import CheckoutPage from "./pages/Checkout";
+import BookingPaymentPage from "./pages/BookingPayment";
 import { Dashboard } from "./pages/Dashboard";
 import { BookingDetails } from "./pages/BookingDetails";
 import PartnerPortal from "./pages/PartnerPortal";
@@ -58,6 +59,7 @@ const App = () => (
                   <Route path="/booking/baggage" element={<BookingBaggagePage />} />
                   <Route path="/booking/extras" element={<BookingExtrasPage />} />
                   <Route path="/booking/checkout" element={<CheckoutPage />} />
+                  <Route path="/booking/payment" element={<BookingPaymentPage />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/bookings/:id" element={<BookingDetails />} />
                   <Route path="/partner-portal" element={<PartnerPortal />} />

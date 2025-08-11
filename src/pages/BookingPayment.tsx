@@ -1,23 +1,20 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { ChevronLeft, CreditCard, Shield, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
-import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
 
-const CheckoutPage = () => {
+const BookingPaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [passengerValid, setPassengerValid] = useState(false);
-  const [passenger, setPassenger] = useState<PassengerFormData | null>(null);
-  const navigate = useNavigate();
-  
+
+  useEffect(() => {
+    document.title = "Payment | Maku Travel";
+  }, []);
+
   // Booking details (hotel fallback) and flight params from URL
   const bookingDetails = {
     hotel: "Ocean Breeze Resort",
@@ -29,36 +26,27 @@ const CheckoutPage = () => {
     basePrice: 3150,
     extrasPrice: 244,
     fundContribution: 50,
-    total: 3444
+    total: 3444,
   };
 
-  const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  const isFlightCheckout = Boolean(params.get('flightId'));
+  const params = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
+  const isFlightCheckout = Boolean(params.get("flightId"));
   const flightParams = {
-    flightId: params.get('flightId') || '',
-    fareType: params.get('fareType') || '',
-    amount: Number(params.get('amount')) || 0,
-    currency: params.get('currency') || 'USD',
-    carryOn: params.get('carryOn') || '',
-    checked: params.get('checked') || ''
-  };
-
-  const goToPayment = () => {
-    if (!passengerValid) return;
-    try {
-      if (passenger) sessionStorage.setItem('passengerInfo', JSON.stringify(passenger));
-    } catch (e) {
-      // no-op
-    }
-    const search = typeof window !== 'undefined' ? window.location.search : '';
-    navigate(`/booking/payment${search}`);
+    flightId: params.get("flightId") || "",
+    fareType: params.get("fareType") || "",
+    amount: Number(params.get("amount")) || 0,
+    currency: params.get("currency") || "USD",
+    carryOn: params.get("carryOn") || "",
+    checked: params.get("checked") || "",
   };
 
   const handlePayment = async () => {
     if (!agreeToTerms) return;
-    
+
     setIsProcessing(true);
-    
+
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
@@ -70,18 +58,25 @@ const CheckoutPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       {/* Header */}
       <div className="pt-24 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.history.back()}
+            className="mb-4"
+          >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Extras
+            Back
           </Button>
-          
-          <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Flight Booking</span></h1>
+
+          <h1 className="text-3xl font-bold mb-2">
+            Complete your <span className="hero-text">Payment</span>
+          </h1>
           <p className="text-muted-foreground">
-            Review your details and confirm your reservation
+            Select a payment method and confirm your reservation
           </p>
         </div>
       </div>
@@ -90,23 +85,110 @@ const CheckoutPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Payment Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Passenger Details */}
-            <PassengerDetailsForm onChange={(data, valid) => { setPassenger(data); setPassengerValid(valid); }} />
-
             {/* Payment Method */}
-            {/* Next step CTA: Payment */}
             <Card className="travel-card">
               <CardContent className="p-6">
-                <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
-                <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
-                <Button
-                  className="btn-primary h-12"
-                  size="lg"
-                  disabled={!passengerValid}
-                  onClick={goToPayment}
-                >
-                  Continue to Payment
-                </Button>
+                <h2 className="text-xl font-bold mb-4">Payment Method</h2>
+
+                <div className="space-y-4">
+                  {/* Payment Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        paymentMethod === "card"
+                          ? "border-primary bg-primary/5"
+                          : "border-border"
+                      }`}
+                      onClick={() => setPaymentMethod("card")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <CreditCard className="h-5 w-5" />
+                        <span className="font-medium">Credit Card</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        paymentMethod === "fund"
+                          ? "border-primary bg-primary/5"
+                          : "border-border"
+                      }`}
+                      onClick={() => setPaymentMethod("fund")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Shield className="h-5 w-5" />
+                        <span className="font-medium">Travel Fund</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        paymentMethod === "split"
+                          ? "border-primary bg-primary/5"
+                          : "border-border"
+                      }`}
+                      onClick={() => setPaymentMethod("split")}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="flex">
+                          <CreditCard className="h-5 w-5" />
+                          <Shield className="h-5 w-5 -ml-2" />
+                        </div>
+                        <span className="font-medium">Split Payment</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Details */}
+                  {(paymentMethod === "card" || paymentMethod === "split") && (
+                    <div className="space-y-4 mt-6">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Card Number
+                        </label>
+                        <Input placeholder="1234 5678 9012 3456" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Expiry Date
+                          </label>
+                          <Input placeholder="MM/YY" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            CVV
+                          </label>
+                          <Input placeholder="123" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Cardholder Name
+                        </label>
+                        <Input placeholder="John Doe" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fund Balance Info */}
+                  {(paymentMethod === "fund" || paymentMethod === "split") && (
+                    <div className="bg-muted p-4 rounded-xl">
+                      <div className="flex justify-between items-center mb-2">
+                        <span>Available Fund Balance:</span>
+                        <span className="font-bold text-primary">$1,250</span>
+                      </div>
+                      {paymentMethod === "fund" && bookingDetails.total > 1250 && (
+                        <p className="text-sm text-destructive">
+                          Insufficient funds. Please add more to your travel fund or
+                          choose split payment.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -114,7 +196,7 @@ const CheckoutPage = () => {
             <Card className="travel-card">
               <CardContent className="p-6">
                 <div className="flex items-start space-x-3">
-                  <Checkbox 
+                  <Checkbox
                     id="terms"
                     checked={agreeToTerms}
                     onCheckedChange={(checked) => setAgreeToTerms(checked === true)}
@@ -131,7 +213,8 @@ const CheckoutPage = () => {
                       </Button>
                     </label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      By proceeding, you acknowledge that you have read and understood our cancellation policy.
+                      By proceeding, you acknowledge that you have read and
+                      understood our cancellation policy.
                     </p>
                   </div>
                 </div>
@@ -147,35 +230,53 @@ const CheckoutPage = () => {
                 {isFlightCheckout ? (
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-medium">Flight #{flightParams.flightId || "—"}</h4>
+                      <h4 className="font-medium">
+                        Flight #{flightParams.flightId || "—"}
+                      </h4>
                       <p className="text-sm text-muted-foreground">
-                        {flightParams.fareType ? `Fare: ${flightParams.fareType.toUpperCase()}` : "Fare: —"}
+                        {flightParams.fareType
+                          ? `Fare: ${flightParams.fareType.toUpperCase()}`
+                          : "Fare: —"}
                       </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Carry-on</p>
-                        <p className="font-medium">{flightParams.carryOn ? flightParams.carryOn.replace(/_/g, " ") : "—"}</p>
+                        <p className="font-medium">
+                          {flightParams.carryOn
+                            ? flightParams.carryOn.replace(/_/g, " ")
+                            : "—"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Checked bags</p>
-                        <p className="font-medium">{flightParams.checked ? flightParams.checked.replace(/_/g, " ") : "—"}</p>
+                        <p className="font-medium">
+                          {flightParams.checked
+                            ? flightParams.checked.replace(/_/g, " ")
+                            : "—"}
+                        </p>
                       </div>
                     </div>
 
                     <div className="border-t pt-4 space-y-2">
                       <div className="flex justify-between font-bold text-lg pt-2">
                         <span>Total</span>
-                        <span>{flightParams.currency} {flightParams.amount.toFixed(2)}</span>
+                        <span>
+                          {flightParams.currency} {flightParams.amount.toFixed(2)}
+                        </span>
                       </div>
                     </div>
 
                     <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
                       <Shield className="h-5 w-5 text-green-600" />
                       <div>
-                        <p className="text-sm font-medium text-green-800">Secure Payment</p>
-                        <p className="text-xs text-green-600">256-bit SSL encryption</p>
+                        <p className="text-sm font-medium text-green-800">
+                          Secure Payment
+                        </p>
+                        <p className="text-xs text-green-600">
+                          256-bit SSL encryption
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -184,9 +285,11 @@ const CheckoutPage = () => {
                     {/* Hotel Details */}
                     <div>
                       <h4 className="font-medium">{bookingDetails.hotel}</h4>
-                      <p className="text-sm text-muted-foreground">{bookingDetails.room}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {bookingDetails.room}
+                      </p>
                     </div>
-                    
+
                     {/* Dates */}
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
@@ -198,7 +301,7 @@ const CheckoutPage = () => {
                         <p className="font-medium">{bookingDetails.checkOut}</p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Duration</p>
@@ -209,7 +312,7 @@ const CheckoutPage = () => {
                         <p className="font-medium">{bookingDetails.guests} adults</p>
                       </div>
                     </div>
-                    
+
                     {/* Price Breakdown */}
                     <div className="border-t pt-4 space-y-2">
                       <div className="flex justify-between text-sm">
@@ -229,21 +332,25 @@ const CheckoutPage = () => {
                         <span>${bookingDetails.total}</span>
                       </div>
                     </div>
-                    
+
                     {/* Security Badge */}
                     <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
                       <Shield className="h-5 w-5 text-green-600" />
                       <div>
-                        <p className="text-sm font-medium text-green-800">Secure Payment</p>
-                        <p className="text-xs text-green-600">256-bit SSL encryption</p>
+                        <p className="text-sm font-medium text-green-800">
+                          Secure Payment
+                        </p>
+                        <p className="text-xs text-green-600">
+                          256-bit SSL encryption
+                        </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <Button 
+                <Button
                   onClick={handlePayment}
-                  disabled={!agreeToTerms || isProcessing || !passengerValid}
+                  disabled={!agreeToTerms || isProcessing}
                   className="w-full mt-6 btn-primary h-12"
                 >
                   {isProcessing ? (
@@ -264,4 +371,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage;
+export default BookingPaymentPage;
