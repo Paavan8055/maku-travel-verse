@@ -198,7 +198,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
           </div>
           <div>
-            <Label className="mb-2 block">Phone (E.164)</Label>
+            <Label className="mb-2 block">Mobile</Label>
             <Input {...register("phone")} placeholder="+15551234567" />
             {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
           </div>
