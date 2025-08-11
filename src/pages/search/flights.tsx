@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
+import { FareSelectionDialog } from "@/features/search/components/FareSelectionDialog";
 
 const FlightSearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -78,6 +79,8 @@ const FlightSearchPage = () => {
   });
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [fareOpen, setFareOpen] = useState(false);
+  const [fareFlight, setFareFlight] = useState<any | null>(null);
 
   const searchCriteria = {
     origin: searchParams.get("origin") || "SYD",
@@ -187,7 +190,8 @@ const FlightSearchPage = () => {
   };
 
   const handleSelectFlight = (flight: any) => {
-    navigate(`/booking-select?type=flight&id=${flight.id}&origin=${searchCriteria.origin}&destination=${searchCriteria.destination}`);
+    setFareFlight(flight);
+    setFareOpen(true);
   };
 
   const sortTabs = [
@@ -757,6 +761,9 @@ const FlightSearchPage = () => {
           </div>
         </div>
       </div>
+      {fareFlight && (
+        <FareSelectionDialog open={fareOpen} onOpenChange={setFareOpen} flight={fareFlight} />
+      )}
     </div>
   );
 };
