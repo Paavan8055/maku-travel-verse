@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Plane, Clock, Luggage, ChevronRight, MapPin, ArrowRightLeft } from "lucide-react";
+import { Plane, Clock, Luggage, ChevronRight, MapPin, ArrowRightLeft, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
 import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
 
 const FlightSearchPage = () => {
@@ -21,12 +26,25 @@ const FlightSearchPage = () => {
     baggage: "any"
   });
 
+  // Inline search controls state
+  const [originInput, setOriginInput] = useState(searchParams.get("origin") || "");
+  const [destinationInput, setDestinationInput] = useState(searchParams.get("destination") || "");
+  const [departDate, setDepartDate] = useState<Date | undefined>(
+    searchParams.get("departureDate") ? new Date(searchParams.get("departureDate") as string) :
+    searchParams.get("checkIn") ? new Date(searchParams.get("checkIn") as string) : undefined
+  );
+  const [returnDate, setReturnDate] = useState<Date | undefined>(
+    searchParams.get("returnDate") ? new Date(searchParams.get("returnDate") as string) :
+    searchParams.get("checkOut") ? new Date(searchParams.get("checkOut") as string) : undefined
+  );
+  const [passengersInput, setPassengersInput] = useState(searchParams.get("passengers") || searchParams.get("guests") || "1");
+
   const searchCriteria = {
     origin: searchParams.get("origin") || "SYD",
     destination: searchParams.get("destination") || "BOM",
-    departureDate: searchParams.get("checkIn") || "",
-    returnDate: searchParams.get("checkOut") || "",
-    passengers: parseInt(searchParams.get("guests") || "1")
+    departureDate: searchParams.get("departureDate") || searchParams.get("checkIn") || "",
+    returnDate: searchParams.get("returnDate") || searchParams.get("checkOut") || "",
+    passengers: parseInt(searchParams.get("passengers") || searchParams.get("guests") || "1")
   };
 
   const { flights, loading, error } = useFlightSearch(searchCriteria);
@@ -35,6 +53,8 @@ const FlightSearchPage = () => {
     .filter(flight => {
       if (priceRange[0] > 0 && flight.price < priceRange[0]) return false;
       if (priceRange[1] < 2000 && flight.price > priceRange[1]) return false;
+      const depHour = getHourFrom(flight.departureTime);
+      if (depHour < departureTimeRange[0] || depHour > departureTimeRange[1]) return false;
       if (filters.stops !== "any" && flight.stops !== filters.stops) return false;
       if (filters.airline !== "any" && flight.airline !== filters.airline) return false;
       if (filters.cabin !== "any" && flight.cabin.toLowerCase() !== filters.cabin) return false;
@@ -50,7 +70,26 @@ const FlightSearchPage = () => {
       }
     });
 
-  const formatTime = (time: string) => time;
+  const formatTime = (time: string) => {
+    if (!time) return "--:--";
+    try {
+      if (time.includes("T")) {
+        const d = new Date(time);
+        return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
+      }
+      return time;
+    } catch {
+      return time;
+    }
+  };
+  const getHourFrom = (time: string) => {
+    if (!time) return 0;
+    try {
+      if (time.includes("T")) return new Date(time).getHours();
+      const [h] = time.split(":");
+      return parseInt(h || "0", 10);
+    } catch { return 0; }
+  };
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -96,6 +135,87 @@ const FlightSearchPage = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-6">
+        {/* Search Controls */}
+        <div className="bg-card border border-border rounded-lg p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <div className="md:col-span-1">
+              <label className="text-xs text-muted-foreground mb-1 block">From</label>
+              <Input value={originInput} onChange={(e)=>setOriginInput(e.target.value)} placeholder="SYD" />
+            </div>
+            <div className="md:col-span-1">
+              <label className="text-xs text-muted-foreground mb-1 block">To</label>
+              <Input value={destinationInput} onChange={(e)=>setDestinationInput(e.target.value)} placeholder="BOM" />
+            </div>
+            <div className="md:col-span-1">
+              <label className="text-xs text-muted-foreground mb-1 block">Departure</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {departDate ? format(departDate, "MMM dd, yyyy") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={departDate}
+                    onSelect={setDepartDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="md:col-span-1">
+              <label className="text-xs text-muted-foreground mb-1 block">Return</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {returnDate ? format(returnDate, "MMM dd, yyyy") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={returnDate}
+                    onSelect={setReturnDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="md:col-span-1">
+              <label className="text-xs text-muted-foreground mb-1 block">Passengers</label>
+              <Select value={passengersInput} onValueChange={setPassengersInput}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Passengers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="5">5+</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-1">
+              <label className="invisible block">Search</label>
+              <Button className="w-full" onClick={() => {
+                const params = new URLSearchParams({
+                  origin: originInput || searchCriteria.origin,
+                  destination: destinationInput || searchCriteria.destination,
+                  departureDate: departDate ? format(departDate, "yyyy-MM-dd") : searchCriteria.departureDate,
+                  returnDate: returnDate ? format(returnDate, "yyyy-MM-dd") : searchCriteria.returnDate,
+                  passengers: passengersInput || String(searchCriteria.passengers)
+                });
+                navigate(`/search/flights?${params.toString()}`);
+              }}>Search</Button>
+            </div>
+          </div>
+        </div>
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8 space-x-4">
           <div className="flex items-center">

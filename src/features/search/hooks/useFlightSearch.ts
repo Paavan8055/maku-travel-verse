@@ -14,13 +14,14 @@ interface Flight {
   id: string;
   airline: string;
   airlineCode: string;
+  airlineLogo?: string;
   flightNumber: string;
   aircraft: string;
   origin: string;
   destination: string;
   departureTime: string;
   arrivalTime: string;
-  duration: number;
+  duration: number; // minutes
   stops: string;
   price: number;
   currency: string;
@@ -30,6 +31,12 @@ interface Flight {
     carry: boolean;
     checked: boolean;
   };
+  segments?: Array<{
+    departure: { airport: string; time: string; terminal?: string };
+    arrival: { airport: string; time: string; terminal?: string };
+    duration?: string;
+    flightNumber?: string;
+  }>;
 }
 
 
@@ -84,6 +91,7 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
                   id: String(f.id ?? `${f.airline?.code}-${f.flightNumber}`),
                   airline: f.airline?.name ?? f.airline?.code ?? "Airline",
                   airlineCode: f.airline?.code ?? "XX",
+                  airlineLogo: f.airline?.logo,
                   flightNumber: f.flightNumber ?? `${f.airline?.code ?? "XX"}${Math.floor(Math.random()*900)+100}`,
                   aircraft: f.aircraft ?? "Unknown",
                   origin: f.departure?.airport ?? criteria.origin,
@@ -99,7 +107,8 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
                   baggage: {
                     carry: Boolean(f.baggage?.carry_on ?? true),
                     checked: Boolean((f.baggage?.included ?? 0) > 0)
-                  }
+                  },
+                  segments: Array.isArray(f.segments) ? f.segments : undefined
                 } as Flight;
               }
               // Already in internal shape
