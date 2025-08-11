@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Navbar from "@/components/Navbar";
 import { useBookingPayment } from "@/features/booking/hooks/useBookingPayment";
 
@@ -378,6 +379,62 @@ const BookingPaymentPage = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            <Card className="travel-card mt-6">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-bold mb-4">Fare Rules</h3>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="cancellation">
+                    <AccordionTrigger>Cancellation</AccordionTrigger>
+                    <AccordionContent>
+                      {isFlightCheckout ? (
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                          <li>{flightParams.fareType ? `${flightParams.fareType.toUpperCase()} fare` : 'Selected fare'} may be non-refundable after 24 hours from booking.</li>
+                          <li>Refunds, if permitted, are processed to the original payment method.</li>
+                        </ul>
+                      ) : (
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                          <li>Free cancellation up to 48 hours before check-in.</li>
+                          <li>Within 48 hours, one night charge may apply.</li>
+                        </ul>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="changes">
+                    <AccordionTrigger>Changes</AccordionTrigger>
+                    <AccordionContent>
+                      {isFlightCheckout ? (
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                          <li>Flight changes subject to airline rules and fare difference.</li>
+                          <li>Name changes are generally not permitted.</li>
+                        </ul>
+                      ) : (
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                          <li>Room/date changes subject to availability and rate differences.</li>
+                        </ul>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="baggage">
+                    <AccordionTrigger>{isFlightCheckout ? 'Baggage' : 'Additional Policies'}</AccordionTrigger>
+                    <AccordionContent>
+                      {isFlightCheckout ? (
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                          <li>Carry-on: {flightParams.carryOn ? flightParams.carryOn.replace(/_/g, ' ') : 'per airline policy'}.</li>
+                          <li>Checked bags: {flightParams.checked ? flightParams.checked.replace(/_/g, ' ') : 'fees may apply'}.</li>
+                        </ul>
+                      ) : (
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                          <li>Government ID required at check-in.</li>
+                          <li>Property-specific rules may apply.</li>
+                        </ul>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+
           </div>
         </div>
       </div>
