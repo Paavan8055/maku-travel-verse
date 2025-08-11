@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
+import FlightPassengerSelector from "@/components/search/FlightPassengerSelector";
 
 const SearchSection = () => {
   const [destination, setDestination] = useState("");
@@ -19,7 +21,12 @@ const SearchSection = () => {
   const [flightTo, setFlightTo] = useState("");
   const [flightDepart, setFlightDepart] = useState<Date>();
   const [flightReturn, setFlightReturn] = useState<Date>();
-  const [flightPassengers, setFlightPassengers] = useState("1");
+const [flightPassengers, setFlightPassengers] = useState("1");
+const [tripType, setTripType] = useState<"oneway" | "roundtrip" | "multicity">("roundtrip");
+const [cabinClass, setCabinClass] = useState("economy");
+const [adults, setAdults] = useState(1);
+const [children, setChildren] = useState(0);
+const [infants, setInfants] = useState(0);
 
   const searchTabs = [
     { id: "hotels", label: "Hotels", icon: Building },
@@ -158,61 +165,26 @@ const SearchSection = () => {
             </TabsContent>
 
             <TabsContent value="flights" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="relative">
-                  <Plane className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                  <Input
-                    id="flight-from"
-                    name="flight-from"
-                    type="text"
-                    placeholder="From"
-                    value={flightFrom}
-                    onChange={(e) => setFlightFrom(e.target.value)}
-                    className="search-input pl-11"
-                    autoComplete="address-level2"
-                    spellCheck={false}
-                    inputMode="text"
-                    list="airport-from"
-                  />
-                  <datalist id="airport-from">
-                    <option value="Sydney (SYD)" />
-                    <option value="Melbourne (MEL)" />
-                    <option value="Auckland (AKL)" />
-                    <option value="Los Angeles (LAX)" />
-                    <option value="New York (JFK)" />
-                    <option value="London Heathrow (LHR)" />
-                    <option value="Tokyo Haneda (HND)" />
-                    <option value="Singapore Changi (SIN)" />
-                  </datalist>
-                </div>
-                
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                  <Input
-                    id="flight-to"
-                    name="flight-to"
-                    type="text"
-                    placeholder="To"
-                    value={flightTo}
-                    onChange={(e) => setFlightTo(e.target.value)}
-                    className="search-input pl-11"
-                    autoComplete="address-level2"
-                    spellCheck={false}
-                    inputMode="text"
-                    list="airport-to"
-                  />
-                  <datalist id="airport-to">
-                    <option value="Sydney (SYD)" />
-                    <option value="Melbourne (MEL)" />
-                    <option value="Auckland (AKL)" />
-                    <option value="Los Angeles (LAX)" />
-                    <option value="New York (JFK)" />
-                    <option value="London Heathrow (LHR)" />
-                    <option value="Tokyo Haneda (HND)" />
-                    <option value="Singapore Changi (SIN)" />
-                  </datalist>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+                {/* From */}
+                <DestinationAutocomplete
+                  value={flightFrom}
+                  onChange={setFlightFrom}
+                  onDestinationSelect={(d) => setFlightFrom(d.code ? `${d.city} (${d.code})` : d.name)}
+                  placeholder="From"
+                  className="search-input"
+                />
 
+                {/* To */}
+                <DestinationAutocomplete
+                  value={flightTo}
+                  onChange={setFlightTo}
+                  onDestinationSelect={(d) => setFlightTo(d.code ? `${d.city} (${d.code})` : d.name)}
+                  placeholder="To"
+                  className="search-input"
+                />
+
+                {/* Departure */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="search-input justify-start text-left font-normal">
@@ -231,49 +203,81 @@ const SearchSection = () => {
                   </PopoverContent>
                 </Popover>
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="search-input justify-start text-left font-normal">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {flightReturn ? format(flightReturn, "MMM dd") : "Return"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={flightReturn}
-                      onSelect={setFlightReturn}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+                {/* Return (only for roundtrip) */}
+                {tripType === "roundtrip" && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="search-input justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {flightReturn ? format(flightReturn, "MMM dd") : "Return"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={flightReturn}
+                        onSelect={setFlightReturn}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
 
-                <Select value={flightPassengers} onValueChange={setFlightPassengers}>
+                {/* Trip Type */}
+                <Select value={tripType} onValueChange={(val) => setTripType(val as typeof tripType)}>
                   <SelectTrigger className="search-input">
-                    <Users className="mr-2 h-4 w-4" />
-                    <SelectValue />
+                    <SelectValue placeholder="Trip type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">1 Passenger</SelectItem>
-                    <SelectItem value="2">2 Passengers</SelectItem>
-                    <SelectItem value="3">3 Passengers</SelectItem>
-                    <SelectItem value="4">4+ Passengers</SelectItem>
+                    <SelectItem value="oneway">One-way</SelectItem>
+                    <SelectItem value="roundtrip">Round-trip</SelectItem>
+                    <SelectItem value="multicity">Multi-city</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Cabin Class */}
+                <Select value={cabinClass} onValueChange={setCabinClass}>
+                  <SelectTrigger className="search-input">
+                    <SelectValue placeholder="Cabin class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="economy">Economy</SelectItem>
+                    <SelectItem value="premium_economy">Premium Economy</SelectItem>
+                    <SelectItem value="business">Business</SelectItem>
+                    <SelectItem value="first">First</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Passengers */}
+                <FlightPassengerSelector
+                  adults={adults}
+                  children={children}
+                  infants={infants}
+                  onChange={({ adults: a, children: c, infants: i }) => {
+                    setAdults(a);
+                    setChildren(c);
+                    setInfants(i);
+                  }}
+                />
               </div>
 
               <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  disabled={!flightFrom || !flightTo || !flightDepart}
+                  disabled={!flightFrom || !flightTo || (!flightDepart && tripType !== "multicity")}
                   onClick={() => {
                     const params = new URLSearchParams({
                       origin: flightFrom,
                       destination: flightTo,
                       departureDate: flightDepart ? format(flightDepart, "yyyy-MM-dd") : "",
-                      returnDate: flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
-                      passengers: flightPassengers
+                      returnDate: tripType === "roundtrip" && flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
+                      passengers: String(adults + children + infants),
+                      adults: String(adults),
+                      children: String(children),
+                      infants: String(infants),
+                      cabin: cabinClass,
+                      trip: tripType,
                     });
                     window.location.href = `/search?type=flights&${params.toString()}`;
                   }}
