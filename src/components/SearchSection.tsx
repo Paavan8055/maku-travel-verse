@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import FlightPassengerSelector from "@/components/search/FlightPassengerSelector";
+import MultiCitySegments, { type Segment } from "@/components/search/MultiCitySegments";
 
 const SearchSection = () => {
   const [destination, setDestination] = useState("");
@@ -27,6 +28,10 @@ const [cabinClass, setCabinClass] = useState("economy");
 const [adults, setAdults] = useState(1);
 const [children, setChildren] = useState(0);
 const [infants, setInfants] = useState(0);
+const [segments, setSegments] = useState<Segment[]>([
+  { from: "", to: "", date: undefined },
+  { from: "", to: "", date: undefined },
+]);
 
   const searchTabs = [
     { id: "hotels", label: "Hotels", icon: Building },
@@ -165,121 +170,187 @@ const [infants, setInfants] = useState(0);
             </TabsContent>
 
             <TabsContent value="flights" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-                {/* From */}
-                <DestinationAutocomplete
-                  value={flightFrom}
-                  onChange={setFlightFrom}
-                  onDestinationSelect={(d) => setFlightFrom(d.code ? `${d.city} (${d.code})` : d.name)}
-                  placeholder="From"
-                  className="search-input"
-                />
+              {tripType !== "multicity" ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+                  {/* From */}
+                  <DestinationAutocomplete
+                    value={flightFrom}
+                    onChange={setFlightFrom}
+                    onDestinationSelect={(d) => setFlightFrom(d.code ? `${d.city} (${d.code})` : d.name)}
+                    placeholder="From"
+                    className="search-input"
+                  />
 
-                {/* To */}
-                <DestinationAutocomplete
-                  value={flightTo}
-                  onChange={setFlightTo}
-                  onDestinationSelect={(d) => setFlightTo(d.code ? `${d.city} (${d.code})` : d.name)}
-                  placeholder="To"
-                  className="search-input"
-                />
+                  {/* To */}
+                  <DestinationAutocomplete
+                    value={flightTo}
+                    onChange={setFlightTo}
+                    onDestinationSelect={(d) => setFlightTo(d.code ? `${d.city} (${d.code})` : d.name)}
+                    placeholder="To"
+                    className="search-input"
+                  />
 
-                {/* Departure */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="search-input justify-start text-left font-normal">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {flightDepart ? format(flightDepart, "MMM dd") : "Departure"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={flightDepart}
-                      onSelect={setFlightDepart}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                {/* Return (only for roundtrip) */}
-                {tripType === "roundtrip" && (
+                  {/* Departure */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="search-input justify-start text-left font-normal">
                         <Calendar className="mr-2 h-4 w-4" />
-                        {flightReturn ? format(flightReturn, "MMM dd") : "Return"}
+                        {flightDepart ? format(flightDepart, "MMM dd") : "Departure"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <CalendarComponent
                         mode="single"
-                        selected={flightReturn}
-                        onSelect={setFlightReturn}
+                        selected={flightDepart}
+                        onSelect={setFlightDepart}
                         initialFocus
                         className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
-                )}
 
-                {/* Trip Type */}
-                <Select value={tripType} onValueChange={(val) => setTripType(val as typeof tripType)}>
-                  <SelectTrigger className="search-input">
-                    <SelectValue placeholder="Trip type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="oneway">One-way</SelectItem>
-                    <SelectItem value="roundtrip">Round-trip</SelectItem>
-                    <SelectItem value="multicity">Multi-city</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {/* Return (only for roundtrip) */}
+                  {tripType === "roundtrip" && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="search-input justify-start text-left font-normal">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {flightReturn ? format(flightReturn, "MMM dd") : "Return"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={flightReturn}
+                          onSelect={setFlightReturn}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
 
-                {/* Cabin Class */}
-                <Select value={cabinClass} onValueChange={setCabinClass}>
-                  <SelectTrigger className="search-input">
-                    <SelectValue placeholder="Cabin class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="economy">Economy</SelectItem>
-                    <SelectItem value="premium_economy">Premium Economy</SelectItem>
-                    <SelectItem value="business">Business</SelectItem>
-                    <SelectItem value="first">First</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {/* Trip Type */}
+                  <Select value={tripType} onValueChange={(val) => setTripType(val as typeof tripType)}>
+                    <SelectTrigger className="search-input">
+                      <SelectValue placeholder="Trip type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="oneway">One-way</SelectItem>
+                      <SelectItem value="roundtrip">Round-trip</SelectItem>
+                      <SelectItem value="multicity">Multi-city</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                {/* Passengers */}
-                <FlightPassengerSelector
-                  adults={adults}
-                  children={children}
-                  infants={infants}
-                  onChange={({ adults: a, children: c, infants: i }) => {
-                    setAdults(a);
-                    setChildren(c);
-                    setInfants(i);
-                  }}
-                />
-              </div>
+                  {/* Cabin Class */}
+                  <Select value={cabinClass} onValueChange={setCabinClass}>
+                    <SelectTrigger className="search-input">
+                      <SelectValue placeholder="Cabin class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="economy">Economy</SelectItem>
+                      <SelectItem value="premium_economy">Premium Economy</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="first">First</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Passengers */}
+                  <FlightPassengerSelector
+                    adults={adults}
+                    children={children}
+                    infants={infants}
+                    onChange={({ adults: a, children: c, infants: i }) => {
+                      setAdults(a);
+                      setChildren(c);
+                      setInfants(i);
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Trip Type */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Select value={tripType} onValueChange={(val) => setTripType(val as typeof tripType)}>
+                      <SelectTrigger className="search-input">
+                        <SelectValue placeholder="Trip type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="oneway">One-way</SelectItem>
+                        <SelectItem value="roundtrip">Round-trip</SelectItem>
+                        <SelectItem value="multicity">Multi-city</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={cabinClass} onValueChange={setCabinClass}>
+                      <SelectTrigger className="search-input">
+                        <SelectValue placeholder="Cabin class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="economy">Economy</SelectItem>
+                        <SelectItem value="premium_economy">Premium Economy</SelectItem>
+                        <SelectItem value="business">Business</SelectItem>
+                        <SelectItem value="first">First</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FlightPassengerSelector
+                      adults={adults}
+                      children={children}
+                      infants={infants}
+                      onChange={({ adults: a, children: c, infants: i }) => {
+                        setAdults(a);
+                        setChildren(c);
+                        setInfants(i);
+                      }}
+                    />
+                  </div>
+
+                  {/* Segments */}
+                  <MultiCitySegments
+                    segments={segments}
+                    onChange={setSegments}
+                    onAdd={() => setSegments((s) => [...s, { from: "", to: "", date: undefined }])}
+                    onRemove={(idx) => setSegments((s) => s.filter((_, i) => i !== idx))}
+                  />
+                </div>
+              )}
 
               <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  disabled={!flightFrom || !flightTo || (!flightDepart && tripType !== "multicity")}
+                  disabled={
+                    tripType === "multicity"
+                      ? !(segments.length >= 2 && segments.every((s) => s.from && s.to && s.date))
+                      : (!flightFrom || !flightTo || !flightDepart || (tripType === "roundtrip" && !flightReturn))
+                  }
                   onClick={() => {
-                    const params = new URLSearchParams({
-                      origin: flightFrom,
-                      destination: flightTo,
-                      departureDate: flightDepart ? format(flightDepart, "yyyy-MM-dd") : "",
-                      returnDate: tripType === "roundtrip" && flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
+                    const base: Record<string, string> = {
+                      cabin: cabinClass,
+                      trip: tripType,
                       passengers: String(adults + children + infants),
                       adults: String(adults),
                       children: String(children),
                       infants: String(infants),
-                      cabin: cabinClass,
-                      trip: tripType,
-                    });
-                    window.location.href = `/search?type=flights&${params.toString()}`;
+                    };
+
+                    if (tripType === "multicity") {
+                      const segs = segments.map((s) => ({
+                        from: s.from,
+                        to: s.to,
+                        date: s.date ? format(s.date, "yyyy-MM-dd") : "",
+                      }));
+                      const params = new URLSearchParams(base);
+                      params.set("segments", JSON.stringify(segs));
+                      window.location.href = `/search?type=flights&${params.toString()}`;
+                    } else {
+                      const params = new URLSearchParams({
+                        ...base,
+                        origin: flightFrom,
+                        destination: flightTo,
+                        departureDate: flightDepart ? format(flightDepart, "yyyy-MM-dd") : "",
+                        returnDate: tripType === "roundtrip" && flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
+                      });
+                      window.location.href = `/search?type=flights&${params.toString()}`;
+                    }
                   }}
                 >
                   <Search className="mr-2 h-5 w-5" />
