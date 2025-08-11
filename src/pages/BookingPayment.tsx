@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, CreditCard, Shield, Check, Coins, BadgeDollarSign } from "lucide-react";
+import { ChevronLeft, CreditCard, Shield, Check, Coins, BadgeDollarSign, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { useBookingPayment } from "@/features/booking/hooks/useBookingPayment";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const StripeCardForm: React.FC<{ setConfirm: (fn: () => Promise<any>) => void }> = ({ setConfirm }) => {
   const stripe = useStripe();
@@ -39,7 +40,9 @@ const BookingPaymentPage = () => {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [confirmFn, setConfirmFn] = useState<null | (() => Promise<any>)>(null);
-
+  const { toast } = useToast();
+  const [isInitializingPI, setIsInitializingPI] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Payment | Maku Travel";
@@ -91,6 +94,8 @@ const BookingPaymentPage = () => {
   const ensurePaymentIntent = async () => {
     try {
       if (clientSecret && bookingId) return;
+      setIsInitializingPI(true);
+      setInitError(null);
 
       let passenger: any = null;
       try {
@@ -115,14 +120,22 @@ const BookingPaymentPage = () => {
       });
 
       if (error || !data?.success) {
-        console.error(error?.message || data?.error || 'Failed to create payment');
+        const message = error?.message || data?.error || 'Failed to create payment';
+        console.error(message);
+        setInitError(message);
+        toast({ title: 'Payment setup failed', description: message, variant: 'destructive' });
         return;
       }
 
       setClientSecret(data.payment.clientSecret);
       setBookingId(data.booking.id);
-    } catch (e) {
+    } catch (e: any) {
       console.error('ensurePaymentIntent error', e);
+      const message = e?.message || 'Unexpected error while preparing payment';
+      setInitError(message);
+      toast({ title: 'Payment setup failed', description: message, variant: 'destructive' });
+    } finally {
+      setIsInitializingPI(false);
     }
   };
 
@@ -166,8 +179,10 @@ const BookingPaymentPage = () => {
         });
         window.location.href = `/booking/confirmation?booking_id=${bookingId}`;
         return;
-      } catch (err) {
+      } catch (err: any) {
         console.error('Card confirmation failed', err);
+        const message = err?.message || 'Card confirmation failed';
+        toast({ title: 'Payment failed', description: message, variant: 'destructive' });
         return;
       }
     }
@@ -274,8 +289,20 @@ const BookingPaymentPage = () => {
                           <StripeCardForm setConfirm={setConfirmFn} />
                         </Elements>
                       ) : (
-                        <div className="text-sm text-muted-foreground">
-                          Secure card form is loading...
+                        <div className="text-sm">
+                          {isInitializingPI ? (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Preparing secure card form...
+                            </div>
+                          ) : initError ? (
+                            <div className="space-y-2">
+                              <p className="text-destructive">{initError}</p>
+                              <Button variant="outline" size="sm" onClick={ensurePaymentIntent}>Retry</Button>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">Preparing secure card form...</div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -464,12 +491,17 @@ const BookingPaymentPage = () => {
                 >
                   {isLoading ? (
                     <>Processing...</>
+                  ) : ((paymentGateway === 'card' || paymentGateway === 'stripe') && !confirmFn ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Preparing payment...
+                    </>
                   ) : (
                     <>
                       <Check className="mr-2 h-4 w-4" />
                       Confirm & Pay ${isFlightCheckout ? flightParams.amount.toFixed(2) : bookingDetails.total}
                     </>
-                  )}
+                  ))}
                 </Button>
               </CardContent>
             </Card>

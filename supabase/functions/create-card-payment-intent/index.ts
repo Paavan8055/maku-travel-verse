@@ -45,12 +45,20 @@ serve(async (req) => {
       }
     } catch (_) {}
 
-    const { bookingType, bookingData, amount, currency = 'USD', customerInfo } = body;
+    // Basic validation with detailed errors
+    const errors: Record<string, string> = {};
 
-    if (!bookingType || !bookingData || !amount || !customerInfo?.email) {
+    if (!bookingType) errors.bookingType = 'bookingType is required';
+    if (!bookingData) errors.bookingData = 'bookingData is required';
+    if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) errors.amount = 'amount must be a positive number';
+    if (!currency) errors.currency = 'currency is required';
+    if (!customerInfo?.email) errors.customerEmail = 'customerInfo.email is required';
+
+    if (Object.keys(errors).length > 0) {
+      console.error('Validation failed for create-card-payment-intent', { errors, body });
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing required fields' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify({ success: false, error: 'Invalid request parameters', details: errors }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 422 }
       );
     }
 
