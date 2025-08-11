@@ -1,19 +1,12 @@
 import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
-import { ChevronLeft, CreditCard, Shield, Check } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ChevronLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
 
 const CheckoutPage = () => {
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [passengerValid, setPassengerValid] = useState(false);
   const [passenger, setPassenger] = useState<PassengerFormData | null>(null);
   const navigate = useNavigate();
@@ -53,20 +46,8 @@ const CheckoutPage = () => {
       // no-op
     }
     const search = typeof window !== 'undefined' ? window.location.search : '';
-    if (location.pathname.startsWith('/booking/payment')) return;
+    
     navigate(`/booking/payment${search}`);
-  };
-  const handlePayment = async () => {
-    if (!agreeToTerms) return;
-    
-    setIsProcessing(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      // Redirect to confirmation
-      window.location.href = `/dashboard/bookings/confirmed-${Date.now()}`;
-    }, 3000);
   };
 
   return (
@@ -212,18 +193,10 @@ const CheckoutPage = () => {
                 )}
 
                 <Button 
-                  onClick={handlePayment}
-                  disabled={!agreeToTerms || isProcessing || !passengerValid}
+                  onClick={goToPayment}
                   className="w-full mt-6 btn-primary h-12"
                 >
-                  {isProcessing ? (
-                    <>Processing...</>
-                  ) : (
-                    <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Confirm & Pay ${bookingDetails.total}
-                    </>
-                  )}
+                  Continue to Payment
                 </Button>
               </CardContent>
             </Card>
