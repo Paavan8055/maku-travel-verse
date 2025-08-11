@@ -39,6 +39,43 @@ const FlightSearchPage = () => {
   );
   const [passengersInput, setPassengersInput] = useState(searchParams.get("passengers") || searchParams.get("guests") || "1");
 
+  // Trip options and passenger breakdown
+  const [tripType, setTripType] = useState<string>(
+    searchParams.get("tripType") || (searchParams.get("returnDate") ? "roundtrip" : "oneway")
+  );
+  const [cabinClass, setCabinClass] = useState<string>(searchParams.get("cabinClass") || "economy");
+  const initialAdults = parseInt(searchParams.get("adults") || "1", 10);
+  const initialChildren = parseInt(searchParams.get("children") || "0", 10);
+  const initialInfants = parseInt(searchParams.get("infants") || "0", 10);
+  const [adults, setAdults] = useState<number>(initialAdults);
+  const [children, setChildren] = useState<number>(initialChildren);
+  const [infants, setInfants] = useState<number>(initialInfants);
+  const totalPassengers = adults + children + infants;
+  useEffect(() => {
+    setPassengersInput(String(Math.max(1, totalPassengers)));
+  }, [adults, children, infants]);
+
+  // Multi-city legs
+  const [legs, setLegs] = useState<Array<{ origin: string; destination: string; date?: Date }>>(() => {
+    const segsParam = searchParams.get("segments");
+    if (segsParam) {
+      try {
+        const segs = JSON.parse(decodeURIComponent(segsParam));
+        if (Array.isArray(segs)) {
+          return segs.map((s: any) => ({
+            origin: s.origin || "",
+            destination: s.destination || "",
+            date: s.date ? new Date(s.date) : undefined,
+          }));
+        }
+      } catch {}
+    }
+    return [
+      { origin: originInput || (searchParams.get("origin") || ""), destination: destinationInput || (searchParams.get("destination") || ""), date: departDate },
+      { origin: "", destination: "", date: undefined },
+    ];
+  });
+
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const searchCriteria = {
@@ -140,103 +177,249 @@ const FlightSearchPage = () => {
       
       <div className="container mx-auto px-4 py-6">
         {/* Search Controls */}
-        <div className="bg-card border border-border rounded-lg p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-            <div className="md:col-span-1">
-              <label className="text-xs text-muted-foreground mb-1 block">From</label>
-              <Input value={originInput} onChange={(e)=>setOriginInput(e.target.value)} placeholder="SYD" />
-            </div>
-            <div className="md:col-span-1">
-              <label className="text-xs text-muted-foreground mb-1 block">To</label>
-              <Input value={destinationInput} onChange={(e)=>setDestinationInput(e.target.value)} placeholder="BOM" />
-            </div>
-            <div className="md:col-span-1">
-              <label className="text-xs text-muted-foreground mb-1 block">Departure</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {departDate ? format(departDate, "MMM dd, yyyy") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={departDate}
-                    onSelect={setDepartDate}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="md:col-span-1">
-              <label className="text-xs text-muted-foreground mb-1 block">Return</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {returnDate ? format(returnDate, "MMM dd, yyyy") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={returnDate}
-                    onSelect={setReturnDate}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="md:col-span-1">
-              <label className="text-xs text-muted-foreground mb-1 block">Passengers</label>
-              <Select value={passengersInput} onValueChange={setPassengersInput}>
+        <div className="bg-card border border-border rounded-lg p-4 mb-6 space-y-4">
+          {/* Top selectors: Trip type, Passengers, Cabin */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Trip</label>
+              <Select
+                value={tripType}
+                onValueChange={(v) => {
+                  setTripType(v);
+                  if (v !== "roundtrip") setReturnDate(undefined);
+                }}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Passengers" />
+                  <SelectValue placeholder="Trip type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="5">5+</SelectItem>
+                  <SelectItem value="oneway">One-way</SelectItem>
+                  <SelectItem value="roundtrip">Round trip</SelectItem>
+                  <SelectItem value="multicity">Multi-city</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-1">
-              <label className="invisible block">Search</label>
-              <Button
-                className="w-full"
-                disabled={!((originInput || searchCriteria.origin) && (destinationInput || searchCriteria.destination))}
-                onClick={() => {
-                  const origin = originInput || searchCriteria.origin;
-                  const destination = destinationInput || searchCriteria.destination;
 
-                  // Ensure we always have a departure date to trigger search
-                  const chosenDepart = departDate || (searchCriteria.departureDate ? new Date(searchCriteria.departureDate) : new Date());
-                  const departStr = format(chosenDepart, "yyyy-MM-dd");
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Passengers</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span>{totalPassengers} {totalPassengers === 1 ? "Passenger" : "Passengers"}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="start">
+                  <div className="space-y-3">
+                    {[
+                      { key: "Adults", desc: "12+", value: adults, set: setAdults, min: 1 },
+                      { key: "Children", desc: "2-11", value: children, set: setChildren, min: 0 },
+                      { key: "Infants", desc: "<2", value: infants, set: setInfants, min: 0 },
+                    ].map((row) => (
+                      <div key={row.key} className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">{row.key}</div>
+                          <div className="text-xs text-muted-foreground">{row.desc}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => row.set(Math.max(row.min, row.value - 1))}
+                          >
+                            −
+                          </Button>
+                          <div className="w-6 text-center text-sm">{row.value}</div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => row.set(Math.min(9, row.value + 1))}
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-                  const returnStr = returnDate
-                    ? format(returnDate, "yyyy-MM-dd")
-                    : (searchCriteria.returnDate || "");
-
-                  const params = new URLSearchParams({
-                    origin,
-                    destination,
-                    departureDate: departStr,
-                    returnDate: returnStr,
-                    passengers: passengersInput || String(searchCriteria.passengers),
-                  });
-
-                  navigate(`/search/flights?${params.toString()}`);
-                }}
-              >
-                Search
-              </Button>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Cabin class</label>
+              <Select value={cabinClass} onValueChange={setCabinClass}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Cabin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="economy">Economy</SelectItem>
+                  <SelectItem value="premium_economy">Premium Economy</SelectItem>
+                  <SelectItem value="business">Business</SelectItem>
+                  <SelectItem value="first">First</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
+
+          {/* Trip inputs */}
+          {tripType !== "multicity" ? (
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+              <div className="md:col-span-1">
+                <label className="text-xs text-muted-foreground mb-1 block">From</label>
+                <Input value={originInput} onChange={(e)=>setOriginInput(e.target.value)} placeholder="SYD" />
+              </div>
+              <div className="md:col-span-1">
+                <label className="text-xs text-muted-foreground mb-1 block">To</label>
+                <Input value={destinationInput} onChange={(e)=>setDestinationInput(e.target.value)} placeholder="BOM" />
+              </div>
+              <div className="md:col-span-1">
+                <label className="text-xs text-muted-foreground mb-1 block">Departure</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {departDate ? format(departDate, "MMM dd, yyyy") : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={departDate}
+                      onSelect={setDepartDate}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              {tripType === "roundtrip" && (
+                <div className="md:col-span-1">
+                  <label className="text-xs text-muted-foreground mb-1 block">Return</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {returnDate ? format(returnDate, "MMM dd, yyyy") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={returnDate}
+                        onSelect={setReturnDate}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+              <div className="md:col-span-1 md:col-start-6 self-end">
+                <Button
+                  className="w-full"
+                  disabled={!((originInput || searchCriteria.origin) && (destinationInput || searchCriteria.destination))}
+                  onClick={() => {
+                    const origin = originInput || searchCriteria.origin;
+                    const destination = destinationInput || searchCriteria.destination;
+
+                    const chosenDepart = departDate || (searchCriteria.departureDate ? new Date(searchCriteria.departureDate) : new Date());
+                    const departStr = format(chosenDepart, "yyyy-MM-dd");
+
+                    const params = new URLSearchParams();
+                    params.set("tripType", tripType);
+                    params.set("origin", origin);
+                    params.set("destination", destination);
+                    params.set("departureDate", departStr);
+                    params.set("returnDate", tripType === "roundtrip" && returnDate ? format(returnDate, "yyyy-MM-dd") : "");
+                    params.set("passengers", String(totalPassengers));
+                    params.set("adults", String(adults));
+                    params.set("children", String(children));
+                    params.set("infants", String(infants));
+                    params.set("cabinClass", cabinClass);
+
+                    navigate(`/search/flights?${params.toString()}`);
+                  }}
+                >
+                  Search
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {legs.map((leg, idx) => (
+                <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                  <div className="md:col-span-2">
+                    <label className="text-xs text-muted-foreground mb-1 block">From</label>
+                    <Input value={leg.origin} onChange={(e)=>{
+                      const v = e.target.value; setLegs((prev)=> prev.map((l,i)=> i===idx ? { ...l, origin: v } : l));
+                    }} placeholder="SYD" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-xs text-muted-foreground mb-1 block">To</label>
+                    <Input value={leg.destination} onChange={(e)=>{
+                      const v = e.target.value; setLegs((prev)=> prev.map((l,i)=> i===idx ? { ...l, destination: v } : l));
+                    }} placeholder="BOM" />
+                  </div>
+                  <div className="md:col-span-1">
+                    <label className="text-xs text-muted-foreground mb-1 block">Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {leg.date ? format(leg.date, "MMM dd, yyyy") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={leg.date}
+                          onSelect={(d) => setLegs((prev)=> prev.map((l,i)=> i===idx ? { ...l, date: d } : l))}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="md:col-span-1 flex items-end justify-end gap-2">
+                    {legs.length > 1 && (
+                      <Button variant="outline" onClick={() => setLegs((prev) => prev.filter((_, i) => i !== idx))}>Remove</Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setLegs((prev) => prev.length >= 5 ? prev : [...prev, { origin: "", destination: "", date: undefined }])}
+                >
+                  Add flight
+                </Button>
+                <Button
+                  onClick={() => {
+                    const valid = legs.filter(l => l.origin && l.destination && l.date);
+                    if (valid.length === 0) return;
+                    const first = valid[0];
+                    const params = new URLSearchParams();
+                    params.set("tripType", "multicity");
+                    params.set("origin", first.origin);
+                    params.set("destination", first.destination);
+                    params.set("departureDate", format(first.date as Date, "yyyy-MM-dd"));
+                    params.set("returnDate", "");
+                    params.set("passengers", String(totalPassengers));
+                    params.set("adults", String(adults));
+                    params.set("children", String(children));
+                    params.set("infants", String(infants));
+                    params.set("cabinClass", cabinClass);
+                    params.set("segments", encodeURIComponent(JSON.stringify(valid.map((s) => ({ origin: s.origin, destination: s.destination, date: format(s.date as Date, "yyyy-MM-dd") })))));
+                    navigate(`/search/flights?${params.toString()}`);
+                  }}
+                >
+                  Search
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8 space-x-4">
