@@ -16,7 +16,7 @@ const CheckoutPage = () => {
   const [passengerValid, setPassengerValid] = useState(false);
   const [passenger, setPassenger] = useState<PassengerFormData | null>(null);
   
-  // Mock data from URL params in real app
+  // Booking details (hotel fallback) and flight params from URL
   const bookingDetails = {
     hotel: "Ocean Breeze Resort",
     room: "Deluxe Ocean View",
@@ -28,6 +28,17 @@ const CheckoutPage = () => {
     extrasPrice: 244,
     fundContribution: 50,
     total: 3444
+  };
+
+  const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const isFlightCheckout = Boolean(params.get('flightId'));
+  const flightParams = {
+    flightId: params.get('flightId') || '',
+    fareType: params.get('fareType') || '',
+    amount: Number(params.get('amount')) || 0,
+    currency: params.get('currency') || 'USD',
+    carryOn: params.get('carryOn') || '',
+    checked: params.get('checked') || ''
   };
 
   const handlePayment = async () => {
@@ -195,66 +206,102 @@ const CheckoutPage = () => {
             <Card className="travel-card sticky top-24">
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold mb-4">Booking Summary</h3>
-                
-                <div className="space-y-4">
-                  {/* Hotel Details */}
-                  <div>
-                    <h4 className="font-medium">{bookingDetails.hotel}</h4>
-                    <p className="text-sm text-muted-foreground">{bookingDetails.room}</p>
-                  </div>
-                  
-                  {/* Dates */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                {isFlightCheckout ? (
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-muted-foreground">Check-in</p>
-                      <p className="font-medium">{bookingDetails.checkIn}</p>
+                      <h4 className="font-medium">Flight #{flightParams.flightId || "—"}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {flightParams.fareType ? `Fare: ${flightParams.fareType.toUpperCase()}` : "Fare: —"}
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Check-out</p>
-                      <p className="font-medium">{bookingDetails.checkOut}</p>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Carry-on</p>
+                        <p className="font-medium">{flightParams.carryOn ? flightParams.carryOn.replace(/_/g, " ") : "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Checked bags</p>
+                        <p className="font-medium">{flightParams.checked ? flightParams.checked.replace(/_/g, " ") : "—"}</p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Duration</p>
-                      <p className="font-medium">{bookingDetails.nights} nights</p>
+
+                    <div className="border-t pt-4 space-y-2">
+                      <div className="flex justify-between font-bold text-lg pt-2">
+                        <span>Total</span>
+                        <span>{flightParams.currency} {flightParams.amount.toFixed(2)}</span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Guests</p>
-                      <p className="font-medium">{bookingDetails.guests} adults</p>
-                    </div>
-                  </div>
-                  
-                  {/* Price Breakdown */}
-                  <div className="border-t pt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Room ({bookingDetails.nights} nights)</span>
-                      <span>${bookingDetails.basePrice}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Extras & Services</span>
-                      <span>${bookingDetails.extrasPrice}</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-primary">
-                      <span>Fund Contribution</span>
-                      <span>+${bookingDetails.fundContribution}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                      <span>Total</span>
-                      <span>${bookingDetails.total}</span>
+
+                    <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
+                      <Shield className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Secure Payment</p>
+                        <p className="text-xs text-green-600">256-bit SSL encryption</p>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Security Badge */}
-                  <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
-                    <Shield className="h-5 w-5 text-green-600" />
+                ) : (
+                  <div className="space-y-4">
+                    {/* Hotel Details */}
                     <div>
-                      <p className="text-sm font-medium text-green-800">Secure Payment</p>
-                      <p className="text-xs text-green-600">256-bit SSL encryption</p>
+                      <h4 className="font-medium">{bookingDetails.hotel}</h4>
+                      <p className="text-sm text-muted-foreground">{bookingDetails.room}</p>
+                    </div>
+                    
+                    {/* Dates */}
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Check-in</p>
+                        <p className="font-medium">{bookingDetails.checkIn}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Check-out</p>
+                        <p className="font-medium">{bookingDetails.checkOut}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Duration</p>
+                        <p className="font-medium">{bookingDetails.nights} nights</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Guests</p>
+                        <p className="font-medium">{bookingDetails.guests} adults</p>
+                      </div>
+                    </div>
+                    
+                    {/* Price Breakdown */}
+                    <div className="border-t pt-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Room ({bookingDetails.nights} nights)</span>
+                        <span>${bookingDetails.basePrice}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Extras & Services</span>
+                        <span>${bookingDetails.extrasPrice}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-primary">
+                        <span>Fund Contribution</span>
+                        <span>+${bookingDetails.fundContribution}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                        <span>Total</span>
+                        <span>${bookingDetails.total}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Security Badge */}
+                    <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
+                      <Shield className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Secure Payment</p>
+                        <p className="text-xs text-green-600">256-bit SSL encryption</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 <Button 
                   onClick={handlePayment}
