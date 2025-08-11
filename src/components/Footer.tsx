@@ -88,7 +88,7 @@ const Footer = () => {
   }];
 return <footer className="bg-primary text-primary-foreground">
       {/* Main Footer Content */}
-      <div className="py-16 px-6">
+      <div className="py-16 px-6 bg-gradient-pink-orange">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 lg:gap-16">
             {/* Company */}

@@ -45,11 +45,13 @@
     --travel-adventure: 280 100% 70%;
     --travel-gold: 45 100% 55%;
     --travel-coral: 15 100% 65%;
+    --travel-pink: 330 90% 70%;
 
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(var(--travel-ocean)), hsl(var(--travel-adventure)));
     --gradient-sunset: linear-gradient(135deg, hsl(var(--travel-sunset)), hsl(var(--travel-coral)));
     --gradient-ocean: linear-gradient(135deg, hsl(var(--travel-ocean)), hsl(var(--travel-forest)));
+    --gradient-pink-orange: linear-gradient(135deg, hsl(var(--travel-pink)), hsl(var(--travel-sunset)));
     
     /* Shadows */
     --shadow-soft: 0 4px 20px -2px hsl(var(--travel-ocean) / 0.1);
