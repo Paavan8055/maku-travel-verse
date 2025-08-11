@@ -16,14 +16,14 @@
     --popover-foreground: 230 15% 15%;
 
     /* Travel-inspired vibrant primary colors */
-    --primary: 195 100% 45%; /* Ocean blue */
+    --primary: 330 85% 58%; /* Pink */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 195 100% 40%;
+    --primary-hover: 330 85% 52%;
 
     --secondary: 35 100% 50%; /* Sunset orange */
     --secondary-foreground: 0 0% 100%;
 
-    --accent: 280 100% 70%; /* Purple adventure */
+    --accent: 35 100% 54%; /* Orange */
     --accent-foreground: 0 0% 100%;
 
     --muted: 220 15% 96%;
@@ -34,7 +34,7 @@
 
     --border: 220 15% 90%;
     --input: 220 15% 96%;
-    --ring: 195 100% 45%;
+    --ring: var(--primary);
 
     --radius: 12px;
 
@@ -48,7 +48,7 @@
     --travel-pink: 330 90% 70%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--travel-ocean)), hsl(var(--travel-adventure)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
     --gradient-sunset: linear-gradient(135deg, hsl(var(--travel-sunset)), hsl(var(--travel-coral)));
     --gradient-ocean: linear-gradient(135deg, hsl(var(--travel-ocean)), hsl(var(--travel-forest)));
     --gradient-pink-orange: linear-gradient(135deg, hsl(var(--travel-pink)), hsl(var(--travel-sunset)));
@@ -89,7 +89,7 @@
     --popover: 230 20% 10%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 195 100% 55%;
+    --primary: 330 85% 65%;
     --primary-foreground: 230 20% 8%;
 
     --secondary: 35 100% 60%;
@@ -98,7 +98,7 @@
     --muted: 230 15% 15%;
     --muted-foreground: 230 10% 65%;
 
-    --accent: 280 100% 75%;
+    --accent: 35 100% 60%;
     --accent-foreground: 230 20% 8%;
 
     --destructive: 0 84% 65%;
@@ -106,7 +106,7 @@
 
     --border: 230 15% 20%;
     --input: 230 15% 15%;
-    --ring: 195 100% 55%;
+    --ring: var(--primary);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -151,7 +151,7 @@
   }
 
   .btn-secondary {
-    @apply bg-gradient-to-r from-secondary to-orange-500 text-secondary-foreground font-semibold px-6 py-3 rounded-xl shadow-[var(--shadow-soft)] transition-[var(--transition-bounce)] hover:shadow-[var(--shadow-card)] hover:scale-105;
+    @apply bg-gradient-to-r from-secondary to-accent text-secondary-foreground font-semibold px-6 py-3 rounded-xl shadow-[var(--shadow-soft)] transition-[var(--transition-bounce)] hover:shadow-[var(--shadow-card)] hover:scale-105;
   }
 
   .floating-nav {
