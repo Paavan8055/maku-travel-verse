@@ -38,55 +38,85 @@ export const DestinationAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Using AIRPORTS dataset for autocomplete
+// Global airports lazy loader (fallback to local AIRPORTS)
+const GLOBAL_AIRPORTS_URL =
+  "https://raw.githubusercontent.com/mwgg/Airports/master/airports.json"; // community-maintained
+let GLOBAL_AIRPORTS_CACHE: Destination[] | null = null;
+let GLOBAL_AIRPORTS_LOADING: Promise<Destination[]> | null = null;
 
-  useEffect(() => {
-    if (value.trim().length >= 2) {
-      setLoading(true);
-      const timeoutId = setTimeout(() => {
-        const q = value.toLowerCase();
-        const airportMatches = AIRPORTS.filter(a =>
-          a.iata.toLowerCase().includes(q) ||
-          a.city.toLowerCase().includes(q) ||
-          a.name.toLowerCase().includes(q) ||
-          a.country.toLowerCase().includes(q)
-        ).slice(0, 8).map(a => ({
-          id: a.iata,
-          name: `${a.city} (${a.iata}) - ${a.name}`,
-          city: a.city,
-          country: a.country,
-          code: a.iata,
-          type: "airport" as const,
-        }));
+async function loadGlobalAirports(): Promise<Destination[]> {
+  if (GLOBAL_AIRPORTS_CACHE) return GLOBAL_AIRPORTS_CACHE;
+  if (!GLOBAL_AIRPORTS_LOADING) {
+    GLOBAL_AIRPORTS_LOADING = fetch(GLOBAL_AIRPORTS_URL)
+      .then((r) => r.json())
+      .then((data: Record<string, any>) => {
+        // Transform into Destination[]; keep only entries with IATA code
+        const list: Destination[] = Object.values(data)
+          .filter((a: any) => a && a.iata && String(a.iata).length === 3)
+          .map((a: any) => ({
+            id: a.iata,
+            name: `${a.city || a.name} (${a.iata}) - ${a.name}`.trim(),
+            city: a.city || undefined,
+            country: a.country || "",
+            code: a.iata,
+            type: "airport" as const,
+          }));
+        GLOBAL_AIRPORTS_CACHE = list;
+        return list;
+      })
+      .catch(() => {
+        GLOBAL_AIRPORTS_CACHE = [];
+        return [];
+      });
+  }
+  return GLOBAL_AIRPORTS_LOADING;
+}
 
-        const cityMap = new Map<string, { city: string; country: string }>();
-        AIRPORTS.forEach(a => {
-          const key = `${a.city}|${a.country}`;
-          if (!cityMap.has(key)) cityMap.set(key, { city: a.city, country: a.country });
-        });
-        const cityMatches = Array.from(cityMap.values())
-          .filter(c => c.city.toLowerCase().includes(q) || c.country.toLowerCase().includes(q))
-          .slice(0, 5)
-          .map((c, idx) => ({
-            id: `city-${c.city}-${idx}`,
-            name: `${c.city}, ${c.country}`,
-            city: c.city,
-            country: c.country,
-            type: "city" as const,
+useEffect(() => {
+  let active = true;
+  if (value.trim().length >= 2) {
+    setLoading(true);
+    const timeoutId = setTimeout(async () => {
+      const q = value.toLowerCase();
+
+      // Prefer global dataset; fallback to local AIRPORTS
+      const global = await loadGlobalAirports();
+      const dataset: Destination[] = (global && global.length > 0)
+        ? global
+        : AIRPORTS.map((a) => ({
+            id: a.iata,
+            name: `${a.city} (${a.iata}) - ${a.name}`,
+            city: a.city,
+            country: a.country,
+            code: a.iata,
+            type: "airport" as const,
           }));
 
-        const merged = [...airportMatches, ...cityMatches].slice(0, 10);
-        setSuggestions(merged);
-        setShowSuggestions(true);
-        setLoading(false);
-      }, 250);
+      if (!active) return;
 
-      return () => clearTimeout(timeoutId);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, [value]);
+      const matches = dataset
+        .filter((d) =>
+          [d.code, d.city, d.name, d.country]
+            .filter(Boolean)
+            .some((s) => String(s).toLowerCase().includes(q))
+        )
+        .slice(0, 12);
+
+      setSuggestions(matches);
+      setShowSuggestions(true);
+      setLoading(false);
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
+  } else {
+    setSuggestions([]);
+    setShowSuggestions(false);
+  }
+}, [value]);
+
 
   const handleGetCurrentLocation = async () => {
     setGettingLocation(true);
