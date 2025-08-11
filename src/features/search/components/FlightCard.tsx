@@ -1,10 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Clock, Plane, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RealBookingButton } from "@/components/RealBookingButton";
-
+import { FareSelectionDialog } from "./FareSelectionDialog";
 interface Flight {
   id: string;
   airline: string;
@@ -32,10 +31,10 @@ interface FlightCardProps {
 }
 
 export const FlightCard = ({ flight }: FlightCardProps) => {
-  const navigate = useNavigate();
+  const [fareOpen, setFareOpen] = useState(false);
 
   const handleSelectFlight = () => {
-    navigate(`/booking?type=flight&id=${flight.id}`);
+    setFareOpen(true);
   };
 
   const formatDuration = (minutes: number) => {
@@ -121,16 +120,13 @@ export const FlightCard = ({ flight }: FlightCardProps) => {
               </p>
               <p className="text-sm text-muted-foreground">per person</p>
             </div>
-            <RealBookingButton
-              bookingType="flight"
-              bookingData={flight}
-              amount={flight.price}
-              currency="USD"
-              className="w-full"
-            />
+            <Button onClick={handleSelectFlight} className="w-full">
+              Select flight
+            </Button>
           </div>
         </div>
       </CardContent>
+      <FareSelectionDialog open={fareOpen} onOpenChange={setFareOpen} flight={flight} />
     </Card>
   );
 };
