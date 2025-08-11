@@ -203,16 +203,34 @@ const FlightSearchPage = () => {
             </div>
             <div className="md:col-span-1">
               <label className="invisible block">Search</label>
-              <Button className="w-full" onClick={() => {
-                const params = new URLSearchParams({
-                  origin: originInput || searchCriteria.origin,
-                  destination: destinationInput || searchCriteria.destination,
-                  departureDate: departDate ? format(departDate, "yyyy-MM-dd") : searchCriteria.departureDate,
-                  returnDate: returnDate ? format(returnDate, "yyyy-MM-dd") : searchCriteria.returnDate,
-                  passengers: passengersInput || String(searchCriteria.passengers)
-                });
-                navigate(`/search/flights?${params.toString()}`);
-              }}>Search</Button>
+              <Button
+                className="w-full"
+                disabled={!((originInput || searchCriteria.origin) && (destinationInput || searchCriteria.destination))}
+                onClick={() => {
+                  const origin = originInput || searchCriteria.origin;
+                  const destination = destinationInput || searchCriteria.destination;
+
+                  // Ensure we always have a departure date to trigger search
+                  const chosenDepart = departDate || (searchCriteria.departureDate ? new Date(searchCriteria.departureDate) : new Date());
+                  const departStr = format(chosenDepart, "yyyy-MM-dd");
+
+                  const returnStr = returnDate
+                    ? format(returnDate, "yyyy-MM-dd")
+                    : (searchCriteria.returnDate || "");
+
+                  const params = new URLSearchParams({
+                    origin,
+                    destination,
+                    departureDate: departStr,
+                    returnDate: returnStr,
+                    passengers: passengersInput || String(searchCriteria.passengers),
+                  });
+
+                  navigate(`/search/flights?${params.toString()}`);
+                }}
+              >
+                Search
+              </Button>
             </div>
           </div>
         </div>
