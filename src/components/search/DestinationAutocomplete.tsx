@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AIRPORTS } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
+
 interface Destination {
   id: string;
   name: string;
@@ -15,6 +16,7 @@ interface Destination {
   type: "city" | "airport" | "landmark";
   coordinates?: [number, number];
 }
+
 interface DestinationAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -22,6 +24,7 @@ interface DestinationAutocompleteProps {
   placeholder?: string;
   className?: string;
 }
+
 export const DestinationAutocomplete = ({
   value,
   onChange,
@@ -44,23 +47,22 @@ export const DestinationAutocomplete = ({
   let GLOBAL_AIRPORTS_CACHE: Destination[] | null = null;
   let GLOBAL_AIRPORTS_LOADING: Promise<Destination[]> | null = null;
   let GLOBAL_AIRPORTS_ABORT: AbortController | null = null;
+
   function normalizeString(str: string | undefined) {
     return (str || "").toLowerCase();
   }
+
   function buildSearchKey(a: Destination) {
-    return [(a as any).code || "", a.city || "", a.name || "", a.country || ""].map(s => normalizeString(String(s))).join(" ");
+    return [(a as any).code || "", a.city || "", a.name || "", a.country || ""]
+      .map(s => normalizeString(String(s)))
+      .join(" ");
   }
+
   function tryLoadFromStorage(): Destination[] | null {
     try {
       const raw = localStorage.getItem(GLOBAL_AIRPORTS_STORAGE_KEY);
       if (!raw) return null;
-      const {
-        ts,
-        list
-      } = JSON.parse(raw) as {
-        ts: number;
-        list: Destination[];
-      };
+      const { ts, list } = JSON.parse(raw) as { ts: number; list: Destination[] };
       if (Date.now() - ts > GLOBAL_AIRPORTS_TTL_MS) return null;
       // ensure search keys
       (list as any[]).forEach(d => {
@@ -71,6 +73,7 @@ export const DestinationAutocomplete = ({
       return null;
     }
   }
+
   function saveToStorage(list: Destination[]) {
     try {
       const payload = JSON.stringify({
@@ -82,6 +85,7 @@ export const DestinationAutocomplete = ({
       // storage full or disabled; ignore
     }
   }
+
   async function loadGlobalAirports(): Promise<Destination[]> {
     if (GLOBAL_AIRPORTS_CACHE) return GLOBAL_AIRPORTS_CACHE;
     const fromStorage = tryLoadFromStorage();
@@ -93,30 +97,36 @@ export const DestinationAutocomplete = ({
       GLOBAL_AIRPORTS_ABORT = new AbortController();
       GLOBAL_AIRPORTS_LOADING = fetch(GLOBAL_AIRPORTS_URL, {
         signal: GLOBAL_AIRPORTS_ABORT.signal
-      }).then(r => r.json()).then((data: Record<string, any>) => {
-        // Transform into Destination[]; keep only entries with IATA code
-        const list: Destination[] = Object.values(data).filter((a: any) => a && a.iata && String(a.iata).length === 3).map((a: any) => {
-          const d: Destination = {
-            id: a.iata,
-            name: `${a.city || a.name} (${a.iata}) - ${a.name}`.trim(),
-            city: a.city || undefined,
-            country: a.country || "",
-            code: a.iata,
-            type: "airport" as const
-          };
-          (d as any)._s = buildSearchKey(d);
-          return d;
+      })
+        .then(r => r.json())
+        .then((data: Record<string, any>) => {
+          // Transform into Destination[]; keep only entries with IATA code
+          const list: Destination[] = Object.values(data)
+            .filter((a: any) => a && a.iata && String(a.iata).length === 3)
+            .map((a: any) => {
+              const d: Destination = {
+                id: a.iata,
+                name: `${a.city || a.name} (${a.iata}) - ${a.name}`.trim(),
+                city: a.city || undefined,
+                country: a.country || "",
+                code: a.iata,
+                type: "airport" as const
+              };
+              (d as any)._s = buildSearchKey(d);
+              return d;
+            });
+          GLOBAL_AIRPORTS_CACHE = list;
+          saveToStorage(list);
+          return list;
+        })
+        .catch(() => {
+          GLOBAL_AIRPORTS_CACHE = [];
+          return [];
         });
-        GLOBAL_AIRPORTS_CACHE = list;
-        saveToStorage(list);
-        return list;
-      }).catch(() => {
-        GLOBAL_AIRPORTS_CACHE = [];
-        return [];
-      });
     }
     return GLOBAL_AIRPORTS_LOADING;
   }
+
   useEffect(() => {
     let active = true;
     const q = value.trim();
@@ -125,10 +135,7 @@ export const DestinationAutocomplete = ({
       const timeoutId = setTimeout(async () => {
         try {
           // 1) Try server-powered Amadeus autocomplete first
-          const {
-            data,
-            error
-          } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
+          const { data, error } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
             body: {
               query: q,
               types: ['CITY', 'AIRPORT'],
@@ -162,7 +169,9 @@ export const DestinationAutocomplete = ({
           return d;
         });
         if (!active) return;
-        const matches = dataset.filter(d => ((d as any)._s as string).includes(qLower)).slice(0, 12);
+        const matches = dataset
+          .filter(d => ((d as any)._s as string).includes(qLower))
+          .slice(0, 12);
         setSuggestions(matches);
         setShowSuggestions(true);
         setLoading(false);
@@ -176,6 +185,7 @@ export const DestinationAutocomplete = ({
       setShowSuggestions(false);
     }
   }, [value]);
+
   const handleGetCurrentLocation = async () => {
     setGettingLocation(true);
     try {
@@ -200,12 +210,32 @@ export const DestinationAutocomplete = ({
       setGettingLocation(false);
     }
   };
+
+  // Format a clear label including IATA code when available
+  function formatDestinationLabel(destination: Destination): string {
+    const cityOrName = destination.city || destination.name;
+    if (destination.code) {
+      // Prefer: City (IATA) - Full Airport Name for airports,
+      // or City (IATA) for cities that have a code
+      if (destination.type === "airport") {
+        // If name already contains code, keep as-is
+        const alreadyHasCode = /\([A-Z]{3}\)/.test(destination.name);
+        return alreadyHasCode ? destination.name : `${cityOrName} (${destination.code}) - ${destination.name}`;
+      }
+      return `${cityOrName} (${destination.code})`;
+    }
+    return destination.name;
+  }
+
   const handleSuggestionClick = (destination: Destination) => {
-    onChange(destination.name);
+    // Use a canonical display label that includes IATA code when present
+    const label = formatDestinationLabel(destination);
+    onChange(label);
     onDestinationSelect(destination);
     setShowSuggestions(false);
     inputRef.current?.blur();
   };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "airport":
@@ -220,32 +250,66 @@ export const DestinationAutocomplete = ({
   // Handle clicking outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) && !inputRef.current?.contains(event.target as Node)) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        !inputRef.current?.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  return <div className="relative">
+
+  return (
+    <div className="relative">
       <div className="relative">
         <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input ref={inputRef} type="text" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} onFocus={() => value.length >= 2 && setShowSuggestions(true)} className={cn("pl-10 pr-12", className)} />
+        <Input
+          ref={inputRef}
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => value.length >= 2 && setShowSuggestions(true)}
+          className={cn("pl-10 pr-12", className)}
+        />
         
       </div>
 
-    {showSuggestions && <div ref={suggestionsRef} className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
-    {loading ? <div className="p-4 text-center">
-        <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">Loading airports…</p>
-      </div> : suggestions.length > 0 ? suggestions.map(destination => <button key={destination.id} onClick={() => handleSuggestionClick(destination)} className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0">
-          <span className="text-lg">{getTypeIcon(destination.type)}</span>
-            <div className="flex-1">
-              <div className="font-medium text-foreground">{destination.name}</div>
-              <div className="text-sm text-muted-foreground">{destination.country}</div>
+      {showSuggestions && (
+        <div
+          ref={suggestionsRef}
+          className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+        >
+          {loading ? (
+            <div className="p-4 text-center">
+              <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Loading airports…</p>
             </div>
-          <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
-        </button>) : <div className="p-3 text-center text-sm text-muted-foreground">No matches found</div>}
-  </div>}
-    </div>;
+          ) : suggestions.length > 0 ? (
+            suggestions.map(destination => (
+              <button
+                key={destination.id}
+                onClick={() => handleSuggestionClick(destination)}
+                className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0"
+              >
+                <span className="text-lg">{getTypeIcon(destination.type)}</span>
+                <div className="flex-1">
+                  <div className="font-medium text-foreground">
+                    {formatDestinationLabel(destination)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{destination.country}</div>
+                </div>
+                <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
+              </button>
+            ))
+          ) : (
+            <div className="p-3 text-center text-sm text-muted-foreground">No matches found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
