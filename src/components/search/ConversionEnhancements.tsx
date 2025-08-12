@@ -1,4 +1,4 @@
-// Conversion optimization components: urgency badges, fund balance, save search
+
 import React, { useState } from "react";
 import { Clock, Wallet, Heart, Mail, TrendingDown, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useLocation } from "react-router-dom";
 
 interface UrgencyBadgeProps {
   type: "rooms_left" | "flash_deal" | "high_demand" | "last_booking";
@@ -89,6 +90,12 @@ interface TravelFundBalanceProps {
 }
 
 export const TravelFundBalance = ({ balance, currency, onApplyFund, isApplied }: TravelFundBalanceProps) => {
+  const location = useLocation();
+  const isDashboard = location.pathname.startsWith("/dashboard");
+
+  // Render only on dashboard routes
+  if (!isDashboard) return null;
+
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
       <div className="flex items-center justify-between">
