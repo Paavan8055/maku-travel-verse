@@ -34,7 +34,7 @@ const PassengerSchema = z.object({
     .refine((v) => /^[A-Z '-]+$/.test(v), {
       message: "Use letters A-Z only; no accents or special characters",
     }),
-  gender: z.enum(["M", "F", "U"], { required_error: "Gender is required" }),
+  gender: z.enum(["M", "F", "U"]).optional(),
   dateOfBirth: z.string().refine((v) => !!Date.parse(v) && new Date(v) < new Date(), {
     message: "Enter a valid past date",
   }),
@@ -77,7 +77,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
     mode: "onChange",
       defaultValues: {
         title: "MR",
-        gender: "U",
+        
         acknowledge: false,
         ...initial,
       },
@@ -141,7 +141,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
             {errors.dateOfBirth && <p className="text-xs text-destructive mt-1">{errors.dateOfBirth.message}</p>}
           </div>
           <div>
-            <Label className="mb-2 block">Gender</Label>
+            <Label className="mb-2 block">Gender (optional)</Label>
             <Select value={all.gender} onValueChange={(v) => setValue("gender", v as PassengerFormData["gender"], { shouldValidate: true })}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Gender" />
