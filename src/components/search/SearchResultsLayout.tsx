@@ -30,6 +30,9 @@ interface SearchResultsLayoutProps {
   viewMode: "list" | "map";
   onViewModeChange: (mode: "list" | "map") => void;
   children: React.ReactNode;
+  topBanner?: React.ReactNode;
+  extrasBelowControls?: React.ReactNode;
+  sidebarAddon?: React.ReactNode;
 }
 
 export const SearchResultsLayout = ({
@@ -41,7 +44,10 @@ export const SearchResultsLayout = ({
   onSortChange,
   viewMode,
   onViewModeChange,
-  children
+  children,
+  topBanner,
+  extrasBelowControls,
+  sidebarAddon
 }: SearchResultsLayoutProps) => {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -227,6 +233,7 @@ export const SearchResultsLayout = ({
 
   return (
     <div className="space-y-6">
+      {topBanner}
       {/* Search Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
@@ -297,6 +304,10 @@ export const SearchResultsLayout = ({
         </div>
       </div>
 
+      {extrasBelowControls && (
+        <div className="-mt-2">{extrasBelowControls}</div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Desktop Filters Sidebar */}
         <div className="hidden sm:block lg:col-span-1">
@@ -313,6 +324,7 @@ export const SearchResultsLayout = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {sidebarAddon && <div className="mb-4">{sidebarAddon}</div>}
               <FilterContent />
             </CardContent>
           </Card>

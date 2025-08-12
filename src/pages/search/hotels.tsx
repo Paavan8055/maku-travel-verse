@@ -8,6 +8,10 @@ import { HotelCard } from "@/features/search/components/HotelCard";
 import { useHotelSearch } from "@/features/search/hooks/useHotelSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
 import { TravelFundBalance, SaveSearchActions, UrgencyBadge, GuestReviewSnippet, BestPriceGuarantee } from "@/components/search/ConversionEnhancements";
+import SearchHeaderBand from "@/components/search/SearchHeaderBand";
+import MemberPriceBanner from "@/components/search/MemberPriceBanner";
+import SortChips from "@/components/search/SortChips";
+import MapPreviewCard from "@/components/search/MapPreviewCard";
 
 const HotelSearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -131,6 +135,21 @@ const HotelSearchPage = () => {
           onSortChange={setSortBy}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          topBanner={
+            <>
+              <SearchHeaderBand
+                destination={searchCriteria.destination}
+                checkIn={searchCriteria.checkIn}
+                checkOut={searchCriteria.checkOut}
+                guests={searchCriteria.guests}
+              />
+              <div className="mt-4">
+                <MemberPriceBanner destination={searchCriteria.destination} />
+              </div>
+            </>
+          }
+          extrasBelowControls={<SortChips filters={filters} onFiltersChange={setFilters} />}
+          sidebarAddon={<MapPreviewCard destination={searchCriteria.destination} />}
         >
           {loading && (
             <div className="space-y-4">
