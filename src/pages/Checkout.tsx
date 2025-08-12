@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -26,11 +27,35 @@ const CheckoutPage = () => {
     total: 3444
   };
 
+  // Updated flight params parsing to support roundtrip and cases where flightId may be empty
   const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  const isFlightCheckout = Boolean(params.get('flightId'));
+  const rawTripType = (params.get('tripType') || '').toLowerCase();
+  const hasOutboundId = params.get('outboundId');
+  const hasInboundId = params.get('inboundId');
+  const hasFlightId = params.get('flightId');
+  const hasAnyFare =
+    params.get('fareType') || params.get('outboundFare') || params.get('inboundFare');
+
+  // Consider this a flight checkout if we have any flight-identifying params
+  const isFlightCheckout = Boolean(
+    hasFlightId || rawTripType || hasOutboundId || hasInboundId || hasAnyFare
+  );
+
   const flightParams = {
+    tripType: rawTripType || (hasOutboundId && hasInboundId ? 'roundtrip' : 'oneway'),
+    isRoundtrip: rawTripType === 'roundtrip' || Boolean(hasOutboundId && hasInboundId),
+    // One-way fallback values
     flightId: params.get('flightId') || '',
     fareType: params.get('fareType') || '',
+    // Roundtrip-capable fields
+    outbound: {
+      id: params.get('outboundId') || params.get('flightId') || '',
+      fareType: params.get('outboundFare') || params.get('fareType') || ''
+    },
+    inbound: {
+      id: params.get('inboundId') || '',
+      fareType: params.get('inboundFare') || ''
+    },
     amount: Number(params.get('amount')) || 0,
     currency: params.get('currency') || 'USD',
     carryOn: params.get('carryOn') || '',
@@ -97,21 +122,48 @@ const CheckoutPage = () => {
                 <h3 className="text-lg font-bold mb-4">Booking Summary</h3>
                 {isFlightCheckout ? (
                   <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium">Flight #{flightParams.flightId || "—"}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {flightParams.fareType ? `Fare: ${flightParams.fareType.toUpperCase()}` : "Fare: —"}
-                      </p>
-                    </div>
+                    {flightParams.isRoundtrip ? (
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-medium">Outbound {flightParams.outbound.id ? `#${flightParams.outbound.id}` : ""}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {flightParams.outbound.fareType
+                              ? `Fare: ${flightParams.outbound.fareType.toUpperCase()}`
+                              : "Fare: —"}
+                          </p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium">Inbound {flightParams.inbound.id ? `#${flightParams.inbound.id}` : ""}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {flightParams.inbound.fareType
+                              ? `Fare: ${flightParams.inbound.fareType.toUpperCase()}`
+                              : "Fare: —"}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <h4 className="font-medium">Flight {flightParams.flightId ? `#${flightParams.flightId}` : ""}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {flightParams.fareType
+                            ? `Fare: ${flightParams.fareType.toUpperCase()}`
+                            : "Fare: —"}
+                        </p>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Carry-on</p>
-                        <p className="font-medium">{flightParams.carryOn ? flightParams.carryOn.replace(/_/g, " ") : "—"}</p>
+                        <p className="font-medium">
+                          {flightParams.carryOn ? flightParams.carryOn.replace(/_/g, " ") : "—"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Checked bags</p>
-                        <p className="font-medium">{flightParams.checked ? flightParams.checked.replace(/_/g, " ") : "—"}</p>
+                        <p className="font-medium">
+                          {flightParams.checked ? flightParams.checked.replace(/_/g, " ") : "—"}
+                        </p>
                       </div>
                     </div>
 
