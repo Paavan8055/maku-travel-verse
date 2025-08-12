@@ -15,6 +15,14 @@ const BookingBaggagePage = () => {
   const fareType = searchParams.get("fareType") || "basic";
   const amount = parseFloat(searchParams.get("amount") || "0");
   const currency = searchParams.get("currency") || "USD";
+  // Roundtrip-capable params
+  const tripType = (searchParams.get("tripType") || "").toLowerCase();
+  const outboundId = searchParams.get("outboundId") || "";
+  const inboundId = searchParams.get("inboundId") || "";
+  const outboundFare = searchParams.get("outboundFare") || "";
+  const inboundFare = searchParams.get("inboundFare") || "";
+  const passengers = searchParams.get("passengers") || "1";
+  const isRoundtrip = tripType === "roundtrip" || (!!outboundId && !!inboundId);
 
   // Simple local selection state for baggage
   const [carryOn, setCarryOn] = useState("1_cabin");
@@ -41,14 +49,27 @@ const BookingBaggagePage = () => {
   }, []);
 
   const handleNext = () => {
-    const params = new URLSearchParams({
-      flightId,
-      fareType,
-      amount: String(amount),
-      currency,
-      carryOn,
-      checked,
-    });
+    const params = new URLSearchParams();
+    // Common fields
+    params.set('amount', String(amount));
+    params.set('currency', currency);
+    params.set('carryOn', carryOn);
+    params.set('checked', checked);
+    params.set('passengers', passengers);
+
+    if (isRoundtrip) {
+      params.set('tripType', 'roundtrip');
+      if (outboundId) params.set('outboundId', outboundId);
+      if (outboundFare) params.set('outboundFare', outboundFare);
+      if (inboundId) params.set('inboundId', inboundId);
+      if (inboundFare) params.set('inboundFare', inboundFare);
+      // Indicate we're proceeding with the return leg summary on checkout
+      params.set('leg', 'inbound');
+    } else {
+      if (flightId) params.set('flightId', flightId);
+      if (fareType) params.set('fareType', fareType);
+    }
+
     navigate(`/booking/checkout?${params.toString()}`);
   };
 

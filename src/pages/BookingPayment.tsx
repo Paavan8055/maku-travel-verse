@@ -10,6 +10,7 @@ import { useBookingPayment } from "@/features/booking/hooks/useBookingPayment";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
 
 const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Promise<any>) | null>> }> = ({ setConfirm }) => {
   const stripe = useStripe();
@@ -86,15 +87,42 @@ const BookingPaymentPage = () => {
   const params = new URLSearchParams(
     typeof window !== "undefined" ? window.location.search : ""
   );
-  const isFlightCheckout = Boolean(params.get("flightId"));
+  const rawTripType = (params.get('tripType') || '').toLowerCase();
+  const hasOutboundId = params.get('outboundId');
+  const hasInboundId = params.get('inboundId');
+  const hasFlightId = params.get('flightId');
+  const hasAnyFare = params.get('fareType') || params.get('outboundFare') || params.get('inboundFare');
+
+  const isFlightCheckout = Boolean(
+    hasFlightId || rawTripType || hasOutboundId || hasInboundId || hasAnyFare
+  );
+
+  const legParam = (params.get('leg') || params.get('phase') || params.get('step') || '').toLowerCase();
+  const isReturnLeg = ['return', 'inbound'].includes(legParam) || Boolean(params.get('inboundId') || params.get('inboundFare'));
+
   const flightParams = {
-    flightId: params.get("flightId") || "",
-    fareType: params.get("fareType") || "",
-    amount: Number(params.get("amount")) || 0,
-    currency: params.get("currency") || "USD",
-    carryOn: params.get("carryOn") || "",
-    checked: params.get("checked") || "",
+    tripType: rawTripType || (hasOutboundId && hasInboundId ? 'roundtrip' : 'oneway'),
+    isRoundtrip: rawTripType === 'roundtrip' || Boolean(hasOutboundId && hasInboundId),
+    // One-way fallback values
+    flightId: params.get('flightId') || '',
+    fareType: params.get('fareType') || '',
+    // Roundtrip-capable fields
+    outbound: {
+      id: params.get('outboundId') || params.get('flightId') || '',
+      fareType: params.get('outboundFare') || params.get('fareType') || ''
+    },
+    inbound: {
+      id: params.get('inboundId') || '',
+      fareType: params.get('inboundFare') || ''
+    },
+    amount: Number(params.get('amount')) || 0,
+    currency: params.get('currency') || 'USD',
+    carryOn: params.get('carryOn') || '',
+    checked: params.get('checked') || ''
   };
+
+  // New: derive passengers for summary (defaults to 1)
+  const passengers = Number(params.get('passengers') || '1');
 
   const ensurePaymentIntent = async () => {
     try {
@@ -373,60 +401,18 @@ const BookingPaymentPage = () => {
             <Card className="travel-card sticky top-24">
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold mb-4">Booking Summary</h3>
-                {isFlightCheckout ? (
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium">
-                        Flight #{flightParams.flightId || "—"}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {flightParams.fareType
-                          ? `Fare: ${flightParams.fareType.toUpperCase()}`
-                          : "Fare: —"}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Carry-on</p>
-                        <p className="font-medium">
-                          {flightParams.carryOn
-                            ? flightParams.carryOn.replace(/_/g, " ")
-                            : "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Checked bags</p>
-                        <p className="font-medium">
-                          {flightParams.checked
-                            ? flightParams.checked.replace(/_/g, " ")
-                            : "—"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-4 space-y-2">
-                      <div className="flex justify-between font-bold text-lg pt-2">
-                        <span>Total</span>
-                        <span>
-                          {flightParams.currency} {flightParams.amount.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
-                      <Shield className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium text-green-800">
-                          Secure Payment
-                        </p>
-                        <p className="text-xs text-green-600">
-                          256-bit SSL encryption
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
+                  <FlightBookingSummary
+                    tripType={flightParams.tripType}
+                    isRoundtrip={flightParams.isRoundtrip}
+                    outbound={flightParams.outbound}
+                    inbound={flightParams.inbound}
+                    amount={flightParams.amount}
+                    currency={flightParams.currency}
+                    carryOn={flightParams.carryOn}
+                    checked={flightParams.checked}
+                    passengers={passengers}
+                    currentLeg={isReturnLeg ? 'inbound' : 'outbound'}
+                  />
                   <div className="space-y-4">
                     {/* Hotel Details */}
                     <div>
