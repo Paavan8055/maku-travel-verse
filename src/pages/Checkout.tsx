@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
+import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
 
 const CheckoutPage = () => {
   const [passengerValid, setPassengerValid] = useState(false);
@@ -61,6 +61,9 @@ const CheckoutPage = () => {
     carryOn: params.get('carryOn') || '',
     checked: params.get('checked') || ''
   };
+
+  // New: derive passengers for summary (defaults to 1)
+  const passengers = Number(params.get('passengers') || '1');
 
   const goToPayment = () => {
     try {
@@ -121,67 +124,17 @@ const CheckoutPage = () => {
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold mb-4">Booking Summary</h3>
                 {isFlightCheckout ? (
-                  <div className="space-y-4">
-                    {flightParams.isRoundtrip ? (
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium">Outbound {flightParams.outbound.id ? `#${flightParams.outbound.id}` : ""}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {flightParams.outbound.fareType
-                              ? `Fare: ${flightParams.outbound.fareType.toUpperCase()}`
-                              : "Fare: —"}
-                          </p>
-                        </div>
-                        <div>
-                          <h4 className="font-medium">Inbound {flightParams.inbound.id ? `#${flightParams.inbound.id}` : ""}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {flightParams.inbound.fareType
-                              ? `Fare: ${flightParams.inbound.fareType.toUpperCase()}`
-                              : "Fare: —"}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <h4 className="font-medium">Flight {flightParams.flightId ? `#${flightParams.flightId}` : ""}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {flightParams.fareType
-                            ? `Fare: ${flightParams.fareType.toUpperCase()}`
-                            : "Fare: —"}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Carry-on</p>
-                        <p className="font-medium">
-                          {flightParams.carryOn ? flightParams.carryOn.replace(/_/g, " ") : "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Checked bags</p>
-                        <p className="font-medium">
-                          {flightParams.checked ? flightParams.checked.replace(/_/g, " ") : "—"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-4 space-y-2">
-                      <div className="flex justify-between font-bold text-lg pt-2">
-                        <span>Total</span>
-                        <span>{flightParams.currency} {flightParams.amount.toFixed(2)}</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
-                      <Shield className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium text-green-800">Secure Payment</p>
-                        <p className="text-xs text-green-600">256-bit SSL encryption</p>
-                      </div>
-                    </div>
-                  </div>
+                  <FlightBookingSummary
+                    tripType={flightParams.tripType}
+                    isRoundtrip={flightParams.isRoundtrip}
+                    outbound={flightParams.outbound}
+                    inbound={flightParams.inbound}
+                    amount={flightParams.amount}
+                    currency={flightParams.currency}
+                    carryOn={flightParams.carryOn}
+                    checked={flightParams.checked}
+                    passengers={passengers}
+                  />
                 ) : (
                   <div className="space-y-4">
                     {/* Hotel Details */}
