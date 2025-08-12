@@ -17,6 +17,7 @@ interface FlightBookingSummaryProps {
   carryOn?: string;
   checked?: string;
   passengers?: number;
+  currentLeg?: "outbound" | "inbound"; // NEW: indicate if we're on return leg in a non-roundtrip view
 }
 
 export const FlightBookingSummary = ({
@@ -29,9 +30,17 @@ export const FlightBookingSummary = ({
   carryOn,
   checked,
   passengers = 1,
+  currentLeg,
 }: FlightBookingSummaryProps) => {
   const formatBagText = (text?: string) => (text ? text.replace(/_/g, " ") : "—");
-  const tripLabel = isRoundtrip || tripType === "roundtrip" ? "Roundtrip" : "One-way";
+
+  // Adjust label: Roundtrip > Return flight (when leg=inbound) > One-way
+  const tripLabel =
+    isRoundtrip || tripType === "roundtrip"
+      ? "Roundtrip"
+      : currentLeg === "inbound"
+      ? "Return flight"
+      : "One-way";
 
   return (
     <div className="space-y-4">
@@ -75,7 +84,7 @@ export const FlightBookingSummary = ({
       ) : (
         <div>
           <h4 className="font-medium">
-            Flight {outbound?.id ? `#${outbound.id}` : ""}
+            {currentLeg === "inbound" ? "Return Flight" : "Flight"} {outbound?.id ? `#${outbound.id}` : ""}
           </h4>
           <p className="text-sm text-muted-foreground">
             Fare: {outbound?.fareType ? outbound.fareType.toUpperCase() : "—"}
@@ -118,4 +127,3 @@ export const FlightBookingSummary = ({
 };
 
 export default FlightBookingSummary;
-

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -40,6 +41,10 @@ const CheckoutPage = () => {
   const isFlightCheckout = Boolean(
     hasFlightId || rawTripType || hasOutboundId || hasInboundId || hasAnyFare
   );
+
+  // NEW: detect if we're on the return leg step (even if not fully roundtrip params)
+  const legParam = (params.get('leg') || params.get('phase') || params.get('step') || '').toLowerCase();
+  const isReturnLeg = ['return', 'inbound'].includes(legParam) || Boolean(params.get('inboundId') || params.get('inboundFare'));
 
   const flightParams = {
     tripType: rawTripType || (hasOutboundId && hasInboundId ? 'roundtrip' : 'oneway'),
@@ -134,6 +139,7 @@ const CheckoutPage = () => {
                     carryOn={flightParams.carryOn}
                     checked={flightParams.checked}
                     passengers={passengers}
+                    currentLeg={isReturnLeg ? 'inbound' : 'outbound'} // NEW
                   />
                 ) : (
                   <div className="space-y-4">
