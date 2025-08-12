@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { runAgenticTask, getAgenticTaskStatus, cancelAgenticTask } from '../lib/agenticClient';
 import { useToast } from '@/hooks/use-toast';
 
+// Types
 interface AgenticTask {
   id: string;
   intent: string;
@@ -19,90 +19,92 @@ export const useAgenticTasks = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Fetch tasks status periodically
+  // Initialize empty state; backend polling intentionally disabled until API is ready
   useEffect(() => {
-    // Disable API polling until backend endpoints are implemented
-    // This prevents console errors from non-existent API endpoints
-    
-    // Initialize with empty state
     setTasks([]);
     setProgress(0);
-    
-    // TODO: Implement when backend is ready
-    // const fetchTasks = async () => {
-    //   try {
-    //     const userTasks = await getAgenticTaskStatus('current_user');
-    //     setTasks(userTasks);
-    //     // ... rest of implementation
-    //   } catch (error) {
-    //     console.error('Failed to fetch agentic tasks:', error);
-    //   }
-    // };
   }, []);
 
+  /**
+   * Simulated task lifecycle to avoid 404s from missing backend endpoint.
+   * Keeps API parity so we can swap to real endpoints later without touching UI.
+   */
   const createTask = useCallback(async (intent: string, params: any) => {
+    console.log('[Agentic] createTask called', { intent, params });
     setIsLoading(true);
-    
-    try {
-      const response = await runAgenticTask(intent, params);
-      
-      if (response.success) {
-        toast({
-          title: "Task Started",
-          description: response.message,
-        });
-        
-        // Refresh tasks
-        const userTasks = await getAgenticTaskStatus('current_user');
-        setTasks(userTasks);
-      } else {
-        toast({
-          title: "Task Failed",
-          description: response.error || "Failed to start task",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create agentic task",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+
+    // Create a new simulated task
+    const now = new Date().toISOString();
+    const newTask: AgenticTask = {
+      id: `${Date.now()}`,
+      intent,
+      status: 'running',
+      progress: 0,
+      created_at: now,
+      updated_at: now,
+    };
+
+    // Push the task and notify
+    setTasks(prev => [newTask, ...prev]);
+    toast({
+      title: 'Task Started',
+      description: `Running: ${intent}`,
+    });
+
+    // Simulate progress updates
+    const steps = [20, 55, 85, 100];
+    steps.forEach((p, idx) => {
+      setTimeout(() => {
+        setProgress(p);
+        setTasks(prev =>
+          prev.map(t =>
+            t.id === newTask.id
+              ? {
+                  ...t,
+                  progress: p,
+                  status: p === 100 ? 'completed' as const : 'running',
+                  updated_at: new Date().toISOString(),
+                  result:
+                    p === 100
+                      ? {
+                          message: 'Task completed',
+                          intent,
+                          params,
+                        }
+                      : t.result,
+                }
+              : t
+          )
+        );
+
+        if (p === 100) {
+          toast({
+            title: 'Task Completed',
+            description: `Finished: ${intent}`,
+          });
+          setIsLoading(false);
+        }
+      }, 400 + idx * 400);
+    });
+
+    // Return a simple result to keep signature usable if awaited
+    return { success: true, id: newTask.id };
   }, [toast]);
 
   const cancelTask = useCallback(async (taskId: string) => {
-    try {
-      const success = await cancelAgenticTask(taskId);
-      
-      if (success) {
-        toast({
-          title: "Task Cancelled",
-          description: "The agentic task has been cancelled",
-        });
-        
-        // Update local state
-        setTasks(prev => prev.map(task => 
-          task.id === taskId 
-            ? { ...task, status: 'cancelled' }
-            : task
-        ));
-      } else {
-        toast({
-          title: "Cancel Failed",
-          description: "Failed to cancel the task",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to cancel agentic task",
-        variant: "destructive",
-      });
-    }
+    console.log('[Agentic] cancelTask called', { taskId });
+    // Simulate cancellation locally
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === taskId
+          ? { ...task, status: 'cancelled', updated_at: new Date().toISOString() }
+          : task
+      )
+    );
+    toast({
+      title: 'Task Cancelled',
+      description: 'The agentic task has been cancelled.',
+    });
   }, [toast]);
 
   const getActiveTaskCount = useCallback(() => {
@@ -111,7 +113,7 @@ export const useAgenticTasks = () => {
 
   const getOverallStatus = useCallback((): 'idle' | 'working' | 'success' | 'error' => {
     if (tasks.some(task => task.status === 'failed')) return 'error';
-    if (tasks.some(task => task.status === 'running')) return 'working';
+    if (tasks.some(task => task.status === 'running' || task.status === 'pending')) return 'working';
     if (tasks.some(task => task.status === 'completed')) return 'success';
     return 'idle';
   }, [tasks]);
