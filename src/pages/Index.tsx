@@ -11,7 +11,7 @@ import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen app-bright">
       <Navbar />
       <HeroSection />
       <MarketplacePills />
