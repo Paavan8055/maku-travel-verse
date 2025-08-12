@@ -102,7 +102,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.verify-booking-payment]
-verify_jwt = false
+verify_jwt = true
+
+[functions.validate-passport]
+verify_jwt = true
 
 [functions.create-card-payment-intent]
 verify_jwt = false
