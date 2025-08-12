@@ -401,6 +401,7 @@ const BookingPaymentPage = () => {
             <Card className="travel-card sticky top-24">
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold mb-4">Booking Summary</h3>
+                {isFlightCheckout ? (
                   <FlightBookingSummary
                     tripType={flightParams.tripType}
                     isRoundtrip={flightParams.isRoundtrip}
@@ -413,6 +414,7 @@ const BookingPaymentPage = () => {
                     passengers={passengers}
                     currentLeg={isReturnLeg ? 'inbound' : 'outbound'}
                   />
+                ) : (
                   <div className="space-y-4">
                     {/* Hotel Details */}
                     <div>
