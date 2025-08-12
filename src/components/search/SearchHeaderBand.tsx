@@ -1,6 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { CalendarDays, Users2, MapPin } from "lucide-react";
-
 interface SearchHeaderBandProps {
   destination: string;
   checkIn: string;
@@ -29,7 +29,7 @@ const SearchHeaderBand: React.FC<SearchHeaderBandProps> = ({ destination, checkI
           </div>
 
           <div className="flex items-center gap-2">
-            <a href="/" className="text-sm story-link">Modify search</a>
+            <Link to="/" className="text-sm story-link">Modify search</Link>
           </div>
         </div>
       </div>
