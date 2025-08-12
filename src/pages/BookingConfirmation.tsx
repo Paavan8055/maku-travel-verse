@@ -94,48 +94,49 @@ const BookingConfirmationPage = () => {
       </div>
       <div className="max-w-4xl mx-auto px-6 pb-20">
         <Card className="travel-card" role="article" aria-label="Booking confirmation letter">
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Reference</p>
-                <p className="font-semibold">{confirmation?.booking?.booking_reference || bookingId || "—"}</p>
-                {sessionId && (
-                  <p className="text-xs text-muted-foreground mt-1">Stripe session: {sessionId}</p>
-                )}
-
-                {confirmation?.booking && (
-                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Booking status</p>
-                      <p className="font-medium capitalize">{confirmation.booking.status}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Amount</p>
-                      <p className="font-medium">
-                        {confirmation.booking.currency} {Number(confirmation.payment?.amount ?? confirmation.booking.total_amount ?? 0).toFixed(2)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Created</p>
-                      <p className="font-medium">{new Date(confirmation.booking.created_at).toLocaleString()}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  {user && bookingId ? (
-                    <Button asChild className="btn-primary">
-                      <Link to={`/dashboard/bookings/${bookingId}`}>View booking details</Link>
-                    </Button>
-                  ) : (
-                    <Button asChild className="btn-primary">
-                      <Link to="/dashboard">Go to dashboard</Link>
-                    </Button>
+          <CardContent>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Reference</p>
+                  <p className="font-semibold">{confirmation?.booking?.booking_reference || bookingId || "—"}</p>
+                  {sessionId && (
+                    <p className="text-xs text-muted-foreground mt-1">Stripe session: {sessionId}</p>
                   )}
-                  <Button variant="outline" onClick={() => window.print()} className="inline-flex items-center gap-2">
-                    <Printer className="h-4 w-4" /> Print / Save PDF
-                  </Button>
+
+                  {confirmation?.booking && (
+                    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Booking status</p>
+                        <p className="font-medium capitalize">{confirmation.booking.status}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Amount</p>
+                        <p className="font-medium">
+                          {confirmation.booking.currency} {Number(confirmation.payment?.amount ?? confirmation.booking.total_amount ?? 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Created</p>
+                        <p className="font-medium">{new Date(confirmation.booking.created_at).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    {user && bookingId ? (
+                      <Button asChild className="btn-primary">
+                        <Link to={`/dashboard/bookings/${bookingId}`}>View booking details</Link>
+                      </Button>
+                    ) : (
+                      <Button asChild className="btn-primary">
+                        <Link to="/dashboard">Go to dashboard</Link>
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={() => window.print()} className="inline-flex items-center gap-2">
+                      <Printer className="h-4 w-4" /> Print / Save PDF
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </div>
+          </CardContent>
         </Card>
       </div>
     </div>
