@@ -62,23 +62,28 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 }
 
 const queryClient = new QueryClient();
+
+const ClientOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <TooltipProvider>
-        <ErrorBoundary>
+    <ErrorBoundary>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
           <AuthProvider>
             <MakuBotProvider>
               <AgenticBotProvider>
                 <Toaster />
-                <Sonner />
+                <ClientOnly>
+                  <Sonner />
+                </ClientOnly>
                 <CurrencyProvider>
-                  <BrowserRouter 
-                    future={{ 
-                      v7_startTransition: true,
-                      v7_relativeSplatPath: true 
-                    }}
-                  >
+                  <BrowserRouter>
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/search" element={<SearchHub />} />
@@ -107,10 +112,8 @@ const App = () => (
               </AgenticBotProvider>
             </MakuBotProvider>
           </AuthProvider>
-        </ErrorBoundary>
-      </TooltipProvider>
-    </ThemeProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   </QueryClientProvider>
 );
-
-export default App;
