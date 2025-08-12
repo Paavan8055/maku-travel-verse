@@ -7,12 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
 import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
+import { useToast } from "@/hooks/use-toast";
 
 const CheckoutPage = () => {
   const [passengerValid, setPassengerValid] = useState(false);
   const [passenger, setPassenger] = useState<PassengerFormData | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   
   // Booking details (hotel fallback) and flight params from URL
   const bookingDetails = {
@@ -83,6 +85,23 @@ const CheckoutPage = () => {
     navigate(`/booking/payment${search}`);
   };
 
+  // New: gated continue handler with toast + smooth scroll
+  const handleContinue = () => {
+    if (!passengerValid) {
+      toast({
+        title: "Complete passenger details",
+        description: "Please fill all required fields (except middle name and gender) before continuing.",
+        variant: "destructive",
+      });
+      const anchor = document.getElementById("passenger-details");
+      if (anchor && typeof anchor.scrollIntoView === "function") {
+        anchor.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      return;
+    }
+    goToPayment();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -107,7 +126,9 @@ const CheckoutPage = () => {
           {/* Payment Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Passenger Details */}
-            <PassengerDetailsForm onChange={(data, valid) => { setPassenger(data); setPassengerValid(valid); }} />
+            <div id="passenger-details">
+              <PassengerDetailsForm onChange={(data, valid) => { setPassenger(data); setPassengerValid(valid); }} />
+            </div>
 
             {/* Payment Method */}
             {/* Next step CTA: Payment */}
@@ -204,8 +225,9 @@ const CheckoutPage = () => {
                 )}
 
                 <Button 
-                  onClick={goToPayment}
+                  onClick={handleContinue}
                   className="w-full mt-6 btn-primary h-12"
+                  disabled={!passengerValid}
                 >
                   Continue to Payment
                 </Button>
