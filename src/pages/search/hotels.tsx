@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import { HotelCard } from "@/features/search/components/HotelCard";
 import { useHotelSearch } from "@/features/search/hooks/useHotelSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
-import { TravelFundBalance, SaveSearchActions, UrgencyBadge, GuestReviewSnippet, BestPriceGuarantee } from "@/components/search/ConversionEnhancements";
+import { SaveSearchActions, UrgencyBadge, GuestReviewSnippet, BestPriceGuarantee } from "@/components/search/ConversionEnhancements";
 import SearchHeaderBand from "@/components/search/SearchHeaderBand";
 import MemberPriceBanner from "@/components/search/MemberPriceBanner";
 import SortChips from "@/components/search/SortChips";
@@ -16,7 +16,7 @@ const HotelSearchPage = () => {
   const [searchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState("price");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
-  const [fundApplied, setFundApplied] = useState(false);
+  
   const [filters, setFilters] = useState({
     priceRange: [0, 1000] as [number, number],
     starRating: [] as string[],
@@ -38,7 +38,7 @@ const HotelSearchPage = () => {
   } = useHotelSearch(searchCriteria);
 
   // Mock user travel fund balance
-  const travelFundBalance = 250.00;
+  
   const filteredAndSortedHotels = hotels.filter(hotel => {
     if (filters.priceRange[0] > 0 && hotel.pricePerNight < filters.priceRange[0]) return false;
     if (filters.priceRange[1] < 1000 && hotel.pricePerNight > filters.priceRange[1]) return false;
@@ -111,7 +111,7 @@ const HotelSearchPage = () => {
           </div>
 
           {/* Travel Fund Balance */}
-          <TravelFundBalance balance={travelFundBalance} currency="$" onApplyFund={setFundApplied} isApplied={fundApplied} />
+          
         </div>
 
         {/* Guest Reviews Section */}
