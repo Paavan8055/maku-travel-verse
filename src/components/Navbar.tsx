@@ -7,22 +7,17 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [language, setLanguage] = useState("EN");
-  const {
-    user,
-    signOut
-  } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
   const handleSignOut = async () => {
     try {
-      const {
-        error
-      } = await signOut();
+      const { error } = await signOut();
       if (error) {
         toast({
           title: "Error",
@@ -44,11 +39,16 @@ const Navbar = () => {
       });
     }
   };
-  return <nav className="sticky top-0 z-50 bg-white border-b border-border">
-      <div className="container mx-auto px-4 bg-lime-500">
+
+  return (
+    <nav className="sticky top-0 z-50 bg-white border-b border-border">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
+          <div 
+            className="flex items-center space-x-2 cursor-pointer" 
+            onClick={() => navigate('/')}
+          >
             <div className="text-2xl font-bold bg-gradient-to-r from-travel-sky to-travel-ocean bg-clip-text text-transparent">
               Maku Travel
             </div>
@@ -56,31 +56,55 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/hotels')}>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/search/hotels')}
+            >
               <span>Hotels</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/flights')}>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/search/flights')}
+            >
               <Plane className="h-4 w-4" />
               <span>Flights</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/activities')}>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/search/activities')}
+            >
               <MapPin className="h-4 w-4" />
               <span>Activities</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/car-rental')}>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/car-rental')}
+            >
               <Car className="h-4 w-4" />
               <span>Car Rental</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/deals')}>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/deals')}
+            >
               <Gift className="h-4 w-4" />
               <span>Deals</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/partners')}>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1"
+              onClick={() => navigate('/partners')}
+            >
               <UsersIcon className="h-4 w-4" />
               <span>Partners</span>
             </Button>
@@ -107,7 +131,8 @@ const Navbar = () => {
             </Button>
 
             {/* User Authentication */}
-            {user ? <DropdownMenu>
+            {user ? (
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
@@ -133,64 +158,103 @@ const Navbar = () => {
                     Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu> : <Button onClick={() => navigate('/auth')} className="bg-travel-ocean hover:bg-travel-ocean/90 text-white px-6">
+              </DropdownMenu>
+            ) : (
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-travel-ocean hover:bg-travel-ocean/90 text-white px-6"
+              >
                 Sign In
-              </Button>}
+              </Button>
+            )}
 
             {/* Mobile Menu Button */}
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && <div className="md:hidden border-t border-border py-4 animate-slideIn">
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-border py-4 animate-slideIn">
             <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/search/hotels');
-            setIsMenuOpen(false);
-          }}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/search/hotels');
+                  setIsMenuOpen(false);
+                }}
+              >
                 Hotels
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/search/flights');
-            setIsMenuOpen(false);
-          }}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/search/flights');
+                  setIsMenuOpen(false);
+                }}
+              >
                 <Plane className="mr-2 h-4 w-4" />
                 Flights
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/search/activities');
-            setIsMenuOpen(false);
-          }}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/search/activities');
+                  setIsMenuOpen(false);
+                }}
+              >
                 <MapPin className="mr-2 h-4 w-4" />
                 Activities
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/car-rental');
-            setIsMenuOpen(false);
-          }}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/car-rental');
+                  setIsMenuOpen(false);
+                }}
+              >
                 <Car className="mr-2 h-4 w-4" />
                 Car Rental
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/deals');
-            setIsMenuOpen(false);
-          }}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/deals');
+                  setIsMenuOpen(false);
+                }}
+              >
                 <Gift className="mr-2 h-4 w-4" />
                 Deals
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/partners');
-            setIsMenuOpen(false);
-          }}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/partners');
+                  setIsMenuOpen(false);
+                }}
+              >
                 <UsersIcon className="mr-2 h-4 w-4" />
                 Partners
               </Button>
             </div>
-          </div>}
+          </div>
+        )}
       </div>
-    </nav>;
+    </nav>
+  );
 };
+
 export default Navbar;

@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Eye, X, Calendar, Users, DollarSign, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { TravelFundBalance } from '@/components/search/ConversionEnhancements';
 
 interface BookingData {
   id: string;
@@ -46,7 +45,6 @@ export const Dashboard: React.FC = () => {
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
-  const [fundApplied, setFundApplied] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
@@ -144,18 +142,9 @@ export const Dashboard: React.FC = () => {
         <Navbar />
         
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-6">
+          <div className="mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">Your Bookings</h1>
             <p className="text-muted-foreground">Manage your travel bookings and view details</p>
-          </div>
-
-          <div className="mb-8">
-            <TravelFundBalance
-              balance={0}
-              currency="$"
-              isApplied={fundApplied}
-              onApplyFund={setFundApplied}
-            />
           </div>
 
           {loading ? (

@@ -21,8 +21,8 @@ const MarketplacePills: React.FC = () => {
             <Button
               key={item.label}
               onClick={() => navigate(item.href)}
-              variant="secondary"
-              className="rounded-full px-4 py-2 text-sm bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 shadow-soft hover:shadow-floating hover:opacity-95 hover:-translate-y-0.5 transition-transform"
+              variant="outline"
+              className="rounded-full px-4 py-2 text-sm shadow-soft hover:shadow-floating hover:bg-primary/5 hover:border-primary/30 text-foreground"
             >
               <item.icon className="mr-2 h-4 w-4" />
               {item.label}

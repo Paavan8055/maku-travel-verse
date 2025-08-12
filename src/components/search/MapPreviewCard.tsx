@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import heroImg from "@/assets/hero-2.jpg";
 
@@ -18,7 +17,7 @@ const MapPreviewCard: React.FC<MapPreviewCardProps> = ({ destination }) => {
           <img src={heroImg} alt="Map preview of hotels" loading="lazy" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent" />
           <div className="absolute bottom-2 right-2">
-            <Link to="/search/hotels?view=map" className="px-3 py-1.5 rounded-full bg-background/80 border text-sm story-link">Open full map</Link>
+            <a href="#" className="px-3 py-1.5 rounded-full bg-background/80 border text-sm story-link">Open full map</a>
           </div>
         </div>
       </CardContent>

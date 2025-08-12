@@ -7,13 +7,13 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 230 12% 22%;
+    --foreground: 230 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 230 12% 22%;
+    --card-foreground: 230 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 230 12% 22%;
+    --popover-foreground: 230 15% 15%;
 
     /* Travel-inspired vibrant primary colors */
     --primary: 330 85% 58%; /* Pink */
@@ -127,11 +127,6 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Display headings use Playfair Display */
-  h1, h2, h3 {
-    @apply font-playfair tracking-tight;
-  }
-
   html {
     scroll-behavior: smooth;
   }
@@ -163,24 +158,11 @@
     @apply bg-background/80 backdrop-blur-lg border border-border/50 rounded-2xl shadow-[var(--shadow-floating)];
   }
 
-  /* Bright page background utility */
-  .app-bright {
-    background: var(--gradient-pink-orange);
-    background-attachment: fixed;
-  }
-
   /* Hide country flag icons in phone input */
   .PhoneInputCountryIcon, 
   .PhoneInputCountryIconImg,
   .PhoneInputInternationalIconPhone,
   .PhoneInputInternationalIconGlobe {
     display: none !important;
-  }
-}
-
-@layer utilities {
-  /* Utility class for display font headings when needed */
-  .font-display {
-    @apply font-playfair;
   }
 }

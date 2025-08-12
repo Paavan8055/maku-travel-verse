@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { Wallet } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -22,7 +21,7 @@ const MemberPriceBanner: React.FC<MemberPriceBannerProps> = ({ destination }) =>
             </p>
           </div>
         </div>
-        <Link to="/auth" className="text-sm font-medium text-primary hover:underline whitespace-nowrap">Sign in to unlock</Link>
+        <a href="/auth" className="text-sm font-medium text-primary hover:underline whitespace-nowrap">Sign in to unlock</a>
       </CardContent>
     </Card>
   );
