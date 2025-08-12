@@ -136,6 +136,11 @@ serve(async (req) => {
       const firstSegment = segments[0];
       const lastSegment = segments[segments.length - 1];
 
+      const inbound = offer.itineraries[1];
+      const inboundSegments = inbound?.segments || [];
+      const inboundFirst = inboundSegments[0];
+      const inboundLast = inboundSegments[inboundSegments.length - 1];
+
       return {
         id: offer.id,
         source: 'amadeus',
@@ -187,7 +192,35 @@ serve(async (req) => {
           duration: segment.duration,
           aircraft: segment.aircraft?.code,
           flightNumber: `${segment.carrierCode}${segment.number}`
-        }))
+        })),
+        returnItinerary: inbound ? {
+          duration: inbound.duration,
+          departure: {
+            airport: inboundFirst?.departure?.iataCode,
+            time: inboundFirst?.departure?.at,
+            terminal: inboundFirst?.departure?.terminal
+          },
+          arrival: {
+            airport: inboundLast?.arrival?.iataCode,
+            time: inboundLast?.arrival?.at,
+            terminal: inboundLast?.arrival?.terminal
+          },
+          segments: inboundSegments.map((segment: any) => ({
+            departure: {
+              airport: segment.departure.iataCode,
+              time: segment.departure.at,
+              terminal: segment.departure.terminal
+            },
+            arrival: {
+              airport: segment.arrival.iataCode,
+              time: segment.arrival.at,
+              terminal: segment.arrival.terminal
+            },
+            duration: segment.duration,
+            aircraft: segment.aircraft?.code,
+            flightNumber: `${segment.carrierCode}${segment.number}`
+          }))
+        } : undefined
       };
     }) || [];
 

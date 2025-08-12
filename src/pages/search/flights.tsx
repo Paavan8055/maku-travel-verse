@@ -92,11 +92,43 @@ const FlightSearchPage = () => {
     passengers: parseInt(searchParams.get("passengers") || searchParams.get("guests") || "1")
   };
 
+  const isRoundtrip = tripType === "roundtrip" && !!searchCriteria.returnDate;
+
+  const returnCriteria = {
+    origin: searchCriteria.destination,
+    destination: searchCriteria.origin,
+    departureDate: searchCriteria.returnDate || "",
+    passengers: searchCriteria.passengers,
+  };
+
   const { flights, loading, error } = useFlightSearch(searchCriteria);
+  const { flights: returnFlights, loading: loadingReturn, error: errorReturn } = useFlightSearch(returnCriteria);
 
   const { convert, formatCurrency } = useCurrency();
 
   const filteredAndSortedFlights = flights
+    .map((f: any) => ({ ...f, _displayPrice: convert(f.price, (f.currency || "USD")) }))
+    .filter((flight: any) => {
+      if (priceRange[0] > 0 && flight._displayPrice < priceRange[0]) return false;
+      if (priceRange[1] < 2000 && flight._displayPrice > priceRange[1]) return false;
+      const depHour = getHourFrom(flight.departureTime);
+      if (depHour < departureTimeRange[0] || depHour > departureTimeRange[1]) return false;
+      if (filters.stops !== "any" && flight.stops !== filters.stops) return false;
+      if (filters.airline !== "any" && flight.airline !== filters.airline) return false;
+      if (filters.cabin !== "any" && flight.cabin.toLowerCase() !== filters.cabin) return false;
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "price": return a._displayPrice - b._displayPrice;
+        case "duration": return a.duration - b.duration;
+        case "departure": return a.departureTime.localeCompare(b.departureTime);
+        case "arrival": return a.arrivalTime.localeCompare(b.arrivalTime);
+        default: return 0;
+      }
+    });
+
+  const filteredAndSortedReturnFlights = returnFlights
     .map((f: any) => ({ ...f, _displayPrice: convert(f.price, (f.currency || "USD")) }))
     .filter((flight: any) => {
       if (priceRange[0] > 0 && flight._displayPrice < priceRange[0]) return false;
@@ -500,6 +532,11 @@ const FlightSearchPage = () => {
           <h1 className="text-2xl font-bold text-foreground mb-2">
             {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
           </h1>
+          {isRoundtrip && (
+            <p className="text-sm text-muted-foreground">
+              Return date: {searchCriteria.returnDate} • Showing departing and return options
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -755,6 +792,184 @@ const FlightSearchPage = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {isRoundtrip && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  {filteredAndSortedReturnFlights.length} return flights from {searchCriteria.destination} to {searchCriteria.origin}
+                </h2>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {loadingReturn && (
+                        <div className="space-y-4">
+                          {[...Array(5)].map((_, i) => (
+                            <Card key={i} className="animate-pulse">
+                              <CardContent className="p-6">
+                                <div className="h-20 bg-muted rounded"></div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+
+                      {!loadingReturn && !errorReturn && filteredAndSortedReturnFlights.map((flight) => (
+                        <Card key={flight.id} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 bg-orange-100 rounded flex items-center justify-center">
+                                  <span className="text-orange-600 font-bold text-xs">{flight.airlineCode}</span>
+                                </div>
+                                <div>
+                                  <div className="font-medium text-sm">{flight.airline}</div>
+                                  <div className="text-xs text-muted-foreground">{flight.flightNumber}</div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center space-x-8 flex-1 justify-center">
+                                <div className="text-center">
+                                  <div className="text-xl font-bold">{formatTime(flight.departureTime)}</div>
+                                  <div className="text-sm text-muted-foreground">{flight.origin}</div>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <Plane className="h-4 w-4 text-muted-foreground" />
+                                    <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+                                    <Plane className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">{formatDuration(flight.duration)}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {flight.stops === "0" ? "Direct" : `(${flight.stops} stop)`}
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-xl font-bold">{formatTime(flight.arrivalTime)}</div>
+                                  <div className="text-sm text-muted-foreground">{flight.destination}</div>
+                                </div>
+                              </div>
+
+                              <div className="text-right space-y-2">
+                                <div>
+                                  <div className="text-sm text-muted-foreground">from</div>
+                                  <div className="text-xl font-bold text-primary">US${flight.price}</div>
+                                  <div className="text-sm text-muted-foreground">Total round trip price</div>
+                                </div>
+                                <Button onClick={() => handleSelectFlight(flight)} className="w-full">
+                                  Select flight
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-1">
+                                  <Luggage className="h-4 w-4 text-blue-600" />
+                                  <span className="text-sm text-blue-600">Carry-on bag included</span>
+                                </div>
+                                {flight.baggage?.checked && (
+                                  <div className="flex items-center space-x-1">
+                                    <Luggage className="h-4 w-4 text-blue-600" />
+                                    <span className="text-sm text-blue-600">Checked bag included</span>
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
+                                aria-expanded={!!expanded[flight.id]}
+                                onClick={() => setExpanded((prev) => ({ ...prev, [flight.id]: !prev[flight.id] }))}
+                              >
+                                {expanded[flight.id] ? "Hide details" : "Show details"}
+                              </button>
+                            </div>
+
+                            {expanded[flight.id] && (
+                              <div className="mt-4 rounded-lg border bg-card/50 p-4">
+                                <div className="grid gap-6 md:grid-cols-3 text-sm">
+                                  <div className="md:col-span-2">
+                                    <div className="text-xs text-muted-foreground mb-3">
+                                      {formatDateLabel(flight.departureTime).full}
+                                    </div>
+                                    {Array.isArray(flight.segments) && flight.segments.length > 0 ? (
+                                      <ol className="relative pl-4 border-l">
+                                        {flight.segments.map((seg: any, idx: number) => (
+                                          <li key={idx} className="mb-6">
+                                            <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-primary" />
+                                            <div className="flex items-start justify-between">
+                                              <div>
+                                                <div className="font-medium text-foreground">
+                                                  {formatTime(seg.departure?.time || "")} {seg.departure?.airport}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                  Flight no: {seg.flightNumber || flight.flightNumber} • Cabin: {flight.cabin}
+                                                </div>
+                                              </div>
+                                              <div className="text-xs text-muted-foreground">
+                                                {humanizeISODuration(seg.duration)}
+                                              </div>
+                                            </div>
+                                            <div className="mt-2">
+                                              <div className="font-medium text-foreground">
+                                                {formatTime(seg.arrival?.time || "")} {seg.arrival?.airport}
+                                              </div>
+                                              {idx < flight.segments.length - 1 && (
+                                                <div className="mt-3 flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                                                  <Clock className="h-3.5 w-3.5" />
+                                                  <span>{formatLayover(seg.arrival?.time, flight.segments[idx + 1]?.departure?.time, flight.segments[idx + 1]?.departure?.airport) || "Layover"}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ol>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        <div className="text-sm">{flight.airline}</div>
+                                        <div className="text-xs text-muted-foreground">Flight no: {flight.flightNumber} • Cabin: {flight.cabin}</div>
+                                      </div>
+                                    )}
+                                    <div className="mt-2 text-xs text-muted-foreground">
+                                      Arrive at destination {formatDateLabel(flight.arrivalTime).full} • {flight.destination}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <div className="font-medium mb-1">Baggage</div>
+                                      <ul className="space-y-1 text-muted-foreground">
+                                        <li>Carry-on: {flight.baggage?.carry ? "Included" : "—"}</li>
+                                        <li>Checked: {flight.baggage?.checked ? "Included" : "—"}</li>
+                                      </ul>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium mb-1">Aircraft</div>
+                                      <div className="text-muted-foreground">{flight.aircraft || "—"}</div>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium mb-1">Seats left</div>
+                                      <div className="text-muted-foreground">{flight.availableSeats}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+
+                      {!loadingReturn && !errorReturn && filteredAndSortedReturnFlights.length === 0 && (
+                        <Card>
+                          <CardContent className="p-6 text-center">
+                            <p className="text-muted-foreground">No return flights found matching your criteria</p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
