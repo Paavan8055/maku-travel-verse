@@ -677,6 +677,15 @@ const FlightSearchPage = () => {
                               <Button onClick={() => handleSelectFlight(flight)} className="w-full">
                                 Select flight
                               </Button>
+                              {isRoundtrip && (
+                                <button
+                                  type="button"
+                                  onClick={() => document.getElementById('return-flights')?.scrollIntoView({ behavior: 'smooth' })}
+                                  className="w-full text-xs text-primary hover:underline"
+                                >
+                                  Choose return flight ↓
+                                </button>
+                              )}
                             </div>
                           </div>
 
@@ -794,7 +803,7 @@ const FlightSearchPage = () => {
             </Card>
 
             {isRoundtrip && (
-              <div className="mt-8">
+              <div id="return-flights" className="mt-8">
                 <h2 className="text-2xl font-bold text-foreground mb-2">
                   {filteredAndSortedReturnFlights.length} return flights from {searchCriteria.destination} to {searchCriteria.origin}
                 </h2>
