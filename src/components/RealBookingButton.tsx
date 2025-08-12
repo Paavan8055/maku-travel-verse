@@ -8,6 +8,7 @@ import { useBookingPayment } from '@/features/booking/hooks/useBookingPayment';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { CreditCard, Shield, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 interface RealBookingButtonProps {
   bookingType: 'flight' | 'hotel' | 'activity';
   bookingData: any;
@@ -15,6 +16,7 @@ interface RealBookingButtonProps {
   currency?: string;
   className?: string;
 }
+
 export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
   bookingType,
   bookingData,
@@ -31,14 +33,11 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
   });
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'fund' | 'split'>('card');
   const [fundAmount, setFundAmount] = useState(0);
-  const {
-    user
-  } = useAuth();
-  const {
-    createBookingPayment,
-    isLoading
-  } = useBookingPayment();
+
+  const { user } = useAuth();
+  const { createBookingPayment, isLoading } = useBookingPayment();
   const navigate = useNavigate();
+
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerInfo.email || !customerInfo.firstName || !customerInfo.lastName) {
@@ -55,15 +54,31 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
     });
     if (result.success) {
       setShowBookingForm(false);
-      // Handle success - maybe redirect or show confirmation
       console.log('Booking created successfully:', result);
     }
   };
+
   if (!showBookingForm) {
     return (
       <Button
         onClick={() => {
           if (bookingType === 'flight') {
+            // Detect roundtrip payload
+            const isRoundtrip = bookingData && bookingData.outbound && bookingData.inbound;
+            if (isRoundtrip) {
+              const params = new URLSearchParams({
+                tripType: 'roundtrip',
+                outboundId: bookingData.outbound?.id || '',
+                inboundId: bookingData.inbound?.id || '',
+                outboundFare: bookingData.outbound?.fareType || 'basic',
+                inboundFare: bookingData.inbound?.fareType || 'basic',
+                amount: String(amount),
+                currency
+              });
+              navigate(`/booking/baggage?${params.toString()}`);
+              return;
+            }
+
             const params = new URLSearchParams({
               flightId: bookingData?.id || '',
               fareType: bookingData?.fareType || 'basic',
@@ -82,7 +97,12 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
       </Button>
     );
   }
-  return <Card className="travel-card">
-      
-    </Card>;
+
+  return (
+    <Card className="travel-card">
+      <CardContent className="p-4">
+        {/* ... keep existing code (optional manual booking form if needed) the same ... */}
+      </CardContent>
+    </Card>
+  );
 };

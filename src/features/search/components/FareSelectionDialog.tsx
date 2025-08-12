@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -34,12 +35,14 @@ interface FareSelectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   flight: Flight;
+  outbound?: Flight; // NEW: optional departing flight to combine totals and build roundtrip booking
 }
 
-export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, onOpenChange, flight }) => {
+export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, onOpenChange, flight, outbound }) => {
   const { convert, formatCurrency, selectedCurrency } = useCurrency();
   const [selection, setSelection] = useState<"basic" | "flex">("basic");
 
+  // Inbound (current dialog flight) pricing
   const pricing = useMemo(() => {
     const baseLocal = convert(flight.price, flight.currency);
     const flexDiffOriginalCcy = Math.max(Math.round(flight.price * 0.15), 15); // +15% or min 15 in original ccy
@@ -50,6 +53,16 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
     };
     return { baseLocal, flexDiffLocal, totals };
   }, [convert, flight.price, flight.currency]);
+
+  // Outbound pricing (assume Basic fare by default for simplicity)
+  const outboundLocal = useMemo(() => {
+    if (!outbound) return 0;
+    return convert(outbound.price, outbound.currency);
+  }, [outbound, convert]);
+
+  // Combined total if outbound is present
+  const selectedInboundTotal = selection === "flex" ? pricing.totals.flex : pricing.totals.basic;
+  const combinedTotal = outbound ? outboundLocal + selectedInboundTotal : selectedInboundTotal;
 
   const inclusions = (
     <ul className="space-y-2 text-sm text-muted-foreground">
@@ -66,7 +79,15 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
         <DialogHeader>
           <DialogTitle>Fare Selection</DialogTitle>
           <DialogDescription>
-            Departure: {flight.origin} to {flight.destination}
+            {outbound ? (
+              <>
+                Departing: {outbound.origin} → {outbound.destination} · {outbound.airline} {outbound.flightNumber} (Basic)
+                <br />
+                Returning: {flight.origin} → {flight.destination}
+              </>
+            ) : (
+              <>Departure: {flight.origin} to {flight.destination}</>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +97,9 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
           </div>
           <div className="flex-1">
             <p className="font-medium text-foreground">{flight.airline}</p>
-            <p className="text-sm text-muted-foreground">{flight.departureTime} → {flight.arrivalTime} · {flight.stops === "0" ? "Direct" : `${flight.stops} stop${flight.stops === "1" ? "" : "s"}`}</p>
+            <p className="text-sm text-muted-foreground">
+              {flight.departureTime} → {flight.arrivalTime} · {flight.stops === "0" ? "Direct" : `${flight.stops} stop${flight.stops === "1" ? "" : "s"}`}
+            </p>
           </div>
           <Badge variant="secondary" className="shrink-0">{flight.cabin}</Badge>
         </div>
@@ -134,12 +157,19 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
           </div>
           <div className="flex items-center gap-3">
             <div className="text-xl font-bold text-foreground">
-              {formatCurrency(selection === "flex" ? pricing.totals.flex : pricing.totals.basic, selectedCurrency)}
+              {formatCurrency(combinedTotal, selectedCurrency)}
             </div>
             <RealBookingButton
               bookingType="flight"
-              bookingData={{ ...flight, fareType: selection }}
-              amount={selection === "flex" ? pricing.totals.flex : pricing.totals.basic}
+              bookingData={
+                outbound
+                  ? {
+                      outbound: { ...outbound, fareType: "basic" },
+                      inbound: { ...flight, fareType: selection },
+                    }
+                  : { ...flight, fareType: selection }
+              }
+              amount={combinedTotal}
               currency={selectedCurrency}
             />
           </div>

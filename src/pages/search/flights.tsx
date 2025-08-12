@@ -83,6 +83,7 @@ const FlightSearchPage = () => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [fareOpen, setFareOpen] = useState(false);
   const [fareFlight, setFareFlight] = useState<any | null>(null);
+  const [selectedOutbound, setSelectedOutbound] = useState<any | null>(null);
 
   const searchCriteria = {
     origin: searchParams.get("origin") || "SYD",
@@ -223,7 +224,24 @@ const FlightSearchPage = () => {
     return `${h}h ${m}m layover${airport ? ` - ${airport}` : ""}`;
   };
 
-  const handleSelectFlight = (flight: any) => {
+  const handleSelectFlight = (flight: any, leg: "outbound" | "inbound" = "outbound") => {
+    if (tripType === "roundtrip" && !!searchCriteria.returnDate) {
+      if (leg === "outbound") {
+        // Save outbound and guide user to pick return
+        setSelectedOutbound(flight);
+        // Smooth scroll to return flights
+        setTimeout(() => {
+          document.getElementById("return-flights")?.scrollIntoView({ behavior: "smooth" });
+        }, 0);
+        return;
+      }
+      // Inbound selection -> open fare dialog (combined total handled in dialog)
+      setFareFlight(flight);
+      setFareOpen(true);
+      return;
+    }
+
+    // One-way flow: open fare dialog directly
     setFareFlight(flight);
     setFareOpen(true);
   };
@@ -674,8 +692,8 @@ const FlightSearchPage = () => {
                                 <div className="text-xl font-bold text-primary">US${flight.price}</div>
                                 <div className="text-sm text-muted-foreground">Total round trip price</div>
                               </div>
-                              <Button onClick={() => handleSelectFlight(flight)} className="w-full">
-                                Select flight
+                              <Button onClick={() => handleSelectFlight(flight, "outbound")} className="w-full">
+                                {tripType === "roundtrip" ? "Select departing flight" : "Select flight"}
                               </Button>
                               {isRoundtrip && (
                                 <button
@@ -804,9 +822,16 @@ const FlightSearchPage = () => {
 
             {isRoundtrip && (
               <div id="return-flights" className="mt-8">
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  {filteredAndSortedReturnFlights.length} return flights from {searchCriteria.destination} to {searchCriteria.origin}
-                </h2>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {filteredAndSortedReturnFlights.length} return flights from {searchCriteria.destination} to {searchCriteria.origin}
+                  </h2>
+                  {selectedOutbound && (
+                    <div className="text-xs md:text-sm text-muted-foreground">
+                      Departing selected: {selectedOutbound.airline} {selectedOutbound.flightNumber} • {selectedOutbound.origin} → {selectedOutbound.destination}
+                    </div>
+                  )}
+                </div>
                 <Card>
                   <CardContent className="p-6">
                     <div className="space-y-4">
@@ -864,12 +889,17 @@ const FlightSearchPage = () => {
                                   <div className="text-xl font-bold text-primary">US${flight.price}</div>
                                   <div className="text-sm text-muted-foreground">Total round trip price</div>
                                 </div>
-                                <Button onClick={() => handleSelectFlight(flight)} className="w-full">
-                                  Select flight
+                                <Button
+                                  onClick={() => handleSelectFlight(flight, "inbound")}
+                                  className="w-full"
+                                  disabled={!selectedOutbound}
+                                >
+                                  {selectedOutbound ? "Select return flight" : "Select departing flight first"}
                                 </Button>
                               </div>
                             </div>
 
+                            {/* Additional Info */}
                             <div className="flex items-center justify-between mt-4 pt-4 border-t">
                               <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-1">
@@ -983,7 +1013,15 @@ const FlightSearchPage = () => {
         </div>
       </div>
       {fareFlight && (
-        <FareSelectionDialog open={fareOpen} onOpenChange={setFareOpen} flight={fareFlight} />
+        <FareSelectionDialog
+          open={fareOpen}
+          onOpenChange={(open) => {
+            setFareOpen(open);
+            if (!open) setFareFlight(null);
+          }}
+          flight={fareFlight}
+          outbound={isRoundtrip ? selectedOutbound ?? undefined : undefined}
+        />
       )}
     </div>
   );
