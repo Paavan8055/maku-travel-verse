@@ -136,7 +136,7 @@ const CheckoutPage = () => {
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
                 <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
-                <Button onClick={goToPayment} className="btn-primary h-12" size="lg">
+                <Button onClick={handleContinue} className="btn-primary h-12" size="lg">
                   Continue to Payment
                 </Button>
               </CardContent>
@@ -227,7 +227,6 @@ const CheckoutPage = () => {
                 <Button 
                   onClick={handleContinue}
                   className="w-full mt-6 btn-primary h-12"
-                  disabled={!passengerValid}
                 >
                   Continue to Payment
                 </Button>
