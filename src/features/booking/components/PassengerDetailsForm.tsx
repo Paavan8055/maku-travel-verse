@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Schema reflecting common airline/APIS requirements
 const PassengerSchema = z.object({
@@ -53,6 +54,9 @@ const PassengerSchema = z.object({
   phone: z
     .string()
     .regex(/^\+?[1-9]\d{7,14}$/i, "Use international format, e.g., +15551234567"),
+  acknowledge: z.boolean().refine((v) => v === true, {
+    message: "You must confirm before continuing",
+  }),
 });
 
 export type PassengerFormData = z.infer<typeof PassengerSchema>;
@@ -71,11 +75,12 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
   } = useForm<PassengerFormData>({
     resolver: zodResolver(PassengerSchema),
     mode: "onChange",
-    defaultValues: {
-      title: "MR",
-      gender: "U",
-      ...initial,
-    },
+      defaultValues: {
+        title: "MR",
+        gender: "U",
+        acknowledge: false,
+        ...initial,
+      },
   });
 
   // Force uppercase for name fields as user types
@@ -175,9 +180,23 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({ onCh
         </div>
 
 
-        <p className="text-xs text-muted-foreground mt-4">
-          By continuing, you certify that the provided information is accurate and may be shared with airlines and border authorities for APIS/secure flight screening.
-        </p>
+        <div className="mt-4">
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="acknowledge"
+              checked={!!all.acknowledge}
+              onCheckedChange={(v) =>
+                setValue("acknowledge", Boolean(v) as any, { shouldValidate: true })
+              }
+            />
+            <Label htmlFor="acknowledge" className="text-sm leading-5">
+              I confirm the provided information is accurate and may be shared with airlines and border authorities for APIS/secure flight screening.
+            </Label>
+          </div>
+          {errors.acknowledge && (
+            <p className="text-xs text-destructive mt-1">{errors.acknowledge.message}</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
