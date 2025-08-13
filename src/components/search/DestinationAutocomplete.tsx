@@ -1,10 +1,9 @@
-// Enhanced destination autocomplete with geolocation API integration
+
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { AIRPORTS } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Destination {
@@ -12,10 +11,9 @@ interface Destination {
   name: string;
   city?: string;
   country: string;
-  code?: string; // IATA code or other code
+  code?: string;
   type: "city" | "airport" | "landmark" | "hotel";
   coordinates?: [number, number];
-  // New: better display for input while keeping `name` minimal (often city)
   displayName?: string;
 }
 
@@ -41,173 +39,107 @@ export const DestinationAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Global airports loader with localStorage TTL cache
-  const GLOBAL_AIRPORTS_URL = "https://raw.githubusercontent.com/mwgg/Airports/master/airports.json"; // community-maintained
-  const GLOBAL_AIRPORTS_STORAGE_KEY = "maku_global_airports_iata_v1";
-  const GLOBAL_AIRPORTS_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14 days
-
-  let GLOBAL_AIRPORTS_CACHE: Destination[] | null = null;
-  let GLOBAL_AIRPORTS_LOADING: Promise<Destination[]> | null = null;
-  let GLOBAL_AIRPORTS_ABORT: AbortController | null = null;
-
-  function normalizeString(str: string | undefined) {
-    return (str || "").toLowerCase();
-  }
-
-  function buildSearchKey(a: Destination) {
-    return [(a as any).code || "", a.city || "", a.name || "", a.country || "", a.displayName || ""]
-      .map(s => normalizeString(String(s)))
-      .join(" ");
-  }
-
-  function tryLoadFromStorage(): Destination[] | null {
-    try {
-      const raw = localStorage.getItem(GLOBAL_AIRPORTS_STORAGE_KEY);
-      if (!raw) return null;
-      const { ts, list } = JSON.parse(raw) as { ts: number; list: Destination[] };
-      if (Date.now() - ts > GLOBAL_AIRPORTS_TTL_MS) return null;
-      // ensure search keys
-      (list as any[]).forEach(d => {
-        if (!(d as any)._s) (d as any)._s = buildSearchKey(d);
-      });
-      return list;
-    } catch {
-      return null;
-    }
-  }
-
-  function saveToStorage(list: Destination[]) {
-    try {
-      const payload = JSON.stringify({
-        ts: Date.now(),
-        list
-      });
-      localStorage.setItem(GLOBAL_AIRPORTS_STORAGE_KEY, payload);
-    } catch {
-      // storage full or disabled; ignore
-    }
-  }
-
-  async function loadGlobalAirports(): Promise<Destination[]> {
-    if (GLOBAL_AIRPORTS_CACHE) return GLOBAL_AIRPORTS_CACHE;
-    const fromStorage = tryLoadFromStorage();
-    if (fromStorage) {
-      GLOBAL_AIRPORTS_CACHE = fromStorage;
-      return fromStorage;
-    }
-    if (!GLOBAL_AIRPORTS_LOADING) {
-      GLOBAL_AIRPORTS_ABORT = new AbortController();
-      GLOBAL_AIRPORTS_LOADING = fetch(GLOBAL_AIRPORTS_URL, {
-        signal: GLOBAL_AIRPORTS_ABORT.signal
-      })
-        .then(r => r.json())
-        .then((data: Record<string, any>) => {
-          // Transform into Destination[]; keep only entries with IATA code
-          const list: Destination[] = Object.values(data)
-            .filter((a: any) => a && a.iata && String(a.iata).length === 3)
-            .map((a: any) => {
-              const d: Destination = {
-                id: a.iata,
-                name: `${a.city || a.name} (${a.iata}) - ${a.name}`.trim(),
-                city: a.city || undefined,
-                country: a.country || "",
-                code: a.iata,
-                type: "airport" as const
-              };
-              (d as any)._s = buildSearchKey(d);
-              return d;
-            });
-          GLOBAL_AIRPORTS_CACHE = list;
-          saveToStorage(list);
-          return list;
-        })
-        .catch(() => {
-          GLOBAL_AIRPORTS_CACHE = [];
-          return [];
-        });
-    }
-    return GLOBAL_AIRPORTS_LOADING;
-  }
+  // Popular destinations as fallback
+  const popularDestinations: Destination[] = [
+    { id: "syd", name: "Sydney", country: "Australia", type: "city", displayName: "Sydney, Australia" },
+    { id: "mel", name: "Melbourne", country: "Australia", type: "city", displayName: "Melbourne, Australia" },
+    { id: "bri", name: "Brisbane", country: "Australia", type: "city", displayName: "Brisbane, Australia" },
+    { id: "per", name: "Perth", country: "Australia", type: "city", displayName: "Perth, Australia" },
+    { id: "nyc", name: "New York", country: "United States", type: "city", displayName: "New York, United States" },
+    { id: "lon", name: "London", country: "United Kingdom", type: "city", displayName: "London, United Kingdom" },
+    { id: "par", name: "Paris", country: "France", type: "city", displayName: "Paris, France" },
+    { id: "tok", name: "Tokyo", country: "Japan", type: "city", displayName: "Tokyo, Japan" }
+  ];
 
   useEffect(() => {
     let active = true;
     const q = value.trim();
+    
     if (q.length >= 2) {
       setLoading(true);
       const timeoutId = setTimeout(async () => {
         try {
-          // 1) Amadeus cities ONLY (no airports)
-          const { data, error } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
+          console.log("Searching for destinations:", q);
+          
+          // Try Amadeus first (most reliable)
+          const { data: amadeusData, error: amadeusError } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
             body: {
               query: q,
-              types: ['CITY'], // changed from ['CITY','AIRPORT'] to only CITY
+              types: ['CITY'],
               limit: 8
             }
           });
 
-          let merged: Destination[] = [];
-          if (!error && data && Array.isArray(data.results)) {
-            merged = (data.results as Destination[]).map((d) => {
-              const cityOrName = d.city || d.name;
-              const alreadyHasCode = /\([A-Z]{3}\)/.test(d.name);
-              const withCode = d.code && d.type === "airport" && !alreadyHasCode
-                ? `${cityOrName} (${d.code}) - ${d.name}`
-                : d.name;
-              return { ...d, displayName: withCode };
-            });
-          }
-          
-          // 2) HotelBeds destinations + hotels
-          try {
-            const hb = await supabase.functions.invoke('hotelbeds-autocomplete', {
-              body: { query: q, limit: 8 }
-            });
-            if (hb?.data?.results && Array.isArray(hb.data.results)) {
-              const hbResults = (hb.data.results as Destination[]).map((d) => {
-                if (d.type === "hotel" && d.displayName) return d;
-                if (d.type === "city") {
-                  return { ...d, displayName: d.displayName || d.name };
-                }
-                return d;
-              });
+          let results: Destination[] = [];
 
-              // Merge with Amadeus, dedupe by display text then by name
-              const byKey = new Map<string, Destination>();
-              [...merged, ...hbResults].forEach((s) => {
-                const key = (s.displayName || s.name).toLowerCase();
-                if (!byKey.has(key)) byKey.set(key, s);
+          if (!amadeusError && amadeusData?.results && Array.isArray(amadeusData.results)) {
+            results = amadeusData.results.map((d: any) => ({
+              ...d,
+              displayName: d.city || d.name
+            }));
+            console.log("Amadeus results:", results.length);
+          }
+
+          // Try HotelBeds as supplementary (but don't fail if it doesn't work)
+          try {
+            const { data: hotelbedsData } = await supabase.functions.invoke('hotelbeds-autocomplete', {
+              body: { query: q, limit: 6 }
+            });
+
+            if (hotelbedsData?.results && Array.isArray(hotelbedsData.results)) {
+              const hotelbedsResults = hotelbedsData.results.map((d: any) => ({
+                ...d,
+                displayName: d.displayName || d.name
+              }));
+              
+              // Merge results, avoiding duplicates
+              const combinedResults = [...results];
+              hotelbedsResults.forEach((hb: Destination) => {
+                const isDuplicate = combinedResults.some(existing => 
+                  existing.name.toLowerCase() === hb.name.toLowerCase() ||
+                  (existing.displayName?.toLowerCase() === hb.displayName?.toLowerCase())
+                );
+                if (!isDuplicate) {
+                  combinedResults.push(hb);
+                }
               });
-              merged = Array.from(byKey.values()).slice(0, 12);
+              results = combinedResults.slice(0, 12);
+              console.log("Combined results with HotelBeds:", results.length);
             }
-          } catch (e) {
-            console.warn("hotelbeds-autocomplete failed, using Amadeus-only suggestions", e);
+          } catch (hbError) {
+            console.warn("HotelBeds failed, using Amadeus only:", hbError);
+          }
+
+          // If no results, try popular destinations that match the query
+          if (results.length === 0) {
+            const popularMatches = popularDestinations.filter(dest =>
+              dest.name.toLowerCase().includes(q.toLowerCase()) ||
+              dest.country.toLowerCase().includes(q.toLowerCase())
+            );
+            results = popularMatches.slice(0, 6);
+            console.log("Using popular destinations fallback:", results.length);
           }
 
           if (!active) return;
 
-          // Filter out any airports defensively
-          merged = merged.filter((d) => d.type !== "airport");
-
-          // 3) No airport fallback; if nothing, show empty state
-          if (merged.length === 0) {
-            setSuggestions([]);
-            setShowSuggestions(true);
-            setLoading(false);
-            return;
-          }
-
-          setSuggestions(merged);
+          setSuggestions(results);
           setShowSuggestions(true);
           setLoading(false);
-          return;
-        } catch (_) {
-          // If everything fails, do NOT fallback to airports dataset
+        } catch (error) {
+          console.error("Search error:", error);
           if (!active) return;
-          setSuggestions([]);
+          
+          // Fallback to popular destinations on error
+          const popularMatches = popularDestinations.filter(dest =>
+            dest.name.toLowerCase().includes(q.toLowerCase()) ||
+            dest.country.toLowerCase().includes(q.toLowerCase())
+          );
+          setSuggestions(popularMatches.slice(0, 6));
           setShowSuggestions(true);
           setLoading(false);
         }
-      }, 250);
+      }, 300);
+
       return () => {
         active = false;
         clearTimeout(timeoutId);
@@ -215,6 +147,7 @@ export const DestinationAutocomplete = ({
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
+      setLoading(false);
     }
   }, [value]);
 
@@ -225,7 +158,6 @@ export const DestinationAutocomplete = ({
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
 
-      // Mock reverse geocoding - In production, use a real service
       const mockLocation = {
         id: "current",
         name: "Current Location",
@@ -243,25 +175,18 @@ export const DestinationAutocomplete = ({
     }
   };
 
-  // Format a clear label including IATA code when available
-  function formatDestinationLabel(destination: Destination): string {
-    // Prefer displayName if available (e.g., "Hotel — City" or "City, CC")
+  const formatDestinationLabel = (destination: Destination): string => {
     if (destination.displayName) return destination.displayName;
-
+    
     const cityOrName = destination.city || destination.name;
     if (destination.type === "hotel") {
-      // Hotel items: show "Hotel — City" when possible
       return destination.city ? `${destination.name} — ${destination.city}` : destination.name;
     }
     if (destination.code) {
-      if (destination.type === "airport") {
-        const alreadyHasCode = /\([A-Z]{3}\)/.test(destination.name);
-        return alreadyHasCode ? destination.name : `${cityOrName} (${destination.code}) - ${destination.name}`;
-      }
       return `${cityOrName} (${destination.code})`;
     }
-    return destination.name;
-  }
+    return destination.country ? `${destination.name}, ${destination.country}` : destination.name;
+  };
 
   const handleSuggestionClick = (destination: Destination) => {
     const label = formatDestinationLabel(destination);
@@ -309,10 +234,20 @@ export const DestinationAutocomplete = ({
           placeholder={placeholder}
           value={value}
           onChange={e => onChange(e.target.value)}
-          onFocus={() => value.length >= 2 && setShowSuggestions(true)}
+          onFocus={() => {
+            if (value.length >= 2) {
+              setShowSuggestions(true);
+            } else if (value.length === 0) {
+              // Show popular destinations when focused with empty input
+              setSuggestions(popularDestinations.slice(0, 6));
+              setShowSuggestions(true);
+            }
+          }}
           className={cn("pl-10 pr-12", className)}
         />
-        
+        {gettingLocation && (
+          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin" />
+        )}
       </div>
 
       {showSuggestions && (
@@ -323,27 +258,36 @@ export const DestinationAutocomplete = ({
           {loading ? (
             <div className="p-4 text-center">
               <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading places & properties…</p>
+              <p className="text-sm text-muted-foreground">Loading destinations…</p>
             </div>
           ) : suggestions.length > 0 ? (
-            suggestions.map(destination => (
-              <button
-                key={destination.id}
-                onClick={() => handleSuggestionClick(destination)}
-                className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0"
-              >
-                <span className="text-lg">{getTypeIcon(destination.type)}</span>
-                <div className="flex-1">
-                  <div className="font-medium text-foreground">
-                    {formatDestinationLabel(destination)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">{destination.country}</div>
+            <>
+              {value.length === 0 && (
+                <div className="p-2 text-xs text-muted-foreground bg-muted/50 border-b">
+                  Popular destinations
                 </div>
-                <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
-              </button>
-            ))
+              )}
+              {suggestions.map(destination => (
+                <button
+                  key={destination.id}
+                  onClick={() => handleSuggestionClick(destination)}
+                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0"
+                >
+                  <span className="text-lg">{getTypeIcon(destination.type)}</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">
+                      {formatDestinationLabel(destination)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">{destination.country}</div>
+                  </div>
+                  <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
+                </button>
+              ))}
+            </>
           ) : (
-            <div className="p-3 text-center text-sm text-muted-foreground">No matches found</div>
+            <div className="p-3 text-center text-sm text-muted-foreground">
+              No destinations found. Try a different search term.
+            </div>
           )}
         </div>
       )}
