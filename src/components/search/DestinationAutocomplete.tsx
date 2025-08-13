@@ -71,6 +71,29 @@ export const DestinationAutocomplete = ({
 
   const popularDestinations = getPopularDestinations();
 
+  // Helper function to search local airports
+  const getLocalAirportMatches = (query: string): Destination[] => {
+    const q = query.toLowerCase();
+    
+    return AIRPORTS
+      .filter(airport => 
+        airport.iata.toLowerCase().includes(q) ||
+        airport.city.toLowerCase().includes(q) ||
+        airport.name.toLowerCase().includes(q) ||
+        airport.country.toLowerCase().includes(q)
+      )
+      .slice(0, 8)
+      .map(airport => ({
+        id: airport.iata.toLowerCase(),
+        name: airport.name,
+        city: airport.city,
+        country: airport.country,
+        code: airport.iata,
+        type: "airport" as const,
+        displayName: `${airport.city} (${airport.iata}) - ${airport.name}`
+      }));
+  };
+
   useEffect(() => {
     let active = true;
     const q = value.trim();
@@ -81,63 +104,79 @@ export const DestinationAutocomplete = ({
         try {
           console.log("Searching for destinations:", q);
           
-          // Try Amadeus first (most reliable)
-          const searchTypes = searchType === "airport" ? ['AIRPORT'] : 
-                             searchType === "both" ? ['CITY', 'AIRPORT'] : ['CITY'];
-          
-          const { data: amadeusData, error: amadeusError } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
-            body: {
-              query: q,
-              types: searchTypes,
-              limit: 8
-            }
-          });
-
           let results: Destination[] = [];
 
-          if (!amadeusError && amadeusData?.results && Array.isArray(amadeusData.results)) {
-            results = amadeusData.results.map((d: any) => ({
-              ...d,
-              displayName: d.city || d.name
-            }));
-            console.log("Amadeus results:", results.length);
+          // For airport searches, try local airport data first for immediate results
+          if (searchType === "airport") {
+            const localAirports = getLocalAirportMatches(q);
+            if (localAirports.length > 0) {
+              results = localAirports;
+              console.log("Local airport results:", results.length);
+            }
           }
 
-          // Try HotelBeds as supplementary (but don't fail if it doesn't work)
-          try {
-            const { data: hotelbedsData } = await supabase.functions.invoke('hotelbeds-autocomplete', {
-              body: { query: q, limit: 6 }
+          // If no local results or not an airport search, try APIs
+          if (results.length === 0) {
+            const searchTypes = searchType === "airport" ? ['AIRPORT'] : 
+                               searchType === "both" ? ['CITY', 'AIRPORT'] : ['CITY'];
+            
+            const { data: amadeusData, error: amadeusError } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
+              body: {
+                query: q,
+                types: searchTypes,
+                limit: 8
+              }
             });
 
-            if (hotelbedsData?.results && Array.isArray(hotelbedsData.results)) {
-              const hotelbedsResults = hotelbedsData.results.map((d: any) => ({
+            if (!amadeusError && amadeusData?.results && Array.isArray(amadeusData.results)) {
+              results = amadeusData.results.map((d: any) => ({
                 ...d,
-                displayName: d.displayName || d.name
+                displayName: searchType === "airport" && d.code 
+                  ? `${d.city || d.name} (${d.code}) - ${d.name}`
+                  : d.city || d.name
               }));
-              
-              // Merge results, avoiding duplicates
-              const combinedResults = [...results];
-              hotelbedsResults.forEach((hb: Destination) => {
-                const isDuplicate = combinedResults.some(existing => 
-                  existing.name.toLowerCase() === hb.name.toLowerCase() ||
-                  (existing.displayName?.toLowerCase() === hb.displayName?.toLowerCase())
-                );
-                if (!isDuplicate) {
-                  combinedResults.push(hb);
-                }
-              });
-              results = combinedResults.slice(0, 12);
-              console.log("Combined results with HotelBeds:", results.length);
+              console.log("Amadeus results:", results.length);
             }
-          } catch (hbError) {
-            console.warn("HotelBeds failed, using Amadeus only:", hbError);
+
+            // Try HotelBeds as supplementary for non-airport searches
+            if (searchType !== "airport") {
+              try {
+                const { data: hotelbedsData } = await supabase.functions.invoke('hotelbeds-autocomplete', {
+                  body: { query: q, limit: 6 }
+                });
+
+                if (hotelbedsData?.results && Array.isArray(hotelbedsData.results)) {
+                  const hotelbedsResults = hotelbedsData.results.map((d: any) => ({
+                    ...d,
+                    displayName: d.displayName || d.name
+                  }));
+                  
+                  // Merge results, avoiding duplicates
+                  const combinedResults = [...results];
+                  hotelbedsResults.forEach((hb: Destination) => {
+                    const isDuplicate = combinedResults.some(existing => 
+                      existing.name.toLowerCase() === hb.name.toLowerCase() ||
+                      (existing.displayName?.toLowerCase() === hb.displayName?.toLowerCase())
+                    );
+                    if (!isDuplicate) {
+                      combinedResults.push(hb);
+                    }
+                  });
+                  results = combinedResults.slice(0, 12);
+                  console.log("Combined results with HotelBeds:", results.length);
+                }
+              } catch (hbError) {
+                console.warn("HotelBeds failed, using Amadeus only:", hbError);
+              }
+            }
           }
 
-          // If no results, try popular destinations that match the query
+          // If still no results, try popular destinations that match the query
           if (results.length === 0) {
             const popularMatches = popularDestinations.filter(dest =>
               dest.name.toLowerCase().includes(q.toLowerCase()) ||
-              dest.country.toLowerCase().includes(q.toLowerCase())
+              dest.country.toLowerCase().includes(q.toLowerCase()) ||
+              (dest.code && dest.code.toLowerCase().includes(q.toLowerCase()))
             );
             results = popularMatches.slice(0, 6);
             console.log("Using popular destinations fallback:", results.length);
@@ -152,12 +191,22 @@ export const DestinationAutocomplete = ({
           console.error("Search error:", error);
           if (!active) return;
           
-          // Fallback to popular destinations on error
-          const popularMatches = popularDestinations.filter(dest =>
-            dest.name.toLowerCase().includes(q.toLowerCase()) ||
-            dest.country.toLowerCase().includes(q.toLowerCase())
-          );
-          setSuggestions(popularMatches.slice(0, 6));
+          // Fallback - for airports, try local search again, otherwise use popular destinations
+          let fallbackResults: Destination[] = [];
+          if (searchType === "airport") {
+            fallbackResults = getLocalAirportMatches(q);
+          }
+          
+          if (fallbackResults.length === 0) {
+            const popularMatches = popularDestinations.filter(dest =>
+              dest.name.toLowerCase().includes(q.toLowerCase()) ||
+              dest.country.toLowerCase().includes(q.toLowerCase()) ||
+              (dest.code && dest.code.toLowerCase().includes(q.toLowerCase()))
+            );
+            fallbackResults = popularMatches.slice(0, 6);
+          }
+          
+          setSuggestions(fallbackResults);
           setShowSuggestions(true);
           setLoading(false);
         }
@@ -172,7 +221,7 @@ export const DestinationAutocomplete = ({
       setShowSuggestions(false);
       setLoading(false);
     }
-  }, [value]);
+  }, [value, searchType]);
 
   const handleGetCurrentLocation = async () => {
     setGettingLocation(true);

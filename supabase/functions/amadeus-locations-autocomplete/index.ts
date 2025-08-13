@@ -75,10 +75,9 @@ serve(async (req) => {
 
     const accessToken = await getAmadeusAccessToken();
     const requestedTypes = Array.isArray(types) && types.length > 0 ? types : ["CITY"]; // default to CITY only
-    const typeParam = requestedTypes.join(",");
     const max = Number.isFinite(limit) ? Math.min(Number(limit), 20) : 12;
 
-    // Helpers
+    // Helpers - handle single subType at a time
     const tryLocations = async (keyword: string, subType: string): Promise<AmadeusLocation[]> => {
       const url = new URL("https://test.api.amadeus.com/v1/reference-data/locations");
       url.searchParams.set("subType", subType);
@@ -110,23 +109,28 @@ serve(async (req) => {
 
     let data: AmadeusLocation[] = [];
 
-    // 1) Primary: locations with requested subType (default CITY)
-    data = await tryLocations(query, typeParam);
-    console.log("amadeus-locations step=locations subtype=%s q=%s count=%d", typeParam, query, data.length);
+    // 1) Primary: try each requested type separately and combine results
+    for (const type of requestedTypes) {
+      const typeResults = await tryLocations(query, type);
+      console.log("amadeus-locations step=locations subtype=%s q=%s count=%d", type, query, typeResults.length);
+      data.push(...typeResults);
+    }
 
-    // 2) Fallback: cities endpoint (only if CITY is allowed)
-    if (data.length === 0 && typeParam.includes("CITY")) {
+    // 2) Fallback: cities endpoint (only if CITY is allowed and no results yet)
+    if (data.length === 0 && requestedTypes.includes("CITY")) {
       const cities = await tryCitiesEndpoint(query);
       console.log("amadeus-locations step=cities-endpoint q=%s count=%d", query, cities.length);
       data = cities;
     }
 
-    // 3) Fallback: prefix search using first 3 chars
+    // 3) Fallback: prefix search using first 3 chars for each type
     if (data.length === 0 && query.length >= 3) {
       const prefix = query.slice(0, 3);
-      const retry = await tryLocations(prefix, typeParam);
-      console.log("amadeus-locations step=prefix q=%s prefix=%s count=%d", query, prefix, retry.length);
-      data = retry;
+      for (const type of requestedTypes) {
+        const retry = await tryLocations(prefix, type);
+        console.log("amadeus-locations step=prefix q=%s prefix=%s subtype=%s count=%d", query, prefix, type, retry.length);
+        data.push(...retry);
+      }
     }
 
     // Normalize and filter out airports unless explicitly requested
