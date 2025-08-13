@@ -31,21 +31,48 @@ interface Flight {
   };
 }
 
+interface MultiCitySelection {
+  segmentIndex: number;
+  flight: Flight;
+}
+
 interface FareSelectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  flight: Flight;
+  flight?: Flight;
   outbound?: Flight; // NEW: optional departing flight to combine totals and build roundtrip booking
   tripType?: string;
   returnFlights?: Flight[];
+  multiCitySelections?: MultiCitySelection[];
 }
 
-export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, onOpenChange, flight, outbound, tripType = "oneway", returnFlights = [] }) => {
+export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, onOpenChange, flight, outbound, tripType = "oneway", returnFlights = [], multiCitySelections = [] }) => {
   const { convert, formatCurrency, selectedCurrency } = useCurrency();
   const [selection, setSelection] = useState<"basic" | "flex">("basic");
 
+  // Multi-city pricing calculation
+  const multiCityPricing = useMemo(() => {
+    if (tripType !== "multicity" || multiCitySelections.length === 0) return { basic: 0, flex: 0 };
+    
+    let basicTotal = 0;
+    let flexTotal = 0;
+    
+    multiCitySelections.forEach(selection => {
+      const baseLocal = convert(selection.flight.price, selection.flight.currency);
+      const flexDiffOriginalCcy = Math.max(Math.round(selection.flight.price * 0.15), 15);
+      const flexDiffLocal = convert(flexDiffOriginalCcy, selection.flight.currency);
+      
+      basicTotal += baseLocal;
+      flexTotal += baseLocal + flexDiffLocal;
+    });
+    
+    return { basic: basicTotal, flex: flexTotal };
+  }, [tripType, multiCitySelections, convert]);
+
   // Inbound (current dialog flight) pricing
   const pricing = useMemo(() => {
+    if (!flight) return { baseLocal: 0, flexDiffLocal: 0, totals: { basic: 0, flex: 0 } };
+    
     const baseLocal = convert(flight.price, flight.currency);
     const flexDiffOriginalCcy = Math.max(Math.round(flight.price * 0.15), 15); // +15% or min 15 in original ccy
     const flexDiffLocal = convert(flexDiffOriginalCcy, flight.currency);
@@ -54,7 +81,7 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
       flex: baseLocal + flexDiffLocal,
     };
     return { baseLocal, flexDiffLocal, totals };
-  }, [convert, flight.price, flight.currency]);
+  }, [convert, flight]);
 
   // Outbound pricing (assume Basic fare by default for simplicity)
   const outboundLocal = useMemo(() => {
@@ -71,14 +98,20 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
     return 0;
   }, [tripType, returnFlights, outbound, convert]);
 
-  // Combined total if outbound is present or for round-trip estimates
-  const selectedInboundTotal = selection === "flex" ? pricing.totals.flex : pricing.totals.basic;
-  const combinedTotal = outbound ? outboundLocal + selectedInboundTotal : selectedInboundTotal + returnLocal;
+  // Combined total calculation
+  const combinedTotal = useMemo(() => {
+    if (tripType === "multicity") {
+      return selection === "flex" ? multiCityPricing.flex : multiCityPricing.basic;
+    }
+    
+    const selectedInboundTotal = selection === "flex" ? pricing.totals.flex : pricing.totals.basic;
+    return outbound ? outboundLocal + selectedInboundTotal : selectedInboundTotal + returnLocal;
+  }, [tripType, selection, multiCityPricing, pricing, outbound, outboundLocal, returnLocal]);
 
   const inclusions = (
     <ul className="space-y-2 text-sm text-muted-foreground">
       <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> 1 carry-on bag</li>
-      {flight.baggage.checked && (
+      {flight?.baggage?.checked && (
         <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Checked bag(s) included</li>
       )}
     </ul>
@@ -90,30 +123,54 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
         <DialogHeader>
           <DialogTitle>Fare Selection</DialogTitle>
           <DialogDescription>
-            {outbound ? (
+            {tripType === "multicity" ? (
+              <>Complete Multi-City Journey ({multiCitySelections.length} flights)</>
+            ) : outbound ? (
               <>
                 Departing: {outbound.origin} → {outbound.destination} · {outbound.airline} {outbound.flightNumber} (Basic)
                 <br />
-                Returning: {flight.origin} → {flight.destination}
+                Returning: {flight?.origin} → {flight?.destination}
               </>
             ) : (
-              <>Departure: {flight.origin} to {flight.destination}</>
+              <>Departure: {flight?.origin} to {flight?.destination}</>
             )}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-3 border rounded-lg p-3 bg-background">
-          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center" aria-hidden>
-            <span className="text-sm font-semibold text-primary">{flight.airlineCode}</span>
+        {tripType === "multicity" ? (
+          <div className="space-y-3">
+            {multiCitySelections.map((selection, index) => (
+              <div key={selection.segmentIndex} className="flex items-center gap-3 border rounded-lg p-3 bg-background">
+                <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
+                  {index + 1}
+                </div>
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center" aria-hidden>
+                  <span className="text-xs font-semibold text-primary">{selection.flight.airlineCode}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{selection.flight.airline}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selection.flight.origin} → {selection.flight.destination} · {selection.flight.departureTime} → {selection.flight.arrivalTime}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="shrink-0">{selection.flight.cabin}</Badge>
+              </div>
+            ))}
           </div>
-          <div className="flex-1">
-            <p className="font-medium text-foreground">{flight.airline}</p>
-            <p className="text-sm text-muted-foreground">
-              {flight.departureTime} → {flight.arrivalTime} · {flight.stops === "0" ? "Direct" : `${flight.stops} stop${flight.stops === "1" ? "" : "s"}`}
-            </p>
+        ) : flight ? (
+          <div className="flex items-center gap-3 border rounded-lg p-3 bg-background">
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center" aria-hidden>
+              <span className="text-sm font-semibold text-primary">{flight.airlineCode}</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-foreground">{flight.airline}</p>
+              <p className="text-sm text-muted-foreground">
+                {flight.departureTime} → {flight.arrivalTime} · {flight.stops === "0" ? "Direct" : `${flight.stops} stop${flight.stops === "1" ? "" : "s"}`}
+              </p>
+            </div>
+            <Badge variant="secondary" className="shrink-0">{flight.cabin}</Badge>
           </div>
-          <Badge variant="secondary" className="shrink-0">{flight.cabin}</Badge>
-        </div>
+        ) : null}
 
         <RadioGroup value={selection} onValueChange={(v) => setSelection(v as any)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Basic */}
@@ -173,14 +230,19 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
             <RealBookingButton
               bookingType="flight"
               bookingData={
-                outbound
+                tripType === "multicity"
+                  ? {
+                      segments: multiCitySelections.map(sel => ({ ...sel.flight, fareType: selection })),
+                      tripType: "multicity"
+                    }
+                  : outbound
                   ? {
                       outbound: { ...outbound, fareType: "basic" },
-                      inbound: { ...flight, fareType: selection },
+                      inbound: { ...flight!, fareType: selection },
                       tripType: "roundtrip"
                     }
                   : { 
-                      ...flight, 
+                      ...flight!, 
                       fareType: selection,
                       tripType 
                     }

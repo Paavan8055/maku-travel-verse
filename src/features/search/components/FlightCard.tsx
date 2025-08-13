@@ -32,13 +32,30 @@ interface FlightCardProps {
   tripType?: string;
   isRoundtrip?: boolean;
   returnFlights?: Flight[];
+  onMultiCitySelect?: (flight: Flight, segmentIndex: number) => void;
+  currentSegmentIndex?: number;
+  totalSegments?: number;
+  isMultiCitySelected?: boolean;
 }
 
-export const FlightCard = ({ flight, tripType = "oneway", isRoundtrip = false, returnFlights = [] }: FlightCardProps) => {
+export const FlightCard = ({ 
+  flight, 
+  tripType = "oneway", 
+  isRoundtrip = false, 
+  returnFlights = [],
+  onMultiCitySelect,
+  currentSegmentIndex = 0,
+  totalSegments = 1,
+  isMultiCitySelected = false
+}: FlightCardProps) => {
   const [fareOpen, setFareOpen] = useState(false);
 
   const handleSelectFlight = () => {
-    setFareOpen(true);
+    if (tripType === "multicity" && onMultiCitySelect) {
+      onMultiCitySelect(flight, currentSegmentIndex);
+    } else {
+      setFareOpen(true);
+    }
   };
 
   const formatDuration = (minutes: number) => {
@@ -82,7 +99,7 @@ export const FlightCard = ({ flight, tripType = "oneway", isRoundtrip = false, r
       return "Select departing flight";
     }
     if (tripType === "multicity") {
-      return "Add to journey";
+      return isMultiCitySelected ? "Selected" : "Add to journey";
     }
     return "Select flight";
   };
@@ -168,19 +185,26 @@ export const FlightCard = ({ flight, tripType = "oneway", isRoundtrip = false, r
               </p>
               <p className="text-sm text-muted-foreground">per person</p>
             </div>
-            <Button onClick={handleSelectFlight} className="w-full">
+            <Button 
+              onClick={handleSelectFlight} 
+              className="w-full"
+              disabled={tripType === "multicity" && isMultiCitySelected}
+              variant={tripType === "multicity" && isMultiCitySelected ? "secondary" : "default"}
+            >
               {getButtonText()}
             </Button>
           </div>
         </div>
       </CardContent>
-      <FareSelectionDialog 
-        open={fareOpen} 
-        onOpenChange={setFareOpen} 
-        flight={flight}
-        tripType={tripType}
-        returnFlights={returnFlights}
-      />
+      {tripType !== "multicity" && (
+        <FareSelectionDialog 
+          open={fareOpen} 
+          onOpenChange={setFareOpen} 
+          flight={flight}
+          tripType={tripType}
+          returnFlights={returnFlights}
+        />
+      )}
     </Card>
   );
 };

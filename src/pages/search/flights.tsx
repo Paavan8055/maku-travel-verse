@@ -16,6 +16,8 @@ import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { FareSelectionDialog } from "@/features/search/components/FareSelectionDialog";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import MultiCitySegments, { Segment as FlightSegment } from "@/components/search/MultiCitySegments";
+import { MultiCityFlightSelector } from "@/components/MultiCityFlightSelector";
+import { FlightCard } from "@/features/search/components/FlightCard";
 
 const FlightSearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -84,6 +86,10 @@ const FlightSearchPage = () => {
   const [fareOpen, setFareOpen] = useState(false);
   const [fareFlight, setFareFlight] = useState<any | null>(null);
   const [selectedOutbound, setSelectedOutbound] = useState<any | null>(null);
+  
+  // Multi-city state
+  const [multiCitySelections, setMultiCitySelections] = useState<Array<{ segmentIndex: number; flight: any }>>([]);
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
 
   const searchCriteria = {
     origin: searchParams.get("origin") || "SYD",
@@ -245,6 +251,44 @@ const FlightSearchPage = () => {
     setFareFlight(flight);
     setFareOpen(true);
   };
+
+  const handleMultiCitySelect = (flight: any, segmentIndex: number) => {
+    // Add or replace flight for this segment
+    setMultiCitySelections(prev => {
+      const filtered = prev.filter(sel => sel.segmentIndex !== segmentIndex);
+      return [...filtered, { segmentIndex, flight }].sort((a, b) => a.segmentIndex - b.segmentIndex);
+    });
+    
+    // Move to next segment if available
+    const nextSegmentIndex = segmentIndex + 1;
+    if (nextSegmentIndex < segments.length) {
+      setCurrentSegmentIndex(nextSegmentIndex);
+    }
+  };
+
+  const handleRemoveMultiCityFlight = (segmentIndex: number) => {
+    setMultiCitySelections(prev => prev.filter(sel => sel.segmentIndex !== segmentIndex));
+    // Go back to the removed segment
+    setCurrentSegmentIndex(segmentIndex);
+  };
+
+  const handleProceedToFareSelection = () => {
+    setFareOpen(true);
+  };
+
+  // Get segments for multi-city search criteria
+  const getMultiCitySegments = () => {
+    try {
+      const segsParam = searchParams.get("segments");
+      if (segsParam) {
+        return JSON.parse(decodeURIComponent(segsParam));
+      }
+    } catch {}
+    return [];
+  };
+
+  const multiCitySegments = getMultiCitySegments();
+  const isMultiCityComplete = multiCitySelections.length === multiCitySegments.length;
 
   const sortTabs = [
     { key: "price", label: "Best Price" },
@@ -547,11 +591,27 @@ const FlightSearchPage = () => {
           </div>
         </div>
 
+        {/* Multi-City Selection Summary */}
+        {tripType === "multicity" && (
+          <MultiCityFlightSelector 
+            selections={multiCitySelections}
+            totalSegments={multiCitySegments.length}
+            onRemoveFlight={handleRemoveMultiCityFlight}
+            onProceedToFareSelection={handleProceedToFareSelection}
+          />
+        )}
+
         {/* Flight Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
-          </h1>
+          {tripType === "multicity" ? (
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              Segment {currentSegmentIndex + 1} of {multiCitySegments.length}: {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
+            </h1>
+          ) : (
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
+            </h1>
+          )}
           {isRoundtrip && (
             <p className="text-sm text-muted-foreground">
               Return date: {searchCriteria.returnDate} • Showing departing and return options
@@ -647,189 +707,202 @@ const FlightSearchPage = () => {
                       </div>
                     )}
 
-                    {!loading && !error && filteredAndSortedFlights.map((flight) => (
-                      <Card key={flight.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            {/* Airline Info */}
-                            <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 bg-background border rounded-lg flex items-center justify-center overflow-hidden">
-                                {flight.airlineLogo ? (
-                                  <img 
-                                    src={flight.airlineLogo} 
-                                    alt={`${flight.airline} logo`}
-                                    className="w-10 h-10 object-contain"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                                      if (nextElement) nextElement.style.display = 'flex';
-                                    }}
-                                  />
-                                ) : null}
-                                <div className={`w-full h-full flex items-center justify-center ${flight.airlineLogo ? 'hidden' : ''}`}>
-                                  <span className="text-primary font-bold text-xs">{flight.airlineCode}</span>
+                    {!loading && !error && filteredAndSortedFlights.map((flight) => {
+                      const isSelected = tripType === "multicity" && multiCitySelections.some(sel => sel.flight.id === flight.id && sel.segmentIndex === currentSegmentIndex);
+                      
+                      return tripType === "multicity" ? (
+                        <FlightCard
+                          key={flight.id}
+                          flight={flight}
+                          tripType={tripType}
+                          onMultiCitySelect={handleMultiCitySelect}
+                          currentSegmentIndex={currentSegmentIndex}
+                          totalSegments={multiCitySegments.length}
+                          isMultiCitySelected={isSelected}
+                        />
+                      ) : (
+                        <Card key={flight.id} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                              {/* Airline Info */}
+                              <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 bg-background border rounded-lg flex items-center justify-center overflow-hidden">
+                                  {flight.airlineLogo ? (
+                                    <img 
+                                      src={flight.airlineLogo} 
+                                      alt={`${flight.airline} logo`}
+                                      className="w-10 h-10 object-contain"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                                        if (nextElement) nextElement.style.display = 'flex';
+                                      }}
+                                    />
+                                  ) : null}
+                                  <div className={`w-full h-full flex items-center justify-center ${flight.airlineLogo ? 'hidden' : ''}`}>
+                                    <span className="text-primary font-bold text-xs">{flight.airlineCode}</span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="font-medium text-sm">{flight.airline}</div>
+                                  <div className="text-xs text-muted-foreground">{flight.flightNumber}</div>
                                 </div>
                               </div>
-                              <div>
-                                <div className="font-medium text-sm">{flight.airline}</div>
-                                <div className="text-xs text-muted-foreground">{flight.flightNumber}</div>
+
+                              {/* Flight Details */}
+                              <div className="flex items-center space-x-8 flex-1 justify-center">
+                                <div className="text-center">
+                                  <div className="text-xl font-bold">{formatTime(flight.departureTime)}</div>
+                                  <div className="text-sm text-muted-foreground">{flight.origin}</div>
+                                </div>
+                                
+                                <div className="flex flex-col items-center">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <Plane className="h-4 w-4 text-muted-foreground" />
+                                    <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+                                    <Plane className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">{formatDuration(flight.duration)}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {flight.stops === "0" ? "Direct" : `(${flight.stops} stop)`}
+                                  </div>
+                                </div>
+                                
+                                <div className="text-center">
+                                  <div className="text-xl font-bold">{formatTime(flight.arrivalTime)}</div>
+                                  <div className="text-sm text-muted-foreground">{flight.destination}</div>
+                                </div>
+                              </div>
+
+                              {/* Price and Action */}
+                              <div className="text-right space-y-2">
+                                <div>
+                                  <div className="text-sm text-muted-foreground">from</div>
+                                   <div className="text-xl font-bold text-primary">
+                                     US${tripType === "roundtrip" && filteredAndSortedReturnFlights.length > 0 
+                                       ? flight.price + Math.min(...filteredAndSortedReturnFlights.map(f => f.price))
+                                       : flight.price}
+                                   </div>
+                                   <div className="text-sm text-muted-foreground">
+                                     {tripType === "roundtrip" ? "Round-trip from" : 
+                                      tripType === "multicity" ? "Multi-city from" : "One-way from"}
+                                   </div>
+                                </div>
+                                <Button onClick={() => handleSelectFlight(flight, "outbound")} className="w-full">
+                                  {tripType === "roundtrip" ? "Select departing flight" : "Select flight"}
+                                </Button>
+                                {isRoundtrip && (
+                                  <button
+                                    type="button"
+                                    onClick={() => document.getElementById('return-flights')?.scrollIntoView({ behavior: 'smooth' })}
+                                    className="w-full text-xs text-primary hover:underline"
+                                  >
+                                    Choose return flight ↓
+                                  </button>
+                                )}
                               </div>
                             </div>
 
-                            {/* Flight Details */}
-                            <div className="flex items-center space-x-8 flex-1 justify-center">
-                              <div className="text-center">
-                                <div className="text-xl font-bold">{formatTime(flight.departureTime)}</div>
-                                <div className="text-sm text-muted-foreground">{flight.origin}</div>
-                              </div>
-                              
-                              <div className="flex flex-col items-center">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <Plane className="h-4 w-4 text-muted-foreground" />
-                                  <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
-                                  <Plane className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                                <div className="text-sm text-muted-foreground">{formatDuration(flight.duration)}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {flight.stops === "0" ? "Direct" : `(${flight.stops} stop)`}
-                                </div>
-                              </div>
-                              
-                              <div className="text-center">
-                                <div className="text-xl font-bold">{formatTime(flight.arrivalTime)}</div>
-                                <div className="text-sm text-muted-foreground">{flight.destination}</div>
-                              </div>
-                            </div>
-
-                            {/* Price and Action */}
-                            <div className="text-right space-y-2">
-                              <div>
-                                <div className="text-sm text-muted-foreground">from</div>
-                                 <div className="text-xl font-bold text-primary">
-                                   US${tripType === "roundtrip" && filteredAndSortedReturnFlights.length > 0 
-                                     ? flight.price + Math.min(...filteredAndSortedReturnFlights.map(f => f.price))
-                                     : flight.price}
-                                 </div>
-                                 <div className="text-sm text-muted-foreground">
-                                   {tripType === "roundtrip" ? "Round-trip from" : 
-                                    tripType === "multicity" ? "Multi-city from" : "One-way from"}
-                                 </div>
-                              </div>
-                              <Button onClick={() => handleSelectFlight(flight, "outbound")} className="w-full">
-                                {tripType === "roundtrip" ? "Select departing flight" : "Select flight"}
-                              </Button>
-                              {isRoundtrip && (
-                                <button
-                                  type="button"
-                                  onClick={() => document.getElementById('return-flights')?.scrollIntoView({ behavior: 'smooth' })}
-                                  className="w-full text-xs text-primary hover:underline"
-                                >
-                                  Choose return flight ↓
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Additional Info */}
-                          <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                            <div className="flex items-center space-x-4">
-                              <div className="flex items-center space-x-1">
-                                <Luggage className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm text-blue-600">Carry-on bag included</span>
-                              </div>
-                              {flight.baggage?.checked && (
+                            {/* Additional Info */}
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                              <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-1">
                                   <Luggage className="h-4 w-4 text-blue-600" />
-                                  <span className="text-sm text-blue-600">Checked bag included</span>
+                                  <span className="text-sm text-blue-600">Carry-on bag included</span>
                                 </div>
-                              )}
+                                {flight.baggage?.checked && (
+                                  <div className="flex items-center space-x-1">
+                                    <Luggage className="h-4 w-4 text-blue-600" />
+                                    <span className="text-sm text-blue-600">Checked bag included</span>
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
+                                aria-expanded={!!expanded[flight.id]}
+                                onClick={() => setExpanded((prev) => ({ ...prev, [flight.id]: !prev[flight.id] }))}
+                              >
+                                {expanded[flight.id] ? "Hide details" : "Show details"}
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
-                              aria-expanded={!!expanded[flight.id]}
-                              onClick={() => setExpanded((prev) => ({ ...prev, [flight.id]: !prev[flight.id] }))}
-                            >
-                              {expanded[flight.id] ? "Hide details" : "Show details"}
-                            </button>
-                          </div>
 
-                            {expanded[flight.id] && (
-                              <div className="mt-4 rounded-lg border bg-card/50 p-4">
-                                <div className="grid gap-6 md:grid-cols-3 text-sm">
-                                  {/* Timeline like Travala */}
-                                  <div className="md:col-span-2">
-                                    <div className="text-xs text-muted-foreground mb-3">
-                                      {formatDateLabel(flight.departureTime).full}
-                                    </div>
-                                    {Array.isArray(flight.segments) && flight.segments.length > 0 ? (
-                                      <ol className="relative pl-4 border-l">
-                                        {flight.segments.map((seg: any, idx: number) => (
-                                          <li key={idx} className="mb-6">
-                                            <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-primary" />
-                                            <div className="flex items-start justify-between">
-                                              <div>
-                                                <div className="font-medium text-foreground">
-                                                  {formatTime(seg.departure?.time || "")} {seg.departure?.airport}
+                              {expanded[flight.id] && (
+                                <div className="mt-4 rounded-lg border bg-card/50 p-4">
+                                  <div className="grid gap-6 md:grid-cols-3 text-sm">
+                                    {/* Timeline like Travala */}
+                                    <div className="md:col-span-2">
+                                      <div className="text-xs text-muted-foreground mb-3">
+                                        {formatDateLabel(flight.departureTime).full}
+                                      </div>
+                                      {Array.isArray(flight.segments) && flight.segments.length > 0 ? (
+                                        <ol className="relative pl-4 border-l">
+                                          {flight.segments.map((seg: any, idx: number) => (
+                                            <li key={idx} className="mb-6">
+                                              <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-primary" />
+                                              <div className="flex items-start justify-between">
+                                                <div>
+                                                  <div className="font-medium text-foreground">
+                                                    {formatTime(seg.departure?.time || "")} {seg.departure?.airport}
+                                                  </div>
+                                                  <div className="text-xs text-muted-foreground">
+                                                    Flight no: {seg.flightNumber || flight.flightNumber} • Cabin: {flight.cabin}
+                                                  </div>
                                                 </div>
                                                 <div className="text-xs text-muted-foreground">
-                                                  Flight no: {seg.flightNumber || flight.flightNumber} • Cabin: {flight.cabin}
+                                                  {humanizeISODuration(seg.duration)}
                                                 </div>
                                               </div>
-                                              <div className="text-xs text-muted-foreground">
-                                                {humanizeISODuration(seg.duration)}
-                                              </div>
-                                            </div>
-                                            <div className="mt-2">
-                                              <div className="font-medium text-foreground">
-                                                {formatTime(seg.arrival?.time || "")} {seg.arrival?.airport}
-                                              </div>
-                                              {idx < flight.segments.length - 1 && (
-                                                <div className="mt-3 flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                                                  <Clock className="h-3.5 w-3.5" />
-                                                  <span>{formatLayover(seg.arrival?.time, flight.segments[idx + 1]?.departure?.time, flight.segments[idx + 1]?.departure?.airport) || "Layover"}</span>
+                                              <div className="mt-2">
+                                                <div className="font-medium text-foreground">
+                                                  {formatTime(seg.arrival?.time || "")} {seg.arrival?.airport}
                                                 </div>
-                                              )}
-                                            </div>
-                                          </li>
-                                        ))}
-                                      </ol>
-                                    ) : (
-                                      <div className="space-y-2">
-                                        <div className="text-sm">{flight.airline}</div>
-                                        <div className="text-xs text-muted-foreground">Flight no: {flight.flightNumber} • Cabin: {flight.cabin}</div>
+                                                {idx < flight.segments.length - 1 && (
+                                                  <div className="mt-3 flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                                                    <Clock className="h-3.5 w-3.5" />
+                                                    <span>{formatLayover(seg.arrival?.time, flight.segments[idx + 1]?.departure?.time, flight.segments[idx + 1]?.departure?.airport) || "Layover"}</span>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </li>
+                                          ))}
+                                        </ol>
+                                      ) : (
+                                        <div className="space-y-2">
+                                          <div className="text-sm">{flight.airline}</div>
+                                          <div className="text-xs text-muted-foreground">Flight no: {flight.flightNumber} • Cabin: {flight.cabin}</div>
+                                        </div>
+                                      )}
+                                      <div className="mt-2 text-xs text-muted-foreground">
+                                        Arrive at destination {formatDateLabel(flight.arrivalTime).full} • {flight.destination}
                                       </div>
-                                    )}
-                                    <div className="mt-2 text-xs text-muted-foreground">
-                                      Arrive at destination {formatDateLabel(flight.arrivalTime).full} • {flight.destination}
                                     </div>
-                                  </div>
 
-                                  {/* Side facts */}
-                                  <div className="space-y-3">
-                                    <div>
-                                      <div className="font-medium mb-1">Baggage</div>
-                                      <ul className="space-y-1 text-muted-foreground">
-                                        <li>Carry-on: {flight.baggage?.carry ? "Included" : "—"}</li>
-                                        <li>Checked: {flight.baggage?.checked ? "Included" : "—"}</li>
-                                      </ul>
-                                    </div>
-                                    <div>
-                                      <div className="font-medium mb-1">Aircraft</div>
-                                      <div className="text-muted-foreground">{flight.aircraft || "—"}</div>
-                                    </div>
-                                    <div>
-                                      <div className="font-medium mb-1">Seats left</div>
-                                      <div className="text-muted-foreground">{flight.availableSeats}</div>
+                                    {/* Side facts */}
+                                    <div className="space-y-3">
+                                      <div>
+                                        <div className="font-medium mb-1">Baggage</div>
+                                        <ul className="space-y-1 text-muted-foreground">
+                                          <li>Carry-on: {flight.baggage?.carry ? "Included" : "—"}</li>
+                                          <li>Checked: {flight.baggage?.checked ? "Included" : "—"}</li>
+                                        </ul>
+                                      </div>
+                                      <div>
+                                        <div className="font-medium mb-1">Aircraft</div>
+                                        <div className="text-muted-foreground">{flight.aircraft || "—"}</div>
+                                      </div>
+                                      <div>
+                                        <div className="font-medium mb-1">Seats left</div>
+                                        <div className="text-muted-foreground">{flight.availableSeats}</div>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
-
-                        </CardContent>
-                      </Card>
-                    ))}
+                              )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
 
                     {!loading && !error && filteredAndSortedFlights.length === 0 && (
                       <Card>
@@ -1035,19 +1108,18 @@ const FlightSearchPage = () => {
           </div>
         </div>
       </div>
-      {fareFlight && (
-        <FareSelectionDialog
-          open={fareOpen}
-          onOpenChange={(open) => {
-            setFareOpen(open);
-            if (!open) setFareFlight(null);
-          }}
-          flight={fareFlight}
-          outbound={isRoundtrip ? selectedOutbound ?? undefined : undefined}
-          tripType={tripType}
-          returnFlights={filteredAndSortedReturnFlights}
-        />
-      )}
+      <FareSelectionDialog
+        open={fareOpen}
+        onOpenChange={(open) => {
+          setFareOpen(open);
+          if (!open) setFareFlight(null);
+        }}
+        flight={tripType === "multicity" ? undefined : fareFlight}
+        outbound={isRoundtrip ? selectedOutbound ?? undefined : undefined}
+        tripType={tripType}
+        returnFlights={filteredAndSortedReturnFlights}
+        multiCitySelections={tripType === "multicity" ? multiCitySelections : undefined}
+      />
     </div>
   );
 };
