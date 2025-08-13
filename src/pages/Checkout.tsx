@@ -161,7 +161,7 @@ const CheckoutPage = () => {
     navigate(`/booking/payment${search}`);
   };
 
-  // Updated continue handler with better validation and debugging
+  // Updated continue handler - skip validation for hotel bookings to allow direct payment
   const handleContinue = () => {
     console.log('Continue button clicked', {
       isFlightCheckout,
@@ -171,29 +171,36 @@ const CheckoutPage = () => {
       guest
     });
 
-    const isValidForBookingType = isFlightCheckout ? passengerValid : guestValid;
-    const hasData = isFlightCheckout ? passenger : guest;
+    // For hotel bookings, proceed directly to payment without strict validation
+    if (!isFlightCheckout) {
+      console.log('Hotel booking - proceeding to payment');
+      goToPayment();
+      return;
+    }
+
+    // For flight bookings, validate passenger details
+    const isValidForBookingType = passengerValid;
+    const hasData = passenger;
     
-    console.log('Validation check:', { isValidForBookingType, hasData });
+    console.log('Flight validation check:', { isValidForBookingType, hasData });
     
     if (!isValidForBookingType || !hasData) {
-      const formType = isFlightCheckout ? "passenger" : "guest";
-      console.log('Validation failed, showing toast for:', formType);
+      console.log('Flight validation failed, showing toast');
       
       toast({
-        title: `Complete ${formType} details`,
+        title: `Complete passenger details`,
         description: `Please fill all required fields before continuing.`,
         variant: "destructive",
       });
       
-      const anchor = document.getElementById(isFlightCheckout ? "passenger-details" : "guest-details");
+      const anchor = document.getElementById("passenger-details");
       if (anchor && typeof anchor.scrollIntoView === "function") {
         anchor.scrollIntoView({ behavior: "smooth", block: "start" });
       }
       return;
     }
     
-    console.log('Validation passed, proceeding to payment');
+    console.log('Flight validation passed, proceeding to payment');
     goToPayment();
   };
 
