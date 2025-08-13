@@ -1,0 +1,195 @@
+name: Maku Comprehensive OTA Audit
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 19 * * 0' # Sundays 19:00 UTC (Mondays 05:00 AEST)
+  workflow_dispatch:
+
+jobs:
+  comprehensive-audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    timeout-minutes: 60
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🛡️ Security Audit
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          echo "🔍 Running security scans..."
+          if [ -f "scripts/audit/security-scanner.js" ]; then
+            node scripts/audit/security-scanner.js
+          fi
+          if [ -f "scripts/audit/vulnerability-check.js" ]; then
+            node scripts/audit/vulnerability-check.js
+          fi
+
+      - name: 🏥 API Health Check  
+        env:
+          AMADEUS_API_KEY: ${{ secrets.AMADEUS_API_KEY }}
+          HOTELBEDS_API_KEY: ${{ secrets.HOTELBEDS_API_KEY }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          echo "🔍 Checking API connectivity..."
+          if [ -f "scripts/audit/api-health.js" ]; then
+            node scripts/audit/api-health.js
+          fi
+
+      - name: 🤖 Run Lovable Comprehensive Audit
+        env:
+          LOVABLE_AI_API_KEY: ${{ secrets.LOVABLE_AI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+          AMADEUS_API_KEY: ${{ secrets.AMADEUS_API_KEY }}
+          HOTELBEDS_API_KEY: ${{ secrets.HOTELBEDS_API_KEY }}
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+        run: |
+          echo "🎯 Running comprehensive OTA audit..."
+          node scripts/run-lovable-audit.js ./lovable/lovable_audit_prompt.txt
+
+      - name: 📊 Generate Report Summary
+        run: |
+          echo "📈 Generating audit summary..."
+          DATE=$(date -u +'%Y-%m-%d')
+          if [ -f "reports/${DATE}_audit.md" ]; then
+            echo "✅ Audit report generated: reports/${DATE}_audit.md"
+            echo "📊 Mermaid diagrams: reports/diagrams/${DATE}_*.mmd"
+            
+            # Extract summary for commit message
+            SUMMARY=$(head -20 "reports/${DATE}_audit.md" | grep -E "Key (Risks|Wins):" -A 5 || echo "Audit completed")
+            echo "AUDIT_SUMMARY<<EOF" >> $GITHUB_ENV
+            echo "$SUMMARY" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "⚠️ No audit report generated"
+          fi
+
+      - name: 📁 Upload Audit Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: maku-audit-reports-${{ github.run_number }}
+          path: reports/
+          retention-days: 90
+
+      - name: 💾 Commit Reports to Repository
+        run: |
+          git config --local user.email "audit-bot@maku.travel"
+          git config --local user.name "Maku Audit Bot"
+          git add reports/ || echo "No new reports to add"
+          
+          DATE=$(date -u +'%Y-%m-%d')
+          if git diff --staged --quiet; then
+            echo "📋 No changes to commit"
+          else
+            git commit -m "🔍 Weekly OTA Audit Report - $DATE
+
+            📊 Comprehensive audit including:
+            - Security & vulnerability scans
+            - API health monitoring  
+            - E2E flow testing (Flights/Hotels/Activities)
+            - UX & performance analysis
+            - Competitive intelligence
+            
+            📁 Reports: reports/${DATE}_audit.md
+            📈 Diagrams: reports/diagrams/${DATE}_*.mmd"
+            git push
+            echo "✅ Reports committed to repository"
+          fi
+
+      - name: 🔥 Create GitHub Issues for Critical Findings
+        if: ${{ always() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking for critical issues to report..."
+          DATE=$(date -u +'%Y-%m-%d')
+          
+          # Check if we have an audit report
+          if [ -f "reports/${DATE}_audit.md" ]; then
+            # Extract P0 and P1 issues from the report
+            if grep -q "\[P0\]" "reports/${DATE}_audit.md"; then
+              echo "🚨 P0 issues found - creating GitHub issue"
+              P0_ISSUES=$(grep "\[P0\]" "reports/${DATE}_audit.md" || echo "P0 issues detected")
+              
+              gh issue create \
+                --title "🚨 P0 Critical Issues - $DATE Audit" \
+                --body "Critical issues found in automated audit:
+
+          $P0_ISSUES
+
+          📊 Full report: reports/${DATE}_audit.md
+          🤖 Generated by: Maku Audit Bot" \
+                --label "P0-critical,security,audit" \
+                --assignee "@me" || echo "Could not create P0 issue"
+            fi
+            
+            if grep -q "\[P1\]" "reports/${DATE}_audit.md"; then
+              echo "⚠️ P1 issues found - creating GitHub issue"  
+              P1_ISSUES=$(grep "\[P1\]" "reports/${DATE}_audit.md" | head -5 || echo "P1 issues detected")
+              
+              gh issue create \
+                --title "⚠️ P1 High Priority Issues - $DATE Audit" \
+                --body "High priority issues found in automated audit:
+
+          $P1_ISSUES
+
+          📊 Full report: reports/${DATE}_audit.md  
+          🤖 Generated by: Maku Audit Bot" \
+                --label "P1-high,enhancement,audit" || echo "Could not create P1 issue"
+            fi
+          fi
+
+      - name: 📱 Send Slack Notification
+        if: ${{ always() }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            DATE=$(date -u +'%Y-%m-%d')
+            STATUS="${{ job.status }}"
+            
+            if [ "$STATUS" = "success" ]; then
+              EMOJI="✅"
+              COLOR="good"
+            else
+              EMOJI="❌" 
+              COLOR="danger"
+            fi
+            
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{
+                \"attachments\": [{
+                  \"color\": \"$COLOR\",
+                  \"title\": \"$EMOJI Maku.Travel OTA Audit - $DATE\",
+                  \"text\": \"Comprehensive audit completed with status: $STATUS\",
+                  \"fields\": [
+                    {\"title\": \"Reports\", \"value\": \"reports/${DATE}_audit.md\", \"short\": true},
+                    {\"title\": \"Repository\", \"value\": \"${{ github.repository }}\", \"short\": true}
+                  ],
+                  \"footer\": \"Maku Audit Bot\",
+                  \"ts\": $(date +%s)
+                }]
+              }" \
+              $SLACK_WEBHOOK_URL || echo "Could not send Slack notification"
+          else
+            echo "📱 SLACK_WEBHOOK_URL not configured - skipping notification"
+          fi
