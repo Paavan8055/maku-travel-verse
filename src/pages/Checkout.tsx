@@ -162,7 +162,6 @@ const CheckoutPage = () => {
     navigate(`/booking/payment${search}`);
   };
 
-  // Simplified continue handler - remove validation issues
   const handleContinue = () => {
     console.log('Continue button clicked', {
       isFlightCheckout,
@@ -200,8 +199,19 @@ const CheckoutPage = () => {
     goToPayment();
   };
 
-  // Calculate button disabled state more simply
-  const isButtonDisabled = isFlightCheckout ? !passenger : !guest;
+  // Fix button disabled state - use valid flags AND data presence
+  const isButtonDisabled = isFlightCheckout 
+    ? (!passengerValid || !passenger) 
+    : (!guestValid || !guest);
+
+  console.log('Button state debug:', {
+    isFlightCheckout,
+    isButtonDisabled,
+    passengerValid,
+    passenger: !!passenger,
+    guestValid,
+    guest: !!guest
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -252,12 +262,18 @@ const CheckoutPage = () => {
                 <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
                 <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
                 <Button 
-                  onClick={() => {
-                    console.log('Button clicked - main button');
+                  onClick={(e) => {
+                    console.log('Button clicked - main button', e);
                     console.log('Button disabled state:', isButtonDisabled);
                     console.log('Guest data:', guest);
                     console.log('Passenger data:', passenger);
-                    handleContinue();
+                    console.log('Event prevented?', e.defaultPrevented);
+                    
+                    if (!isButtonDisabled) {
+                      handleContinue();
+                    } else {
+                      console.log('Button is disabled, not proceeding');
+                    }
                   }} 
                   className="btn-primary h-12" 
                   size="lg"
@@ -363,12 +379,17 @@ const CheckoutPage = () => {
                 )}
 
                 <Button 
-                  onClick={() => {
-                    console.log('Button clicked - sidebar button');
+                  onClick={(e) => {
+                    console.log('Button clicked - sidebar button', e);
                     console.log('Current URL:', window.location.href);
                     console.log('isFlightCheckout:', isFlightCheckout);
                     console.log('Button disabled state:', isButtonDisabled);
-                    handleContinue();
+                    
+                    if (!isButtonDisabled) {
+                      handleContinue();
+                    } else {
+                      console.log('Sidebar button is disabled, not proceeding');
+                    }
                   }}
                   className="w-full mt-6 btn-primary h-12"
                   disabled={isButtonDisabled}
