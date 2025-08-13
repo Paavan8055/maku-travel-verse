@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -94,15 +93,23 @@ const CheckoutPage = () => {
         sessionStorage.setItem('guestInfo', JSON.stringify(guest));
       }
     } catch (e) {
-      // no-op
+      console.error('Session storage error:', e);
     }
     const search = typeof window !== 'undefined' ? window.location.search : '';
     
     navigate(`/booking/payment${search}`);
   };
 
-  // New: gated continue handler with toast + smooth scroll
+  // Updated continue handler with better validation and debugging
   const handleContinue = () => {
+    console.log('Continue button clicked', {
+      isFlightCheckout,
+      passengerValid,
+      passenger,
+      guestValid,
+      guest
+    });
+
     const isValidForBookingType = isFlightCheckout ? passengerValid : guestValid;
     
     if (!isValidForBookingType) {
@@ -147,11 +154,19 @@ const CheckoutPage = () => {
             {/* Form Details - conditional based on booking type */}
             {isFlightCheckout ? (
               <div id="passenger-details">
-                <PassengerDetailsForm onChange={(data, valid) => { setPassenger(data); setPassengerValid(valid); }} />
+                <PassengerDetailsForm onChange={(data, valid) => { 
+                  console.log('Passenger form change:', { data, valid });
+                  setPassenger(data); 
+                  setPassengerValid(valid); 
+                }} />
               </div>
             ) : (
               <div id="guest-details">
-                <HotelGuestForm onChange={(valid, data) => { setGuest(data); setGuestValid(valid); }} />
+                <HotelGuestForm onChange={(valid, data) => { 
+                  console.log('Guest form change:', { valid, data });
+                  setGuest(data); 
+                  setGuestValid(valid); 
+                }} />
               </div>
             )}
 
@@ -161,7 +176,12 @@ const CheckoutPage = () => {
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
                 <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
-                <Button onClick={handleContinue} className="btn-primary h-12" size="lg">
+                <Button 
+                  onClick={handleContinue} 
+                  className="btn-primary h-12" 
+                  size="lg"
+                  disabled={isFlightCheckout ? !passengerValid : !guestValid}
+                >
                   Continue to Payment
                 </Button>
               </CardContent>
