@@ -37,6 +37,9 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
 
   const handleSelectHotel = () => {
+    // Get current search parameters to preserve them
+    const currentUrlParams = new URLSearchParams(window.location.search);
+    
     // Pass hotel data via URL params for the booking select page
     const hotelData = encodeURIComponent(JSON.stringify({
       id: hotel.id,
@@ -57,7 +60,36 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
       breakfast: hotel.breakfast,
       deals: hotel.deals
     }));
-    navigate(`/booking/select?hotel=${hotelData}`);
+    
+    // Preserve search parameters
+    const searchParams = new URLSearchParams();
+    searchParams.set('hotel', hotelData);
+    
+    // Copy over search parameters if they exist
+    ['checkin', 'checkout', 'adults', 'children', 'rooms'].forEach(param => {
+      const value = currentUrlParams.get(param);
+      if (value) {
+        searchParams.set(param, value);
+      }
+    });
+    
+    // Store search parameters in session storage as fallback
+    const searchCriteria = {
+      checkin: currentUrlParams.get('checkin'),
+      checkout: currentUrlParams.get('checkout'),
+      adults: currentUrlParams.get('adults') || '2',
+      children: currentUrlParams.get('children') || '0',
+      rooms: currentUrlParams.get('rooms') || '1',
+      destination: currentUrlParams.get('destination') || currentUrlParams.get('q')
+    };
+    
+    try {
+      sessionStorage.setItem('hotelSearchCriteria', JSON.stringify(searchCriteria));
+    } catch (error) {
+      console.error('Failed to save search criteria:', error);
+    }
+    
+    navigate(`/booking/select?${searchParams.toString()}`);
   };
 
   const getAmenityIcon = (amenity: string) => {

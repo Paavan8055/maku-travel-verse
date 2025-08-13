@@ -18,9 +18,59 @@ const BookingSelectPage = () => {
   const [rollaway, setRollaway] = useState<boolean>(false);
   const [sofaBed, setSofaBed] = useState<boolean>(false);
 
-  // Get hotel data from URL params
+  // Get hotel data and search parameters from URL
   const urlParams = new URLSearchParams(window.location.search);
   const hotelParam = urlParams.get('hotel');
+  
+  // Extract search parameters
+  const checkInParam = urlParams.get('checkin');
+  const checkOutParam = urlParams.get('checkout');
+  const adultsParam = urlParams.get('adults');
+  const childrenParam = urlParams.get('children');
+  
+  // Try to get search criteria from session storage as fallback
+  let searchCriteria: any = {};
+  try {
+    const stored = sessionStorage.getItem('hotelSearchCriteria');
+    if (stored) {
+      searchCriteria = JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Failed to parse search criteria:', error);
+  }
+  
+  // Use URL params first, then fallback to session storage
+  const checkIn = checkInParam || searchCriteria.checkin;
+  const checkOut = checkOutParam || searchCriteria.checkout;
+  const adults = parseInt(adultsParam || searchCriteria.adults || '2');
+  const children = parseInt(childrenParam || searchCriteria.children || '0');
+  const totalGuests = adults + children;
+  
+  // Calculate nights
+  let nights = 7; // default
+  let checkInDate = "Mar 15, 2025"; // default
+  let checkOutDate = "Mar 22, 2025"; // default
+  
+  if (checkIn && checkOut) {
+    try {
+      const checkInDateObj = new Date(checkIn);
+      const checkOutDateObj = new Date(checkOut);
+      nights = Math.ceil((checkOutDateObj.getTime() - checkInDateObj.getTime()) / (1000 * 60 * 60 * 24));
+      
+      checkInDate = checkInDateObj.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      checkOutDate = checkOutDateObj.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    } catch (error) {
+      console.error('Failed to parse dates:', error);
+    }
+  }
   
   let hotel: any = {
     id: "1",
@@ -102,11 +152,26 @@ const BookingSelectPage = () => {
         rollaway,
         sofaBed,
         fundContribution: addFundContribution ? fundContribution : 0,
+        // Preserve search criteria
+        checkIn,
+        checkOut,
+        nights,
+        adults,
+        children,
+        totalGuests
       };
       sessionStorage.setItem('hotelBookingSelections', JSON.stringify(selections));
     } catch {}
 
-    window.location.href = `/booking/checkout`;
+    // Pass search parameters to checkout
+    const checkoutParams = new URLSearchParams();
+    if (checkIn) checkoutParams.set('checkin', checkIn);
+    if (checkOut) checkoutParams.set('checkout', checkOut);
+    if (adults) checkoutParams.set('adults', adults.toString());
+    if (children) checkoutParams.set('children', children.toString());
+    
+    const checkoutUrl = `/booking/checkout${checkoutParams.toString() ? '?' + checkoutParams.toString() : ''}`;
+    window.location.href = checkoutUrl;
   };
 
   // Extract destination from hotel data for offers and tips
@@ -259,19 +324,19 @@ const BookingSelectPage = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span>Check-in:</span>
-                    <span>Mar 15, 2025</span>
+                    <span>{checkInDate}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Check-out:</span>
-                    <span>Mar 22, 2025</span>
+                    <span>{checkOutDate}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Duration:</span>
-                    <span>7 nights</span>
+                    <span>{nights} {nights === 1 ? 'night' : 'nights'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Guests:</span>
-                    <span>2 adults</span>
+                    <span>{totalGuests} {totalGuests === 1 ? 'guest' : 'guests'}</span>
                   </div>
                 </div>
 
@@ -282,8 +347,8 @@ const BookingSelectPage = () => {
                     </div>
                     <p className="text-sm">{rooms.find(r => r.id === selectedRoom)?.name}</p>
                     <div className="flex justify-between items-center mt-2">
-                      <span>7 nights × ${rooms.find(r => r.id === selectedRoom)?.price}</span>
-                      <span className="font-bold">${(rooms.find(r => r.id === selectedRoom)?.price || 0) * 7}</span>
+                      <span>{nights} {nights === 1 ? 'night' : 'nights'} × ${rooms.find(r => r.id === selectedRoom)?.price}</span>
+                      <span className="font-bold">${(rooms.find(r => r.id === selectedRoom)?.price || 0) * nights}</span>
                     </div>
                   </div>
                 )}
