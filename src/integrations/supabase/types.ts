@@ -124,6 +124,80 @@ export type Database = {
         }
         Relationships: []
       }
+      detailed_reviews: {
+        Row: {
+          booking_id: string | null
+          cleanliness_rating: number | null
+          content: string
+          created_at: string | null
+          helpful_votes: number | null
+          id: string
+          is_featured: boolean | null
+          is_verified: boolean | null
+          item_id: string
+          item_type: string
+          location_rating: number | null
+          overall_rating: number
+          photos: Json | null
+          service_rating: number | null
+          title: string
+          travel_date: string | null
+          updated_at: string | null
+          user_id: string
+          value_rating: number | null
+        }
+        Insert: {
+          booking_id?: string | null
+          cleanliness_rating?: number | null
+          content: string
+          created_at?: string | null
+          helpful_votes?: number | null
+          id?: string
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          item_id: string
+          item_type: string
+          location_rating?: number | null
+          overall_rating: number
+          photos?: Json | null
+          service_rating?: number | null
+          title: string
+          travel_date?: string | null
+          updated_at?: string | null
+          user_id: string
+          value_rating?: number | null
+        }
+        Update: {
+          booking_id?: string | null
+          cleanliness_rating?: number | null
+          content?: string
+          created_at?: string | null
+          helpful_votes?: number | null
+          id?: string
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          item_id?: string
+          item_type?: string
+          location_rating?: number | null
+          overall_rating?: number
+          photos?: Json | null
+          service_rating?: number | null
+          title?: string
+          travel_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+          value_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "detailed_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dynamic_offers: {
         Row: {
           airline: string | null
@@ -160,6 +234,66 @@ export type Database = {
           offer_type?: string | null
           route?: string
           valid_until?: string
+        }
+        Relationships: []
+      }
+      enhanced_favorites: {
+        Row: {
+          created_at: string | null
+          current_price: number | null
+          id: string
+          is_price_alert_active: boolean | null
+          is_shared: boolean | null
+          item_data: Json
+          item_id: string
+          item_type: string
+          last_price_check: string | null
+          notes: string | null
+          original_price: number | null
+          price_alert_threshold: number | null
+          price_history: Json | null
+          share_token: string | null
+          tags: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_price?: number | null
+          id?: string
+          is_price_alert_active?: boolean | null
+          is_shared?: boolean | null
+          item_data: Json
+          item_id: string
+          item_type: string
+          last_price_check?: string | null
+          notes?: string | null
+          original_price?: number | null
+          price_alert_threshold?: number | null
+          price_history?: Json | null
+          share_token?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_price?: number | null
+          id?: string
+          is_price_alert_active?: boolean | null
+          is_shared?: boolean | null
+          item_data?: Json
+          item_id?: string
+          item_type?: string
+          last_price_check?: string | null
+          notes?: string | null
+          original_price?: number | null
+          price_alert_threshold?: number | null
+          price_history?: Json | null
+          share_token?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -263,6 +397,87 @@ export type Database = {
           rating?: number | null
           source?: string | null
           tip_type?: string
+        }
+        Relationships: []
+      }
+      local_tips: {
+        Row: {
+          budget_level: string | null
+          content: string
+          coordinates: Json | null
+          created_at: string | null
+          helpful_votes: number | null
+          id: string
+          is_verified: boolean | null
+          location_id: string
+          photos: Json | null
+          tip_category: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_level?: string | null
+          content: string
+          coordinates?: Json | null
+          created_at?: string | null
+          helpful_votes?: number | null
+          id?: string
+          is_verified?: boolean | null
+          location_id: string
+          photos?: Json | null
+          tip_category: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_level?: string | null
+          content?: string
+          coordinates?: Json | null
+          created_at?: string | null
+          helpful_votes?: number | null
+          id?: string
+          is_verified?: boolean | null
+          location_id?: string
+          photos?: Json | null
+          tip_category?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loyalty_points: {
+        Row: {
+          created_at: string | null
+          current_tier: string | null
+          id: string
+          lifetime_points: number | null
+          points_to_next_tier: number | null
+          total_points: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_tier?: string | null
+          id?: string
+          lifetime_points?: number | null
+          points_to_next_tier?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_tier?: string | null
+          id?: string
+          lifetime_points?: number | null
+          points_to_next_tier?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -385,6 +600,39 @@ export type Database = {
           },
         ]
       }
+      points_transactions: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          points: number
+          reason: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          points: number
+          reason: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          points?: number
+          reason?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       price_alerts: {
         Row: {
           created_at: string | null
@@ -415,6 +663,45 @@ export type Database = {
           travel_dates_end?: string | null
           travel_dates_start?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      price_predictions: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          factors: Json | null
+          id: string
+          item_id: string
+          item_type: string
+          predicted_price: number
+          recommendation: string
+          route: string | null
+          valid_until: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          factors?: Json | null
+          id?: string
+          item_id: string
+          item_type: string
+          predicted_price: number
+          recommendation: string
+          route?: string | null
+          valid_until: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          factors?: Json | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          predicted_price?: number
+          recommendation?: string
+          route?: string | null
+          valid_until?: string
         }
         Relationships: []
       }
@@ -525,6 +812,141 @@ export type Database = {
           item_id?: string
           item_type?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      travel_analytics: {
+        Row: {
+          carbon_footprint: number | null
+          countries_visited: string[] | null
+          created_at: string | null
+          favorite_destinations: string[] | null
+          id: string
+          preferred_trip_length: number | null
+          total_spent: number | null
+          total_trips: number | null
+          travel_months: number[] | null
+          updated_at: string | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          carbon_footprint?: number | null
+          countries_visited?: string[] | null
+          created_at?: string | null
+          favorite_destinations?: string[] | null
+          id?: string
+          preferred_trip_length?: number | null
+          total_spent?: number | null
+          total_trips?: number | null
+          travel_months?: number[] | null
+          updated_at?: string | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          carbon_footprint?: number | null
+          countries_visited?: string[] | null
+          created_at?: string | null
+          favorite_destinations?: string[] | null
+          id?: string
+          preferred_trip_length?: number | null
+          total_spent?: number | null
+          total_trips?: number | null
+          travel_months?: number[] | null
+          updated_at?: string | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      travel_journal: {
+        Row: {
+          budget_range: string | null
+          created_at: string | null
+          description: string | null
+          destination: string
+          end_date: string | null
+          highlights: string[] | null
+          id: string
+          is_public: boolean | null
+          photos: Json | null
+          start_date: string | null
+          tags: string[] | null
+          travel_companions: number | null
+          trip_title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_range?: string | null
+          created_at?: string | null
+          description?: string | null
+          destination: string
+          end_date?: string | null
+          highlights?: string[] | null
+          id?: string
+          is_public?: boolean | null
+          photos?: Json | null
+          start_date?: string | null
+          tags?: string[] | null
+          travel_companions?: number | null
+          trip_title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_range?: string | null
+          created_at?: string | null
+          description?: string | null
+          destination?: string
+          end_date?: string | null
+          highlights?: string[] | null
+          id?: string
+          is_public?: boolean | null
+          photos?: Json | null
+          start_date?: string | null
+          tags?: string[] | null
+          travel_companions?: number | null
+          trip_title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_activity_logs: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          item_data: Json | null
+          item_id: string | null
+          item_type: string | null
+          location: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          item_data?: Json | null
+          item_id?: string | null
+          item_type?: string | null
+          location?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          item_data?: Json | null
+          item_id?: string | null
+          item_type?: string | null
+          location?: string | null
+          session_id?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
