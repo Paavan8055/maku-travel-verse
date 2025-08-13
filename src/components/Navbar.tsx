@@ -49,7 +49,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="text-2xl font-bold bg-gradient-to-r from-travel-sky to-travel-ocean bg-clip-text text-transparent">maku</div>
+            <div className="text-2xl font-bold font-cursive text-orange-400">maku</div>
           </div>
 
           {/* Desktop Navigation */}
