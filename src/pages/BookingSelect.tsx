@@ -67,13 +67,13 @@ const BookingSelectPage = () => {
   });
   
   // Calculate nights and format dates
-  let nights = 7; // default to 7 nights for a week-long stay
+  let nights = 1; // default to 1 night
   let checkInDate = "Today"; // default
-  let checkOutDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
+  let checkOutDate = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric', 
     year: 'numeric' 
-  }); // 7 days from today
+  }); // 1 day from today
   
   if (checkIn && checkOut) {
     try {
@@ -104,7 +104,7 @@ const BookingSelectPage = () => {
   } else {
     console.warn('Missing check-in or check-out dates, using defaults');
   }
-  
+
   let hotel: any = {
     id: "1",
     name: "Ocean Breeze Resort",
