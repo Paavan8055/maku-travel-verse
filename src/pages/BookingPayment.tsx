@@ -15,23 +15,69 @@ import { FlightBookingSummary } from "@/features/booking/components/FlightBookin
 const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Promise<any>) | null>> }> = ({ setConfirm }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Provide a stable function value to React state setter
-    setConfirm(() => async () => {
-      if (!stripe || !elements) throw new Error('Stripe not ready');
-      const result = await stripe.confirmPayment({ elements, redirect: 'if_required' });
-      if ((result as any).error) {
-        throw new Error((result as any).error.message || 'Payment failed');
-      }
-      return result;
-    });
+    console.log('StripeCardForm effect - stripe:', !!stripe, 'elements:', !!elements);
+    
+    if (stripe && elements) {
+      // Provide a stable function value to React state setter
+      const confirmFunction = async () => {
+        console.log('Confirming payment with Stripe...');
+        if (!stripe || !elements) throw new Error('Stripe not ready');
+        
+        const result = await stripe.confirmPayment({ 
+          elements, 
+          redirect: 'if_required',
+          confirmParams: {
+            return_url: window.location.origin + '/booking/confirmation'
+          }
+        });
+        
+        console.log('Stripe confirmation result:', result);
+        
+        if ((result as any).error) {
+          console.error('Stripe error:', (result as any).error);
+          throw new Error((result as any).error.message || 'Payment failed');
+        }
+        return result;
+      };
+      
+      setConfirm(() => confirmFunction);
+      setIsReady(true);
+      console.log('Stripe card form is ready');
+    } else {
+      setConfirm(null);
+      setIsReady(false);
+    }
 
     // Cleanup: unset confirm function on unmount or when deps change
-    return () => setConfirm(() => null);
+    return () => {
+      setConfirm(null);
+      setIsReady(false);
+    };
   }, [stripe, elements, setConfirm]);
 
-  return <PaymentElement options={{ layout: 'tabs' }} />;
+  return (
+    <div className="space-y-4">
+      <PaymentElement 
+        options={{ 
+          layout: 'tabs',
+          paymentMethodOrder: ['card']
+        }} 
+        onReady={() => {
+          console.log('PaymentElement is ready');
+          setIsReady(true);
+        }}
+      />
+      {!isReady && (
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading secure payment form...
+        </div>
+      )}
+    </div>
+  );
 };
 
 const BookingPaymentPage = () => {
@@ -194,9 +240,14 @@ const BookingPaymentPage = () => {
 
   const ensurePaymentIntent = async () => {
     try {
-      if (clientSecret && bookingId) return;
+      if (clientSecret && bookingId) {
+        console.log('Payment intent already exists, skipping creation');
+        return;
+      }
+      
       setIsInitializingPI(true);
       setInitError(null);
+      console.log('Creating payment intent...');
 
       let passenger: any = null;
       let guest: any = null;
@@ -213,24 +264,39 @@ const BookingPaymentPage = () => {
         phone: person?.phone,
       };
 
+      // Calculate the correct amount - convert to cents for Stripe
+      const bookingAmount = isFlightCheckout ? flightParams.amount : bookingDetails.total;
+      const stripeAmount = Math.round(bookingAmount * 100); // Convert to cents
+      
+      console.log('Payment intent data:', {
+        bookingType: isFlightCheckout ? 'flight' : 'hotel',
+        displayAmount: bookingAmount,
+        stripeAmount,
+        currency: isFlightCheckout ? flightParams.currency : 'USD',
+        customerInfo
+      });
+
       const { data, error } = await supabase.functions.invoke('create-card-payment-intent', {
         body: {
           bookingType: isFlightCheckout ? 'flight' : 'hotel',
           bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
-          amount: isFlightCheckout ? flightParams.amount : bookingDetails.total,
+          amount: bookingAmount, // Send the correct amount
           currency: isFlightCheckout ? flightParams.currency : 'USD',
           customerInfo,
         },
       });
 
+      console.log('Payment intent response:', { data, error });
+
       if (error || !data?.success) {
         const message = error?.message || data?.error || 'Failed to create payment';
-        console.error(message);
+        console.error('Payment intent error:', message);
         setInitError(message);
         toast({ title: 'Payment setup failed', description: message, variant: 'destructive' });
         return;
       }
 
+      console.log('Payment intent created successfully:', data);
       setClientSecret(data.payment.clientSecret);
       setBookingId(data.booking.id);
     } catch (e: any) {
@@ -256,7 +322,12 @@ const BookingPaymentPage = () => {
   }, [clientSecret, paymentGateway]);
 
   const handleCheckout = async () => {
-    if (!agreeToTerms) return;
+    console.log('handleCheckout called');
+    
+    if (!agreeToTerms) {
+      toast({ title: 'Terms required', description: 'Please agree to the terms and conditions', variant: 'destructive' });
+      return;
+    }
 
     let passenger: any = null;
     let guest: any = null;
@@ -273,22 +344,43 @@ const BookingPaymentPage = () => {
       phone: person?.phone,
     };
 
+    console.log('Payment gateway:', paymentGateway, 'Customer info:', customerInfo);
+
     // If using on-site card collection (Stripe Elements)
     if ((paymentGateway === 'card' || paymentGateway === 'stripe')) {
       try {
+        console.log('Using Stripe payment, clientSecret:', !!clientSecret, 'bookingId:', !!bookingId, 'confirmFn:', !!confirmFn);
+        
         if (!clientSecret || !bookingId) {
+          console.log('Missing payment intent, creating...');
           await ensurePaymentIntent();
-          return; // Let the card form mount; user can click again to confirm
+          toast({ title: 'Payment initialized', description: 'Please click Continue to Payment again to proceed', variant: 'default' });
+          return;
         }
 
-        if (!confirmFn) throw new Error('Card form not ready');
+        if (!confirmFn) {
+          console.log('Card form not ready, confirmFn is null');
+          toast({ title: 'Card form not ready', description: 'Please wait for the card form to load completely', variant: 'destructive' });
+          return;
+        }
+
+        console.log('Confirming payment...');
         const result: any = await confirmFn();
+        console.log('Payment confirmation result:', result);
+        
         const piId = result?.paymentIntent?.id;
-        if (!piId || !bookingId) throw new Error('Missing payment intent or booking');
-        // Verify and finalize booking
-        await supabase.functions.invoke('verify-booking-payment', {
+        if (!piId || !bookingId) {
+          throw new Error('Missing payment intent or booking');
+        }
+        
+        console.log('Verifying payment with booking...');
+        const verifyResult = await supabase.functions.invoke('verify-booking-payment', {
           body: { bookingId, paymentIntentId: piId },
         });
+        
+        console.log('Verification result:', verifyResult);
+        
+        toast({ title: 'Payment successful!', description: 'Redirecting to confirmation...', variant: 'default' });
         window.location.href = `/booking/confirmation?booking_id=${bookingId}`;
         return;
       } catch (err: any) {
@@ -396,25 +488,39 @@ const BookingPaymentPage = () => {
                   {/* Card Details via Stripe Elements */}
                   {(paymentMethod === "card" || paymentMethod === "split") && (
                     <div className="space-y-4 mt-6">
-                      {clientSecret && stripePromise ? (
-                        <Elements stripe={stripePromise} options={{ clientSecret }}>
-                          <StripeCardForm setConfirm={setConfirmFn} />
-                        </Elements>
+                      {isInitializingPI ? (
+                        <div className="flex items-center gap-2 text-muted-foreground p-6 bg-muted/50 rounded-lg">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Preparing secure payment form...
+                        </div>
+                      ) : initError ? (
+                        <div className="space-y-2 p-6 bg-destructive/10 rounded-lg">
+                          <p className="text-destructive font-medium">{initError}</p>
+                          <Button variant="outline" size="sm" onClick={ensurePaymentIntent}>
+                            Retry Payment Setup
+                          </Button>
+                        </div>
+                      ) : clientSecret && stripePromise ? (
+                        <div className="p-6 bg-muted/30 rounded-lg">
+                          <Elements 
+                            stripe={stripePromise} 
+                            options={{ 
+                              clientSecret,
+                              appearance: {
+                                theme: 'stripe',
+                                variables: {
+                                  colorPrimary: 'hsl(var(--primary))',
+                                }
+                              }
+                            }}
+                          >
+                            <StripeCardForm setConfirm={setConfirmFn} />
+                          </Elements>
+                        </div>
                       ) : (
-                        <div className="text-sm">
-                          {isInitializingPI ? (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Preparing secure card form...
-                            </div>
-                          ) : initError ? (
-                            <div className="space-y-2">
-                              <p className="text-destructive">{initError}</p>
-                              <Button variant="outline" size="sm" onClick={ensurePaymentIntent}>Retry</Button>
-                            </div>
-                          ) : (
-                            <div className="text-muted-foreground">Preparing secure card form...</div>
-                          )}
+                        <div className="flex items-center gap-2 text-muted-foreground p-6 bg-muted/50 rounded-lg">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Initializing payment system...
                         </div>
                       )}
                     </div>
