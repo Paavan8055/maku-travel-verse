@@ -67,9 +67,13 @@ const BookingSelectPage = () => {
   });
   
   // Calculate nights and format dates
-  let nights = 2; // default to 2 nights as per user's selection
+  let nights = 7; // default to 7 nights for a week-long stay
   let checkInDate = "Today"; // default
-  let checkOutDate = "Tomorrow"; // default
+  let checkOutDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  }); // 7 days from today
   
   if (checkIn && checkOut) {
     try {
