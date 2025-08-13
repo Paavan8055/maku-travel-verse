@@ -125,7 +125,7 @@ const CheckoutPage = () => {
             Back to Extras
           </Button>
           
-          <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Flight Booking</span></h1>
+          <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Travel Booking</span></h1>
           <p className="text-muted-foreground">
             Review your details and confirm your reservation
           </p>
