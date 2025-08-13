@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -37,7 +37,7 @@ interface HotelGuestFormProps {
 export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProps) {
   const form = useForm<HotelGuestFormData>({
     resolver: zodResolver(HotelGuestSchema),
-    mode: "onChange",
+    mode: "onBlur", // Changed from onChange to reduce re-renders
     defaultValues: {
       title: "",
       firstName: "",
@@ -55,13 +55,26 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
   });
 
   const { watch, formState: { isValid } } = form;
-  const formData = watch();
-
-  useEffect(() => {
+  
+  // Memoize the change handler to prevent infinite loops
+  const handleFormChange = useCallback(() => {
     if (onChange) {
-      onChange(isValid, formData);
+      const currentData = form.getValues();
+      onChange(isValid, currentData);
     }
-  }, [isValid, formData, onChange]);
+  }, [onChange, isValid, form]);
+
+  // Use form subscription instead of watch to avoid creating new objects
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      handleFormChange();
+    });
+    
+    // Initial call
+    handleFormChange();
+    
+    return () => subscription.unsubscribe();
+  }, [form, handleFormChange]);
 
   const handleUpper = (value: string) => value.toUpperCase();
 

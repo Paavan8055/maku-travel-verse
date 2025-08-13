@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 const HotelCheckout = () => {
   const [guestValid, setGuestValid] = useState(false);
   const [guest, setGuest] = useState<HotelGuestFormData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -112,7 +113,9 @@ const HotelCheckout = () => {
     navigate(`/booking/payment${currentSearch}`);
   };
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
+    if (isLoading) return;
+    
     console.log('Continue button clicked for hotel', {
       guestValid,
       guest: !!guest,
@@ -134,11 +137,19 @@ const HotelCheckout = () => {
       return;
     }
     
+    setIsLoading(true);
     console.log('Hotel booking - validation passed, proceeding to payment');
     goToPayment();
-  };
+  }, [isLoading, guestValid, guest, bookingDetails, toast, goToPayment]);
 
-  const isButtonDisabled = !guestValid || !guest;
+  const isButtonDisabled = !guestValid || !guest || isLoading;
+
+  // Memoize the form change handler to prevent infinite loops
+  const handleGuestFormChange = useCallback((valid: boolean, data: HotelGuestFormData) => {
+    console.log('Guest form change:', { valid, data });
+    setGuest(data);
+    setGuestValid(valid);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -164,11 +175,7 @@ const HotelCheckout = () => {
           {/* Guest Form */}
           <div className="lg:col-span-2 space-y-6">
             <div id="guest-details">
-              <HotelGuestForm onChange={(valid, data) => { 
-                console.log('Guest form change:', { valid, data });
-                setGuest(data); 
-                setGuestValid(valid); 
-              }} />
+              <HotelGuestForm onChange={handleGuestFormChange} />
             </div>
 
             {/* Payment CTA */}
@@ -182,7 +189,7 @@ const HotelCheckout = () => {
                   size="lg"
                   disabled={isButtonDisabled}
                 >
-                  Continue to Payment
+                  {isLoading ? "Processing..." : "Continue to Payment"}
                 </Button>
               </CardContent>
             </Card>
@@ -271,7 +278,7 @@ const HotelCheckout = () => {
                   className="w-full mt-6 btn-primary h-12"
                   disabled={isButtonDisabled}
                 >
-                  Continue to Payment
+                  {isLoading ? "Processing..." : "Continue to Payment"}
                 </Button>
               </CardContent>
             </Card>
