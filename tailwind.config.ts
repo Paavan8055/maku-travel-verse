@@ -54,6 +54,7 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				travel: {
+					sky: 'hsl(var(--travel-sky))',
 					ocean: 'hsl(var(--travel-ocean))',
 					sunset: 'hsl(var(--travel-sunset))',
 					forest: 'hsl(var(--travel-forest))',
