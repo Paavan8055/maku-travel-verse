@@ -30,6 +30,7 @@ export default function MultiCitySegments({ segments, onChange, onAdd, onRemove 
             onDestinationSelect={(d) => setSeg(idx, { from: d.code ? `${d.city} (${d.code})` : d.name })}
             placeholder="From"
             className="search-input"
+            searchType="airport"
           />
           <DestinationAutocomplete
             value={seg.to}
@@ -37,6 +38,7 @@ export default function MultiCitySegments({ segments, onChange, onAdd, onRemove 
             onDestinationSelect={(d) => setSeg(idx, { to: d.code ? `${d.city} (${d.code})` : d.name })}
             placeholder="To"
             className="search-input"
+            searchType="airport"
           />
           <Popover>
             <PopoverTrigger asChild>
