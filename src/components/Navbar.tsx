@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, User, Menu, X, Globe, LogOut, Plane, Car, MapPin, Gift, Users as UsersIcon, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,7 @@ const Navbar = () => {
             onClick={() => navigate('/')}
           >
             <div className="text-2xl font-bold bg-gradient-to-r from-travel-sky to-travel-ocean bg-clip-text text-transparent">
-              MAKU Logo
+              MAKU
             </div>
           </div>
 
