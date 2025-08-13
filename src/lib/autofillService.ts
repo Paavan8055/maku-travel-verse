@@ -124,6 +124,33 @@ export const generateRandomVariation = (baseData: any) => {
   };
 };
 
+// Mock data for activity searches
+export const generateMockActivitySearch = () => {
+  const destinations = [
+    "Sydney, Australia",
+    "Tokyo, Japan", 
+    "Paris, France",
+    "New York, USA",
+    "Bangkok, Thailand",
+    "Barcelona, Spain"
+  ];
+  
+  const today = new Date();
+  const checkIn = new Date(today);
+  checkIn.setDate(today.getDate() + Math.floor(Math.random() * 30) + 1);
+  
+  const checkOut = new Date(checkIn);
+  checkOut.setDate(checkIn.getDate() + Math.floor(Math.random() * 3) + 1);
+  
+  return {
+    destination: destinations[Math.floor(Math.random() * destinations.length)],
+    checkIn,
+    checkOut: Math.random() > 0.5 ? checkOut : undefined, // Sometimes no end date for day trips
+    adults: Math.floor(Math.random() * 4) + 1,
+    children: Math.floor(Math.random() * 3),
+  };
+};
+
 export const autofillService = {
   generateMockPersonalData,
   generateMockHotelGuest,
@@ -131,5 +158,6 @@ export const autofillService = {
   loadUserStoredData,
   userDataToPersonalForm,
   userDataToHotelForm,
-  generateRandomVariation
+  generateRandomVariation,
+  generateMockActivitySearch
 };

@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import FlightPassengerSelector from "@/components/search/FlightPassengerSelector";
 import MultiCitySegments, { type Segment } from "@/components/search/MultiCitySegments";
+import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 
 const SearchSection = () => {
   const [destination, setDestination] = useState("");
@@ -32,6 +33,13 @@ const [segments, setSegments] = useState<Segment[]>([
   { from: "", to: "", date: undefined },
   { from: "", to: "", date: undefined },
 ]);
+
+// Activities state
+const [activityDestination, setActivityDestination] = useState("");
+const [activityCheckIn, setActivityCheckIn] = useState<Date>();
+const [activityCheckOut, setActivityCheckOut] = useState<Date>();
+const [activityAdults, setActivityAdults] = useState(2);
+const [activityChildren, setActivityChildren] = useState(0);
 
   const searchTabs = [
     { id: "hotels", label: "Hotels", icon: Building },
@@ -420,55 +428,29 @@ const [segments, setSegments] = useState<Segment[]>([
             </TabsContent>
 
             <TabsContent value="activities" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="relative">
-                  <Camera className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                  <Input
-                    type="text"
-                    placeholder="Destination"
-                    className="search-input pl-11"
-                  />
-                </div>
-
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="search-input justify-start text-left font-normal">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Activity date
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <Select defaultValue="any">
-                  <SelectTrigger className="search-input">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any activity</SelectItem>
-                    <SelectItem value="tours">Tours</SelectItem>
-                    <SelectItem value="outdoor">Outdoor</SelectItem>
-                    <SelectItem value="cultural">Cultural</SelectItem>
-                    <SelectItem value="food">Food & Drink</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex justify-center">
-                <Button 
-                  className="btn-primary text-lg px-12 py-4"
-                  onClick={() => window.location.href = `/search?type=activities`}
-                >
-                  <Search className="mr-2 h-5 w-5" />
-                  Search Activities
-                </Button>
-              </div>
+              <ActivitySearchBar
+                destination={activityDestination}
+                setDestination={setActivityDestination}
+                checkIn={activityCheckIn}
+                setCheckIn={setActivityCheckIn}
+                checkOut={activityCheckOut}
+                setCheckOut={setActivityCheckOut}
+                adults={activityAdults}
+                setAdults={setActivityAdults}
+                children={activityChildren}
+                setChildren={setActivityChildren}
+                onSearch={() => {
+                  const params = new URLSearchParams({
+                    destination: activityDestination,
+                    checkIn: activityCheckIn ? format(activityCheckIn, "yyyy-MM-dd") : "",
+                    checkOut: activityCheckOut ? format(activityCheckOut, "yyyy-MM-dd") : "",
+                    guests: String(activityAdults + activityChildren),
+                    adults: String(activityAdults),
+                    children: String(activityChildren)
+                  });
+                  window.location.href = `/search/activities?${params.toString()}`;
+                }}
+              />
             </TabsContent>
           </Tabs>
         </div>
