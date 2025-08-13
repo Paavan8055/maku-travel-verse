@@ -86,16 +86,22 @@ const CheckoutPage = () => {
   const passengers = Number(params.get('passengers') || '1');
 
   const goToPayment = () => {
+    console.log('goToPayment called', { isFlightCheckout, passenger, guest });
+    
     try {
-      if (isFlightCheckout && passengerValid && passenger) {
+      if (isFlightCheckout && passenger) {
         sessionStorage.setItem('passengerInfo', JSON.stringify(passenger));
-      } else if (!isFlightCheckout && guestValid && guest) {
+        console.log('Saved passenger info to session storage');
+      } else if (!isFlightCheckout && guest) {
         sessionStorage.setItem('guestInfo', JSON.stringify(guest));
+        console.log('Saved guest info to session storage');
       }
     } catch (e) {
       console.error('Session storage error:', e);
     }
+    
     const search = typeof window !== 'undefined' ? window.location.search : '';
+    console.log('Navigating to payment with search:', search);
     
     navigate(`/booking/payment${search}`);
   };
@@ -111,20 +117,28 @@ const CheckoutPage = () => {
     });
 
     const isValidForBookingType = isFlightCheckout ? passengerValid : guestValid;
+    const hasData = isFlightCheckout ? passenger : guest;
     
-    if (!isValidForBookingType) {
+    console.log('Validation check:', { isValidForBookingType, hasData });
+    
+    if (!isValidForBookingType || !hasData) {
       const formType = isFlightCheckout ? "passenger" : "guest";
+      console.log('Validation failed, showing toast for:', formType);
+      
       toast({
         title: `Complete ${formType} details`,
         description: `Please fill all required fields before continuing.`,
         variant: "destructive",
       });
+      
       const anchor = document.getElementById(isFlightCheckout ? "passenger-details" : "guest-details");
       if (anchor && typeof anchor.scrollIntoView === "function") {
         anchor.scrollIntoView({ behavior: "smooth", block: "start" });
       }
       return;
     }
+    
+    console.log('Validation passed, proceeding to payment');
     goToPayment();
   };
 
@@ -180,7 +194,7 @@ const CheckoutPage = () => {
                   onClick={handleContinue} 
                   className="btn-primary h-12" 
                   size="lg"
-                  disabled={isFlightCheckout ? !passengerValid : !guestValid}
+                  disabled={isFlightCheckout ? (!passengerValid || !passenger) : (!guestValid || !guest)}
                 >
                   Continue to Payment
                 </Button>
