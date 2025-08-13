@@ -36,9 +36,11 @@ interface FareSelectionDialogProps {
   onOpenChange: (open: boolean) => void;
   flight: Flight;
   outbound?: Flight; // NEW: optional departing flight to combine totals and build roundtrip booking
+  tripType?: string;
+  returnFlights?: Flight[];
 }
 
-export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, onOpenChange, flight, outbound }) => {
+export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, onOpenChange, flight, outbound, tripType = "oneway", returnFlights = [] }) => {
   const { convert, formatCurrency, selectedCurrency } = useCurrency();
   const [selection, setSelection] = useState<"basic" | "flex">("basic");
 
@@ -60,9 +62,18 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
     return convert(outbound.price, outbound.currency);
   }, [outbound, convert]);
 
-  // Combined total if outbound is present
+  // Return flight pricing for round-trip estimates
+  const returnLocal = useMemo(() => {
+    if (tripType === "roundtrip" && returnFlights.length > 0 && !outbound) {
+      const cheapestReturn = returnFlights.reduce((min, f) => f.price < min.price ? f : min, returnFlights[0]);
+      return convert(cheapestReturn.price, cheapestReturn.currency);
+    }
+    return 0;
+  }, [tripType, returnFlights, outbound, convert]);
+
+  // Combined total if outbound is present or for round-trip estimates
   const selectedInboundTotal = selection === "flex" ? pricing.totals.flex : pricing.totals.basic;
-  const combinedTotal = outbound ? outboundLocal + selectedInboundTotal : selectedInboundTotal;
+  const combinedTotal = outbound ? outboundLocal + selectedInboundTotal : selectedInboundTotal + returnLocal;
 
   const inclusions = (
     <ul className="space-y-2 text-sm text-muted-foreground">
@@ -166,8 +177,13 @@ export const FareSelectionDialog: React.FC<FareSelectionDialogProps> = ({ open, 
                   ? {
                       outbound: { ...outbound, fareType: "basic" },
                       inbound: { ...flight, fareType: selection },
+                      tripType: "roundtrip"
                     }
-                  : { ...flight, fareType: selection }
+                  : { 
+                      ...flight, 
+                      fareType: selection,
+                      tripType 
+                    }
               }
               amount={combinedTotal}
               currency={selectedCurrency}

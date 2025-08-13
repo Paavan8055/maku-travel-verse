@@ -7,11 +7,20 @@ interface FlightLeg {
   fareType?: string;
 }
 
+interface FlightSegment {
+  id?: string;
+  fareType?: string;
+  origin?: string;
+  destination?: string;
+  departureDate?: string;
+}
+
 interface FlightBookingSummaryProps {
   tripType: string;
   isRoundtrip: boolean;
   outbound?: FlightLeg;
   inbound?: FlightLeg;
+  segments?: FlightSegment[]; // NEW: for multi-city
   amount: number;
   currency: string;
   carryOn?: string;
@@ -25,6 +34,7 @@ export const FlightBookingSummary = ({
   isRoundtrip,
   outbound,
   inbound,
+  segments,
   amount,
   currency,
   carryOn,
@@ -34,13 +44,13 @@ export const FlightBookingSummary = ({
 }: FlightBookingSummaryProps) => {
   const formatBagText = (text?: string) => (text ? text.replace(/_/g, " ") : "—");
 
-  // Adjust label: Roundtrip > Return flight (when leg=inbound) > One-way
-  const tripLabel =
-    isRoundtrip || tripType === "roundtrip"
-      ? "Roundtrip"
-      : currentLeg === "inbound"
-      ? "Return flight"
-      : "One-way";
+  // Adjust label: Multi-city > Roundtrip > Return flight (when leg=inbound) > One-way
+  const tripLabel = (() => {
+    if (tripType === "multicity") return "Multi-city";
+    if (isRoundtrip || tripType === "roundtrip") return "Roundtrip";
+    if (currentLeg === "inbound") return "Return flight";
+    return "One-way";
+  })();
 
   return (
     <div className="space-y-4">
@@ -62,7 +72,23 @@ export const FlightBookingSummary = ({
       </div>
 
       {/* Flight legs */}
-      {isRoundtrip ? (
+      {tripType === "multicity" && segments ? (
+        <div className="space-y-3">
+          {segments.map((segment, index) => (
+            <div key={index}>
+              <h4 className="font-medium">
+                Segment {index + 1} {segment.id ? `#${segment.id}` : ""}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                {segment.origin} → {segment.destination}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Fare: {segment.fareType ? segment.fareType.toUpperCase() : "—"}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : isRoundtrip ? (
         <div className="space-y-3">
           <div>
             <h4 className="font-medium">

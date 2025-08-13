@@ -63,6 +63,18 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
       <Button
         onClick={() => {
           if (bookingType === 'flight') {
+            // Handle different trip types
+            if (bookingData?.tripType === 'multicity' && bookingData?.segments) {
+              const params = new URLSearchParams({
+                tripType: 'multicity',
+                segments: JSON.stringify(bookingData.segments),
+                amount: String(amount),
+                currency
+              });
+              navigate(`/booking/baggage?${params.toString()}`);
+              return;
+            }
+
             // Detect roundtrip payload
             const isRoundtrip = bookingData && bookingData.outbound && bookingData.inbound;
             if (isRoundtrip) {

@@ -20,13 +20,23 @@ const FlightCheckout = () => {
   const hasOutboundId = params.get('outboundId');
   const hasInboundId = params.get('inboundId');
   const hasFlightId = params.get('flightId');
+  const hasSegments = params.get('segments');
 
   // Detect if we're on the return leg step
   const legParam = (params.get('leg') || params.get('phase') || params.get('step') || '').toLowerCase();
   const isReturnLeg = ['return', 'inbound'].includes(legParam) || Boolean(params.get('inboundId') || params.get('inboundFare'));
 
+  // Parse multi-city segments if available
+  const parseSegments = () => {
+    try {
+      return hasSegments ? JSON.parse(decodeURIComponent(hasSegments)) : [];
+    } catch {
+      return [];
+    }
+  };
+
   const flightParams = {
-    tripType: rawTripType || (hasOutboundId && hasInboundId ? 'roundtrip' : 'oneway'),
+    tripType: rawTripType || (hasOutboundId && hasInboundId ? 'roundtrip' : hasSegments ? 'multicity' : 'oneway'),
     isRoundtrip: rawTripType === 'roundtrip' || Boolean(hasOutboundId && hasInboundId),
     // One-way fallback values
     flightId: params.get('flightId') || '',
@@ -40,6 +50,8 @@ const FlightCheckout = () => {
       id: params.get('inboundId') || '',
       fareType: params.get('inboundFare') || ''
     },
+    // Multi-city segments
+    segments: parseSegments(),
     amount: Number(params.get('amount')) || 0,
     currency: params.get('currency') || 'USD',
     carryOn: params.get('carryOn') || '',
@@ -152,6 +164,7 @@ const FlightCheckout = () => {
                   isRoundtrip={flightParams.isRoundtrip}
                   outbound={flightParams.outbound}
                   inbound={flightParams.inbound}
+                  segments={flightParams.segments}
                   amount={flightParams.amount}
                   currency={flightParams.currency}
                   carryOn={flightParams.carryOn}

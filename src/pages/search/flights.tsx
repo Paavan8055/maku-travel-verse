@@ -705,8 +705,15 @@ const FlightSearchPage = () => {
                             <div className="text-right space-y-2">
                               <div>
                                 <div className="text-sm text-muted-foreground">from</div>
-                                <div className="text-xl font-bold text-primary">US${flight.price}</div>
-                                <div className="text-sm text-muted-foreground">Total round trip price</div>
+                                 <div className="text-xl font-bold text-primary">
+                                   US${tripType === "roundtrip" && filteredAndSortedReturnFlights.length > 0 
+                                     ? flight.price + Math.min(...filteredAndSortedReturnFlights.map(f => f.price))
+                                     : flight.price}
+                                 </div>
+                                 <div className="text-sm text-muted-foreground">
+                                   {tripType === "roundtrip" ? "Round-trip from" : 
+                                    tripType === "multicity" ? "Multi-city from" : "One-way from"}
+                                 </div>
                               </div>
                               <Button onClick={() => handleSelectFlight(flight, "outbound")} className="w-full">
                                 {tripType === "roundtrip" ? "Select departing flight" : "Select flight"}
@@ -903,7 +910,7 @@ const FlightSearchPage = () => {
                                 <div>
                                   <div className="text-sm text-muted-foreground">from</div>
                                   <div className="text-xl font-bold text-primary">US${flight.price}</div>
-                                  <div className="text-sm text-muted-foreground">Total round trip price</div>
+                                  <div className="text-sm text-muted-foreground">Return flight from</div>
                                 </div>
                                 <Button
                                   onClick={() => handleSelectFlight(flight, "inbound")}
@@ -1037,6 +1044,8 @@ const FlightSearchPage = () => {
           }}
           flight={fareFlight}
           outbound={isRoundtrip ? selectedOutbound ?? undefined : undefined}
+          tripType={tripType}
+          returnFlights={filteredAndSortedReturnFlights}
         />
       )}
     </div>

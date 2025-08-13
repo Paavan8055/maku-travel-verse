@@ -29,9 +29,12 @@ interface Flight {
 
 interface FlightCardProps {
   flight: Flight;
+  tripType?: string;
+  isRoundtrip?: boolean;
+  returnFlights?: Flight[];
 }
 
-export const FlightCard = ({ flight }: FlightCardProps) => {
+export const FlightCard = ({ flight, tripType = "oneway", isRoundtrip = false, returnFlights = [] }: FlightCardProps) => {
   const [fareOpen, setFareOpen] = useState(false);
 
   const handleSelectFlight = () => {
@@ -53,6 +56,35 @@ export const FlightCard = ({ flight }: FlightCardProps) => {
       default:
         return `${stops} stops`;
     }
+  };
+
+  // Calculate combined pricing based on trip type
+  const getCombinedPrice = () => {
+    if (tripType === "roundtrip" && isRoundtrip && returnFlights.length > 0) {
+      const cheapestReturn = returnFlights.reduce((min, f) => f.price < min.price ? f : min, returnFlights[0]);
+      return flight.price + cheapestReturn.price;
+    }
+    return flight.price;
+  };
+
+  const getPriceLabel = () => {
+    if (tripType === "roundtrip" && isRoundtrip) {
+      return "Round-trip from";
+    }
+    if (tripType === "multicity") {
+      return "Multi-city from";
+    }
+    return "One-way from";
+  };
+
+  const getButtonText = () => {
+    if (tripType === "roundtrip" && isRoundtrip) {
+      return "Select departing flight";
+    }
+    if (tripType === "multicity") {
+      return "Add to journey";
+    }
+    return "Select flight";
   };
 
   return (
@@ -130,18 +162,25 @@ export const FlightCard = ({ flight }: FlightCardProps) => {
           {/* Price and Select */}
           <div className="text-right space-y-2">
             <div>
+              <p className="text-xs text-muted-foreground">{getPriceLabel()}</p>
               <p className="text-2xl font-bold text-foreground">
-                {flight.currency}{flight.price}
+                {flight.currency}{getCombinedPrice()}
               </p>
               <p className="text-sm text-muted-foreground">per person</p>
             </div>
             <Button onClick={handleSelectFlight} className="w-full">
-              Select flight
+              {getButtonText()}
             </Button>
           </div>
         </div>
       </CardContent>
-      <FareSelectionDialog open={fareOpen} onOpenChange={setFareOpen} flight={flight} />
+      <FareSelectionDialog 
+        open={fareOpen} 
+        onOpenChange={setFareOpen} 
+        flight={flight}
+        tripType={tripType}
+        returnFlights={returnFlights}
+      />
     </Card>
   );
 };
