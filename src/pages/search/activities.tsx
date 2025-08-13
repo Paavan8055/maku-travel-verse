@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Filter, SortAsc, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,9 +10,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import { ActivityCard } from "@/features/search/components/ActivityCard";
 import { useActivitySearch } from "@/features/search/hooks/useActivitySearch";
+import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 
 const ActivitySearchPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("price");
   const [priceRange, setPriceRange] = useState([0, 300]);
   const [filters, setFilters] = useState({
@@ -24,10 +26,23 @@ const ActivitySearchPage = () => {
     accessibility: [] as string[]
   });
 
+  // State for search bar
+  const [destination, setDestination] = useState(searchParams.get("destination") || "");
+  const [checkIn, setCheckIn] = useState(() => {
+    const dateStr = searchParams.get("checkIn");
+    return dateStr ? new Date(dateStr) : new Date();
+  });
+  const [checkOut, setCheckOut] = useState(() => {
+    const dateStr = searchParams.get("checkOut");
+    return dateStr ? new Date(dateStr) : new Date();
+  });
+  const [adults, setAdults] = useState(parseInt(searchParams.get("adults") || "2"));
+  const [children, setChildren] = useState(parseInt(searchParams.get("children") || "0"));
+
   const searchCriteria = {
-    destination: searchParams.get("destination") || "",
-    date: searchParams.get("checkIn") || "",
-    participants: parseInt(searchParams.get("guests") || "2")
+    destination: destination || "",
+    date: checkIn.toISOString().split('T')[0],
+    participants: adults + children
   };
 
   const { activities, loading, error } = useActivitySearch(searchCriteria);
@@ -63,17 +78,45 @@ const ActivitySearchPage = () => {
     }
   };
 
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (destination) params.set("destination", destination);
+    if (checkIn) params.set("checkIn", checkIn.toISOString().split('T')[0]);
+    if (checkOut) params.set("checkOut", checkOut.toISOString().split('T')[0]);
+    if (adults > 0) params.set("adults", adults.toString());
+    if (children > 0) params.set("children", children.toString());
+    
+    navigate(`/search/activities?${params.toString()}`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
+        {/* Search Bar */}
+        <div className="mb-8">
+          <ActivitySearchBar
+            destination={destination}
+            setDestination={setDestination}
+            checkIn={checkIn}
+            setCheckIn={setCheckIn}
+            checkOut={checkOut}
+            setCheckOut={setCheckOut}
+            adults={adults}
+            setAdults={setAdults}
+            children={children}
+            setChildren={setChildren}
+            onSearch={handleSearch}
+          />
+        </div>
+
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Activities in {searchParams.get("destination")}
+            Activities in {destination || "your destination"}
           </h1>
           <p className="text-muted-foreground">
-            {searchParams.get("checkIn")} • {searchParams.get("guests")} participant(s)
+            {checkIn && `${checkIn.toLocaleDateString()} • `}{adults + children} participant(s)
           </p>
         </div>
 

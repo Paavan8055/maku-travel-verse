@@ -42,7 +42,9 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!criteria.destination || !criteria.date) {
+    if (!criteria.destination) {
+      // Always show mock data for development
+      setActivities(generateMockActivities(criteria));
       return;
     }
 
