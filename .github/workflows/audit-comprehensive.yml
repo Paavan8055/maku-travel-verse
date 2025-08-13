@@ -1,0 +1,78 @@
+name: Comprehensive OTA Audit - Weekly
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'  # Every Monday at 4 AM UTC
+  workflow_dispatch:
+
+jobs:
+  comprehensive-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install
+
+      - name: Security Audit
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/audit/security-scanner.js
+
+      - name: API Health Check
+        env:
+          AMADEUS_API_KEY: ${{ secrets.AMADEUS_API_KEY }}
+          HOTELBEDS_API_KEY: ${{ secrets.HOTELBEDS_API_KEY }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/audit/api-health.js
+
+      - name: End-to-End Flow Testing
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+        run: node scripts/audit/flow-tester.js
+
+      - name: Performance Audit
+        run: node scripts/audit/performance-audit.js
+
+      - name: Code Quality Analysis
+        run: node scripts/audit/code-quality-analyzer.js
+
+      - name: Competitor Analysis
+        run: node scripts/audit/competitor-analyzer.js
+
+      - name: Generate Comprehensive Report
+        run: node scripts/audit/comprehensive-report-generator.js
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-audit-${{ github.run_number }}
+          path: reports/
+
+      - name: Commit Reports to Repository
+        run: |
+          git config --local user.email "audit-bot@maku.travel"
+          git config --local user.name "Maku Audit Bot"
+          git add reports/
+          git commit -m "📊 Weekly Audit Report $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git push
+
+      - name: Send Slack Notification
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: node scripts/audit/slack-notifier.js
