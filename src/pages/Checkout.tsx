@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -32,13 +31,50 @@ const CheckoutPage = () => {
     }
   }
   
+  // Extract search parameters for dates and guests
+  const checkInParam = urlParams.get('checkin') || urlParams.get('checkIn');
+  const checkOutParam = urlParams.get('checkout') || urlParams.get('checkOut');
+  const roomsParam = urlParams.get('rooms');
+  const adultsParam = urlParams.get('adults');
+  const childrenParam = urlParams.get('children');
+  
+  // Parse dates
+  let checkInDate = "Mar 15, 2025";
+  let checkOutDate = "Mar 22, 2025";
+  let nights = 7;
+  let totalGuests = 2;
+  
+  if (checkInParam && checkOutParam) {
+    try {
+      checkInDate = new Date(checkInParam).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      checkOutDate = new Date(checkOutParam).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      
+      const checkIn = new Date(checkInParam);
+      const checkOut = new Date(checkOutParam);
+      nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    } catch (error) {
+      console.error('Failed to parse dates:', error);
+    }
+  }
+  
+  if (adultsParam) {
+    totalGuests = parseInt(adultsParam) + (childrenParam ? parseInt(childrenParam) : 0);
+  }
+  
   // Build booking details for hotel flow from URL hotel data and stored selections
   let selection: any = null;
   try { 
     selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); 
   } catch {}
 
-  const nights = 7;
   const baseNightly = hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
   const basePrice = baseNightly * nights;
   const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
@@ -51,10 +87,10 @@ const CheckoutPage = () => {
     extraBeds: Number(selection?.extraBeds || 0),
     rollaway: Boolean(selection?.rollaway),
     sofaBed: Boolean(selection?.sofaBed),
-    checkIn: "Mar 15, 2025",
-    checkOut: "Mar 22, 2025",
+    checkIn: checkInDate,
+    checkOut: checkOutDate,
     nights,
-    guests: 2,
+    guests: totalGuests,
     basePrice,
     extrasPrice,
     fundContribution,
@@ -275,7 +311,7 @@ const CheckoutPage = () => {
                       </div>
                       <div>
                         <p className="text-muted-foreground">Guests</p>
-                        <p className="font-medium">{bookingDetails.guests} adults</p>
+                        <p className="font-medium">{bookingDetails.guests} {bookingDetails.guests === 1 ? 'guest' : 'guests'}</p>
                       </div>
                     </div>
                     
