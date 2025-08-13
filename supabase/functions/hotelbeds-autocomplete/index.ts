@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createHash } from "https://deno.land/std@0.190.0/crypto/crypto.ts";
+import { createHash } from "https://deno.land/std@0.190.0/hash/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -69,8 +69,7 @@ serve(async (req) => {
     const qLower = q.toLowerCase();
     const max = Number.isFinite(limit) ? Math.min(Number(limit), 20) : 12;
 
-    // Fetch a small window of content data then filter locally
-    // Destinations
+    // Destinations (cities)
     let destinations: Suggestion[] = [];
     try {
       const destPayload = await hbFetch(`/locations/destinations?fields=all&language=ENG&from=1&to=200`);
@@ -100,12 +99,11 @@ serve(async (req) => {
         .slice(0, max)
         .map((h: any): Suggestion => {
           const name = h?.name?.content || "";
-          // Basic location fields vary by dataset; attempt to derive a reasonable city/country string
           const city = h?.city?.content || h?.city || h?.destinationName || undefined;
           const country = h?.countryCode || "";
           return {
             id: `hb-hotel-${h?.code}`,
-            name: city || name, // Important: parent components often store `name` into the search field
+            name: city || name,
             city: city || undefined,
             country,
             type: "hotel",
@@ -118,7 +116,6 @@ serve(async (req) => {
 
     // Merge results, prioritize destinations (cities), then hotels
     const merged: Suggestion[] = [...destinations, ...hotels];
-    // Deduplicate by display string
     const seen = new Set<string>();
     const unique = merged.filter((s) => {
       const key = (s.displayName || s.name || s.id).toLowerCase();

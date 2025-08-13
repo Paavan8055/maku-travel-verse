@@ -136,11 +136,11 @@ export const DestinationAutocomplete = ({
       setLoading(true);
       const timeoutId = setTimeout(async () => {
         try {
-          // 1) Amadeus cities/airports
+          // 1) Amadeus cities ONLY (no airports)
           const { data, error } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
             body: {
               query: q,
-              types: ['CITY', 'AIRPORT'],
+              types: ['CITY'], // changed from ['CITY','AIRPORT'] to only CITY
               limit: 8
             }
           });
@@ -148,7 +148,6 @@ export const DestinationAutocomplete = ({
           let merged: Destination[] = [];
           if (!error && data && Array.isArray(data.results)) {
             merged = (data.results as Destination[]).map((d) => {
-              // Attach a helpful displayName without changing `name` (often plain city)
               const cityOrName = d.city || d.name;
               const alreadyHasCode = /\([A-Z]{3}\)/.test(d.name);
               const withCode = d.code && d.type === "airport" && !alreadyHasCode
@@ -165,8 +164,6 @@ export const DestinationAutocomplete = ({
             });
             if (hb?.data?.results && Array.isArray(hb.data.results)) {
               const hbResults = (hb.data.results as Destination[]).map((d) => {
-                // For hotels: keep `name` as city (so parent search by destination remains functional),
-                // and use displayName as "Hotel — City"
                 if (d.type === "hotel" && d.displayName) return d;
                 if (d.type === "city") {
                   return { ...d, displayName: d.displayName || d.name };
@@ -183,32 +180,17 @@ export const DestinationAutocomplete = ({
               merged = Array.from(byKey.values()).slice(0, 12);
             }
           } catch (e) {
-            // ignore HB errors, keep Amadeus results
             console.warn("hotelbeds-autocomplete failed, using Amadeus-only suggestions", e);
           }
 
           if (!active) return;
 
-          // 3) Fallback to airports dataset if nothing found
+          // Filter out any airports defensively
+          merged = merged.filter((d) => d.type !== "airport");
+
+          // 3) No airport fallback; if nothing, show empty state
           if (merged.length === 0) {
-            const qLower = q.toLowerCase();
-            const global = await loadGlobalAirports();
-            const dataset: Destination[] = global && global.length > 0 ? global : AIRPORTS.map(a => {
-              const d: Destination = {
-                id: a.iata,
-                name: `${a.city} (${a.iata}) - ${a.name}`,
-                city: a.city,
-                country: a.country,
-                code: a.iata,
-                type: 'airport' as const
-              };
-              (d as any)._s = buildSearchKey(d);
-              return d;
-            });
-            const matches = dataset
-              .filter(d => ((d as any)._s as string).includes(qLower))
-              .slice(0, 12);
-            setSuggestions(matches);
+            setSuggestions([]);
             setShowSuggestions(true);
             setLoading(false);
             return;
@@ -219,26 +201,9 @@ export const DestinationAutocomplete = ({
           setLoading(false);
           return;
         } catch (_) {
-          // If everything fails, try airports fallback
-          const qLower = q.toLowerCase();
-          const global = await loadGlobalAirports();
-          const dataset: Destination[] = global && global.length > 0 ? global : AIRPORTS.map(a => {
-            const d: Destination = {
-              id: a.iata,
-              name: `${a.city} (${a.iata}) - ${a.name}`,
-              city: a.city,
-              country: a.country,
-              code: a.iata,
-              type: 'airport' as const
-            };
-            (d as any)._s = buildSearchKey(d);
-            return d;
-          });
+          // If everything fails, do NOT fallback to airports dataset
           if (!active) return;
-          const matches = dataset
-            .filter(d => ((d as any)._s as string).includes(qLower))
-            .slice(0, 12);
-          setSuggestions(matches);
+          setSuggestions([]);
           setShowSuggestions(true);
           setLoading(false);
         }
