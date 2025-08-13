@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -18,16 +19,33 @@ const CheckoutPage = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Build booking details for hotel flow from stored selections
+  // Parse hotel data from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const hotelParam = urlParams.get('hotel');
+  
+  let hotelData: any = null;
+  if (hotelParam) {
+    try {
+      hotelData = JSON.parse(decodeURIComponent(hotelParam));
+    } catch (error) {
+      console.error('Failed to parse hotel data from URL:', error);
+    }
+  }
+  
+  // Build booking details for hotel flow from URL hotel data and stored selections
   let selection: any = null;
-  try { selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); } catch {}
+  try { 
+    selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); 
+  } catch {}
+
   const nights = 7;
-  const baseNightly = Number(selection?.nightlyPrice || 450);
+  const baseNightly = hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
   const basePrice = baseNightly * nights;
   const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
   const fundContribution = Number(selection?.fundContribution || 50);
+  
   const bookingDetails = {
-    hotel: selection?.hotelName || "Ocean Breeze Resort",
+    hotel: hotelData?.name || selection?.hotelName || "Ocean Breeze Resort",
     room: selection?.roomName || "Deluxe Ocean View",
     bedType: selection?.bedType as string | undefined,
     extraBeds: Number(selection?.extraBeds || 0),
@@ -40,7 +58,8 @@ const CheckoutPage = () => {
     basePrice,
     extrasPrice,
     fundContribution,
-    total: basePrice + extrasPrice + fundContribution
+    total: basePrice + extrasPrice + fundContribution,
+    currency: hotelData?.currency || '$'
   };
 
   // Updated flight params parsing to support roundtrip and cases where flightId may be empty
@@ -264,19 +283,23 @@ const CheckoutPage = () => {
                     <div className="border-t pt-4 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Room ({bookingDetails.nights} nights)</span>
-                        <span>${bookingDetails.basePrice}</span>
+                        <span>{bookingDetails.currency}{bookingDetails.basePrice}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Extras & Services</span>
-                        <span>${bookingDetails.extrasPrice}</span>
-                      </div>
-                      <div className="flex justify-between text-sm text-primary">
-                        <span>Fund Contribution</span>
-                        <span>+${bookingDetails.fundContribution}</span>
-                      </div>
+                      {bookingDetails.extrasPrice > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Extras & Services</span>
+                          <span>{bookingDetails.currency}{bookingDetails.extrasPrice}</span>
+                        </div>
+                      )}
+                      {bookingDetails.fundContribution > 0 && (
+                        <div className="flex justify-between text-sm text-primary">
+                          <span>Fund Contribution</span>
+                          <span>+{bookingDetails.currency}{bookingDetails.fundContribution}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-bold text-lg pt-2 border-t">
                         <span>Total</span>
-                        <span>${bookingDetails.total}</span>
+                        <span>{bookingDetails.currency}{bookingDetails.total}</span>
                       </div>
                     </div>
                     
