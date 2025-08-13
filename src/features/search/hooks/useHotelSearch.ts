@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Import hotel images
+import shangriLaImg from "@/assets/hotel-shangri-la.jpg";
+import parkHyattImg from "@/assets/hotel-park-hyatt.jpg";
+import boutiqueImg from "@/assets/hotel-boutique.jpg";
+import budgetImg from "@/assets/hotel-budget.jpg";
+
 interface HotelSearchCriteria {
   destination: string;
   checkIn: string;
@@ -107,15 +113,15 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
 
 // Mock data generator for development
 const generateMockHotels = (criteria: HotelSearchCriteria): Hotel[] => {
-  const hotelNames = [
-    "Shangri-La Sydney",
-    "Park Hyatt Sydney",
-    "Four Seasons Sydney",
-    "The Langham Sydney",
-    "InterContinental Sydney",
-    "Hilton Sydney",
-    "Marriott Sydney Harbour",
-    "Swissotel Sydney"
+  const hotelData = [
+    { name: "Shangri-La Sydney", image: shangriLaImg },
+    { name: "Park Hyatt Sydney", image: parkHyattImg },
+    { name: "Four Seasons Sydney", image: boutiqueImg },
+    { name: "The Langham Sydney", image: shangriLaImg },
+    { name: "InterContinental Sydney", image: parkHyattImg },
+    { name: "Hilton Sydney", image: budgetImg },
+    { name: "Marriott Sydney Harbour", image: boutiqueImg },
+    { name: "Swissotel Sydney", image: budgetImg }
   ];
 
   const propertyTypes = ["Hotel", "Resort", "Boutique", "Apartment"];
@@ -127,7 +133,7 @@ const generateMockHotels = (criteria: HotelSearchCriteria): Hotel[] => {
   const checkOutDate = new Date(criteria.checkOut);
   const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
 
-  for (let i = 0; i < hotelNames.length; i++) {
+  for (let i = 0; i < hotelData.length; i++) {
     const basePrice = 150 + Math.random() * 350;
     const starRating = Math.floor(Math.random() * 3) + 3; // 3-5 stars
     const rating = 3.5 + Math.random() * 1.5; // 3.5-5.0 rating
@@ -135,10 +141,10 @@ const generateMockHotels = (criteria: HotelSearchCriteria): Hotel[] => {
     
     hotels.push({
       id: `hotel-${i + 1}`,
-      name: hotelNames[i],
-      description: `Experience luxury and comfort at ${hotelNames[i]}, perfectly located in the heart of ${criteria.destination}. Enjoy stunning views, world-class amenities, and exceptional service.`,
+      name: hotelData[i].name,
+      description: `Experience luxury and comfort at ${hotelData[i].name}, perfectly located in the heart of ${criteria.destination}. Enjoy stunning views, world-class amenities, and exceptional service.`,
       address: `${Math.floor(Math.random() * 500) + 1} ${criteria.destination} Street, ${criteria.destination}`,
-      images: ["/placeholder.svg"],
+      images: [hotelData[i].image],
       starRating,
       rating: Math.round(rating * 10) / 10,
       reviewCount: Math.floor(Math.random() * 2000) + 100,

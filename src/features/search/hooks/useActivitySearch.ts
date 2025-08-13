@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Import activity images
+import bridgeClimbImg from "@/assets/activity-bridge-climb.jpg";
+import blueMountainsImg from "@/assets/activity-blue-mountains.jpg";
+import operaHouseImg from "@/assets/activity-opera-house.jpg";
+import surfingImg from "@/assets/activity-surfing.jpg";
+import wineTastingImg from "@/assets/activity-wine-tasting.jpg";
+
 interface ActivitySearchCriteria {
   destination: string;
   date: string;
@@ -92,17 +99,17 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
 
 // Mock data generator for development
 const generateMockActivities = (criteria: ActivitySearchCriteria): Activity[] => {
-  const activityTitles = [
-    "Sydney Harbour Bridge Climb",
-    "Blue Mountains Day Tour",
-    "Sydney Opera House Tour",
-    "Whale Watching Cruise",
-    "Bondi Beach Surfing Lesson",
-    "Hunter Valley Wine Tasting",
-    "Sydney Food Walking Tour",
-    "Manly Beach Kayaking",
-    "Royal Botanic Gardens Tour",
-    "Harbour Jet Boat Ride"
+  const activityData = [
+    { title: "Sydney Harbour Bridge Climb", image: bridgeClimbImg },
+    { title: "Blue Mountains Day Tour", image: blueMountainsImg },
+    { title: "Sydney Opera House Tour", image: operaHouseImg },
+    { title: "Whale Watching Cruise", image: "/placeholder.svg" },
+    { title: "Bondi Beach Surfing Lesson", image: surfingImg },
+    { title: "Hunter Valley Wine Tasting", image: wineTastingImg },
+    { title: "Sydney Food Walking Tour", image: "/placeholder.svg" },
+    { title: "Manly Beach Kayaking", image: "/placeholder.svg" },
+    { title: "Royal Botanic Gardens Tour", image: "/placeholder.svg" },
+    { title: "Harbour Jet Boat Ride", image: "/placeholder.svg" }
   ];
 
   const categories = ["Adventure", "Cultural", "Food & Drink", "Nature", "Sightseeing", "Water Sports"];
@@ -111,7 +118,7 @@ const generateMockActivities = (criteria: ActivitySearchCriteria): Activity[] =>
 
   const activities: Activity[] = [];
 
-  for (let i = 0; i < activityTitles.length; i++) {
+  for (let i = 0; i < activityData.length; i++) {
     const basePrice = 50 + Math.random() * 250;
     const durationHours = Math.floor(Math.random() * 8) + 1;
     const rating = 3.5 + Math.random() * 1.5;
@@ -137,11 +144,11 @@ const generateMockActivities = (criteria: ActivitySearchCriteria): Activity[] =>
 
     activities.push({
       id: `activity-${i + 1}`,
-      title: activityTitles[i],
-      description: `Join us for an unforgettable ${activityTitles[i].toLowerCase()} experience in ${criteria.destination}. Perfect for ${category.toLowerCase()} enthusiasts of all levels.`,
+      title: activityData[i].title,
+      description: `Join us for an unforgettable ${activityData[i].title.toLowerCase()} experience in ${criteria.destination}. Perfect for ${category.toLowerCase()} enthusiasts of all levels.`,
       provider: providers[Math.floor(Math.random() * providers.length)],
       location: `${criteria.destination}, NSW`,
-      images: ["/placeholder.svg"],
+      images: [activityData[i].image],
       category,
       price: Math.round(basePrice),
       currency: "$",
