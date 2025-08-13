@@ -22,11 +22,22 @@ const BookingSelectPage = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const hotelParam = urlParams.get('hotel');
   
-  // Extract search parameters
-  const checkInParam = urlParams.get('checkin');
-  const checkOutParam = urlParams.get('checkout');
+  console.log('BookingSelect URL params:', Object.fromEntries(urlParams.entries()));
+  
+  // Extract search parameters with multiple possible names
+  const checkInParam = urlParams.get('checkin') || urlParams.get('checkIn');
+  const checkOutParam = urlParams.get('checkout') || urlParams.get('checkOut');
   const adultsParam = urlParams.get('adults');
   const childrenParam = urlParams.get('children');
+  const roomsParam = urlParams.get('rooms');
+  
+  console.log('Extracted search params:', {
+    checkIn: checkInParam,
+    checkOut: checkOutParam,
+    adults: adultsParam,
+    children: childrenParam,
+    rooms: roomsParam
+  });
   
   // Try to get search criteria from session storage as fallback
   let searchCriteria: any = {};
@@ -34,22 +45,31 @@ const BookingSelectPage = () => {
     const stored = sessionStorage.getItem('hotelSearchCriteria');
     if (stored) {
       searchCriteria = JSON.parse(stored);
+      console.log('Search criteria from session storage:', searchCriteria);
     }
   } catch (error) {
     console.error('Failed to parse search criteria:', error);
   }
   
-  // Use URL params first, then fallback to session storage
+  // Use URL params first, then fallback to session storage, then defaults
   const checkIn = checkInParam || searchCriteria.checkin;
   const checkOut = checkOutParam || searchCriteria.checkout;
   const adults = parseInt(adultsParam || searchCriteria.adults || '2');
   const children = parseInt(childrenParam || searchCriteria.children || '0');
   const totalGuests = adults + children;
   
-  // Calculate nights
-  let nights = 7; // default
-  let checkInDate = "Mar 15, 2025"; // default
-  let checkOutDate = "Mar 22, 2025"; // default
+  console.log('Final values used:', {
+    checkIn,
+    checkOut,
+    adults,
+    children,
+    totalGuests
+  });
+  
+  // Calculate nights and format dates
+  let nights = 2; // default to 2 nights as per user's selection
+  let checkInDate = "Today"; // default
+  let checkOutDate = "Tomorrow"; // default
   
   if (checkIn && checkOut) {
     try {
@@ -67,9 +87,18 @@ const BookingSelectPage = () => {
         day: 'numeric', 
         year: 'numeric' 
       });
+      
+      console.log('Calculated nights and dates:', {
+        nights,
+        checkInDate,
+        checkOutDate
+      });
     } catch (error) {
       console.error('Failed to parse dates:', error);
+      // Keep defaults
     }
+  } else {
+    console.warn('Missing check-in or check-out dates, using defaults');
   }
   
   let hotel: any = {
@@ -98,6 +127,7 @@ const BookingSelectPage = () => {
         reviews: decodedHotel.reviewCount || hotel.reviews,
         verified: true
       };
+      console.log('Parsed hotel data:', hotel);
     } catch (error) {
       console.error('Failed to parse hotel data from URL:', error);
     }
@@ -109,9 +139,9 @@ const BookingSelectPage = () => {
       name: "Deluxe Ocean View",
       size: "35 sqm",
       guests: 2,
-      price: 450,
-      originalPrice: 580,
-      savings: 130,
+      price: hotel.pricePerNight || 450,
+      originalPrice: Math.round((hotel.pricePerNight || 450) * 1.3),
+      savings: Math.round((hotel.pricePerNight || 450) * 0.3),
       amenities: ["King Bed", "Ocean View", "Balcony", "Free WiFi"],
       availability: "Last 3 rooms",
       image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&h=300&fit=crop"
@@ -121,9 +151,9 @@ const BookingSelectPage = () => {
       name: "Presidential Suite",
       size: "75 sqm",
       guests: 4,
-      price: 850,
-      originalPrice: 1200,
-      savings: 350,
+      price: Math.round((hotel.pricePerNight || 450) * 1.9),
+      originalPrice: Math.round((hotel.pricePerNight || 450) * 2.7),
+      savings: Math.round((hotel.pricePerNight || 450) * 0.8),
       amenities: ["Master Bedroom", "Living Room", "Kitchen", "Ocean View", "Private Balcony"],
       availability: "2 rooms left",
       image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop"
@@ -161,7 +191,10 @@ const BookingSelectPage = () => {
         totalGuests
       };
       sessionStorage.setItem('hotelBookingSelections', JSON.stringify(selections));
-    } catch {}
+      console.log('Saved booking selections:', selections);
+    } catch (error) {
+      console.error('Failed to save booking selections:', error);
+    }
 
     // Pass search parameters to checkout
     const checkoutParams = new URLSearchParams();
@@ -171,6 +204,7 @@ const BookingSelectPage = () => {
     if (children) checkoutParams.set('children', children.toString());
     
     const checkoutUrl = `/booking/checkout${checkoutParams.toString() ? '?' + checkoutParams.toString() : ''}`;
+    console.log('Navigating to checkout:', checkoutUrl);
     window.location.href = checkoutUrl;
   };
 

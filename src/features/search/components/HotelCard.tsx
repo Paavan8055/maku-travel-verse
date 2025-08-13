@@ -37,8 +37,10 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
 
   const handleSelectHotel = () => {
-    // Get current search parameters to preserve them
+    // Get ALL current search parameters to preserve them
     const currentUrlParams = new URLSearchParams(window.location.search);
+    
+    console.log('Current URL params when selecting hotel:', Object.fromEntries(currentUrlParams.entries()));
     
     // Pass hotel data via URL params for the booking select page
     const hotelData = encodeURIComponent(JSON.stringify({
@@ -61,27 +63,43 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
       deals: hotel.deals
     }));
     
-    // Preserve search parameters
+    // Create new search parameters starting with hotel data
     const searchParams = new URLSearchParams();
     searchParams.set('hotel', hotelData);
     
-    // Copy over search parameters if they exist
-    ['checkin', 'checkout', 'adults', 'children', 'rooms'].forEach(param => {
+    // Preserve ALL existing search parameters
+    ['checkin', 'checkout', 'adults', 'children', 'rooms', 'destination', 'q'].forEach(param => {
       const value = currentUrlParams.get(param);
       if (value) {
         searchParams.set(param, value);
+        console.log(`Preserving ${param}:`, value);
       }
     });
     
-    // Store search parameters in session storage as fallback
+    // Also check for alternative parameter names
+    const checkInValue = currentUrlParams.get('checkIn') || currentUrlParams.get('checkin');
+    const checkOutValue = currentUrlParams.get('checkOut') || currentUrlParams.get('checkout');
+    
+    if (checkInValue) {
+      searchParams.set('checkin', checkInValue);
+      console.log('Preserving checkIn as checkin:', checkInValue);
+    }
+    if (checkOutValue) {
+      searchParams.set('checkout', checkOutValue);
+      console.log('Preserving checkOut as checkout:', checkOutValue);
+    }
+    
+    // Store comprehensive search parameters in session storage as fallback
     const searchCriteria = {
-      checkin: currentUrlParams.get('checkin'),
-      checkout: currentUrlParams.get('checkout'),
+      checkin: checkInValue || currentUrlParams.get('checkin'),
+      checkout: checkOutValue || currentUrlParams.get('checkout'),
       adults: currentUrlParams.get('adults') || '2',
       children: currentUrlParams.get('children') || '0',
       rooms: currentUrlParams.get('rooms') || '1',
-      destination: currentUrlParams.get('destination') || currentUrlParams.get('q')
+      destination: currentUrlParams.get('destination') || currentUrlParams.get('q') || 'Sydney'
     };
+    
+    console.log('Storing search criteria in session storage:', searchCriteria);
     
     try {
       sessionStorage.setItem('hotelSearchCriteria', JSON.stringify(searchCriteria));
@@ -89,7 +107,9 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
       console.error('Failed to save search criteria:', error);
     }
     
-    navigate(`/booking/select?${searchParams.toString()}`);
+    const finalUrl = `/booking/select?${searchParams.toString()}`;
+    console.log('Navigating to:', finalUrl);
+    navigate(finalUrl);
   };
 
   const getAmenityIcon = (amenity: string) => {
