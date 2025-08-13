@@ -49,9 +49,11 @@ const Navbar = () => {
             className="flex items-center space-x-2 cursor-pointer" 
             onClick={() => navigate('/')}
           >
-            <div className="text-2xl font-bold font-cursive bg-gradient-to-r from-travel-sky to-travel-ocean bg-clip-text text-transparent">
-              MAKU
-            </div>
+            <img 
+              src="/lovable-uploads/49f86b14-baf6-497a-bd6a-24f68060b8ea.png" 
+              alt="MAKU.TRAVEL Logo" 
+              className="h-10 w-auto"
+            />
           </div>
 
           {/* Desktop Navigation */}
