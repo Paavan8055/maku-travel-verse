@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
+import HotelGuestForm, { HotelGuestFormData } from "@/features/booking/components/HotelGuestForm";
 import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
 import { useToast } from "@/hooks/use-toast";
 
 const CheckoutPage = () => {
   const [passengerValid, setPassengerValid] = useState(false);
   const [passenger, setPassenger] = useState<PassengerFormData | null>(null);
+  const [guestValid, setGuestValid] = useState(false);
+  const [guest, setGuest] = useState<HotelGuestFormData | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -85,8 +88,10 @@ const CheckoutPage = () => {
 
   const goToPayment = () => {
     try {
-      if (passengerValid && passenger) {
+      if (isFlightCheckout && passengerValid && passenger) {
         sessionStorage.setItem('passengerInfo', JSON.stringify(passenger));
+      } else if (!isFlightCheckout && guestValid && guest) {
+        sessionStorage.setItem('guestInfo', JSON.stringify(guest));
       }
     } catch (e) {
       // no-op
@@ -98,13 +103,16 @@ const CheckoutPage = () => {
 
   // New: gated continue handler with toast + smooth scroll
   const handleContinue = () => {
-    if (!passengerValid) {
+    const isValidForBookingType = isFlightCheckout ? passengerValid : guestValid;
+    
+    if (!isValidForBookingType) {
+      const formType = isFlightCheckout ? "passenger" : "guest";
       toast({
-        title: "Complete passenger details",
-        description: "Please fill all required fields (except middle name and gender) before continuing.",
+        title: `Complete ${formType} details`,
+        description: `Please fill all required fields before continuing.`,
         variant: "destructive",
       });
-      const anchor = document.getElementById("passenger-details");
+      const anchor = document.getElementById(isFlightCheckout ? "passenger-details" : "guest-details");
       if (anchor && typeof anchor.scrollIntoView === "function") {
         anchor.scrollIntoView({ behavior: "smooth", block: "start" });
       }
@@ -136,10 +144,16 @@ const CheckoutPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Payment Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Passenger Details */}
-            <div id="passenger-details">
-              <PassengerDetailsForm onChange={(data, valid) => { setPassenger(data); setPassengerValid(valid); }} />
-            </div>
+            {/* Form Details - conditional based on booking type */}
+            {isFlightCheckout ? (
+              <div id="passenger-details">
+                <PassengerDetailsForm onChange={(data, valid) => { setPassenger(data); setPassengerValid(valid); }} />
+              </div>
+            ) : (
+              <div id="guest-details">
+                <HotelGuestForm onChange={(valid, data) => { setGuest(data); setGuestValid(valid); }} />
+              </div>
+            )}
 
             {/* Payment Method */}
             {/* Next step CTA: Payment */}

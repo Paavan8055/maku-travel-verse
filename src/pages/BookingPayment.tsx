@@ -142,15 +142,18 @@ const BookingPaymentPage = () => {
       setInitError(null);
 
       let passenger: any = null;
+      let guest: any = null;
       try {
         passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
+        guest = JSON.parse(sessionStorage.getItem('guestInfo') || 'null');
       } catch {}
 
+      const person = passenger || guest;
       const customerInfo = {
-        email: passenger?.email || 'guest@example.com',
-        firstName: passenger?.firstName || 'GUEST',
-        lastName: passenger?.lastName || 'USER',
-        phone: passenger?.phone,
+        email: person?.email || 'guest@example.com',
+        firstName: person?.firstName || 'GUEST',
+        lastName: person?.lastName || 'USER',
+        phone: person?.phone,
       };
 
       const { data, error } = await supabase.functions.invoke('create-card-payment-intent', {
@@ -199,15 +202,18 @@ const BookingPaymentPage = () => {
     if (!agreeToTerms) return;
 
     let passenger: any = null;
+    let guest: any = null;
     try {
       passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
+      guest = JSON.parse(sessionStorage.getItem('guestInfo') || 'null');
     } catch {}
 
+    const person = passenger || guest;
     const customerInfo = {
-      email: passenger?.email || 'guest@example.com',
-      firstName: passenger?.firstName || 'GUEST',
-      lastName: passenger?.lastName || 'USER',
-      phone: passenger?.phone,
+      email: person?.email || 'guest@example.com',
+      firstName: person?.firstName || 'GUEST',
+      lastName: person?.lastName || 'USER',
+      phone: person?.phone,
     };
 
     // If using on-site card collection (Stripe Elements)
