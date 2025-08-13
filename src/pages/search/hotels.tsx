@@ -12,6 +12,7 @@ import SearchHeaderBand from "@/components/search/SearchHeaderBand";
 import MemberPriceBanner from "@/components/search/MemberPriceBanner";
 import SortChips from "@/components/search/SortChips";
 import MapPreviewCard from "@/components/search/MapPreviewCard";
+import HotelSearchBar from "@/components/search/HotelSearchBar";
 const HotelSearchPage = () => {
   const [searchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState("price");
@@ -88,11 +89,9 @@ const HotelSearchPage = () => {
       
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header with Search Actions */}
-        
+        <HotelSearchBar />
 
         {/* Guest Reviews Section */}
-        
-
         {/* Search Results with Enhanced Layout */}
         <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
               <SearchHeaderBand destination={searchCriteria.destination} checkIn={searchCriteria.checkIn} checkOut={searchCriteria.checkOut} guests={searchCriteria.guests} />
