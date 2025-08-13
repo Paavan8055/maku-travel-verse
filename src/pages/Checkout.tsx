@@ -253,7 +253,10 @@ const CheckoutPage = () => {
                 <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
                 <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
                 <Button 
-                  onClick={handleContinue} 
+                  onClick={() => {
+                    console.log('Button clicked - main button');
+                    handleContinue();
+                  }} 
                   className="btn-primary h-12" 
                   size="lg"
                   disabled={isFlightCheckout ? (!passengerValid || !passenger) : (!guestValid || !guest)}
@@ -358,7 +361,12 @@ const CheckoutPage = () => {
                 )}
 
                 <Button 
-                  onClick={handleContinue}
+                  onClick={() => {
+                    console.log('Button clicked - sidebar button');
+                    console.log('Current URL:', window.location.href);
+                    console.log('isFlightCheckout:', isFlightCheckout);
+                    handleContinue();
+                  }}
                   className="w-full mt-6 btn-primary h-12"
                 >
                   Continue to Payment
