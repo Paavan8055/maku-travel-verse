@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createHash } from "https://deno.land/std@0.190.0/hash/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,10 +19,14 @@ type Suggestion = {
 
 const CONTENT_BASE = "https://api.test.hotelbeds.com/hotel-content-api/1.0";
 
-const generateHotelBedsSignature = (apiKey: string, secret: string, timestamp: number): string => {
+// Use Web Crypto instead of Deno std hash module
+const generateHotelBedsSignature = async (apiKey: string, secret: string, timestamp: number): Promise<string> => {
   const encoder = new TextEncoder();
   const data = encoder.encode(apiKey + secret + timestamp);
-  return createHash("sha256").update(data).toString("hex");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return hashHex;
 };
 
 async function hbFetch(path: string) {
@@ -33,7 +36,7 @@ async function hbFetch(path: string) {
     throw new Error("HotelBeds credentials not configured");
   }
   const timestamp = Math.floor(Date.now() / 1000);
-  const signature = generateHotelBedsSignature(apiKey, secret, timestamp);
+  const signature = await generateHotelBedsSignature(apiKey, secret, timestamp);
 
   const resp = await fetch(`${CONTENT_BASE}${path}`, {
     headers: {
@@ -117,12 +120,14 @@ serve(async (req) => {
     // Merge results, prioritize destinations (cities), then hotels
     const merged: Suggestion[] = [...destinations, ...hotels];
     const seen = new Set<string>();
-    const unique = merged.filter((s) => {
-      const key = (s.displayName || s.name || s.id).toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, max);
+    const unique = merged
+      .filter((s) => {
+        const key = (s.displayName || s.name || s.id).toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, max);
 
     return new Response(JSON.stringify({ results: unique }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
