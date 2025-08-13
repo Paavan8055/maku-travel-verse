@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -104,10 +105,11 @@ const HotelCheckout = () => {
       console.error('Session storage error:', e);
     }
     
-    const search = typeof window !== 'undefined' ? window.location.search : '';
-    console.log('Navigating to payment with search:', search);
+    // Ensure we navigate to the payment page with all current URL parameters
+    const currentSearch = window.location.search;
+    console.log('Navigating to payment with search:', currentSearch);
     
-    navigate(`/booking/payment${search}`);
+    navigate(`/booking/payment${currentSearch}`);
   };
 
   const handleContinue = () => {
