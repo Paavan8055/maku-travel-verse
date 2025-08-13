@@ -43,7 +43,7 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div 
             className="flex items-center space-x-2 cursor-pointer" 
@@ -52,7 +52,7 @@ const Navbar = () => {
             <img 
               src="/lovable-uploads/49f86b14-baf6-497a-bd6a-24f68060b8ea.png" 
               alt="MAKU.TRAVEL Logo" 
-              className="h-10 w-auto"
+              className="h-14 w-auto hover:scale-105 transition-transform duration-200"
             />
           </div>
 
