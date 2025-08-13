@@ -18,8 +18,11 @@ const BookingSelectPage = () => {
   const [rollaway, setRollaway] = useState<boolean>(false);
   const [sofaBed, setSofaBed] = useState<boolean>(false);
 
-  // Mock hotel data
-  const hotel = {
+  // Get hotel data from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const hotelParam = urlParams.get('hotel');
+  
+  let hotel: any = {
     id: "1",
     name: "Ocean Breeze Resort",
     location: "Seminyak, Bali",
@@ -33,6 +36,22 @@ const BookingSelectPage = () => {
     verified: true,
     description: "Luxury beachfront resort with world-class amenities and stunning ocean views."
   };
+
+  // Try to parse hotel data from URL parameter
+  if (hotelParam) {
+    try {
+      const decodedHotel = JSON.parse(decodeURIComponent(hotelParam));
+      hotel = {
+        ...hotel,
+        ...decodedHotel,
+        location: decodedHotel.address || hotel.location,
+        reviews: decodedHotel.reviewCount || hotel.reviews,
+        verified: true
+      };
+    } catch (error) {
+      console.error('Failed to parse hotel data from URL:', error);
+    }
+  }
 
   const rooms = [
     {

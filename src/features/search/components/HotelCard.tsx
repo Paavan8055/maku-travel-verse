@@ -37,7 +37,27 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
 
   const handleSelectHotel = () => {
-    navigate(`/booking/select?hotelId=${hotel.id}`);
+    // Pass hotel data via URL params for the booking select page
+    const hotelData = encodeURIComponent(JSON.stringify({
+      id: hotel.id,
+      name: hotel.name,
+      description: hotel.description,
+      address: hotel.address,
+      images: hotel.images,
+      starRating: hotel.starRating,
+      rating: hotel.rating,
+      reviewCount: hotel.reviewCount,
+      pricePerNight: hotel.pricePerNight,
+      currency: hotel.currency,
+      totalPrice: hotel.totalPrice,
+      propertyType: hotel.propertyType,
+      distanceFromCenter: hotel.distanceFromCenter,
+      amenities: hotel.amenities,
+      cancellationPolicy: hotel.cancellationPolicy,
+      breakfast: hotel.breakfast,
+      deals: hotel.deals
+    }));
+    navigate(`/booking/select?hotel=${hotelData}`);
   };
 
   const getAmenityIcon = (amenity: string) => {
