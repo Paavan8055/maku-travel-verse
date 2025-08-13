@@ -207,8 +207,8 @@ const BookingSelectPage = () => {
     if (adults) checkoutParams.set('adults', adults.toString());
     if (children) checkoutParams.set('children', children.toString());
     
-    const checkoutUrl = `/booking/checkout${checkoutParams.toString() ? '?' + checkoutParams.toString() : ''}`;
-    console.log('Navigating to checkout:', checkoutUrl);
+    const checkoutUrl = `/booking/checkout/hotel${checkoutParams.toString() ? '?' + checkoutParams.toString() : ''}`;
+    console.log('Navigating to hotel checkout:', checkoutUrl);
     window.location.href = checkoutUrl;
   };
 
