@@ -12,9 +12,11 @@ interface Destination {
   name: string;
   city?: string;
   country: string;
-  code?: string; // IATA code
-  type: "city" | "airport" | "landmark";
+  code?: string; // IATA code or other code
+  type: "city" | "airport" | "landmark" | "hotel";
   coordinates?: [number, number];
+  // New: better display for input while keeping `name` minimal (often city)
+  displayName?: string;
 }
 
 interface DestinationAutocompleteProps {
@@ -53,7 +55,7 @@ export const DestinationAutocomplete = ({
   }
 
   function buildSearchKey(a: Destination) {
-    return [(a as any).code || "", a.city || "", a.name || "", a.country || ""]
+    return [(a as any).code || "", a.city || "", a.name || "", a.country || "", a.displayName || ""]
       .map(s => normalizeString(String(s)))
       .join(" ");
   }
@@ -134,47 +136,112 @@ export const DestinationAutocomplete = ({
       setLoading(true);
       const timeoutId = setTimeout(async () => {
         try {
-          // 1) Try server-powered Amadeus autocomplete first
+          // 1) Amadeus cities/airports
           const { data, error } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
             body: {
               query: q,
               types: ['CITY', 'AIRPORT'],
-              limit: 12
+              limit: 8
             }
           });
+
+          let merged: Destination[] = [];
+          if (!error && data && Array.isArray(data.results)) {
+            merged = (data.results as Destination[]).map((d) => {
+              // Attach a helpful displayName without changing `name` (often plain city)
+              const cityOrName = d.city || d.name;
+              const alreadyHasCode = /\([A-Z]{3}\)/.test(d.name);
+              const withCode = d.code && d.type === "airport" && !alreadyHasCode
+                ? `${cityOrName} (${d.code}) - ${d.name}`
+                : d.name;
+              return { ...d, displayName: withCode };
+            });
+          }
+          
+          // 2) HotelBeds destinations + hotels
+          try {
+            const hb = await supabase.functions.invoke('hotelbeds-autocomplete', {
+              body: { query: q, limit: 8 }
+            });
+            if (hb?.data?.results && Array.isArray(hb.data.results)) {
+              const hbResults = (hb.data.results as Destination[]).map((d) => {
+                // For hotels: keep `name` as city (so parent search by destination remains functional),
+                // and use displayName as "Hotel — City"
+                if (d.type === "hotel" && d.displayName) return d;
+                if (d.type === "city") {
+                  return { ...d, displayName: d.displayName || d.name };
+                }
+                return d;
+              });
+
+              // Merge with Amadeus, dedupe by display text then by name
+              const byKey = new Map<string, Destination>();
+              [...merged, ...hbResults].forEach((s) => {
+                const key = (s.displayName || s.name).toLowerCase();
+                if (!byKey.has(key)) byKey.set(key, s);
+              });
+              merged = Array.from(byKey.values()).slice(0, 12);
+            }
+          } catch (e) {
+            // ignore HB errors, keep Amadeus results
+            console.warn("hotelbeds-autocomplete failed, using Amadeus-only suggestions", e);
+          }
+
           if (!active) return;
-          if (!error && data && Array.isArray(data.results) && data.results.length > 0) {
-            setSuggestions(data.results as Destination[]);
+
+          // 3) Fallback to airports dataset if nothing found
+          if (merged.length === 0) {
+            const qLower = q.toLowerCase();
+            const global = await loadGlobalAirports();
+            const dataset: Destination[] = global && global.length > 0 ? global : AIRPORTS.map(a => {
+              const d: Destination = {
+                id: a.iata,
+                name: `${a.city} (${a.iata}) - ${a.name}`,
+                city: a.city,
+                country: a.country,
+                code: a.iata,
+                type: 'airport' as const
+              };
+              (d as any)._s = buildSearchKey(d);
+              return d;
+            });
+            const matches = dataset
+              .filter(d => ((d as any)._s as string).includes(qLower))
+              .slice(0, 12);
+            setSuggestions(matches);
             setShowSuggestions(true);
             setLoading(false);
             return;
           }
-        } catch (_) {
-          // ignore and fall back
-        }
 
-        // 2) Fallback: local/global dataset search
-        const qLower = q.toLowerCase();
-        const global = await loadGlobalAirports();
-        const dataset: Destination[] = global && global.length > 0 ? global : AIRPORTS.map(a => {
-          const d: Destination = {
-            id: a.iata,
-            name: `${a.city} (${a.iata}) - ${a.name}`,
-            city: a.city,
-            country: a.country,
-            code: a.iata,
-            type: 'airport' as const
-          };
-          (d as any)._s = buildSearchKey(d);
-          return d;
-        });
-        if (!active) return;
-        const matches = dataset
-          .filter(d => ((d as any)._s as string).includes(qLower))
-          .slice(0, 12);
-        setSuggestions(matches);
-        setShowSuggestions(true);
-        setLoading(false);
+          setSuggestions(merged);
+          setShowSuggestions(true);
+          setLoading(false);
+          return;
+        } catch (_) {
+          // If everything fails, try airports fallback
+          const qLower = q.toLowerCase();
+          const global = await loadGlobalAirports();
+          const dataset: Destination[] = global && global.length > 0 ? global : AIRPORTS.map(a => {
+            const d: Destination = {
+              id: a.iata,
+              name: `${a.city} (${a.iata}) - ${a.name}`,
+              city: a.city,
+              country: a.country,
+              code: a.iata,
+              type: 'airport' as const
+            };
+            (d as any)._s = buildSearchKey(d);
+            return d;
+          });
+          if (!active) return;
+          const matches = dataset
+            .filter(d => ((d as any)._s as string).includes(qLower))
+            .slice(0, 12);
+          setSuggestions(matches);
+          setShowSuggestions(true);
+          setLoading(false);
+        }
       }, 250);
       return () => {
         active = false;
@@ -213,12 +280,16 @@ export const DestinationAutocomplete = ({
 
   // Format a clear label including IATA code when available
   function formatDestinationLabel(destination: Destination): string {
+    // Prefer displayName if available (e.g., "Hotel — City" or "City, CC")
+    if (destination.displayName) return destination.displayName;
+
     const cityOrName = destination.city || destination.name;
+    if (destination.type === "hotel") {
+      // Hotel items: show "Hotel — City" when possible
+      return destination.city ? `${destination.name} — ${destination.city}` : destination.name;
+    }
     if (destination.code) {
-      // Prefer: City (IATA) - Full Airport Name for airports,
-      // or City (IATA) for cities that have a code
       if (destination.type === "airport") {
-        // If name already contains code, keep as-is
         const alreadyHasCode = /\([A-Z]{3}\)/.test(destination.name);
         return alreadyHasCode ? destination.name : `${cityOrName} (${destination.code}) - ${destination.name}`;
       }
@@ -228,7 +299,6 @@ export const DestinationAutocomplete = ({
   }
 
   const handleSuggestionClick = (destination: Destination) => {
-    // Use a canonical display label that includes IATA code when present
     const label = formatDestinationLabel(destination);
     onChange(label);
     onDestinationSelect(destination);
@@ -242,6 +312,8 @@ export const DestinationAutocomplete = ({
         return "✈️";
       case "landmark":
         return "🏛️";
+      case "hotel":
+        return "🏨";
       default:
         return "🏙️";
     }
@@ -286,7 +358,7 @@ export const DestinationAutocomplete = ({
           {loading ? (
             <div className="p-4 text-center">
               <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading airports…</p>
+              <p className="text-sm text-muted-foreground">Loading places & properties…</p>
             </div>
           ) : suggestions.length > 0 ? (
             suggestions.map(destination => (
