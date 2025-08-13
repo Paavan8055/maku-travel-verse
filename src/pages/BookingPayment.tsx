@@ -70,18 +70,29 @@ const BookingPaymentPage = () => {
   }, []);
 
 
-  // Booking details (hotel fallback) and flight params from URL
+  // Booking details (hotel) from stored selections
+  let selection: any = null;
+  try { selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); } catch {}
+  const nights = 7;
+  const baseNightly = Number(selection?.nightlyPrice || 450);
+  const basePrice = baseNightly * nights;
+  const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
+  const fundContribution = Number(selection?.fundContribution || 50);
   const bookingDetails = {
-    hotel: "Ocean Breeze Resort",
-    room: "Deluxe Ocean View",
+    hotel: selection?.hotelName || "Ocean Breeze Resort",
+    room: selection?.roomName || "Deluxe Ocean View",
+    bedType: selection?.bedType as string | undefined,
+    extraBeds: Number(selection?.extraBeds || 0),
+    rollaway: Boolean(selection?.rollaway),
+    sofaBed: Boolean(selection?.sofaBed),
     checkIn: "Mar 15, 2025",
     checkOut: "Mar 22, 2025",
-    nights: 7,
+    nights,
     guests: 2,
-    basePrice: 3150,
-    extrasPrice: 244,
-    fundContribution: 50,
-    total: 3444,
+    basePrice,
+    extrasPrice,
+    fundContribution,
+    total: basePrice + extrasPrice + fundContribution,
   };
 
   const params = new URLSearchParams(
@@ -422,6 +433,14 @@ const BookingPaymentPage = () => {
                       <p className="text-sm text-muted-foreground">
                         {bookingDetails.room}
                       </p>
+                      {bookingDetails.bedType && (
+                        <p className="text-xs text-muted-foreground">
+                          Bed: {bookingDetails.bedType}
+                          {bookingDetails.extraBeds ? ` + ${bookingDetails.extraBeds} extra` : ''}
+                          {bookingDetails.rollaway ? ' + rollaway' : ''}
+                          {bookingDetails.sofaBed ? ' + sofa bed' : ''}
+                        </p>
+                      )}
                     </div>
 
                     {/* Dates */}

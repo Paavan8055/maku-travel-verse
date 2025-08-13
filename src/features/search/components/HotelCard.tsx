@@ -37,7 +37,7 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
 
   const handleSelectHotel = () => {
-    navigate(`/booking?type=hotel&id=${hotel.id}`);
+    navigate(`/booking/select?hotelId=${hotel.id}`);
   };
 
   const getAmenityIcon = (amenity: string) => {
@@ -162,13 +162,9 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                     {hotel.currency}{hotel.totalPrice}
                   </p>
                 </div>
-                <RealBookingButton
-                  bookingType="hotel"
-                  bookingData={hotel}
-                  amount={hotel.totalPrice}
-                  currency="USD"
-                  className="w-full"
-                />
+                <Button className="w-full" onClick={handleSelectHotel}>
+                  Select room
+                </Button>
               </div>
             </div>
           </div>

@@ -12,6 +12,11 @@ const BookingSelectPage = () => {
   const [addFundContribution, setAddFundContribution] = useState(false);
   const [fundContribution, setFundContribution] = useState(50);
   const [fundBalance] = useState(1250);
+  // Sleeping options
+  const [bedType, setBedType] = useState<'King' | 'Queen' | 'Twin'>('King');
+  const [extraBeds, setExtraBeds] = useState<number>(0);
+  const [rollaway, setRollaway] = useState<boolean>(false);
+  const [sofaBed, setSofaBed] = useState<boolean>(false);
 
   // Mock hotel data
   const hotel = {
@@ -62,16 +67,27 @@ const BookingSelectPage = () => {
 
   const handleContinue = () => {
     if (!selectedRoom) return;
-    
+
     const selectedRoomData = rooms.find(room => room.id === selectedRoom);
-    const queryParams = new URLSearchParams({
-      hotelId: hotel.id,
-      roomId: selectedRoom,
-      price: selectedRoomData?.price.toString() || '',
-      fundContribution: addFundContribution ? fundContribution.toString() : '0'
-    });
-    
-    window.location.href = `/booking/extras?${queryParams}`;
+
+    // Persist selections for downstream steps
+    try {
+      const selections = {
+        hotelId: hotel.id,
+        hotelName: hotel.name,
+        roomId: selectedRoom,
+        roomName: selectedRoomData?.name,
+        nightlyPrice: selectedRoomData?.price || 0,
+        bedType,
+        extraBeds,
+        rollaway,
+        sofaBed,
+        fundContribution: addFundContribution ? fundContribution : 0,
+      };
+      sessionStorage.setItem('hotelBookingSelections', JSON.stringify(selections));
+    } catch {}
+
+    window.location.href = `/booking/checkout`;
   };
 
   // Extract destination from hotel data for offers and tips
@@ -255,6 +271,54 @@ const BookingSelectPage = () => {
               </CardContent>
             </Card>
 
+            {/* Bed & Sleeping Options */}
+            <Card className="travel-card">
+              <CardContent className="p-6 space-y-4">
+                <h3 className="text-lg font-bold">Bed & Sleeping Options</h3>
+
+                {/* Bed type selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Bed type</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['King','Queen','Twin'] as const).map(bt => (
+                      <Button
+                        key={bt}
+                        type="button"
+                        variant={bedType === bt ? 'default' : 'outline'}
+                        onClick={() => setBedType(bt)}
+                        className="w-full"
+                      >
+                        {bt}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Additional beds counter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Additional beds</label>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setExtraBeds(Math.max(0, extraBeds - 1))}>-</Button>
+                    <span className="w-10 text-center">{extraBeds}</span>
+                    <Button variant="outline" size="sm" onClick={() => setExtraBeds(extraBeds + 1)}>+</Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Request extra single beds (subject to availability, fees may apply).</p>
+                </div>
+
+                {/* Special bed requests */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="rollaway" checked={rollaway} onCheckedChange={(c) => setRollaway(c === true)} />
+                    <label htmlFor="rollaway" className="text-sm">Rollaway bed</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="sofaBed" checked={sofaBed} onCheckedChange={(c) => setSofaBed(c === true)} />
+                    <label htmlFor="sofaBed" className="text-sm">Sofa bed</label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Travel Fund Contribution */}
             <Card className="travel-card">
               <CardContent className="p-6">
@@ -326,7 +390,7 @@ const BookingSelectPage = () => {
                disabled={!selectedRoom}
                className="w-full btn-primary h-12"
              >
-               Continue to Extras
+               Continue to Details
              </Button>
           </div>
         </div>
