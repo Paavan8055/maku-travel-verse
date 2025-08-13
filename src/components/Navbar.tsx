@@ -44,6 +44,15 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
+          {/* Brand Logo */}
+          <div 
+            className="flex items-center cursor-pointer" 
+            onClick={() => navigate('/')}
+          >
+            <h1 className="text-3xl font-cursive font-semibold text-travel-ocean hover:text-travel-ocean/80 transition-colors duration-200">
+              Maku
+            </h1>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
