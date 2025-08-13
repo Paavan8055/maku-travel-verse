@@ -8,6 +8,7 @@ interface Flight {
   id: string;
   airline: string;
   airlineCode: string;
+  airlineLogo?: string;
   flightNumber: string;
   aircraft: string;
   origin: string;
@@ -61,8 +62,22 @@ export const FlightCard = ({ flight }: FlightCardProps) => {
           <div className="flex items-center space-x-6 flex-1">
             {/* Airline Info */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Plane className="h-5 w-5 text-primary" />
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+                {flight.airlineLogo ? (
+                  <img 
+                    src={flight.airlineLogo} 
+                    alt={`${flight.airline} logo`}
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (nextElement) nextElement.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`w-full h-full flex items-center justify-center ${flight.airlineLogo ? 'hidden' : ''}`}>
+                  <span className="text-primary font-bold text-xs">{flight.airlineCode}</span>
+                </div>
               </div>
               <div>
                 <p className="font-medium text-foreground">{flight.airline}</p>

@@ -149,11 +149,11 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
 // Mock data generator for development
 const generateMockFlights = (criteria: FlightSearchCriteria): Flight[] => {
   const airlines = [
-    { name: "Qantas", code: "QF" },
-    { name: "Jetstar", code: "JQ" },
-    { name: "Virgin Australia", code: "VA" },
-    { name: "Singapore Airlines", code: "SQ" },
-    { name: "Emirates", code: "EK" }
+    { name: "Qantas", code: "QF", logo: "https://logos-world.net/wp-content/uploads/2023/01/Qantas-Logo.png" },
+    { name: "Jetstar", code: "JQ", logo: "https://logos-world.net/wp-content/uploads/2023/01/Jetstar-Logo.png" },
+    { name: "Virgin Australia", code: "VA", logo: "https://logos-world.net/wp-content/uploads/2023/01/Virgin-Australia-Logo.png" },
+    { name: "Singapore Airlines", code: "SQ", logo: "https://logos-world.net/wp-content/uploads/2023/01/Singapore-Airlines-Logo.png" },
+    { name: "Emirates", code: "EK", logo: "https://logos-world.net/wp-content/uploads/2023/01/Emirates-Logo.png" }
   ];
 
   const flights: Flight[] = [];
@@ -168,6 +168,7 @@ const generateMockFlights = (criteria: FlightSearchCriteria): Flight[] => {
       id: `flight-${i + 1}`,
       airline: airline.name,
       airlineCode: airline.code,
+      airlineLogo: airline.logo,
       flightNumber: `${airline.code}${Math.floor(Math.random() * 900) + 100}`,
       aircraft: "Boeing 737",
       origin: criteria.origin,

@@ -651,8 +651,22 @@ const FlightSearchPage = () => {
                           <div className="flex items-center justify-between">
                             {/* Airline Info */}
                             <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 bg-orange-100 rounded flex items-center justify-center">
-                                <span className="text-orange-600 font-bold text-xs">{flight.airlineCode}</span>
+                              <div className="w-12 h-12 bg-background border rounded-lg flex items-center justify-center overflow-hidden">
+                                {flight.airlineLogo ? (
+                                  <img 
+                                    src={flight.airlineLogo} 
+                                    alt={`${flight.airline} logo`}
+                                    className="w-10 h-10 object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                                      if (nextElement) nextElement.style.display = 'flex';
+                                    }}
+                                  />
+                                ) : null}
+                                <div className={`w-full h-full flex items-center justify-center ${flight.airlineLogo ? 'hidden' : ''}`}>
+                                  <span className="text-primary font-bold text-xs">{flight.airlineCode}</span>
+                                </div>
                               </div>
                               <div>
                                 <div className="font-medium text-sm">{flight.airline}</div>
