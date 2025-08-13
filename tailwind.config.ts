@@ -94,7 +94,8 @@ export default {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
 				inter: ['Inter', 'system-ui', 'sans-serif'],
-				playfair: ['"Playfair Display"', 'serif']
+				playfair: ['"Playfair Display"', 'serif'],
+				cursive: ['"Dancing Script"', 'cursive']
 			},
 			keyframes: {
 				'accordion-down': {

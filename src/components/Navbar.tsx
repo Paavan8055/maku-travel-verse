@@ -49,7 +49,7 @@ const Navbar = () => {
             className="flex items-center space-x-2 cursor-pointer" 
             onClick={() => navigate('/')}
           >
-            <div className="text-2xl font-bold bg-gradient-to-r from-travel-sky to-travel-ocean bg-clip-text text-transparent">
+            <div className="text-2xl font-bold font-cursive bg-gradient-to-r from-travel-sky to-travel-ocean bg-clip-text text-transparent">
               MAKU
             </div>
           </div>
