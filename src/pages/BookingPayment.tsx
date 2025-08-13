@@ -34,8 +34,6 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
   return <PaymentElement options={{ layout: 'tabs' }} />;
 };
 
-
-
 const BookingPaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [paymentGateway, setPaymentGateway] = useState<"stripe" | "card" | "afterpay" | "crypto">("stripe");
@@ -69,35 +67,88 @@ const BookingPaymentPage = () => {
     init();
   }, []);
 
+  // Parse URL parameters to determine booking type and data
+  const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  
+  // Extract search parameters for dates and guests
+  const checkInParam = params.get('checkin') || params.get('checkIn');
+  const checkOutParam = params.get('checkout') || params.get('checkOut');
+  const roomsParam = params.get('rooms');
+  const adultsParam = params.get('adults');
+  const childrenParam = params.get('children');
+  
+  // Parse hotel data from URL params
+  const hotelParam = params.get('hotel');
+  let hotelData: any = null;
+  if (hotelParam) {
+    try {
+      hotelData = JSON.parse(decodeURIComponent(hotelParam));
+    } catch (error) {
+      console.error('Failed to parse hotel data from URL:', error);
+    }
+  }
 
-  // Booking details (hotel) from stored selections
+  // Parse dates and calculate nights
+  let checkInDate = "Mar 15, 2025";
+  let checkOutDate = "Mar 22, 2025";
+  let nights = 7;
+  let totalGuests = 2;
+  
+  if (checkInParam && checkOutParam) {
+    try {
+      checkInDate = new Date(checkInParam).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      checkOutDate = new Date(checkOutParam).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      
+      const checkIn = new Date(checkInParam);
+      const checkOut = new Date(checkOutParam);
+      nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    } catch (error) {
+      console.error('Failed to parse dates:', error);
+    }
+  }
+  
+  if (adultsParam) {
+    totalGuests = parseInt(adultsParam) + (childrenParam ? parseInt(childrenParam) : 0);
+  }
+
+  // Get booking selections from session storage
   let selection: any = null;
-  try { selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); } catch {}
-  const nights = 7;
-  const baseNightly = Number(selection?.nightlyPrice || 450);
+  try { 
+    selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); 
+  } catch {}
+
+  // Build booking details for hotel flow
+  const baseNightly = hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
   const basePrice = baseNightly * nights;
   const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
   const fundContribution = Number(selection?.fundContribution || 50);
+  
   const bookingDetails = {
-    hotel: selection?.hotelName || "Ocean Breeze Resort",
+    hotel: hotelData?.name || selection?.hotelName || "Ocean Breeze Resort",
     room: selection?.roomName || "Deluxe Ocean View",
     bedType: selection?.bedType as string | undefined,
     extraBeds: Number(selection?.extraBeds || 0),
     rollaway: Boolean(selection?.rollaway),
     sofaBed: Boolean(selection?.sofaBed),
-    checkIn: "Mar 15, 2025",
-    checkOut: "Mar 22, 2025",
+    checkIn: checkInDate,
+    checkOut: checkOutDate,
     nights,
-    guests: 2,
+    guests: totalGuests,
     basePrice,
     extrasPrice,
     fundContribution,
     total: basePrice + extrasPrice + fundContribution,
   };
 
-  const params = new URLSearchParams(
-    typeof window !== "undefined" ? window.location.search : ""
-  );
+  // Flight params parsing
   const rawTripType = (params.get('tripType') || '').toLowerCase();
   const hasOutboundId = params.get('outboundId');
   const hasInboundId = params.get('inboundId');
@@ -132,8 +183,14 @@ const BookingPaymentPage = () => {
     checked: params.get('checked') || ''
   };
 
-  // New: derive passengers for summary (defaults to 1)
   const passengers = Number(params.get('passengers') || '1');
+
+  console.log('Payment page booking data:', {
+    isFlightCheckout,
+    bookingDetails,
+    flightParams,
+    urlParams: Object.fromEntries(params.entries())
+  });
 
   const ensurePaymentIntent = async () => {
     try {
@@ -363,7 +420,6 @@ const BookingPaymentPage = () => {
                     </div>
                   )}
 
-
                   {/* Fund Balance Info */}
                   {(paymentMethod === "fund" || paymentMethod === "split") && (
                     <div className="bg-muted p-4 rounded-xl">
@@ -468,7 +524,7 @@ const BookingPaymentPage = () => {
                       </div>
                       <div>
                         <p className="text-muted-foreground">Guests</p>
-                        <p className="font-medium">{bookingDetails.guests} adults</p>
+                        <p className="font-medium">{bookingDetails.guests} {bookingDetails.guests === 1 ? 'guest' : 'guests'}</p>
                       </div>
                     </div>
 
@@ -478,14 +534,18 @@ const BookingPaymentPage = () => {
                         <span>Room ({bookingDetails.nights} nights)</span>
                         <span>${bookingDetails.basePrice}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Extras & Services</span>
-                        <span>${bookingDetails.extrasPrice}</span>
-                      </div>
-                      <div className="flex justify-between text-sm text-primary">
-                        <span>Fund Contribution</span>
-                        <span>+${bookingDetails.fundContribution}</span>
-                      </div>
+                      {bookingDetails.extrasPrice > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Extras & Services</span>
+                          <span>${bookingDetails.extrasPrice}</span>
+                        </div>
+                      )}
+                      {bookingDetails.fundContribution > 0 && (
+                        <div className="flex justify-between text-sm text-primary">
+                          <span>Fund Contribution</span>
+                          <span>+${bookingDetails.fundContribution}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-bold text-lg pt-2 border-t">
                         <span>Total</span>
                         <span>${bookingDetails.total}</span>
@@ -583,7 +643,6 @@ const BookingPaymentPage = () => {
                 </Accordion>
               </CardContent>
             </Card>
-
           </div>
         </div>
       </div>
