@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listDynamicOffers } from "@/lib/bookingDataClient";
 import { Tag, Clock, Zap } from "lucide-react";
-
 interface DynamicOffer {
   id: string;
   route: string;
@@ -16,24 +15,26 @@ interface DynamicOffer {
   valid_until: string;
   created_at: string;
 }
-
 interface OffersWidgetProps {
   route?: string;
   limit?: number;
 }
-
-export default function OffersWidget({ route, limit = 3 }: OffersWidgetProps) {
+export default function OffersWidget({
+  route,
+  limit = 3
+}: OffersWidgetProps) {
   const [offers, setOffers] = useState<DynamicOffer[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     loadOffers();
   }, [route]);
-
   const loadOffers = async () => {
     setLoading(true);
     try {
-      const data = await listDynamicOffers({ route, limit });
+      const data = await listDynamicOffers({
+        route,
+        limit
+      });
       setOffers(data);
     } catch (error) {
       console.error('Error loading offers:', error);
@@ -41,7 +42,6 @@ export default function OffersWidget({ route, limit = 3 }: OffersWidgetProps) {
       setLoading(false);
     }
   };
-
   const getOfferTypeColor = (type: string) => {
     switch (type) {
       case 'flash_sale':
@@ -54,24 +54,18 @@ export default function OffersWidget({ route, limit = 3 }: OffersWidgetProps) {
         return 'outline';
     }
   };
-
   const getTimeRemaining = (validUntil: string) => {
     const now = new Date();
     const expiry = new Date(validUntil);
     const diff = expiry.getTime() - now.getTime();
-    
     if (diff <= 0) return 'Expired';
-    
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    
+    const hours = Math.floor(diff % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
     if (days > 0) return `${days}d ${hours}h left`;
     return `${hours}h left`;
   };
-
   if (loading) {
-    return (
-      <Card className="w-full">
+    return <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Tag className="h-5 w-5" />
@@ -80,37 +74,15 @@ export default function OffersWidget({ route, limit = 3 }: OffersWidgetProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
-            ))}
+            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />)}
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   if (offers.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5" />
-            Special Offers
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6 text-muted-foreground">
-            <Tag className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No special offers available right now.</p>
-            <p className="text-sm">Check back later for exclusive deals!</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return;
   }
-
-  return (
-    <Card className="w-full">
+  return <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Tag className="h-5 w-5" />
@@ -120,11 +92,7 @@ export default function OffersWidget({ route, limit = 3 }: OffersWidgetProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {offers.map((offer) => (
-            <div
-              key={offer.id}
-              className="p-4 border rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 hover:shadow-md transition-shadow"
-            >
+          {offers.map(offer => <div key={offer.id} className="p-4 border rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Badge variant={getOfferTypeColor(offer.offer_type)}>
@@ -151,8 +119,7 @@ export default function OffersWidget({ route, limit = 3 }: OffersWidgetProps) {
               <Button size="sm" className="w-full">
                 Apply Offer
               </Button>
-            </div>
-          ))}
+            </div>)}
         </div>
         
         <div className="mt-4 p-3 bg-muted/50 rounded-lg">
@@ -162,6 +129,5 @@ export default function OffersWidget({ route, limit = 3 }: OffersWidgetProps) {
           </p>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
