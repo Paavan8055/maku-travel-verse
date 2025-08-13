@@ -50,7 +50,7 @@ const Navbar = () => {
             onClick={() => navigate('/')}
           >
             <h1 className="text-3xl font-cursive font-semibold text-travel-ocean hover:text-travel-ocean/80 transition-colors duration-200">
-              Maku
+              maku
             </h1>
           </div>
 
