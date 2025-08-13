@@ -109,21 +109,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4">
-          <div>
-            <Label className="mb-2 block">Date of Birth</Label>
-            <Input type="date" {...register("dateOfBirth")} />
-            {errors.dateOfBirth && <p className="text-xs text-destructive mt-1">{errors.dateOfBirth.message}</p>}
-          </div>
-          
-          <div>
-            <Label className="mb-2 block">ID Document Number</Label>
-            <Input {...register("idDocument")} placeholder="Passport/ID Number" onChange={e => setValue("idDocument", e.target.value.toUpperCase() as any, {
-            shouldValidate: true
-          })} />
-            {errors.idDocument && <p className="text-xs text-destructive mt-1">{errors.idDocument.message}</p>}
-          </div>
-        </div>
+        
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
           <div>
