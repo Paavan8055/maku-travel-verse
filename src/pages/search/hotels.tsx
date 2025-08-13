@@ -88,31 +88,7 @@ const HotelSearchPage = () => {
       
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header with Search Actions */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Hotels in {searchParams.get("destination")}
-              </h1>
-              <p className="text-muted-foreground">
-                {searchParams.get("checkIn")} - {searchParams.get("checkOut")} • {searchParams.get("guests")} guest(s)
-              </p>
-            </div>
-            
-            <SaveSearchActions searchCriteria={{
-            destination: searchParams.get("destination") || "",
-            checkIn: searchParams.get("checkIn") || "",
-            checkOut: searchParams.get("checkOut") || "",
-            rooms: [{
-              adults: parseInt(searchParams.get("guests") || "2"),
-              children: []
-            }]
-          }} />
-          </div>
-
-          {/* Travel Fund Balance */}
-          <TravelFundBalance balance={travelFundBalance} currency="$" onApplyFund={setFundApplied} isApplied={fundApplied} />
-        </div>
+        
 
         {/* Guest Reviews Section */}
         
@@ -120,9 +96,7 @@ const HotelSearchPage = () => {
         {/* Search Results with Enhanced Layout */}
         <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
               <SearchHeaderBand destination={searchCriteria.destination} checkIn={searchCriteria.checkIn} checkOut={searchCriteria.checkOut} guests={searchCriteria.guests} />
-              <div className="mt-4">
-                <MemberPriceBanner destination={searchCriteria.destination} />
-              </div>
+              
             </>} extrasBelowControls={<SortChips filters={filters} onFiltersChange={setFilters} />} sidebarAddon={<MapPreviewCard destination={searchCriteria.destination} />}>
           {loading && <div className="space-y-4">
               {[...Array(5)].map((_, i) => <Card key={i} className="animate-pulse">
