@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
@@ -19,7 +18,7 @@ type Suggestion = {
 
 const CONTENT_BASE = "https://api.test.hotelbeds.com/hotel-content-api/1.0";
 
-// Use Web Crypto instead of Deno std hash module
+// Web Crypto SHA-256 signature generation
 const generateHotelBedsSignature = async (apiKey: string, secret: string, timestamp: number): Promise<string> => {
   const encoder = new TextEncoder();
   const data = encoder.encode(apiKey + secret + timestamp);
@@ -42,7 +41,7 @@ async function hbFetch(path: string) {
     headers: {
       "Api-key": apiKey,
       "X-Signature": signature,
-      "Accept": "application/json",
+      Accept: "application/json",
     },
   });
   if (!resp.ok) {
@@ -52,22 +51,93 @@ async function hbFetch(path: string) {
   return resp.json();
 }
 
-// Coerce any value to a lowercased string before searching
-function includesQuery(hay: unknown, q: string) {
+// Helpers
+function includesQuery(hay: unknown, qLower: string) {
   const text = String(hay ?? "").toLowerCase();
-  return text.includes(q);
+  return text.includes(qLower);
 }
-
-// Safe getters handling both string and { content } shapes
 const getName = (obj: any): string => obj?.name?.content ?? obj?.name ?? "";
-const getCity = (obj: any): string | undefined =>
-  obj?.city?.content ?? obj?.city ?? obj?.destinationName ?? undefined;
-const getCountry = (obj: any): string =>
-  obj?.countryCode ?? obj?.country?.code ?? obj?.country?.isoCode ?? obj?.country ?? "";
+const getCity = (obj: any): string | undefined => obj?.city?.content ?? obj?.city ?? obj?.destinationName ?? undefined;
+const getCountry = (obj: any): string => obj?.countryCode ?? obj?.country?.code ?? obj?.country?.isoCode ?? obj?.country ?? "";
 const getCode = (obj: any): string | undefined => {
   const code = obj?.code ?? obj?.destinationCode ?? obj?.id;
   return code != null ? String(code) : undefined;
 };
+
+async function fetchDestinationsPaged(qLower: string, max: number) {
+  const batch = 200;
+  const out: Suggestion[] = [];
+  let scanned = 0;
+  for (let page = 0; page < 5 && out.length < max; page++) {
+    const from = page * batch + 1;
+    const to = (page + 1) * batch;
+    try {
+      const payload = await hbFetch(`/locations/destinations?fields=all&language=ENG&from=${from}&to=${to}`);
+      const items: any[] = Array.isArray(payload?.destinations) ? payload.destinations : [];
+      scanned += items.length;
+      for (const d of items) {
+        if (out.length >= max) break;
+        const name = getName(d);
+        const code = getCode(d) ?? "";
+        const country = getCountry(d);
+        if (includesQuery(name, qLower) || includesQuery(code, qLower) || includesQuery(country, qLower)) {
+          out.push({
+            id: `hb-dest-${code || name}`,
+            name: name || code || "",
+            city: name || undefined,
+            country,
+            code,
+            type: "city",
+            displayName: name && country ? `${name}, ${country}` : name || code || "",
+          });
+        }
+      }
+      if (items.length < batch) break; // no more pages
+    } catch (e) {
+      console.error("HotelBeds destinations page error:", e);
+      break;
+    }
+  }
+  console.log("hotelbeds-autocomplete destinations scanned=%d matched=%d", scanned, out.length);
+  return out;
+}
+
+async function fetchHotelsPaged(qLower: string, max: number) {
+  const batch = 200;
+  const out: Suggestion[] = [];
+  let scanned = 0;
+  for (let page = 0; page < 5 && out.length < max; page++) {
+    const from = page * batch + 1;
+    const to = (page + 1) * batch;
+    try {
+      const payload = await hbFetch(`/hotels?fields=basic&language=ENG&from=${from}&to=${to}`);
+      const items: any[] = Array.isArray(payload?.hotels) ? payload.hotels : [];
+      scanned += items.length;
+      for (const h of items) {
+        if (out.length >= max) break;
+        const name = getName(h);
+        const city = getCity(h);
+        const country = getCountry(h);
+        if (includesQuery(name, qLower) || includesQuery(city, qLower) || includesQuery(country, qLower)) {
+          out.push({
+            id: `hb-hotel-${getCode(h) ?? name}`,
+            name: city || name,
+            city: city || undefined,
+            country,
+            type: "hotel",
+            displayName: city ? `${name} — ${city}` : name,
+          });
+        }
+      }
+      if (items.length < batch) break;
+    } catch (e) {
+      console.error("HotelBeds hotels page error:", e);
+      break;
+    }
+  }
+  console.log("hotelbeds-autocomplete hotels scanned=%d matched=%d", scanned, out.length);
+  return out;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -85,75 +155,19 @@ serve(async (req) => {
     const qLower = q.toLowerCase();
     const max = Number.isFinite(limit) ? Math.min(Number(limit), 20) : 12;
 
-    // Destinations (cities)
-    let destinations: Suggestion[] = [];
-    try {
-      const destPayload = await hbFetch(`/locations/destinations?fields=all&language=ENG&from=1&to=200`);
-      const items = Array.isArray(destPayload?.destinations) ? destPayload.destinations : [];
-      destinations = items
-        .filter((d: any) => {
-          const name = getName(d);
-          const code = getCode(d) ?? "";
-          const country = getCountry(d);
-          return includesQuery(name, qLower) || includesQuery(code, qLower) || includesQuery(country, qLower);
-        })
-        .slice(0, max)
-        .map((d: any): Suggestion => {
-          const name = getName(d);
-          const country = getCountry(d);
-          const code = getCode(d);
-          return {
-            id: `hb-dest-${code ?? name}`,
-            name: name || code || "",
-            city: name || undefined,
-            country: country,
-            code,
-            type: "city",
-            displayName: name && country ? `${name}, ${country}` : name || code || "",
-          };
-        });
-      console.log("hotelbeds-autocomplete destinations count:", destinations.length);
-    } catch (e) {
-      console.error("HotelBeds destinations fetch error:", e);
-    }
+    // Fetch destinations and hotels in parallel with pagination
+    const [destinations, hotels] = await Promise.all([
+      fetchDestinationsPaged(qLower, max),
+      fetchHotelsPaged(qLower, max),
+    ]);
 
-    // Hotels
-    let hotels: Suggestion[] = [];
-    try {
-      const hotelsPayload = await hbFetch(`/hotels?fields=basic&language=ENG&from=1&to=200`);
-      const items = Array.isArray(hotelsPayload?.hotels) ? hotelsPayload.hotels : [];
-      hotels = items
-        .filter((h: any) => includesQuery(h?.name?.content ?? h?.name, qLower))
-        .slice(0, max)
-        .map((h: any): Suggestion => {
-          const name = h?.name?.content ?? h?.name ?? "";
-          const city = getCity(h);
-          const country = getCountry(h);
-          return {
-            id: `hb-hotel-${getCode(h) ?? name}`,
-            name: city || name,
-            city: city || undefined,
-            country,
-            type: "hotel",
-            displayName: city ? `${name} — ${city}` : name,
-          };
-        });
-      console.log("hotelbeds-autocomplete hotels count:", hotels.length);
-    } catch (e) {
-      console.error("HotelBeds hotels fetch error:", e);
-    }
-
-    // Merge results, prioritize destinations (cities), then hotels
     const merged: Suggestion[] = [...destinations, ...hotels];
-    const seen = new Set<string>();
-    const unique = merged
-      .filter((s) => {
-        const key = (s.displayName || s.name || s.id).toLowerCase();
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      })
-      .slice(0, max);
+    const byKey = new Map<string, Suggestion>();
+    for (const s of merged) {
+      const key = (s.displayName || s.name || s.id).toLowerCase();
+      if (!byKey.has(key)) byKey.set(key, s);
+    }
+    const unique = Array.from(byKey.values()).slice(0, max);
 
     return new Response(JSON.stringify({ results: unique }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

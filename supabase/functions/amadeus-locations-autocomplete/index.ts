@@ -62,45 +62,85 @@ serve(async (req) => {
   }
 
   try {
-    const { query, types, limit } = await req.json();
-    if (!query || String(query).trim().length < 2) {
+    const body = await req.json().catch(() => ({}));
+    const query = String(body?.query ?? "").trim();
+    const types = Array.isArray(body?.types) ? body.types : undefined;
+    const limit = body?.limit;
+
+    if (query.length < 2) {
       return new Response(JSON.stringify({ results: [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const accessToken = await getAmadeusAccessToken();
-    const typeParam = Array.isArray(types) && types.length > 0 ? types.join(",") : "CITY,AIRPORT";
+    const requestedTypes = Array.isArray(types) && types.length > 0 ? types : ["CITY"]; // default to CITY only
+    const typeParam = requestedTypes.join(",");
     const max = Number.isFinite(limit) ? Math.min(Number(limit), 20) : 12;
 
-    const url = new URL("https://test.api.amadeus.com/v1/reference-data/locations");
-    url.searchParams.set("subType", typeParam);
-    url.searchParams.set("keyword", String(query));
-    url.searchParams.set("page[limit]", String(max));
+    // Helpers
+    const tryLocations = async (keyword: string, subType: string): Promise<AmadeusLocation[]> => {
+      const url = new URL("https://test.api.amadeus.com/v1/reference-data/locations");
+      url.searchParams.set("subType", subType);
+      url.searchParams.set("keyword", keyword);
+      url.searchParams.set("page[limit]", String(max));
+      const resp = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error("Amadeus locations error:", resp.status, txt);
+        return [];
+      }
+      const payload = await resp.json();
+      return Array.isArray(payload?.data) ? (payload.data as AmadeusLocation[]) : [];
+    };
 
-    const resp = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const tryCitiesEndpoint = async (keyword: string): Promise<AmadeusLocation[]> => {
+      const url = new URL("https://test.api.amadeus.com/v1/reference-data/locations/cities");
+      url.searchParams.set("keyword", keyword);
+      url.searchParams.set("max", String(max));
+      const resp = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error("Amadeus cities endpoint error:", resp.status, txt);
+        return [];
+      }
+      const payload = await resp.json();
+      return Array.isArray(payload?.data) ? (payload.data as AmadeusLocation[]) : [];
+    };
 
-    if (!resp.ok) {
-      const txt = await resp.text();
-      console.error("Amadeus locations error:", resp.status, txt);
-      return new Response(JSON.stringify({ results: [] }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+    let data: AmadeusLocation[] = [];
+
+    // 1) Primary: locations with requested subType (default CITY)
+    data = await tryLocations(query, typeParam);
+    console.log("amadeus-locations step=locations subtype=%s q=%s count=%d", typeParam, query, data.length);
+
+    // 2) Fallback: cities endpoint (only if CITY is allowed)
+    if (data.length === 0 && typeParam.includes("CITY")) {
+      const cities = await tryCitiesEndpoint(query);
+      console.log("amadeus-locations step=cities-endpoint q=%s count=%d", query, cities.length);
+      data = cities;
     }
 
-    const payload = await resp.json();
-    const data: AmadeusLocation[] = Array.isArray(payload?.data) ? payload.data : [];
-    const results = data.map(normalize);
+    // 3) Fallback: prefix search using first 3 chars
+    if (data.length === 0 && query.length >= 3) {
+      const prefix = query.slice(0, 3);
+      const retry = await tryLocations(prefix, typeParam);
+      console.log("amadeus-locations step=prefix q=%s prefix=%s count=%d", query, prefix, retry.length);
+      data = retry;
+    }
+
+    // Normalize and filter out airports unless explicitly requested
+    const results = data
+      .map(normalize)
+      .filter((r) => requestedTypes.includes("AIRPORT") ? true : r.type !== "airport")
+      .slice(0, max);
 
     return new Response(JSON.stringify({ results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("amadeus-locations-autocomplete error:", err);
-    return new Response(JSON.stringify({ error: String(err?.message || err) }), {
+    return new Response(JSON.stringify({ error: String((err as any)?.message || err) }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
