@@ -10,6 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Sparkles, User } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { autofillService } from "@/lib/autofillService";
 
 const HotelGuestSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -35,6 +39,10 @@ interface HotelGuestFormProps {
 }
 
 export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProps) {
+  const [isAutofilling, setIsAutofilling] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+
   const form = useForm<HotelGuestFormData>({
     resolver: zodResolver(HotelGuestSchema),
     mode: "onBlur", // Changed from onChange to reduce re-renders
@@ -78,9 +86,91 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
 
   const handleUpper = (value: string) => value.toUpperCase();
 
+  const handleDemoFill = () => {
+    setIsAutofilling(true);
+    const mockData = autofillService.generateMockHotelGuest();
+    
+    // Reset form with mock data
+    form.reset(mockData);
+    
+    toast({
+      title: "Demo data filled",
+      description: "Form has been filled with sample guest information",
+    });
+    
+    setTimeout(() => setIsAutofilling(false), 500);
+  };
+
+  const handleUserDataFill = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to use saved information",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAutofilling(true);
+    try {
+      const userData = await autofillService.loadUserStoredData(user.id);
+      
+      if (!userData.hasStoredData) {
+        toast({
+          title: "No saved data found",
+          description: "Please save your preferences and passport info first",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const formData = autofillService.userDataToHotelForm(userData);
+      form.reset(formData);
+
+      toast({
+        title: "Information loaded",
+        description: "Form filled with your saved information",
+      });
+    } catch (error) {
+      toast({
+        title: "Error loading data",
+        description: "Could not load your saved information",
+        variant: "destructive"
+      });
+    } finally {
+      setTimeout(() => setIsAutofilling(false), 500);
+    }
+  };
+
   return (
     <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-6">Guest Details</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">Guest Details</h2>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleDemoFill}
+            disabled={isAutofilling}
+            className="text-xs"
+          >
+            <Sparkles className="h-3 w-3 mr-1" />
+            Fill Demo Data
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleUserDataFill}
+            disabled={isAutofilling}
+            className="text-xs"
+          >
+            <User className="h-3 w-3 mr-1" />
+            Use My Info
+          </Button>
+        </div>
+      </div>
       
       <Form {...form}>
         <form className="space-y-4">

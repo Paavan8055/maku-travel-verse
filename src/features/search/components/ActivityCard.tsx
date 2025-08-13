@@ -38,7 +38,7 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
   const navigate = useNavigate();
 
   const handleSelectActivity = () => {
-    navigate(`/booking?type=activity&id=${activity.id}`);
+    navigate(`/booking/select/activity?activityId=${activity.id}&title=${encodeURIComponent(activity.title)}&price=${activity.price}`);
   };
 
   const getDifficultyColor = (difficulty: string) => {
