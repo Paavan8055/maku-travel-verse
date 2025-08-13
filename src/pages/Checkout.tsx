@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -161,7 +162,7 @@ const CheckoutPage = () => {
     navigate(`/booking/payment${search}`);
   };
 
-  // Updated continue handler - skip validation for hotel bookings to allow direct payment
+  // Simplified continue handler - remove validation issues
   const handleContinue = () => {
     console.log('Continue button clicked', {
       isFlightCheckout,
@@ -171,20 +172,15 @@ const CheckoutPage = () => {
       guest
     });
 
-    // For hotel bookings, proceed directly to payment without strict validation
+    // For hotel bookings, proceed directly
     if (!isFlightCheckout) {
       console.log('Hotel booking - proceeding to payment');
       goToPayment();
       return;
     }
 
-    // For flight bookings, validate passenger details
-    const isValidForBookingType = passengerValid;
-    const hasData = passenger;
-    
-    console.log('Flight validation check:', { isValidForBookingType, hasData });
-    
-    if (!isValidForBookingType || !hasData) {
+    // For flight bookings, check if we have passenger data
+    if (!passenger) {
       console.log('Flight validation failed, showing toast');
       
       toast({
@@ -203,6 +199,9 @@ const CheckoutPage = () => {
     console.log('Flight validation passed, proceeding to payment');
     goToPayment();
   };
+
+  // Calculate button disabled state more simply
+  const isButtonDisabled = isFlightCheckout ? !passenger : !guest;
 
   return (
     <div className="min-h-screen bg-background">
@@ -255,11 +254,14 @@ const CheckoutPage = () => {
                 <Button 
                   onClick={() => {
                     console.log('Button clicked - main button');
+                    console.log('Button disabled state:', isButtonDisabled);
+                    console.log('Guest data:', guest);
+                    console.log('Passenger data:', passenger);
                     handleContinue();
                   }} 
                   className="btn-primary h-12" 
                   size="lg"
-                  disabled={isFlightCheckout ? (!passengerValid || !passenger) : (!guestValid || !guest)}
+                  disabled={isButtonDisabled}
                 >
                   Continue to Payment
                 </Button>
@@ -365,9 +367,11 @@ const CheckoutPage = () => {
                     console.log('Button clicked - sidebar button');
                     console.log('Current URL:', window.location.href);
                     console.log('isFlightCheckout:', isFlightCheckout);
+                    console.log('Button disabled state:', isButtonDisabled);
                     handleContinue();
                   }}
                   className="w-full mt-6 btn-primary h-12"
+                  disabled={isButtonDisabled}
                 >
                   Continue to Payment
                 </Button>
