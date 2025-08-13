@@ -375,9 +375,10 @@ const FlightSearchPage = () => {
                 <DestinationAutocomplete
                   value={originInput}
                   onChange={setOriginInput}
-                  onDestinationSelect={(d) => setOriginInput(d.code ? `${d.city} (${d.code})` : d.name)}
+                  onDestinationSelect={(d) => setOriginInput(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
                   placeholder="From"
                   className="w-full"
+                  searchType="airport"
                 />
               </div>
               <div className="md:col-span-1">
@@ -385,9 +386,10 @@ const FlightSearchPage = () => {
                 <DestinationAutocomplete
                   value={destinationInput}
                   onChange={setDestinationInput}
-                  onDestinationSelect={(d) => setDestinationInput(d.code ? `${d.city} (${d.code})` : d.name)}
+                  onDestinationSelect={(d) => setDestinationInput(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
                   placeholder="To"
                   className="w-full"
+                  searchType="airport"
                 />
               </div>
               <div className="md:col-span-1">

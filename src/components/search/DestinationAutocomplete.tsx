@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { AIRPORTS } from "@/data/airports";
 
 interface Destination {
   id: string;
@@ -23,6 +24,7 @@ interface DestinationAutocompleteProps {
   onDestinationSelect: (destination: Destination) => void;
   placeholder?: string;
   className?: string;
+  searchType?: "city" | "airport" | "both";
 }
 
 export const DestinationAutocomplete = ({
@@ -30,7 +32,8 @@ export const DestinationAutocomplete = ({
   onChange,
   onDestinationSelect,
   placeholder = "Where to?",
-  className
+  className,
+  searchType = "city"
 }: DestinationAutocompleteProps) => {
   const [suggestions, setSuggestions] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,17 +42,34 @@ export const DestinationAutocomplete = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Popular destinations as fallback
-  const popularDestinations: Destination[] = [
-    { id: "syd", name: "Sydney", country: "Australia", type: "city", displayName: "Sydney, Australia" },
-    { id: "mel", name: "Melbourne", country: "Australia", type: "city", displayName: "Melbourne, Australia" },
-    { id: "bri", name: "Brisbane", country: "Australia", type: "city", displayName: "Brisbane, Australia" },
-    { id: "per", name: "Perth", country: "Australia", type: "city", displayName: "Perth, Australia" },
-    { id: "nyc", name: "New York", country: "United States", type: "city", displayName: "New York, United States" },
-    { id: "lon", name: "London", country: "United Kingdom", type: "city", displayName: "London, United Kingdom" },
-    { id: "par", name: "Paris", country: "France", type: "city", displayName: "Paris, France" },
-    { id: "tok", name: "Tokyo", country: "Japan", type: "city", displayName: "Tokyo, Japan" }
-  ];
+  // Popular destinations based on search type
+  const getPopularDestinations = (): Destination[] => {
+    if (searchType === "airport") {
+      return AIRPORTS.slice(0, 8).map(airport => ({
+        id: airport.iata.toLowerCase(),
+        name: airport.name,
+        city: airport.city,
+        country: airport.country,
+        code: airport.iata,
+        type: "airport" as const,
+        displayName: `${airport.city} (${airport.iata}) - ${airport.name}`
+      }));
+    }
+    
+    // Default city destinations
+    return [
+      { id: "syd", name: "Sydney", country: "Australia", type: "city", displayName: "Sydney, Australia" },
+      { id: "mel", name: "Melbourne", country: "Australia", type: "city", displayName: "Melbourne, Australia" },
+      { id: "bri", name: "Brisbane", country: "Australia", type: "city", displayName: "Brisbane, Australia" },
+      { id: "per", name: "Perth", country: "Australia", type: "city", displayName: "Perth, Australia" },
+      { id: "nyc", name: "New York", country: "United States", type: "city", displayName: "New York, United States" },
+      { id: "lon", name: "London", country: "United Kingdom", type: "city", displayName: "London, United Kingdom" },
+      { id: "par", name: "Paris", country: "France", type: "city", displayName: "Paris, France" },
+      { id: "tok", name: "Tokyo", country: "Japan", type: "city", displayName: "Tokyo, Japan" }
+    ];
+  };
+
+  const popularDestinations = getPopularDestinations();
 
   useEffect(() => {
     let active = true;
@@ -62,10 +82,13 @@ export const DestinationAutocomplete = ({
           console.log("Searching for destinations:", q);
           
           // Try Amadeus first (most reliable)
+          const searchTypes = searchType === "airport" ? ['AIRPORT'] : 
+                             searchType === "both" ? ['CITY', 'AIRPORT'] : ['CITY'];
+          
           const { data: amadeusData, error: amadeusError } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
             body: {
               query: q,
-              types: ['CITY'],
+              types: searchTypes,
               limit: 8
             }
           });
@@ -179,6 +202,9 @@ export const DestinationAutocomplete = ({
     if (destination.displayName) return destination.displayName;
     
     const cityOrName = destination.city || destination.name;
+    if (destination.type === "airport" && destination.code) {
+      return `${cityOrName} (${destination.code}) - ${destination.name}`;
+    }
     if (destination.type === "hotel") {
       return destination.city ? `${destination.name} — ${destination.city}` : destination.name;
     }

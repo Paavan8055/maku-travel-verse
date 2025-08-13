@@ -166,18 +166,20 @@ const [activityChildren, setActivityChildren] = useState(0);
                   <DestinationAutocomplete
                     value={flightFrom}
                     onChange={setFlightFrom}
-                    onDestinationSelect={(d) => setFlightFrom(d.code ? `${d.city} (${d.code})` : d.name)}
+                    onDestinationSelect={(d) => setFlightFrom(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
                     placeholder="From"
                     className="search-input"
+                    searchType="airport"
                   />
 
                   {/* To */}
                   <DestinationAutocomplete
                     value={flightTo}
                     onChange={setFlightTo}
-                    onDestinationSelect={(d) => setFlightTo(d.code ? `${d.city} (${d.code})` : d.name)}
+                    onDestinationSelect={(d) => setFlightTo(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
                     placeholder="To"
                     className="search-input"
+                    searchType="airport"
                   />
 
                   {/* Departure */}
