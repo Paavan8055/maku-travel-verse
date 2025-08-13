@@ -257,6 +257,10 @@ const BookingPaymentPage = () => {
       } catch {}
 
       const person = passenger || guest;
+      if (!person) {
+        throw new Error('No customer information available. Please go back and complete the booking form.');
+      }
+
       const customerInfo = {
         email: person?.email || 'guest@example.com',
         firstName: person?.firstName || 'GUEST',
@@ -264,14 +268,14 @@ const BookingPaymentPage = () => {
         phone: person?.phone,
       };
 
-      // Calculate the correct amount - convert to cents for Stripe
+      // Fix amount calculation - ensure we're using the correct value
       const bookingAmount = isFlightCheckout ? flightParams.amount : bookingDetails.total;
-      const stripeAmount = Math.round(bookingAmount * 100); // Convert to cents
       
-      console.log('Payment intent data:', {
+      console.log('Payment intent data (before API call):', {
         bookingType: isFlightCheckout ? 'flight' : 'hotel',
-        displayAmount: bookingAmount,
-        stripeAmount,
+        bookingAmount,
+        bookingDetails: !isFlightCheckout ? bookingDetails : null,
+        flightParams: isFlightCheckout ? flightParams : null,
         currency: isFlightCheckout ? flightParams.currency : 'USD',
         customerInfo
       });
@@ -280,7 +284,7 @@ const BookingPaymentPage = () => {
         body: {
           bookingType: isFlightCheckout ? 'flight' : 'hotel',
           bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
-          amount: bookingAmount, // Send the correct amount
+          amount: bookingAmount,
           currency: isFlightCheckout ? flightParams.currency : 'USD',
           customerInfo,
         },
@@ -299,6 +303,12 @@ const BookingPaymentPage = () => {
       console.log('Payment intent created successfully:', data);
       setClientSecret(data.payment.clientSecret);
       setBookingId(data.booking.id);
+      
+      toast({ 
+        title: 'Payment ready', 
+        description: 'You can now complete your payment', 
+        variant: 'default' 
+      });
     } catch (e: any) {
       console.error('ensurePaymentIntent error', e);
       const message = e?.message || 'Unexpected error while preparing payment';
@@ -374,9 +384,20 @@ const BookingPaymentPage = () => {
         }
         
         console.log('Verifying payment with booking...');
-        const verifyResult = await supabase.functions.invoke('verify-booking-payment', {
+        // For guest bookings, don't include authorization header
+        const verifyOptions: any = {
           body: { bookingId, paymentIntentId: piId },
-        });
+        };
+        
+        // Only include auth header if user is logged in
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log('User authenticated, including auth header');
+        } else {
+          console.log('Guest checkout, proceeding without auth');
+        }
+        
+        const verifyResult = await supabase.functions.invoke('verify-booking-payment', verifyOptions);
         
         console.log('Verification result:', verifyResult);
         

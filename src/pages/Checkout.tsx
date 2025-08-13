@@ -166,25 +166,40 @@ const CheckoutPage = () => {
     console.log('Continue button clicked', {
       isFlightCheckout,
       passengerValid,
-      passenger,
+      passenger: !!passenger,
       guestValid,
-      guest
+      guest: !!guest,
+      bookingDetails: !isFlightCheckout ? bookingDetails : null
     });
 
-    // For hotel bookings, proceed directly
+    // For hotel bookings, validate guest data
     if (!isFlightCheckout) {
-      console.log('Hotel booking - proceeding to payment');
+      if (!guest || !guestValid) {
+        console.log('Hotel validation failed - missing guest data');
+        toast({
+          title: 'Complete guest details',
+          description: 'Please fill all required fields before continuing.',
+          variant: "destructive",
+        });
+        
+        const anchor = document.getElementById("guest-details");
+        if (anchor && typeof anchor.scrollIntoView === "function") {
+          anchor.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        return;
+      }
+      console.log('Hotel booking - validation passed, proceeding to payment');
       goToPayment();
       return;
     }
 
     // For flight bookings, check if we have passenger data
-    if (!passenger) {
-      console.log('Flight validation failed, showing toast');
+    if (!passenger || !passengerValid) {
+      console.log('Flight validation failed - missing passenger data');
       
       toast({
-        title: `Complete passenger details`,
-        description: `Please fill all required fields before continuing.`,
+        title: 'Complete passenger details',
+        description: 'Please fill all required fields before continuing.',
         variant: "destructive",
       });
       

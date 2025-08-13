@@ -29,23 +29,20 @@ serve(async (req) => {
     // Service client (bypasses RLS)
     const serviceClient = createClient(supabaseUrl, supabaseServiceRole, { auth: { persistSession: false } });
 
-    // Require authenticated user and capture user id
+    // Optional authentication for guest bookings
+    let userId: string | null = null;
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Unauthorized" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
-      );
+    if (authHeader) {
+      try {
+        const token = authHeader.replace("Bearer ", "");
+        const { data: userData, error: userErr } = await serviceClient.auth.getUser(token);
+        if (!userErr && userData?.user?.id) {
+          userId = userData.user.id;
+        }
+      } catch (err) {
+        console.warn("Auth validation failed, proceeding as guest:", err);
+      }
     }
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userErr } = await serviceClient.auth.getUser(token);
-    if (userErr || !userData?.user?.id) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Unauthorized" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
-      );
-    }
-    const userId = userData.user.id;
 
     // Load booking with extra fields for the confirmation letter
     const { data: bookingRows, error: bookingErr } = await serviceClient
