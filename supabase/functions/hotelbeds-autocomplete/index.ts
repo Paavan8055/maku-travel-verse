@@ -52,9 +52,22 @@ async function hbFetch(path: string) {
   return resp.json();
 }
 
-function includesQuery(hay: string | undefined, q: string) {
-  return (hay || "").toLowerCase().includes(q);
+// Coerce any value to a lowercased string before searching
+function includesQuery(hay: unknown, q: string) {
+  const text = String(hay ?? "").toLowerCase();
+  return text.includes(q);
 }
+
+// Safe getters handling both string and { content } shapes
+const getName = (obj: any): string => obj?.name?.content ?? obj?.name ?? "";
+const getCity = (obj: any): string | undefined =>
+  obj?.city?.content ?? obj?.city ?? obj?.destinationName ?? undefined;
+const getCountry = (obj: any): string =>
+  obj?.countryCode ?? obj?.country?.code ?? obj?.country?.isoCode ?? obj?.country ?? "";
+const getCode = (obj: any): string | undefined => {
+  const code = obj?.code ?? obj?.destinationCode ?? obj?.id;
+  return code != null ? String(code) : undefined;
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -78,16 +91,28 @@ serve(async (req) => {
       const destPayload = await hbFetch(`/locations/destinations?fields=all&language=ENG&from=1&to=200`);
       const items = Array.isArray(destPayload?.destinations) ? destPayload.destinations : [];
       destinations = items
-        .filter((d: any) => includesQuery(d?.name, qLower) || includesQuery(d?.code, qLower) || includesQuery(d?.countryCode, qLower))
+        .filter((d: any) => {
+          const name = getName(d);
+          const code = getCode(d) ?? "";
+          const country = getCountry(d);
+          return includesQuery(name, qLower) || includesQuery(code, qLower) || includesQuery(country, qLower);
+        })
         .slice(0, max)
-        .map((d: any): Suggestion => ({
-          id: `hb-dest-${d.code}`,
-          name: d.name || d.code || "",
-          city: d.name || undefined,
-          country: d.countryCode || "",
-          type: "city",
-          displayName: d.name && d.countryCode ? `${d.name}, ${d.countryCode}` : d.name || d.code || "",
-        }));
+        .map((d: any): Suggestion => {
+          const name = getName(d);
+          const country = getCountry(d);
+          const code = getCode(d);
+          return {
+            id: `hb-dest-${code ?? name}`,
+            name: name || code || "",
+            city: name || undefined,
+            country: country,
+            code,
+            type: "city",
+            displayName: name && country ? `${name}, ${country}` : name || code || "",
+          };
+        });
+      console.log("hotelbeds-autocomplete destinations count:", destinations.length);
     } catch (e) {
       console.error("HotelBeds destinations fetch error:", e);
     }
@@ -98,14 +123,14 @@ serve(async (req) => {
       const hotelsPayload = await hbFetch(`/hotels?fields=basic&language=ENG&from=1&to=200`);
       const items = Array.isArray(hotelsPayload?.hotels) ? hotelsPayload.hotels : [];
       hotels = items
-        .filter((h: any) => includesQuery(h?.name?.content, qLower))
+        .filter((h: any) => includesQuery(h?.name?.content ?? h?.name, qLower))
         .slice(0, max)
         .map((h: any): Suggestion => {
-          const name = h?.name?.content || "";
-          const city = h?.city?.content || h?.city || h?.destinationName || undefined;
-          const country = h?.countryCode || "";
+          const name = h?.name?.content ?? h?.name ?? "";
+          const city = getCity(h);
+          const country = getCountry(h);
           return {
-            id: `hb-hotel-${h?.code}`,
+            id: `hb-hotel-${getCode(h) ?? name}`,
             name: city || name,
             city: city || undefined,
             country,
@@ -113,6 +138,7 @@ serve(async (req) => {
             displayName: city ? `${name} — ${city}` : name,
           };
         });
+      console.log("hotelbeds-autocomplete hotels count:", hotels.length);
     } catch (e) {
       console.error("HotelBeds hotels fetch error:", e);
     }
