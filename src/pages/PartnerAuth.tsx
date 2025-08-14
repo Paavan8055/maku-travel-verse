@@ -10,13 +10,14 @@ import { Building, Plane, MapPin, Clock, CreditCard, Shield } from 'lucide-react
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const PartnerAuth = () => {
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [selectedBusinessType, setSelectedBusinessType] = useState<string>('');
+  const [selectedBusinessType, setSelectedBusinessType] = useState<'hotel' | 'airline' | 'activity_provider' | ''>('');
   const [onboardingChoice, setOnboardingChoice] = useState<'trial' | 'immediate' | ''>('');
   const [formData, setFormData] = useState({
     email: '',
@@ -28,7 +29,7 @@ const PartnerAuth = () => {
 
   const businessTypes = [
     {
-      type: 'hotel',
+      type: 'hotel' as const,
       title: 'Hotel Partner',
       icon: Building,
       description: 'Manage hotels, resorts, and accommodations',
@@ -36,7 +37,7 @@ const PartnerAuth = () => {
       features: ['Property management', 'Room inventory', 'Rate calendar', 'Guest management']
     },
     {
-      type: 'airline',
+      type: 'airline' as const,
       title: 'Airline Partner', 
       icon: Plane,
       description: 'Manage flight routes and airline services',
@@ -44,7 +45,7 @@ const PartnerAuth = () => {
       features: ['Fleet management', 'Route planning', 'Schedule management', 'Safety compliance']
     },
     {
-      type: 'activity',
+      type: 'activity_provider' as const,
       title: 'Activity Partner',
       icon: MapPin,
       description: 'Manage tours, activities, and experiences',
@@ -87,13 +88,52 @@ const PartnerAuth = () => {
         return;
       }
 
-      // Handle payment flow based on choice
-      if (onboardingChoice === 'trial') {
-        // Redirect to trial setup
-        navigate('/partner-trial-setup');
-      } else {
-        // Redirect to immediate payment
-        navigate('/partner-payment');
+      // Get the created user for partner profile
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const user = session.user;
+        // Create partner profile
+        const { error: profileError } = await supabase
+          .from('partner_profiles')
+          .insert({
+            user_id: user.id,
+            business_name: formData.businessName,
+            business_type: selectedBusinessType as 'hotel' | 'airline' | 'activity_provider',
+            contact_person: formData.contactPerson,
+            phone: formData.phone,
+            onboarding_choice: onboardingChoice,
+            verification_status: 'pending',
+            trial_status: onboardingChoice === 'trial' ? 'pending' : 'none',
+            payment_status: 'unpaid'
+          });
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+        }
+
+        // Initiate payment flow
+        const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-partner-checkout', {
+          body: {
+            business_type: selectedBusinessType,
+            onboarding_choice: onboardingChoice,
+            user_id: user.id
+          }
+        });
+
+        if (paymentError) {
+          throw new Error(paymentError.message);
+        }
+
+        // Handle the payment flow based on response
+        if (paymentData.type === 'setup_intent') {
+          // For trial - redirect to setup intent confirmation
+          window.location.href = `/payment-setup?client_secret=${paymentData.client_secret}&type=trial`;
+        } else if (paymentData.type === 'payment_intent') {
+          // For immediate payment - redirect to payment confirmation
+          window.location.href = `/payment-setup?client_secret=${paymentData.client_secret}&type=immediate`;
+        }
+        
+        return; // Exit early since we're redirecting
       }
 
       toast({

@@ -14,6 +14,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
 import PartnerAuth from "./pages/PartnerAuth";
+import PaymentSetup from "./pages/PaymentSetup";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancelled from "./pages/PaymentCancelled";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +38,9 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/admin-auth" element={<AdminAuth />} />
                 <Route path="/partner-auth" element={<PartnerAuth />} />
+                <Route path="/payment-setup" element={<PaymentSetup />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               </Routes>
             </BrowserRouter>
           </TooltipProvider>

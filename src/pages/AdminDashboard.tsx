@@ -28,6 +28,64 @@ const AdminDashboard = () => {
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [partners, setPartners] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalPartners: 0,
+    pendingApprovals: 0,
+    platformRevenue: 0,
+    activeBookings: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch partners
+      const { data: partnersData, error: partnersError } = await supabase
+        .from('partner_profiles')
+        .select(`
+          *,
+          partner_onboarding_payments(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (partnersError) throw partnersError;
+
+      setPartners(partnersData || []);
+
+      // Calculate stats
+      const totalPartners = partnersData?.length || 0;
+      const pendingApprovals = partnersData?.filter(p => p.verification_status === 'pending').length || 0;
+      
+      // Calculate platform revenue from payments
+      const { data: paymentsData } = await supabase
+        .from('partner_onboarding_payments')
+        .select('amount')
+        .eq('status', 'succeeded');
+      
+      const platformRevenue = paymentsData?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
+
+      setStats({
+        totalPartners,
+        pendingApprovals,
+        platformRevenue: platformRevenue / 100, // Convert from cents
+        activeBookings: 0 // TODO: Add actual bookings count
+      });
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -40,83 +98,74 @@ const AdminDashboard = () => {
     }
   };
 
-  // Mock data - replace with real data from Supabase
   const adminStats = [
-    { title: "Total Partners", value: "156", change: "+12%", icon: Users, color: "text-travel-ocean" },
-    { title: "Platform Revenue", value: "A$45,678", change: "+18%", icon: DollarSign, color: "text-travel-forest" },
-    { title: "Pending Approvals", value: "8", change: "0%", icon: AlertTriangle, color: "text-travel-sunset" },
-    { title: "Active Bookings", value: "1,234", change: "+5%", icon: BarChart3, color: "text-primary" }
+    { title: "Total Partners", value: stats.totalPartners.toString(), change: "+12%", icon: Users, color: "text-travel-ocean" },
+    { title: "Platform Revenue", value: `A$${stats.platformRevenue.toLocaleString()}`, change: "+18%", icon: DollarSign, color: "text-travel-forest" },
+    { title: "Pending Approvals", value: stats.pendingApprovals.toString(), change: "0%", icon: AlertTriangle, color: "text-travel-sunset" },
+    { title: "Active Bookings", value: stats.activeBookings.toString(), change: "+5%", icon: BarChart3, color: "text-primary" }
   ];
 
-  const mockPartners = [
-    {
-      id: "1",
-      business_name: "Ocean View Resort",
-      business_type: "hotel",
-      contact_person: "John Smith",
-      email: "john@oceanview.com",
-      verification_status: "approved",
-      payment_status: "paid",
-      trial_status: "skipped",
-      onboarding_fee_paid: true,
-      documents_verified: true,
-      created_at: "2024-01-15",
-      commission_rate: 9,
-      monthly_revenue: 12450
-    },
-    {
-      id: "2", 
-      business_name: "Sky Airlines",
-      business_type: "airline",
-      contact_person: "Sarah Johnson",
-      email: "sarah@skyairlines.com",
-      verification_status: "pending",
-      payment_status: "paid",
-      trial_status: "skipped",
-      onboarding_fee_paid: true,
-      documents_verified: false,
-      created_at: "2024-01-20",
-      commission_rate: 9,
-      monthly_revenue: 35200
-    },
-    {
-      id: "3",
-      business_name: "Adventure Tours",
-      business_type: "activity",
-      contact_person: "Mike Davis",
-      email: "mike@adventuretours.com",
-      verification_status: "approved",
-      payment_status: "trial_secured",
-      trial_status: "active",
-      onboarding_fee_paid: false,
-      documents_verified: false,
-      created_at: "2024-01-25",
-      commission_rate: 9,
-      monthly_revenue: 8960
-    }
-  ];
-
-  const filteredPartners = mockPartners.filter(partner => {
-    const matchesSearch = partner.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         partner.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredPartners = partners.filter(partner => {
+    const matchesSearch = partner.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         partner.contact_person?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === "all" || partner.verification_status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
   const approvePartner = async (partnerId: string) => {
-    // Update partner status in database
-    toast({
-      title: "Partner Approved",
-      description: "Partner has been approved and notified."
-    });
+    try {
+      const { error } = await supabase
+        .from('partner_profiles')
+        .update({ 
+          verification_status: 'verified',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', partnerId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Partner Approved",
+        description: "Partner has been approved and notified."
+      });
+
+      // Refresh data
+      fetchDashboardData();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve partner",
+        variant: "destructive"
+      });
+    }
   };
 
   const rejectPartner = async (partnerId: string) => {
-    // Update partner status in database  
-    toast({
-      title: "Partner Rejected",
-      description: "Partner has been rejected and notified."
-    });
+    try {
+      const { error } = await supabase
+        .from('partner_profiles')
+        .update({ 
+          verification_status: 'rejected',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', partnerId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Partner Rejected",
+        description: "Partner has been rejected and notified."
+      });
+
+      // Refresh data
+      fetchDashboardData();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject partner",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -189,7 +238,9 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {mockPartners.slice(0, 3).map((partner) => (
+                        {loading ? (
+                          <div className="text-center py-4">Loading...</div>
+                        ) : partners.slice(0, 3).map((partner) => (
                           <div key={partner.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -207,6 +258,9 @@ const AdminDashboard = () => {
                             </Badge>
                           </div>
                         ))}
+                        {!loading && partners.length === 0 && (
+                          <p className="text-center text-muted-foreground py-4">No partners registered yet</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -339,7 +393,9 @@ const AdminDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {mockPartners.filter(p => p.verification_status === 'pending').map((partner) => (
+                      {loading ? (
+                        <div className="text-center py-8">Loading pending approvals...</div>
+                      ) : partners.filter(p => p.verification_status === 'pending').map((partner) => (
                         <div key={partner.id} className="flex items-center justify-between p-4 border rounded-lg">
                           <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
@@ -375,6 +431,9 @@ const AdminDashboard = () => {
                           </div>
                         </div>
                       ))}
+                      {!loading && partners.filter(p => p.verification_status === 'pending').length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">No pending approvals</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
