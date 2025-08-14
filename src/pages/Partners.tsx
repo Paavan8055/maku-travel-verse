@@ -49,6 +49,10 @@ const PartnersPage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleBecomePartner = () => {
+    navigate('/partner-auth');
+  };
+
   const partnerTypes = [{
     icon: Building2,
     title: "Hotels & Accommodations",
@@ -143,7 +147,11 @@ const PartnersPage = () => {
             Partner with us early and help shape the future while growing together.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Button size="lg" className="bg-gradient-to-r from-travel-ocean to-travel-forest hover:shadow-floating">
+            <Button 
+              onClick={handleBecomePartner}
+              size="lg" 
+              className="bg-gradient-to-r from-travel-ocean to-travel-forest hover:shadow-floating"
+            >
               <Zap className="mr-2 h-4 w-4" />
               Become a Partner
             </Button>
