@@ -50,64 +50,61 @@ const PartnersPage = () => {
   const partnerTypes = [
     {
       icon: Building2,
-      title: "Hotels & Resorts",
-      description: "Join our extensive network of accommodation partners",
-      benefits: ["Global distribution", "Dynamic pricing", "Real-time inventory"],
+      title: "Hotels & Accommodations",
+      description: "Join us as we build direct partnerships with properties",
+      benefits: ["Lower commission fees", "Direct guest relationships", "Early partner benefits"],
       color: "bg-travel-ocean"
     },
     {
       icon: Globe,
-      title: "Tour Operators",
-      description: "Showcase your unique experiences to millions of travelers",
-      benefits: ["Booking management", "Multi-language support", "Marketing tools"],
+      title: "Activity Providers",
+      description: "Showcase unique experiences on our growing platform",
+      benefits: ["Direct bookings", "Better margins", "Early adopter advantage"],
       color: "bg-travel-sky"
     },
     {
       icon: Users,
-      title: "Activity Providers",
-      description: "Connect with adventure seekers and experience hunters",
-      benefits: ["Instant bookings", "Customer reviews", "Analytics dashboard"],
+      title: "Travel Content Creators",
+      description: "Earn commissions by sharing authentic travel experiences",
+      benefits: ["Referral earnings", "Content monetization", "Community building"],
       color: "bg-travel-coral"
     },
     {
       icon: TrendingUp,
-      title: "Transportation",
-      description: "Offer flights, car rentals, and ground transportation",
-      benefits: ["Route optimization", "Fleet management", "Revenue tracking"],
+      title: "Technology Partners",
+      description: "Help us build the future of travel technology",
+      benefits: ["API access", "Revenue sharing", "Shape development"],
       color: "bg-travel-forest"
     }
   ];
 
   const benefits = [
     {
-      icon: Shield,
-      title: "Secure & Reliable",
-      description: "Enterprise-grade security with 99.9% uptime guarantee"
-    },
-    {
-      icon: Globe,
-      title: "Global Reach",
-      description: "Access to millions of travelers from 180+ countries"
-    },
-    {
       icon: TrendingUp,
-      title: "Increase Revenue",
-      description: "Boost your bookings with our marketing and distribution channels"
+      title: "Early Partner Advantages",
+      description: "Join us early and shape the platform while getting preferential terms"
+    },
+    {
+      icon: Users,
+      title: "Direct Relationships",
+      description: "Build connections with customers without traditional OTA intermediaries"
+    },
+    {
+      icon: Zap,
+      title: "Modern Technology",
+      description: "Access cutting-edge travel tech built from the ground up"
     },
     {
       icon: Heart,
-      title: "Dedicated Support",
-      description: "24/7 partner support team to help you succeed"
+      title: "Community Growth",
+      description: "Benefit from our traveler referral network and content creators"
     }
   ];
 
   const existingPartners = [
-    { name: "Marriott Hotels", logo: "🏨", category: "Hospitality" },
-    { name: "Emirates Airlines", logo: "✈️", category: "Airlines" },
-    { name: "Viator Tours", logo: "🎯", category: "Experiences" },
-    { name: "Hertz Car Rental", logo: "🚗", category: "Transportation" },
-    { name: "GetYourGuide", logo: "🗺️", category: "Activities" },
-    { name: "Airbnb", logo: "🏡", category: "Accommodation" }
+    { name: "Amadeus", logo: "🔗", category: "API Partner" },
+    { name: "Hotelbeds", logo: "🏨", category: "API Partner" },
+    { name: "Travelport", logo: "💬", category: "In Discussion" }
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -130,11 +127,11 @@ const PartnersPage = () => {
             </Badge>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Partner with <span className="hero-text">Maku.travel</span>
+            Join the <span className="hero-text">Journey</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-4xl mx-auto mb-8">
-            Join our intelligent travel ecosystem powered by AI, real-time analytics, and cutting-edge technology. 
-            Scale your business with our dynamic platform built for modern travel.
+            We're building the next generation of travel technology from the ground up. 
+            Partner with us early and help shape the future while growing together.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="lg" className="bg-gradient-to-r from-travel-ocean to-travel-forest hover:shadow-floating">
@@ -264,7 +261,7 @@ const PartnersPage = () => {
 
         {/* Existing Partners */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Trusted by Leading Brands</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">Current Technology Partners</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {existingPartners.map((partner, index) => (
               <Card key={index} className="text-center hover:shadow-md transition-shadow">

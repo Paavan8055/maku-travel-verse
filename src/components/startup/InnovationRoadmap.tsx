@@ -34,91 +34,87 @@ interface RoadmapItem {
 const roadmapData: RoadmapItem[] = [
   {
     id: '1',
-    title: 'AI-Powered Dynamic Pricing',
-    description: 'Real-time pricing optimization using machine learning to maximize partner revenue and occupancy rates.',
-    category: 'ai',
-    quarter: 'Q1 2025',
-    progress: 85,
+    title: 'Core Booking Platform',
+    description: 'Essential booking functionality for hotels and flights with real-time inventory from Amadeus and Hotelbeds.',
+    category: 'platform',
+    quarter: 'Q4 2025',
+    progress: 65,
     status: 'in-progress',
-    votes: 247,
+    votes: 12,
     impact: 'high',
-    partnerBenefit: '+15% average revenue increase'
+    partnerBenefit: 'Direct booking capability, reduced commission fees'
   },
   {
     id: '2',
-    title: 'Partner API 3.0',
-    description: 'Next-generation API with GraphQL, real-time updates, and advanced analytics endpoints.',
+    title: 'Partner Onboarding Portal',
+    description: 'Self-service portal for hotels and activity providers to join the platform.',
     category: 'platform',
-    quarter: 'Q1 2025',
-    progress: 92,
-    status: 'beta',
-    votes: 189,
+    quarter: 'Q1 2026',
+    progress: 20,
+    status: 'planned',
+    votes: 8,
     impact: 'high',
-    partnerBenefit: '50% faster integration time'
+    partnerBenefit: 'Easy registration, automated contract management'
   },
   {
     id: '3',
-    title: 'Smart Inventory Management',
-    description: 'AI-driven inventory optimization with predictive analytics and automated availability updates.',
-    category: 'ai',
-    quarter: 'Q2 2025',
-    progress: 45,
-    status: 'in-progress',
-    votes: 312,
-    impact: 'high',
-    partnerBenefit: 'Reduce overbooking by 90%'
+    title: 'Traveler Referral Program',
+    description: 'Reward system for travelers who share content and refer new users.',
+    category: 'partners',
+    quarter: 'Q2 2026',
+    progress: 10,
+    status: 'planned',
+    votes: 15,
+    impact: 'medium',
+    partnerBenefit: 'Organic marketing, increased brand awareness'
   },
   {
     id: '4',
-    title: 'Carbon Footprint Tracking',
-    description: 'Comprehensive sustainability metrics and carbon offset integration for eco-conscious travelers.',
-    category: 'sustainability',
-    quarter: 'Q2 2025',
+    title: 'Direct Supplier Integration',
+    description: 'Connect directly with hotels and activities bypassing traditional OTAs.',
+    category: 'platform',
+    quarter: 'Q1 2026',
     progress: 30,
-    status: 'in-progress',
-    votes: 156,
-    impact: 'medium',
-    partnerBenefit: 'Attract 25% more eco-travelers'
+    status: 'planned',
+    votes: 18,
+    impact: 'high',
+    partnerBenefit: 'Higher margins, direct customer relationships'
   },
   {
     id: '5',
-    title: 'Mobile Partner Dashboard',
-    description: 'Native mobile app for partners to manage bookings, view analytics, and respond to guests on-the-go.',
+    title: 'Mobile App Launch',
+    description: 'Native mobile application for iOS and Android with core booking features.',
     category: 'mobile',
-    quarter: 'Q3 2025',
-    progress: 15,
+    quarter: 'Q3 2026',
+    progress: 5,
     status: 'planned',
-    votes: 198,
-    impact: 'medium',
-    partnerBenefit: 'Manage business anywhere'
+    votes: 22,
+    impact: 'high',
+    partnerBenefit: 'Increased mobile bookings, better user engagement'
   },
   {
     id: '6',
-    title: 'Blockchain Loyalty System',
-    description: 'Decentralized loyalty program with NFT rewards and cross-partner point sharing.',
-    category: 'platform',
-    quarter: 'Q4 2025',
-    progress: 0,
+    title: 'Content Creator Tools',
+    description: 'Tools for travel influencers to create and monetize travel content on the platform.',
+    category: 'partners',
+    quarter: 'Q2 2026',
+    progress: 15,
     status: 'planned',
-    votes: 89,
-    impact: 'high',
-    partnerBenefit: 'Revolutionary customer retention'
+    votes: 11,
+    impact: 'medium',
+    partnerBenefit: 'User-generated content, authentic marketing'
   }
 ];
 
 const categoryConfig = {
-  ai: { icon: Brain, color: 'bg-travel-ocean', label: 'AI & ML' },
-  platform: { icon: Rocket, color: 'bg-travel-forest', label: 'Platform' },
-  mobile: { icon: Globe, color: 'bg-travel-coral', label: 'Mobile' },
-  partners: { icon: Users, color: 'bg-travel-gold', label: 'Partners' },
-  sustainability: { icon: Star, color: 'bg-travel-pink', label: 'Sustainability' }
+  platform: { icon: Rocket, color: 'bg-travel-ocean', label: 'Platform' },
+  partners: { icon: Users, color: 'bg-travel-forest', label: 'Community' },
+  mobile: { icon: Globe, color: 'bg-travel-coral', label: 'Mobile' }
 };
 
 const statusConfig = {
   planned: { icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted' },
-  'in-progress': { icon: Zap, color: 'text-travel-gold', bg: 'bg-travel-gold/10' },
-  completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
-  beta: { icon: TrendingUp, color: 'text-travel-ocean', bg: 'bg-travel-ocean/10' }
+  'in-progress': { icon: Zap, color: 'text-travel-gold', bg: 'bg-travel-gold/10' }
 };
 
 export const InnovationRoadmap: React.FC<{ className?: string }> = ({ className }) => {
@@ -149,7 +145,7 @@ export const InnovationRoadmap: React.FC<{ className?: string }> = ({ className 
           <p className="text-muted-foreground">Shape the future of travel technology with us</p>
         </div>
         <Badge className="bg-gradient-to-r from-travel-ocean to-travel-forest text-white">
-          25+ Features Planned
+          Building Together
         </Badge>
       </div>
 

@@ -29,31 +29,31 @@ interface StartupMetric {
 
 export const StartupMetrics: React.FC<{ className?: string }> = ({ className }) => {
   const [metrics, setMetrics] = useState({
-    foundingYear: 2023,
-    totalFunding: '2.5M',
-    monthlyUsers: 45670,
-    partnerGrowth: 156,
-    apiCalls: 2.8,
-    uptime: 99.97,
-    teamSize: 24,
-    countriesLive: 15
+    foundingYear: 2025,
+    totalFunding: 'Pre-Seed',
+    monthlyUsers: 'Building',
+    partnerGrowth: 'Early Stage',
+    apiCalls: 2,
+    uptime: 'In Development',
+    teamSize: 'Small & Focused',
+    countriesLive: 'Global Vision'
   });
 
   const [liveMetrics, setLiveMetrics] = useState({
-    activeUsers: 1247,
-    bookingsToday: 89,
-    revenueToday: 15600
+    developmentDays: Math.floor((new Date().getTime() - new Date('2025-06-01').getTime()) / (1000 * 60 * 60 * 24)),
+    apiIntegrations: 2,
+    prototypProgress: 35
   });
 
   useEffect(() => {
-    // Simulate real-time updates
+    // Update development days daily
     const interval = setInterval(() => {
       setLiveMetrics(prev => ({
-        activeUsers: prev.activeUsers + Math.floor(Math.random() * 10) - 5,
-        bookingsToday: prev.bookingsToday + Math.floor(Math.random() * 3),
-        revenueToday: prev.revenueToday + Math.floor(Math.random() * 500)
+        ...prev,
+        developmentDays: Math.floor((new Date().getTime() - new Date('2025-06-01').getTime()) / (1000 * 60 * 60 * 24)),
+        prototypProgress: Math.min(prev.prototypProgress + 0.1, 100)
       }));
-    }, 5000);
+    }, 86400000); // Update daily
 
     return () => clearInterval(interval);
   }, []);
@@ -61,94 +61,94 @@ export const StartupMetrics: React.FC<{ className?: string }> = ({ className }) 
   const startupMetrics: StartupMetric[] = [
     {
       icon: Rocket,
-      title: 'Company Age',
-      value: `${new Date().getFullYear() - metrics.foundingYear} years`,
-      change: 'Since 2023',
-      description: 'Founded in Sydney',
+      title: 'Days Building',
+      value: `${liveMetrics.developmentDays} Days`,
+      change: 'Since June 2025',
+      description: 'Building every day',
       color: 'text-travel-ocean',
-      progress: 65,
-      target: 'Series A Ready'
+      progress: 25,
+      target: '1 Year Strong'
     },
     {
       icon: DollarSign,
-      title: 'Total Funding',
-      value: `$${metrics.totalFunding}`,
-      change: '+50% YoY',
-      description: 'Seed funding raised',
+      title: 'Funding Status',
+      value: metrics.totalFunding,
+      change: 'Preparing',
+      description: 'Building for investors',
       color: 'text-travel-gold',
-      progress: 40,
-      target: '$5M Series A'
-    },
-    {
-      icon: Users,
-      title: 'Monthly Users',
-      value: metrics.monthlyUsers.toLocaleString(),
-      change: '+234% YoY',
-      description: 'Active travelers',
-      color: 'text-travel-coral',
-      progress: 75,
-      target: '100K users'
+      progress: 15,
+      target: 'Seed Round'
     },
     {
       icon: Building2,
-      title: 'Partner Growth',
-      value: `+${metrics.partnerGrowth}%`,
-      change: 'This quarter',
-      description: 'New partners joined',
+      title: 'API Partners',
+      value: `${metrics.apiCalls} Live`,
+      change: '+1 Soon',
+      description: 'Amadeus, Hotelbeds',
+      color: 'text-travel-coral',
+      progress: 30,
+      target: '5+ Integrations'
+    },
+    {
+      icon: Users,
+      title: 'Partner Interest',
+      value: metrics.partnerGrowth,
+      change: 'Growing Daily',
+      description: 'Building waitlist',
       color: 'text-travel-forest',
-      progress: 85,
-      target: '5000 partners'
+      progress: 20,
+      target: 'Launch Ready'
     },
     {
       icon: Zap,
-      title: 'API Calls',
-      value: `${metrics.apiCalls}M`,
-      change: '+89% monthly',
-      description: 'Per month',
+      title: 'Prototype',
+      value: `${Math.floor(liveMetrics.prototypProgress)}%`,
+      change: 'Active Development',
+      description: 'Core features',
       color: 'text-travel-sky',
-      progress: 60,
-      target: '10M calls/month'
+      progress: liveMetrics.prototypProgress,
+      target: 'Beta Launch'
     },
     {
       icon: Globe,
-      title: 'Global Reach',
-      value: `${metrics.countriesLive}`,
-      change: '+3 this quarter',
-      description: 'Countries live',
+      title: 'Vision',
+      value: metrics.countriesLive,
+      change: 'From Day 1',
+      description: 'Built for scale',
       color: 'text-travel-pink',
-      progress: 50,
-      target: '30 countries'
+      progress: 10,
+      target: 'Worldwide'
     }
   ];
 
   const liveStats = [
     {
       icon: Activity,
-      title: 'Users Online',
-      value: liveMetrics.activeUsers.toLocaleString(),
-      subtitle: 'Right now',
+      title: 'Development',
+      value: 'Active',
+      subtitle: 'Building daily',
       color: 'text-green-500',
       pulse: true
     },
     {
       icon: TrendingUp,
-      title: 'Bookings Today',
-      value: liveMetrics.bookingsToday,
-      subtitle: 'Since midnight',
+      title: 'Progress',
+      value: `${Math.floor(liveMetrics.prototypProgress)}%`,
+      subtitle: 'Prototype ready',
       color: 'text-travel-ocean'
     },
     {
-      icon: DollarSign,
-      title: 'Revenue Today',
-      value: `$${liveMetrics.revenueToday.toLocaleString()}`,
-      subtitle: 'Partner earnings',
+      icon: Building2,
+      title: 'APIs',
+      value: `${liveMetrics.apiIntegrations}`,
+      subtitle: 'Live integrations',
       color: 'text-travel-gold'
     },
     {
-      icon: Star,
-      title: 'System Uptime',
-      value: `${metrics.uptime}%`,
-      subtitle: 'Last 30 days',
+      icon: Target,
+      title: 'Mission',
+      value: 'Clear',
+      subtitle: 'Travel innovation',
       color: 'text-travel-forest'
     }
   ];
@@ -237,43 +237,43 @@ export const StartupMetrics: React.FC<{ className?: string }> = ({ className }) 
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-2 h-2 bg-travel-ocean rounded-full"></div>
+              <div className="w-2 h-2 bg-travel-ocean rounded-full animate-pulse"></div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">Founded Maku.travel</h4>
-                  <span className="text-sm text-muted-foreground">January 2023</span>
+                  <span className="text-sm text-muted-foreground">June 2025</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Started with a vision to revolutionize travel booking</p>
+                <p className="text-sm text-muted-foreground">Started with vision to revolutionize travel technology</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-2 h-2 bg-travel-gold rounded-full"></div>
+              <div className="w-2 h-2 bg-travel-gold rounded-full animate-pulse"></div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">Seed Funding Secured</h4>
-                  <span className="text-sm text-muted-foreground">June 2023</span>
+                  <h4 className="font-semibold">API Integrations</h4>
+                  <span className="text-sm text-muted-foreground">Aug 2025</span>
                 </div>
-                <p className="text-sm text-muted-foreground">$2.5M raised from leading VCs and angel investors</p>
+                <p className="text-sm text-muted-foreground">Connected Amadeus and Hotelbeds for real inventory</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-2 h-2 bg-travel-forest rounded-full"></div>
+              <div className="w-2 h-2 bg-travel-forest rounded-full animate-pulse"></div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">First 1000 Partners</h4>
-                  <span className="text-sm text-muted-foreground">March 2024</span>
+                  <h4 className="font-semibold">Prototype Complete</h4>
+                  <span className="text-sm text-muted-foreground">Dec 2025</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Reached major milestone with global partner network</p>
+                <p className="text-sm text-muted-foreground">Building functional prototype with core features</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-2 h-2 bg-travel-coral rounded-full animate-pulse"></div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">AI Platform Launch</h4>
-                  <span className="text-sm text-muted-foreground">Current</span>
+                  <h4 className="font-semibold">Partner Launch</h4>
+                  <span className="text-sm text-muted-foreground">Q1 2026</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Launching AI-powered features and smart recommendations</p>
+                <p className="text-sm text-muted-foreground">Begin onboarding first wave of partners</p>
               </div>
             </div>
           </div>
