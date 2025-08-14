@@ -4,10 +4,9 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Shield, Clock } from 'lucide-react';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51QbKJSBZdZYdKXkq8XNW4qw7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7x7');
+import { supabase } from '@/integrations/supabase/client';
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -134,6 +133,10 @@ const PaymentForm = () => {
 const PaymentSetup = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [stripePublishableKey, setStripePublishableKey] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<any>(null);
+  const [keyLoading, setKeyLoading] = useState(true);
 
   const clientSecret = searchParams.get('client_secret');
   const paymentType = searchParams.get('type');
@@ -144,10 +147,50 @@ const PaymentSetup = () => {
     }
   }, [clientSecret, navigate]);
 
+  useEffect(() => {
+    const fetchStripeKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-stripe-publishable-key');
+        
+        if (error) {
+          console.error('Error fetching Stripe key:', error);
+          toast({
+            title: "Configuration Error",
+            description: "Unable to load payment configuration. Please try again.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (data?.publishableKey) {
+          setStripePublishableKey(data.publishableKey);
+          setStripePromise(loadStripe(data.publishableKey));
+        } else {
+          toast({
+            title: "Configuration Error",
+            description: "Stripe configuration not available.",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error('Error loading Stripe:', error);
+        toast({
+          title: "Error",
+          description: "Failed to initialize payment system.",
+          variant: "destructive"
+        });
+      } finally {
+        setKeyLoading(false);
+      }
+    };
+
+    fetchStripeKey();
+  }, [toast]);
+
   const appearance = {
     theme: 'stripe' as const,
     variables: {
-      colorPrimary: '#hsl(var(--primary))',
+      colorPrimary: 'hsl(var(--primary))',
     }
   };
 
@@ -156,10 +199,28 @@ const PaymentSetup = () => {
     appearance,
   };
 
-  if (!clientSecret) {
+  if (!clientSecret || keyLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!stripePromise) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center">
+        <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm p-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Payment System Unavailable</h1>
+            <p className="text-muted-foreground mb-4">
+              Unable to initialize payment system. Please contact support.
+            </p>
+            <Button onClick={() => navigate('/partner-auth')}>
+              Back to Registration
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
