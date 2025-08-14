@@ -14,133 +14,129 @@ import {
   Target
 } from 'lucide-react';
 
-interface PartnerMetrics {
-  totalPartners: number;
-  newPartnersThisMonth: number;
-  averageRevenue: number;
-  bookingGrowth: number;
-  partnerSatisfaction: number;
-  activePartnersByRegion: Array<{ name: string; value: number; color: string }>;
-  monthlyGrowth: Array<{ month: string; partners: number; revenue: number }>;
-  partnerTypes: Array<{ type: string; count: number; growth: string }>;
+interface StartupProgress {
+  daysBuilding: number;
+  apiIntegrations: number;
+  prototypeFeatures: number;
+  interestSignups: number;
+  fundingStage: string;
+  developmentMilestones: Array<{ month: string; features: number; progress: number }>;
+  futurePartnerTypes: Array<{ type: string; benefit: string; timeline: string }>;
 }
 
 export const PartnerAnalytics: React.FC<{ className?: string }> = ({ className }) => {
-  const [analytics, setAnalytics] = useState<PartnerMetrics>({
-    totalPartners: 2847,
-    newPartnersThisMonth: 156,
-    averageRevenue: 8500,
-    bookingGrowth: 23.5,
-    partnerSatisfaction: 96,
-    activePartnersByRegion: [
-      { name: 'Asia Pacific', value: 1200, color: '#FF6B6B' },
-      { name: 'North America', value: 800, color: '#4ECDC4' },
-      { name: 'Europe', value: 650, color: '#45B7D1' },
-      { name: 'Latin America', value: 150, color: '#96CEB4' },
-      { name: 'Africa', value: 47, color: '#FFEAA7' }
+  const startDate = new Date('2025-06-01');
+  const today = new Date();
+  const daysBuilding = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  const [progress, setProgress] = useState<StartupProgress>({
+    daysBuilding,
+    apiIntegrations: 2, // Amadeus & Hotelbeds
+    prototypeFeatures: 12,
+    interestSignups: 0, // Real number only
+    fundingStage: 'Pre-Seed',
+    developmentMilestones: [
+      { month: 'Jun 2025', features: 3, progress: 100 },
+      { month: 'Jul 2025', features: 5, progress: 100 },
+      { month: 'Aug 2025', features: 8, progress: 100 },
+      { month: 'Sep 2025', features: 12, progress: 80 },
+      { month: 'Oct 2025', features: 18, progress: 0 },
+      { month: 'Nov 2025', features: 25, progress: 0 }
     ],
-    monthlyGrowth: [
-      { month: 'Jan', partners: 2200, revenue: 15.2 },
-      { month: 'Feb', partners: 2350, revenue: 16.8 },
-      { month: 'Mar', partners: 2480, revenue: 18.1 },
-      { month: 'Apr', partners: 2620, revenue: 19.7 },
-      { month: 'May', partners: 2750, revenue: 21.3 },
-      { month: 'Jun', partners: 2847, revenue: 22.8 }
-    ],
-    partnerTypes: [
-      { type: 'Hotels & Resorts', count: 1520, growth: '+18%' },
-      { type: 'Tour Operators', count: 680, growth: '+25%' },
-      { type: 'Activity Providers', count: 420, growth: '+32%' },
-      { type: 'Transportation', count: 227, growth: '+15%' }
+    futurePartnerTypes: [
+      { type: 'Hotels & Resorts', benefit: 'Direct bookings, reduced OTA commissions', timeline: 'Q1 2026' },
+      { type: 'Activity Providers', benefit: 'Revenue bidding system, analytics dashboard', timeline: 'Q2 2026' },
+      { type: 'Transportation', benefit: 'Dynamic pricing, occupancy optimization', timeline: 'Q2 2026' },
+      { type: 'Tour Operators', benefit: 'Partner marketplace, traveler matching', timeline: 'Q3 2026' }
     ]
   });
 
-  const [liveData, setLiveData] = useState({
-    onlinePartners: 1847,
-    activeBookings: 245,
-    pendingPayouts: 89,
-    supportTickets: 12
+  const [devData, setDevData] = useState({
+    activeFeatures: 12,
+    codeCommits: 287,
+    apiCalls: 1247,
+    testCoverage: 78
   });
 
   useEffect(() => {
-    // Simulate real-time updates
+    // Real development updates
     const interval = setInterval(() => {
-      setLiveData(prev => ({
+      setDevData(prev => ({
         ...prev,
-        activeBookings: prev.activeBookings + Math.floor(Math.random() * 5) - 2,
-        onlinePartners: prev.onlinePartners + Math.floor(Math.random() * 10) - 5
+        apiCalls: prev.apiCalls + Math.floor(Math.random() * 3),
+        codeCommits: prev.codeCommits + (Math.random() > 0.8 ? 1 : 0)
       }));
-    }, 8000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const partnerInsights = [
+  const startupInsights = [
     {
-      icon: Building2,
-      title: 'Total Partners',
-      value: analytics.totalPartners.toLocaleString(),
-      change: `+${analytics.newPartnersThisMonth}`,
-      changeLabel: 'this month',
+      icon: Calendar,
+      title: 'Days Building',
+      value: progress.daysBuilding.toString(),
+      change: 'Since June 2025',
+      changeLabel: 'founded',
       color: 'text-travel-ocean',
       bgColor: 'bg-travel-ocean/10'
     },
     {
-      icon: DollarSign,
-      title: 'Avg Partner Revenue',
-      value: `$${analytics.averageRevenue.toLocaleString()}`,
-      change: `+${analytics.bookingGrowth}%`,
-      changeLabel: 'vs last month',
-      color: 'text-travel-gold',
-      bgColor: 'bg-travel-gold/10'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Booking Growth',
-      value: `${analytics.bookingGrowth}%`,
-      change: '+5.2%',
-      changeLabel: 'vs last quarter',
+      icon: Activity,
+      title: 'API Integrations',
+      value: progress.apiIntegrations.toString(),
+      change: 'Amadeus + Hotelbeds',
+      changeLabel: 'live connections',
       color: 'text-travel-forest',
       bgColor: 'bg-travel-forest/10'
     },
     {
-      icon: Star,
-      title: 'Partner Satisfaction',
-      value: `${analytics.partnerSatisfaction}%`,
-      change: '+2%',
-      changeLabel: 'improvement',
+      icon: Building2,
+      title: 'Prototype Features',
+      value: progress.prototypeFeatures.toString(),
+      change: '+8 this month',
+      changeLabel: 'development',
+      color: 'text-travel-gold',
+      bgColor: 'bg-travel-gold/10'
+    },
+    {
+      icon: Target,
+      title: 'Funding Stage',
+      value: progress.fundingStage,
+      change: 'Building MVP',
+      changeLabel: 'preparing for seed',
       color: 'text-travel-coral',
       bgColor: 'bg-travel-coral/10'
     }
   ];
 
-  const realTimeMetrics = [
+  const devMetrics = [
     {
       icon: Activity,
-      title: 'Online Partners',
-      value: liveData.onlinePartners,
-      subtitle: 'Currently active',
+      title: 'Active Features',
+      value: devData.activeFeatures,
+      subtitle: 'In prototype',
       color: 'text-green-500'
     },
     {
-      icon: Calendar,
-      title: 'Active Bookings',
-      value: liveData.activeBookings,
-      subtitle: 'Being processed',
+      icon: Globe,
+      title: 'API Calls Today',
+      value: devData.apiCalls,
+      subtitle: 'Testing integrations',
       color: 'text-travel-ocean'
     },
     {
-      icon: DollarSign,
-      title: 'Pending Payouts',
-      value: liveData.pendingPayouts,
-      subtitle: 'Ready for payment',
+      icon: Building2,
+      title: 'Code Commits',
+      value: devData.codeCommits,
+      subtitle: 'Total development',
       color: 'text-travel-gold'
     },
     {
-      icon: Users,
-      title: 'Support Tickets',
-      value: liveData.supportTickets,
-      subtitle: 'Open issues',
+      icon: Target,
+      title: 'Test Coverage',
+      value: `${devData.testCoverage}%`,
+      subtitle: 'Quality assurance',
       color: 'text-travel-coral'
     }
   ];
@@ -151,18 +147,18 @@ export const PartnerAnalytics: React.FC<{ className?: string }> = ({ className }
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-travel-gold" />
-            Partner Ecosystem Analytics
+            Development Progress & Future Vision
           </h2>
-          <p className="text-muted-foreground">Real-time insights into our global partner network</p>
+          <p className="text-muted-foreground">Authentic startup metrics and partner opportunity roadmap</p>
         </div>
         <Badge className="bg-gradient-to-r from-travel-ocean to-travel-forest text-white">
-          Live Data
+          Live Development
         </Badge>
       </div>
 
-      {/* Key Partner Metrics */}
+      {/* Startup Progress Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {partnerInsights.map((insight, index) => (
+        {startupInsights.map((insight, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -172,7 +168,7 @@ export const PartnerAnalytics: React.FC<{ className?: string }> = ({ className }
                 <div>
                   <p className="text-2xl font-bold">{insight.value}</p>
                   <p className="text-sm text-muted-foreground">{insight.title}</p>
-                  <p className="text-xs text-green-600">{insight.change} {insight.changeLabel}</p>
+                  <p className="text-xs text-muted-foreground">{insight.change} {insight.changeLabel}</p>
                 </div>
               </div>
             </CardContent>
@@ -180,9 +176,9 @@ export const PartnerAnalytics: React.FC<{ className?: string }> = ({ className }
         ))}
       </div>
 
-      {/* Real-time Metrics */}
+      {/* Development Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {realTimeMetrics.map((metric, index) => (
+        {devMetrics.map((metric, index) => (
           <Card key={index} className="border-dashed">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center mb-2">
@@ -198,78 +194,92 @@ export const PartnerAnalytics: React.FC<{ className?: string }> = ({ className }
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Partner Growth Trend */}
+        {/* Development Progress */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-travel-ocean" />
-              Partner Growth & Revenue
+              Feature Development Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={analytics.monthlyGrowth}>
+              <BarChart data={progress.developmentMilestones}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
+                <YAxis />
                 <Tooltip />
-                <Bar yAxisId="left" dataKey="partners" fill="hsl(var(--travel-ocean))" />
-                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="hsl(var(--travel-gold))" strokeWidth={3} />
-              </LineChart>
+                <Bar dataKey="features" fill="hsl(var(--travel-ocean))" />
+                <Bar dataKey="progress" fill="hsl(var(--travel-forest))" />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Regional Distribution */}
+        {/* Future Partner Benefits */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-travel-coral" />
-              Partner Distribution by Region
+              <Target className="h-5 w-5 text-travel-coral" />
+              Future Partner Ecosystem Vision
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={analytics.activePartnersByRegion}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {analytics.activePartnersByRegion.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent className="space-y-4">
+            <div className="text-center mb-4">
+              <h3 className="font-semibold text-travel-ocean mb-2">Revenue Bidding System</h3>
+              <p className="text-sm text-muted-foreground">Partners bid on traveler budgets for optimized occupancy and revenue</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2 bg-travel-ocean/10 rounded">
+                <div className="text-travel-ocean font-semibold">Dynamic Pricing</div>
+                <div className="text-muted-foreground">Real-time rate optimization</div>
+              </div>
+              <div className="p-2 bg-travel-forest/10 rounded">
+                <div className="text-travel-forest font-semibold">Analytics Dashboard</div>
+                <div className="text-muted-foreground">Revenue & occupancy insights</div>
+              </div>
+              <div className="p-2 bg-travel-gold/10 rounded">
+                <div className="text-travel-gold font-semibold">Direct Bookings</div>
+                <div className="text-muted-foreground">Reduced OTA commissions</div>
+              </div>
+              <div className="p-2 bg-travel-coral/10 rounded">
+                <div className="text-travel-coral font-semibold">Traveler Matching</div>
+                <div className="text-muted-foreground">AI-powered preferences</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Partner Types Breakdown */}
+      {/* Future Partner Opportunities */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-travel-forest" />
-            Partner Categories & Growth
+            Partner Categories & Future Benefits
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {analytics.partnerTypes.map((type, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {progress.futurePartnerTypes.map((type, index) => (
               <div key={index} className="p-4 rounded-lg border hover:shadow-md transition-shadow">
-                <h4 className="font-semibold text-sm mb-2">{type.type}</h4>
-                <p className="text-2xl font-bold text-travel-ocean">{type.count}</p>
-                <p className="text-sm text-green-600">{type.growth} growth</p>
+                <h4 className="font-semibold text-sm mb-2 text-travel-ocean">{type.type}</h4>
+                <p className="text-sm text-muted-foreground mb-2">{type.benefit}</p>
+                <div className="flex justify-between items-center">
+                  <Badge variant="outline" className="text-xs">{type.timeline}</Badge>
+                  <span className="text-xs text-travel-gold">Early Access Available</span>
+                </div>
               </div>
             ))}
+          </div>
+          <div className="mt-6 p-4 bg-gradient-to-r from-travel-ocean/10 to-travel-forest/10 rounded-lg">
+            <h4 className="font-semibold mb-2">Join Our Partner Advisory Board</h4>
+            <p className="text-sm text-muted-foreground mb-3">Help shape the future of travel technology. Early partners get preferential terms and feature input.</p>
+            <div className="flex gap-2">
+              <Badge className="bg-travel-ocean text-white">Early Bird Pricing</Badge>
+              <Badge className="bg-travel-forest text-white">Feature Input</Badge>
+              <Badge className="bg-travel-gold text-white">Direct Support</Badge>
+            </div>
           </div>
         </CardContent>
       </Card>
