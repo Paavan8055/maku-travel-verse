@@ -15,7 +15,6 @@ import { RealTimeFeeds } from "@/components/dashboard/RealTimeFeeds";
 import { StartupMetrics } from "@/components/startup/StartupMetrics";
 import { PartnerAnalytics } from "@/components/startup/PartnerAnalytics";
 import { InnovationRoadmap } from "@/components/startup/InnovationRoadmap";
-
 const PartnersPage = () => {
   const [formData, setFormData] = useState({
     companyName: "",
@@ -33,7 +32,6 @@ const PartnersPage = () => {
     revenue: 2.4,
     satisfaction: 96
   });
-
   useEffect(() => {
     // Simulate real-time partner metrics updates
     const interval = setInterval(() => {
@@ -43,78 +41,69 @@ const PartnersPage = () => {
         revenue: prev.revenue + (Math.random() - 0.5) * 0.1
       }));
     }, 10000);
-
     return () => clearInterval(interval);
   }, []);
-
-  const partnerTypes = [
-    {
-      icon: Building2,
-      title: "Hotels & Accommodations",
-      description: "Join us as we build direct partnerships with properties",
-      benefits: ["Lower commission fees", "Direct guest relationships", "Early partner benefits"],
-      color: "bg-travel-ocean"
-    },
-    {
-      icon: Globe,
-      title: "Activity Providers",
-      description: "Showcase unique experiences on our growing platform",
-      benefits: ["Direct bookings", "Better margins", "Early adopter advantage"],
-      color: "bg-travel-sky"
-    },
-    {
-      icon: Users,
-      title: "Travel Content Creators",
-      description: "Earn commissions by sharing authentic travel experiences",
-      benefits: ["Referral earnings", "Content monetization", "Community building"],
-      color: "bg-travel-coral"
-    },
-    {
-      icon: TrendingUp,
-      title: "Technology Partners",
-      description: "Help us build the future of travel technology",
-      benefits: ["API access", "Revenue sharing", "Shape development"],
-      color: "bg-travel-forest"
-    }
-  ];
-
-  const benefits = [
-    {
-      icon: TrendingUp,
-      title: "Early Partner Advantages",
-      description: "Join us early and shape the platform while getting preferential terms"
-    },
-    {
-      icon: Users,
-      title: "Direct Relationships",
-      description: "Build connections with customers without traditional OTA intermediaries"
-    },
-    {
-      icon: Zap,
-      title: "Modern Technology",
-      description: "Access cutting-edge travel tech built from the ground up"
-    },
-    {
-      icon: Heart,
-      title: "Community Growth",
-      description: "Benefit from our traveler referral network and content creators"
-    }
-  ];
-
-  const existingPartners = [
-    { name: "Amadeus", logo: "🔗", category: "API Partner" },
-    { name: "Hotelbeds", logo: "🏨", category: "API Partner" },
-    { name: "Travelport", logo: "💬", category: "In Discussion" }
-  ];
-
+  const partnerTypes = [{
+    icon: Building2,
+    title: "Hotels & Accommodations",
+    description: "Join us as we build direct partnerships with properties",
+    benefits: ["Lower commission fees", "Direct guest relationships", "Early partner benefits"],
+    color: "bg-travel-ocean"
+  }, {
+    icon: Globe,
+    title: "Activity Providers",
+    description: "Showcase unique experiences on our growing platform",
+    benefits: ["Direct bookings", "Better margins", "Early adopter advantage"],
+    color: "bg-travel-sky"
+  }, {
+    icon: Users,
+    title: "Travel Content Creators",
+    description: "Earn commissions by sharing authentic travel experiences",
+    benefits: ["Referral earnings", "Content monetization", "Community building"],
+    color: "bg-travel-coral"
+  }, {
+    icon: TrendingUp,
+    title: "Technology Partners",
+    description: "Help us build the future of travel technology",
+    benefits: ["API access", "Revenue sharing", "Shape development"],
+    color: "bg-travel-forest"
+  }];
+  const benefits = [{
+    icon: TrendingUp,
+    title: "Early Partner Advantages",
+    description: "Join us early and shape the platform while getting preferential terms"
+  }, {
+    icon: Users,
+    title: "Direct Relationships",
+    description: "Build connections with customers without traditional OTA intermediaries"
+  }, {
+    icon: Zap,
+    title: "Modern Technology",
+    description: "Access cutting-edge travel tech built from the ground up"
+  }, {
+    icon: Heart,
+    title: "Community Growth",
+    description: "Benefit from our traveler referral network and content creators"
+  }];
+  const existingPartners = [{
+    name: "Amadeus",
+    logo: "🔗",
+    category: "API Partner"
+  }, {
+    name: "Hotelbeds",
+    logo: "🏨",
+    category: "API Partner"
+  }, {
+    name: "Travelport",
+    logo: "💬",
+    category: "In Discussion"
+  }];
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Partner application submitted:", formData);
     // Handle form submission
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
@@ -147,28 +136,7 @@ const PartnersPage = () => {
           </div>
           
           {/* Live Partner Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-4xl mx-auto">
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-ocean/10 to-travel-forest/10">
-              <p className="text-2xl font-bold text-travel-ocean">{partnerMetrics.totalPartners.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Active Partners</p>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-gold/10 to-travel-sunset/10">
-              <p className="text-2xl font-bold text-travel-gold">+{partnerMetrics.monthlyGrowth}%</p>
-              <p className="text-sm text-muted-foreground">Monthly Growth</p>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-coral/10 to-travel-pink/10">
-              <p className="text-2xl font-bold text-travel-coral">{partnerMetrics.totalBookings.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Total Bookings</p>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-forest/10 to-travel-ocean/10">
-              <p className="text-2xl font-bold text-travel-forest">${partnerMetrics.revenue.toFixed(1)}M</p>
-              <p className="text-sm text-muted-foreground">Partner Revenue</p>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-sky/10 to-travel-ocean/10">
-              <p className="text-2xl font-bold text-travel-sky">{partnerMetrics.satisfaction}%</p>
-              <p className="text-sm text-muted-foreground">Satisfaction</p>
-            </div>
-          </div>
+          
         </div>
 
         {/* Modern Dashboard Tabs */}
@@ -219,8 +187,7 @@ const PartnersPage = () => {
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Partnership Opportunities</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {partnerTypes.map((type, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+            {partnerTypes.map((type, index) => <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="text-center">
                   <div className={`w-16 h-16 ${type.color} rounded-full flex items-center justify-center mx-auto mb-4`}>
                     <type.icon className="h-8 w-8 text-white" />
@@ -230,16 +197,13 @@ const PartnersPage = () => {
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{type.description}</p>
                   <ul className="space-y-2">
-                    {type.benefits.map((benefit, idx) => (
-                      <li key={idx} className="flex items-center text-sm">
+                    {type.benefits.map((benefit, idx) => <li key={idx} className="flex items-center text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                         {benefit}
-                      </li>
-                    ))}
+                      </li>)}
                   </ul>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
 
@@ -247,15 +211,13 @@ const PartnersPage = () => {
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Why Partner with Us?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="text-center">
+            {benefits.map((benefit, index) => <div key={index} className="text-center">
                 <div className="w-16 h-16 bg-travel-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <benefit.icon className="h-8 w-8 text-travel-gold" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">{benefit.title}</h3>
                 <p className="text-muted-foreground">{benefit.description}</p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
 
@@ -263,15 +225,13 @@ const PartnersPage = () => {
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Current Technology Partners</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {existingPartners.map((partner, index) => (
-              <Card key={index} className="text-center hover:shadow-md transition-shadow">
+            {existingPartners.map((partner, index) => <Card key={index} className="text-center hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="text-4xl mb-2">{partner.logo}</div>
                   <h4 className="font-medium text-sm mb-1">{partner.name}</h4>
                   <Badge variant="outline" className="text-xs">{partner.category}</Badge>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
 
@@ -290,49 +250,44 @@ const PartnersPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Company Name *</label>
-                    <Input 
-                      placeholder="Your company name"
-                      value={formData.companyName}
-                      onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-                      required
-                    />
+                    <Input placeholder="Your company name" value={formData.companyName} onChange={e => setFormData({
+                        ...formData,
+                        companyName: e.target.value
+                      })} required />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Contact Person *</label>
-                    <Input 
-                      placeholder="Your full name"
-                      value={formData.contactName}
-                      onChange={(e) => setFormData({...formData, contactName: e.target.value})}
-                      required
-                    />
+                    <Input placeholder="Your full name" value={formData.contactName} onChange={e => setFormData({
+                        ...formData,
+                        contactName: e.target.value
+                      })} required />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Email Address *</label>
-                    <Input 
-                      type="email"
-                      placeholder="your.email@company.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      required
-                    />
+                    <Input type="email" placeholder="your.email@company.com" value={formData.email} onChange={e => setFormData({
+                        ...formData,
+                        email: e.target.value
+                      })} required />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Phone Number</label>
-                    <Input 
-                      placeholder="+1 (555) 123-4567"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    />
+                    <Input placeholder="+1 (555) 123-4567" value={formData.phone} onChange={e => setFormData({
+                        ...formData,
+                        phone: e.target.value
+                      })} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Business Type *</label>
-                    <Select value={formData.businessType} onValueChange={(value) => setFormData({...formData, businessType: value})}>
+                    <Select value={formData.businessType} onValueChange={value => setFormData({
+                        ...formData,
+                        businessType: value
+                      })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select business type" />
                       </SelectTrigger>
@@ -348,23 +303,19 @@ const PartnersPage = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Website</label>
-                    <Input 
-                      placeholder="https://yourwebsite.com"
-                      value={formData.website}
-                      onChange={(e) => setFormData({...formData, website: e.target.value})}
-                    />
+                    <Input placeholder="https://yourwebsite.com" value={formData.website} onChange={e => setFormData({
+                        ...formData,
+                        website: e.target.value
+                      })} />
                   </div>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Business Description *</label>
-                  <Textarea 
-                    placeholder="Tell us about your business, services, and what makes you unique..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows={4}
-                    required
-                  />
+                  <Textarea placeholder="Tell us about your business, services, and what makes you unique..." value={formData.description} onChange={e => setFormData({
+                      ...formData,
+                      description: e.target.value
+                    })} rows={4} required />
                 </div>
 
                 <Button type="submit" className="w-full bg-gradient-to-r from-travel-ocean to-travel-forest hover:shadow-floating hover:scale-105 transition-all">
@@ -400,8 +351,6 @@ const PartnersPage = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PartnersPage;
