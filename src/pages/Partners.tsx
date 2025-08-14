@@ -11,8 +11,10 @@ import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
 import { TravelTechMetrics } from "@/components/dashboard/TravelTechMetrics";
-import { SmartAnalytics } from "@/components/dashboard/SmartAnalytics";
 import { RealTimeFeeds } from "@/components/dashboard/RealTimeFeeds";
+import { StartupMetrics } from "@/components/startup/StartupMetrics";
+import { PartnerAnalytics } from "@/components/startup/PartnerAnalytics";
+import { InnovationRoadmap } from "@/components/startup/InnovationRoadmap";
 
 const PartnersPage = () => {
   const [formData, setFormData] = useState({
@@ -174,7 +176,7 @@ const PartnersPage = () => {
 
         {/* Modern Dashboard Tabs */}
         <Tabs defaultValue="overview" className="mb-16">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-5 max-w-3xl mx-auto mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               Overview
@@ -182,6 +184,10 @@ const PartnersPage = () => {
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="roadmap" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Roadmap
             </TabsTrigger>
             <TabsTrigger value="realtime" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
@@ -194,11 +200,15 @@ const PartnersPage = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <TravelTechMetrics className="mb-8" />
+            <StartupMetrics className="mb-8" />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <SmartAnalytics className="mb-8" />
+            <PartnerAnalytics className="mb-8" />
+          </TabsContent>
+
+          <TabsContent value="roadmap">
+            <InnovationRoadmap className="mb-8" />
           </TabsContent>
 
           <TabsContent value="realtime">
