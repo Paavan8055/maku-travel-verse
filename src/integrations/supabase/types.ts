@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agentic_orchestrations: {
         Row: {
           config: Json | null
@@ -698,6 +725,53 @@ export type Database = {
           },
         ]
       }
+      partner_onboarding_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          partner_id: string | null
+          payment_type: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_setup_intent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          partner_id?: string | null
+          payment_type: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_setup_intent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          partner_id?: string | null
+          payment_type?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_setup_intent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_onboarding_payments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_profiles: {
         Row: {
           address: Json | null
@@ -708,10 +782,20 @@ export type Database = {
           contact_person: string | null
           created_at: string | null
           description: string | null
+          documents_verified: boolean | null
           id: string
           is_active: boolean | null
+          onboarding_choice: string | null
+          onboarding_fee_paid: boolean | null
+          payment_status: string | null
           phone: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_setup_intent_id: string | null
           tax_id: string | null
+          trial_expires_at: string | null
+          trial_start_date: string | null
+          trial_status: string | null
           updated_at: string | null
           user_id: string
           verification_status:
@@ -728,10 +812,20 @@ export type Database = {
           contact_person?: string | null
           created_at?: string | null
           description?: string | null
+          documents_verified?: boolean | null
           id?: string
           is_active?: boolean | null
+          onboarding_choice?: string | null
+          onboarding_fee_paid?: boolean | null
+          payment_status?: string | null
           phone?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_setup_intent_id?: string | null
           tax_id?: string | null
+          trial_expires_at?: string | null
+          trial_start_date?: string | null
+          trial_status?: string | null
           updated_at?: string | null
           user_id: string
           verification_status?:
@@ -748,10 +842,20 @@ export type Database = {
           contact_person?: string | null
           created_at?: string | null
           description?: string | null
+          documents_verified?: boolean | null
           id?: string
           is_active?: boolean | null
+          onboarding_choice?: string | null
+          onboarding_fee_paid?: boolean | null
+          payment_status?: string | null
           phone?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_setup_intent_id?: string | null
           tax_id?: string | null
+          trial_expires_at?: string | null
+          trial_start_date?: string | null
+          trial_status?: string | null
           updated_at?: string | null
           user_id?: string
           verification_status?:
@@ -1508,6 +1612,10 @@ export type Database = {
       get_user_fund_transactions: {
         Args: { p_limit?: number; p_user_id: string }
         Returns: Json
+      }
+      is_admin: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
     }
     Enums: {
