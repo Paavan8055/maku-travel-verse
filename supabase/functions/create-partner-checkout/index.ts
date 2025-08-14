@@ -75,10 +75,22 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "http://localhost:3000";
 
     if (onboarding_choice === "trial") {
+      // Create customer if one doesn't exist
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: userData.user.email,
+          metadata: {
+            user_id: user_id,
+            business_type: business_type
+          }
+        });
+        customerId = customer.id;
+        logStep("New customer created", { customerId });
+      }
+
       // Create setup intent for trial (secure payment method, charge later)
       const setupIntent = await stripe.setupIntents.create({
         customer: customerId,
-        customer_email: customerId ? undefined : userData.user.email,
         automatic_payment_methods: {
           enabled: true,
         },
@@ -112,12 +124,24 @@ serve(async (req) => {
       });
 
     } else if (onboarding_choice === "immediate_payment") {
+      // Create customer if one doesn't exist
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: userData.user.email,
+          metadata: {
+            user_id: user_id,
+            business_type: business_type
+          }
+        });
+        customerId = customer.id;
+        logStep("New customer created", { customerId });
+      }
+
       // Create payment intent for immediate payment
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: "aud",
         customer: customerId,
-        customer_email: customerId ? undefined : userData.user.email,
         automatic_payment_methods: {
           enabled: true,
         },

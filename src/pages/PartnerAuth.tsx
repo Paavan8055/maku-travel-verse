@@ -127,10 +127,10 @@ const PartnerAuth = () => {
         // Handle the payment flow based on response
         if (paymentData.type === 'setup_intent') {
           // For trial - redirect to setup intent confirmation
-          window.location.href = `/payment-setup?client_secret=${paymentData.client_secret}&type=trial`;
+          window.location.href = `/payment-setup?client_secret=${paymentData.client_secret}&type=trial&redirect_to=/partner-dashboard`;
         } else if (paymentData.type === 'payment_intent') {
           // For immediate payment - redirect to payment confirmation
-          window.location.href = `/payment-setup?client_secret=${paymentData.client_secret}&type=immediate`;
+          window.location.href = `/payment-setup?client_secret=${paymentData.client_secret}&type=immediate&redirect_to=/partner-dashboard`;
         }
         
         return; // Exit early since we're redirecting

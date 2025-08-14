@@ -18,6 +18,7 @@ const PaymentForm = () => {
 
   const clientSecret = searchParams.get('client_secret');
   const paymentType = searchParams.get('type');
+  const redirectTo = searchParams.get('redirect_to');
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -36,7 +37,7 @@ const PaymentForm = () => {
         result = await stripe.confirmSetup({
           elements,
           confirmParams: {
-            return_url: `${window.location.origin}/payment-success`,
+            return_url: `${window.location.origin}${redirectTo || '/partner-dashboard'}`,
           },
         });
       } else {
@@ -44,7 +45,7 @@ const PaymentForm = () => {
         result = await stripe.confirmPayment({
           elements,
           confirmParams: {
-            return_url: `${window.location.origin}/payment-success`,
+            return_url: `${window.location.origin}${redirectTo || '/partner-dashboard'}`,
           },
         });
       }
@@ -140,6 +141,7 @@ const PaymentSetup = () => {
 
   const clientSecret = searchParams.get('client_secret');
   const paymentType = searchParams.get('type');
+  const redirectTo = searchParams.get('redirect_to');
 
   useEffect(() => {
     if (!clientSecret) {
