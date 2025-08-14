@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -481,6 +481,414 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_analytics: {
+        Row: {
+          avg_booking_value: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          id: string
+          month: number
+          partner_id: string
+          total_bookings: number | null
+          total_commission: number | null
+          total_payout: number | null
+          total_revenue: number | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          avg_booking_value?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          month: number
+          partner_id: string
+          total_bookings?: number | null
+          total_commission?: number | null
+          total_payout?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          avg_booking_value?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          month?: number
+          partner_id?: string
+          total_bookings?: number | null
+          total_commission?: number | null
+          total_payout?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_analytics_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_bookings: {
+        Row: {
+          booking_id: string
+          booking_value: number
+          commission_amount: number
+          commission_rate: number
+          created_at: string | null
+          id: string
+          partner_id: string
+          partner_payout_amount: number
+          payout_date: string | null
+          payout_status: Database["public"]["Enums"]["payout_status"] | null
+          property_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          booking_value: number
+          commission_amount: number
+          commission_rate: number
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          partner_payout_amount: number
+          payout_date?: string | null
+          payout_status?: Database["public"]["Enums"]["payout_status"] | null
+          property_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          booking_value?: number
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          partner_payout_amount?: number
+          payout_date?: string | null
+          payout_status?: Database["public"]["Enums"]["payout_status"] | null
+          property_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_bookings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bookings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "partner_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_integrations: {
+        Row: {
+          api_credentials: Json | null
+          api_endpoint: string | null
+          created_at: string | null
+          error_log: Json | null
+          id: string
+          integration_type: string
+          last_sync: string | null
+          partner_id: string
+          status: Database["public"]["Enums"]["integration_status"] | null
+          sync_frequency: string | null
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          api_credentials?: Json | null
+          api_endpoint?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          id?: string
+          integration_type: string
+          last_sync?: string | null
+          partner_id: string
+          status?: Database["public"]["Enums"]["integration_status"] | null
+          sync_frequency?: string | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          api_credentials?: Json | null
+          api_endpoint?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          id?: string
+          integration_type?: string
+          last_sync?: string | null
+          partner_id?: string
+          status?: Database["public"]["Enums"]["integration_status"] | null
+          sync_frequency?: string | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_integrations_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          partner_id: string
+          priority: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          partner_id: string
+          priority?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          partner_id?: string
+          priority?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_notifications_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_profiles: {
+        Row: {
+          address: Json | null
+          business_license: string | null
+          business_name: string
+          business_type: Database["public"]["Enums"]["partner_type"]
+          commission_rate: number | null
+          contact_person: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          tax_id: string | null
+          updated_at: string | null
+          user_id: string
+          verification_status:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          website_url: string | null
+        }
+        Insert: {
+          address?: Json | null
+          business_license?: string | null
+          business_name: string
+          business_type: Database["public"]["Enums"]["partner_type"]
+          commission_rate?: number | null
+          contact_person?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          website_url?: string | null
+        }
+        Update: {
+          address?: Json | null
+          business_license?: string | null
+          business_name?: string
+          business_type?: Database["public"]["Enums"]["partner_type"]
+          commission_rate?: number | null
+          contact_person?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      partner_properties: {
+        Row: {
+          amenities: Json | null
+          availability_calendar: Json | null
+          cancellation_policy: Json | null
+          check_in_time: string | null
+          check_out_time: string | null
+          created_at: string | null
+          description: string | null
+          external_id: string | null
+          id: string
+          location: Json
+          max_booking_days: number | null
+          min_booking_days: number | null
+          partner_id: string
+          photos: Json | null
+          pricing_info: Json | null
+          property_name: string
+          property_type: Database["public"]["Enums"]["partner_type"]
+          status: Database["public"]["Enums"]["property_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: Json | null
+          availability_calendar?: Json | null
+          cancellation_policy?: Json | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string | null
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          location: Json
+          max_booking_days?: number | null
+          min_booking_days?: number | null
+          partner_id: string
+          photos?: Json | null
+          pricing_info?: Json | null
+          property_name: string
+          property_type: Database["public"]["Enums"]["partner_type"]
+          status?: Database["public"]["Enums"]["property_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: Json | null
+          availability_calendar?: Json | null
+          cancellation_policy?: Json | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string | null
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          location?: Json
+          max_booking_days?: number | null
+          min_booking_days?: number | null
+          partner_id?: string
+          photos?: Json | null
+          pricing_info?: Json | null
+          property_name?: string
+          property_type?: Database["public"]["Enums"]["partner_type"]
+          status?: Database["public"]["Enums"]["property_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_properties_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_revenue: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          commission_amount: number
+          created_at: string | null
+          id: string
+          partner_id: string
+          payout_batch_id: string | null
+          payout_date: string | null
+          payout_status: Database["public"]["Enums"]["payout_status"] | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          commission_amount: number
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          payout_batch_id?: string | null
+          payout_date?: string | null
+          payout_status?: Database["public"]["Enums"]["payout_status"] | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          commission_amount?: number
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          payout_batch_id?: string | null
+          payout_date?: string | null
+          payout_status?: Database["public"]["Enums"]["payout_status"] | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_revenue_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_revenue_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       passport_info: {
         Row: {
           country: string
@@ -746,6 +1154,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      property_availability: {
+        Row: {
+          available_units: number
+          base_price: number | null
+          created_at: string | null
+          date: string
+          id: string
+          is_blocked: boolean | null
+          minimum_stay: number | null
+          property_id: string
+          special_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          available_units?: number
+          base_price?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          is_blocked?: boolean | null
+          minimum_stay?: number | null
+          property_id: string
+          special_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          available_units?: number
+          base_price?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_blocked?: boolean | null
+          minimum_stay?: number | null
+          property_id?: string
+          special_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_availability_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "partner_properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -1034,6 +1489,14 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: Json
       }
+      create_partner_property: {
+        Args: { p_partner_id: string; p_property_data: Json }
+        Returns: Json
+      }
+      get_partner_dashboard_data: {
+        Args: { p_partner_id: string }
+        Returns: Json
+      }
       get_user_bookings: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -1043,18 +1506,28 @@ export type Database = {
         Returns: Json
       }
       get_user_fund_transactions: {
-        Args: { p_user_id: string; p_limit?: number }
+        Args: { p_limit?: number; p_user_id: string }
         Returns: Json
       }
     }
     Enums: {
       booking_status: "pending" | "confirmed" | "cancelled"
+      integration_status: "connected" | "disconnected" | "error" | "pending"
+      partner_type:
+        | "hotel"
+        | "airline"
+        | "car_rental"
+        | "activity_provider"
+        | "restaurant"
       payment_status:
         | "requires_payment"
         | "processing"
         | "succeeded"
         | "failed"
         | "refunded"
+      payout_status: "pending" | "processing" | "completed" | "failed"
+      property_status: "active" | "inactive" | "maintenance" | "draft"
+      verification_status: "pending" | "verified" | "rejected" | "suspended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1183,6 +1656,14 @@ export const Constants = {
   public: {
     Enums: {
       booking_status: ["pending", "confirmed", "cancelled"],
+      integration_status: ["connected", "disconnected", "error", "pending"],
+      partner_type: [
+        "hotel",
+        "airline",
+        "car_rental",
+        "activity_provider",
+        "restaurant",
+      ],
       payment_status: [
         "requires_payment",
         "processing",
@@ -1190,6 +1671,9 @@ export const Constants = {
         "failed",
         "refunded",
       ],
+      payout_status: ["pending", "processing", "completed", "failed"],
+      property_status: ["active", "inactive", "maintenance", "draft"],
+      verification_status: ["pending", "verified", "rejected", "suspended"],
     },
   },
 } as const
