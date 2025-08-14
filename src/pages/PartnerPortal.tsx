@@ -4,7 +4,7 @@ import {
   DollarSign, Calendar, MapPin, Settings, Bell, Upload,
   Eye, Edit, Trash2, Plus, Star, Camera, Clock, 
   AlertTriangle, CheckCircle, XCircle, CreditCard,
-  Wifi, Phone, Mail, Globe, Shield
+  Wifi, Phone, Mail, Globe, Shield, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -180,39 +180,137 @@ const PartnerPortal = () => {
 
           {/* Configure Integrations Dialog */}
           <Dialog open={isIntegrationsOpen} onOpenChange={setIsIntegrationsOpen}>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Configure Integrations</DialogTitle>
+                <DialogTitle>Connect with Maku.travel</DialogTitle>
                 <DialogDescription>
-                  Manage your API connections and notification settings.
+                  Integrate your property management system with Maku's platform for real-time bookings and revenue optimization.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Booking Engine API</p>
-                    <p className="text-sm text-muted-foreground">Enable inventory sync</p>
+              <div className="space-y-6">
+                
+                {/* Step 1: Get API Credentials */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">1</div>
+                    <h3 className="font-semibold text-lg">Get Your Maku API Credentials</h3>
                   </div>
-                  <Switch defaultChecked />
+                  <div className="ml-8 space-y-3">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <p className="font-medium mb-2">Partner API Key (Test Mode)</p>
+                      <div className="flex items-center space-x-2">
+                        <Input value="pk_test_maku_partner_abc123xyz789" readOnly className="font-mono text-sm" />
+                        <Button variant="outline" size="sm">Copy</Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">Use this key for testing integration</p>
+                    </div>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <p className="font-medium mb-2">Webhook Endpoint</p>
+                      <div className="flex items-center space-x-2">
+                        <Input value="https://api.maku.travel/partner/webhooks" readOnly className="font-mono text-sm" />
+                        <Button variant="outline" size="sm">Copy</Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">Send booking updates to this endpoint</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Payment Gateway (Stripe)</p>
-                    <p className="text-sm text-muted-foreground">Process payouts and charges</p>
+
+                {/* Step 2: Configure Your PMS */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">2</div>
+                    <h3 className="font-semibold text-lg">Configure Your Property Management System</h3>
                   </div>
-                  <Switch defaultChecked />
+                  <div className="ml-8 space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="pms-endpoint">Your PMS API Endpoint</Label>
+                        <Input id="pms-endpoint" placeholder="https://your-pms.com/api/v1" />
+                      </div>
+                      <div>
+                        <Label htmlFor="pms-key">Your PMS API Key</Label>
+                        <Input id="pms-key" type="password" placeholder="Enter your PMS API key" />
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Supported PMS: CloudBeds, Opera PMS, RoomKeyPMS, Booking.com Connectivity, Expedia Partner Central</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Notification Service</p>
-                    <p className="text-sm text-muted-foreground">Email & SMS alerts</p>
+
+                {/* Step 3: Test Connection */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">3</div>
+                    <h3 className="font-semibold text-lg">Test Integration</h3>
                   </div>
-                  <Switch />
+                  <div className="ml-8">
+                    <Button variant="outline" className="w-full">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Test Connection & Sync Sample Data
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      We'll verify the connection and sync a test booking to ensure everything works correctly.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Benefits Section */}
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-3">Benefits of Integration:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle className="h-4 w-4 text-travel-forest mt-0.5" />
+                      <span>Real-time inventory sync</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle className="h-4 w-4 text-travel-forest mt-0.5" />
+                      <span>Automated booking confirmations</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle className="h-4 w-4 text-travel-forest mt-0.5" />
+                      <span>Revenue optimization through bidding</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle className="h-4 w-4 text-travel-forest mt-0.5" />
+                      <span>Analytics and performance reports</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Support Section */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <MessageCircle className="h-5 w-5 text-blue-600" />
+                    <p className="font-medium text-blue-900">Need Help?</p>
+                  </div>
+                  <p className="text-sm text-blue-800 mb-3">
+                    Our integration team is here to help you get connected quickly.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Email Support
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Phone className="h-4 w-4 mr-2" />
+                      Schedule Call
+                    </Button>
+                  </div>
                 </div>
               </div>
+              
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsIntegrationsOpen(false)}>Cancel</Button>
-                <Button className="btn-primary" onClick={() => { toast({ title: 'Integrations saved' }); setIsIntegrationsOpen(false); }}>Save</Button>
+                <Button variant="outline" onClick={() => setIsIntegrationsOpen(false)}>Close</Button>
+                <Button className="btn-primary" onClick={() => { 
+                  toast({ 
+                    title: 'Integration Started', 
+                    description: 'Our team will reach out within 24 hours to complete setup.' 
+                  }); 
+                  setIsIntegrationsOpen(false); 
+                }}>
+                  Start Integration
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
