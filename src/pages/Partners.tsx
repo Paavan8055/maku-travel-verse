@@ -1,13 +1,18 @@
-import { useState } from "react";
-import { Building2, Users, TrendingUp, Shield, Globe, Heart, CheckCircle, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Building2, Users, TrendingUp, Shield, Globe, Heart, CheckCircle, ArrowRight, Zap, Activity, BarChart3, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
+import { TravelTechMetrics } from "@/components/dashboard/TravelTechMetrics";
+import { SmartAnalytics } from "@/components/dashboard/SmartAnalytics";
+import { RealTimeFeeds } from "@/components/dashboard/RealTimeFeeds";
 
 const PartnersPage = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +24,26 @@ const PartnersPage = () => {
     description: "",
     website: ""
   });
+  const [partnerMetrics, setPartnerMetrics] = useState({
+    totalPartners: 2847,
+    monthlyGrowth: 23,
+    totalBookings: 45673,
+    revenue: 2.4,
+    satisfaction: 96
+  });
+
+  useEffect(() => {
+    // Simulate real-time partner metrics updates
+    const interval = setInterval(() => {
+      setPartnerMetrics(prev => ({
+        ...prev,
+        totalBookings: prev.totalBookings + Math.floor(Math.random() * 5),
+        revenue: prev.revenue + (Math.random() - 0.5) * 0.1
+      }));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const partnerTypes = [
     {
@@ -94,24 +119,94 @@ const PartnersPage = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Partner with Maku.travel
+        {/* Modern Tech Hero Section */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Zap className="h-8 w-8 text-travel-gold" />
+            <Badge className="bg-gradient-to-r from-travel-gold to-travel-sunset text-white">
+              Powered by AI
+            </Badge>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+            Partner with <span className="hero-text">Maku.travel</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Join our global network of travel partners and grow your business with innovative 
-            technology, extensive reach, and dedicated support.
+          <p className="text-xl text-muted-foreground max-w-4xl mx-auto mb-8">
+            Join our intelligent travel ecosystem powered by AI, real-time analytics, and cutting-edge technology. 
+            Scale your business with our dynamic platform built for modern travel.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-travel-ocean hover:bg-travel-ocean/90">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button size="lg" className="bg-gradient-to-r from-travel-ocean to-travel-forest hover:shadow-floating">
+              <Zap className="mr-2 h-4 w-4" />
               Become a Partner
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto" aria-label="Open Partner Portal">
-              <Link to="/partner-portal">Partner Portal Login</Link>
+              <Link to="/partner-portal">
+                <Activity className="mr-2 h-4 w-4" />
+                Partner Portal Login
+              </Link>
             </Button>
           </div>
+          
+          {/* Live Partner Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-4xl mx-auto">
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-ocean/10 to-travel-forest/10">
+              <p className="text-2xl font-bold text-travel-ocean">{partnerMetrics.totalPartners.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">Active Partners</p>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-gold/10 to-travel-sunset/10">
+              <p className="text-2xl font-bold text-travel-gold">+{partnerMetrics.monthlyGrowth}%</p>
+              <p className="text-sm text-muted-foreground">Monthly Growth</p>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-coral/10 to-travel-pink/10">
+              <p className="text-2xl font-bold text-travel-coral">{partnerMetrics.totalBookings.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">Total Bookings</p>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-forest/10 to-travel-ocean/10">
+              <p className="text-2xl font-bold text-travel-forest">${partnerMetrics.revenue.toFixed(1)}M</p>
+              <p className="text-sm text-muted-foreground">Partner Revenue</p>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-travel-sky/10 to-travel-ocean/10">
+              <p className="text-2xl font-bold text-travel-sky">{partnerMetrics.satisfaction}%</p>
+              <p className="text-sm text-muted-foreground">Satisfaction</p>
+            </div>
+          </div>
         </div>
+
+        {/* Modern Dashboard Tabs */}
+        <Tabs defaultValue="overview" className="mb-16">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-8">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="realtime" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Real-time
+            </TabsTrigger>
+            <TabsTrigger value="apply" className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Apply
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
+            <TravelTechMetrics className="mb-8" />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <SmartAnalytics className="mb-8" />
+          </TabsContent>
+
+          <TabsContent value="realtime">
+            <RealTimeFeeds className="mb-8" />
+          </TabsContent>
+
+          <TabsContent value="apply">
+            <div className="max-w-4xl mx-auto">
 
         {/* Partner Types */}
         <div className="mb-16">
@@ -173,15 +268,16 @@ const PartnersPage = () => {
           </div>
         </div>
 
-        {/* Application Form */}
-        <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Start Your Partnership Journey</CardTitle>
-              <p className="text-muted-foreground">
-                Fill out this form and our partnership team will get back to you within 24 hours.
-              </p>
-            </CardHeader>
+              <Card className="travel-card">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl flex items-center gap-2 justify-center">
+                    <Zap className="h-6 w-6 text-travel-gold" />
+                    Smart Partnership Application
+                  </CardTitle>
+                  <p className="text-muted-foreground">
+                    AI-powered application processing - get approved in 24 hours with our intelligent review system.
+                  </p>
+                </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -264,27 +360,35 @@ const PartnersPage = () => {
                   />
                 </div>
 
-                <Button type="submit" className="w-full bg-travel-ocean hover:bg-travel-ocean/90">
-                  Submit Partnership Application
+                <Button type="submit" className="w-full bg-gradient-to-r from-travel-ocean to-travel-forest hover:shadow-floating hover:scale-105 transition-all">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Submit Smart Application
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </form>
             </CardContent>
           </Card>
-        </div>
+            </div>
+          </TabsContent>
+        </Tabs>
 
-        {/* Contact Section */}
+        {/* Modern Tech Contact Section */}
         <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold mb-4">Questions About Partnership?</h2>
-          <p className="text-muted-foreground mb-6">
-            Our partnership team is here to help you get started.
+          <h2 className="text-3xl font-bold mb-4 flex items-center gap-2 justify-center">
+            <Heart className="h-6 w-6 text-travel-coral" />
+            Questions About Partnership?
+          </h2>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Our AI-powered partnership team is here to help you get started. Get instant answers or schedule a personalized consultation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="outline">
-              Schedule a Call
+            <Button variant="outline" className="hover:bg-travel-ocean/5 hover:border-travel-ocean">
+              <Activity className="mr-2 h-4 w-4" />
+              Schedule AI Consultation
             </Button>
-            <Button variant="outline">
-              Download Partnership Guide
+            <Button variant="outline" className="hover:bg-travel-gold/5 hover:border-travel-gold">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Download Smart Guide
             </Button>
           </div>
         </div>

@@ -8,8 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Eye, X, Calendar, Users, DollarSign, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, X, Calendar, Users, DollarSign, Loader2, Zap, TrendingUp, Activity, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { TravelTechMetrics } from '@/components/dashboard/TravelTechMetrics';
+import { SmartAnalytics } from '@/components/dashboard/SmartAnalytics';
+import { RealTimeFeeds } from '@/components/dashboard/RealTimeFeeds';
+import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
+import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
 
 interface BookingData {
   id: string;
@@ -143,9 +149,64 @@ export const Dashboard: React.FC = () => {
         
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-2">Your Bookings</h1>
-            <p className="text-muted-foreground">Manage your travel bookings and view details</p>
+            <div className="flex items-center gap-2 mb-4">
+              <Zap className="h-8 w-8 text-travel-gold" />
+              <Badge className="bg-gradient-to-r from-travel-gold to-travel-sunset text-white">
+                Smart Dashboard
+              </Badge>
+            </div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              Your <span className="hero-text">Travel Hub</span>
+            </h1>
+            <p className="text-muted-foreground">AI-powered travel management with real-time insights</p>
           </div>
+
+          <Tabs defaultValue="overview" className="mb-8">
+            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-8">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="realtime" className="flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Live Feed
+              </TabsTrigger>
+              <TabsTrigger value="bookings" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Bookings
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              <div className="space-y-8">
+                <TravelTechMetrics />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <LoyaltyWidget />
+                  <SmartRecommendations />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <SmartAnalytics />
+            </TabsContent>
+
+            <TabsContent value="realtime">
+              <RealTimeFeeds />
+            </TabsContent>
+
+            <TabsContent value="bookings">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Calendar className="h-6 w-6 text-travel-ocean" />
+                  Your Bookings
+                </h2>
+                <p className="text-muted-foreground">Manage your travel bookings and view details</p>
+              </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -264,7 +325,9 @@ export const Dashboard: React.FC = () => {
                 </Card>
               ))}
             </div>
-          )}
+            )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </AuthGuard>
