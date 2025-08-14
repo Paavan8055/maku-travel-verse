@@ -10,7 +10,10 @@ import Index from "./pages/Index";
 import Partners from "./pages/Partners";
 import PartnerPortal from "./pages/PartnerPortal";
 import PartnerDashboard from "./pages/PartnerDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
+import PartnerAuth from "./pages/PartnerAuth";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +31,10 @@ const App = () => (
                 <Route path="/partners" element={<Partners />} />
                 <Route path="/partner-portal" element={<PartnerPortal />} />
                 <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/admin-auth" element={<AdminAuth />} />
+                <Route path="/partner-auth" element={<PartnerAuth />} />
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
