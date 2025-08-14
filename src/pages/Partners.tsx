@@ -9,13 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TravelTechMetrics } from "@/components/dashboard/TravelTechMetrics";
 import { RealTimeFeeds } from "@/components/dashboard/RealTimeFeeds";
 import { StartupMetrics } from "@/components/startup/StartupMetrics";
 import { PartnerAnalytics } from "@/components/startup/PartnerAnalytics";
 import { InnovationRoadmap } from "@/components/startup/InnovationRoadmap";
+import { useAuth } from "@/features/auth/context/AuthContext";
+
 const PartnersPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     companyName: "",
     contactName: "",
@@ -32,6 +36,7 @@ const PartnersPage = () => {
     revenue: 2.4,
     satisfaction: 96
   });
+
   useEffect(() => {
     // Simulate real-time partner metrics updates
     const interval = setInterval(() => {
@@ -43,6 +48,7 @@ const PartnersPage = () => {
     }, 10000);
     return () => clearInterval(interval);
   }, []);
+
   const partnerTypes = [{
     icon: Building2,
     title: "Hotels & Accommodations",
@@ -68,6 +74,7 @@ const PartnersPage = () => {
     benefits: ["API access", "Revenue sharing", "Shape development"],
     color: "bg-travel-forest"
   }];
+
   const benefits = [{
     icon: TrendingUp,
     title: "Early Partner Advantages",
@@ -85,6 +92,7 @@ const PartnersPage = () => {
     title: "Community Growth",
     description: "Benefit from our traveler referral network and content creators"
   }];
+
   const existingPartners = [{
     name: "Amadeus",
     logo: "🔗",
@@ -98,11 +106,23 @@ const PartnersPage = () => {
     logo: "💬",
     category: "In Discussion"
   }];
+
+  const handlePartnerLogin = () => {
+    if (user) {
+      // If user is already authenticated, go directly to partner dashboard
+      navigate('/partner-dashboard');
+    } else {
+      // If not authenticated, redirect to auth with return path
+      navigate('/auth', { state: { from: { pathname: '/partner-dashboard' } } });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Partner application submitted:", formData);
     // Handle form submission
   };
+
   return <div className="min-h-screen bg-background">
       <Navbar />
       
@@ -127,11 +147,15 @@ const PartnersPage = () => {
               <Zap className="mr-2 h-4 w-4" />
               Become a Partner
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto" aria-label="Open Partner Portal">
-              <Link to="/partner-portal">
-                <Activity className="mr-2 h-4 w-4" />
-                Partner Portal Login
-              </Link>
+            <Button 
+              onClick={handlePartnerLogin}
+              size="lg" 
+              variant="outline" 
+              className="w-full sm:w-auto" 
+              aria-label="Access Partner Dashboard"
+            >
+              <Activity className="mr-2 h-4 w-4" />
+              Partner Portal Login
             </Button>
           </div>
           
@@ -353,4 +377,5 @@ const PartnersPage = () => {
       </div>
     </div>;
 };
+
 export default PartnersPage;
