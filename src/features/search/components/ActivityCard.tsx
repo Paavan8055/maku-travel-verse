@@ -38,7 +38,19 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
   const navigate = useNavigate();
 
   const handleSelectActivity = () => {
-    navigate(`/booking/select/activity?activityId=${activity.id}&title=${encodeURIComponent(activity.title)}&price=${activity.price}`);
+    // Navigate directly to activity checkout (skip intermediate pages)
+    const searchParams = new URLSearchParams({
+      activityId: activity.id,
+      title: activity.title,
+      price: activity.price.toString(),
+      currency: activity.currency,
+      duration: activity.duration,
+      location: activity.location,
+      category: activity.category,
+      difficulty: activity.difficulty
+    });
+    
+    navigate(`/booking/activity?${searchParams.toString()}`);
   };
 
   const getDifficultyColor = (difficulty: string) => {

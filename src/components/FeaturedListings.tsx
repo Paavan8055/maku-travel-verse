@@ -238,7 +238,7 @@ const FeaturedListings = () => {
 
                     <Button 
                       className="w-full mt-4 btn-primary"
-                      onClick={() => window.location.href = `/booking/select?type=hotel&id=${hotel.id}`}
+                      onClick={() => window.location.href = `/booking/hotel?hotel=${encodeURIComponent(JSON.stringify({ id: hotel.id, name: hotel.name, pricePerNight: hotel.price }))}`}
                     >
                       Book Now
                     </Button>
@@ -304,7 +304,7 @@ const FeaturedListings = () => {
                       
                       <Button 
                         className="btn-primary"
-                        onClick={() => window.location.href = `/booking/select?type=flight&id=${flight.id}`}
+                        onClick={() => window.location.href = `/booking/flight?flightId=${flight.id}&price=${flight.price}&from=${encodeURIComponent(flight.from)}&to=${encodeURIComponent(flight.to)}`}
                       >
                         Book Flight
                       </Button>
@@ -371,7 +371,7 @@ const FeaturedListings = () => {
                       
                       <Button 
                         className="btn-primary"
-                        onClick={() => window.location.href = `/booking/select?type=activity&id=${activity.id}`}
+                        onClick={() => window.location.href = `/booking/activity?activityId=${activity.id}&title=${encodeURIComponent(activity.name)}&price=${activity.price}`}
                       >
                         Book Now
                       </Button>

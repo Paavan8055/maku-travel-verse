@@ -75,18 +75,18 @@ const App = () => (
                   <Route path="/roadmap" element={<Roadmap />} />
                   <Route path="/car-rental" element={<CarRental />} />
                   <Route path="/partners" element={<Partners />} />
-                  {/* Consistent booking routing structure */}
+                  {/* Direct booking flow routes */}
                   <Route path="/booking/confirmation" element={<BookingConfirmation />} />
                   <Route path="/booking/payment" element={<BookingPayment />} />
-                  <Route path="/booking/flight" element={<FlightCheckout />} />
                   <Route path="/booking/hotel" element={<HotelCheckout />} />
+                  <Route path="/booking/flight" element={<FlightCheckout />} />
                   <Route path="/booking/activity" element={<ActivityCheckout />} />
                   <Route path="/booking/:id" element={<BookingDetails />} />
-                   {/* Legacy select route - now bypassed in direct flow */}
-                   <Route path="/booking/select" element={<BookingSelect />} />
-                  <Route path="/booking/:id/extras" element={<BookingExtras />} />
-                   {/* Legacy baggage route - now skipped in direct flow */}
-                   <Route path="/booking/:id/baggage" element={<BookingBaggage />} />
+                  
+                  {/* Intermediate booking pages for hotel and flight flows */}
+                  <Route path="/booking/select" element={<BookingSelect />} />
+                  <Route path="/booking/extras" element={<BookingExtras />} />
+                  <Route path="/booking/baggage" element={<BookingBaggage />} />
                   
                   {/* Legacy routes for backward compatibility */}
                   <Route path="/booking-confirmation" element={<BookingConfirmation />} />
@@ -95,9 +95,6 @@ const App = () => (
                   <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                   <Route path="/payment-setup" element={<PaymentSetup />} />
                   <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/checkout/hotel" element={<HotelCheckout />} />
-                  <Route path="/checkout/flight" element={<FlightCheckout />} />
-                  <Route path="/checkout/activity" element={<ActivityCheckout />} />
                   <Route path="/activity/:id/select" element={<ActivitySelect />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

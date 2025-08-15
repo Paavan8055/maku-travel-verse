@@ -6,44 +6,9 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Parse URL to detect booking type and redirect to appropriate checkout
-    const urlParams = new URLSearchParams(window.location.search);
-    const params = new URLSearchParams(window.location.search);
-    
-    // Check for flight-specific parameters
-    const hasFlightId = params.get('flightId');
-    const hasTripType = params.get('tripType');
-    const hasOutboundId = params.get('outboundId');
-    const hasInboundId = params.get('inboundId');
-    const hasAnyFare = params.get('fareType') || params.get('outboundFare') || params.get('inboundFare');
-
-    // Check for hotel-specific parameters
-    const hasHotelParam = urlParams.get('hotel');
-    const hasHotelDates = urlParams.get('checkin') || urlParams.get('checkIn');
-    
-    // Determine booking type and redirect
-    const isFlightBooking = Boolean(hasFlightId || hasTripType || hasOutboundId || hasInboundId || hasAnyFare);
-    const isHotelBooking = Boolean(hasHotelParam || hasHotelDates);
-    
-    console.log('Checkout router - detecting booking type:', {
-      isFlightBooking,
-      isHotelBooking,
-      hasFlightId,
-      hasTripType,
-      hasHotelParam,
-      hasHotelDates
-    });
-    
-    if (isFlightBooking) {
-      console.log('Redirecting to flight checkout');
-      navigate(`/booking/flight${window.location.search}`, { replace: true });
-    } else if (isHotelBooking) {
-      console.log('Redirecting to hotel checkout');
-      navigate(`/booking/hotel${window.location.search}`, { replace: true });
-    } else {
-      console.log('No specific booking type detected, staying on generic checkout');
-      // Could redirect to a default or show an error
-    }
+    // Legacy route - redirect to home since we now use direct paths
+    console.log('Legacy checkout route accessed - redirecting to home');
+    navigate('/', { replace: true });
   }, [navigate]);
 
   // This component now acts as a router - the actual content is handled by useEffect

@@ -73,7 +73,7 @@ const ActivitySelect = () => {
     };
 
     const queryString = new URLSearchParams(bookingData).toString();
-    navigate(`/booking/checkout/activity?${queryString}`);
+    navigate(`/booking/activity?${queryString}`);
   };
 
   const isValid = selectedDate && selectedTime && participantCount > 0;
