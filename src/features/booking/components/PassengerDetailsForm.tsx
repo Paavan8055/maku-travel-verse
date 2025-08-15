@@ -262,7 +262,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
 
         <div className="mt-4">
           <Label className="mb-2 block">Special Requests (Optional)</Label>
-          <Input {...register("specialRequests")} placeholder="e.g., Late check-in, accessibility needs, dietary requirements" />
+          <Input {...register("specialRequests")} placeholder="e.g., Wheelchair accessibility, dietary requirements, seat preferences" />
           {errors.specialRequests && <p className="text-xs text-destructive mt-1">{errors.specialRequests.message}</p>}
         </div>
 
