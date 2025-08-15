@@ -14,6 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 import { TravelTechMetrics } from '@/components/dashboard/TravelTechMetrics';
 import { SmartAnalytics } from '@/components/dashboard/SmartAnalytics';
 import { RealTimeFeeds } from '@/components/dashboard/RealTimeFeeds';
+import { TripTimeline } from '@/components/dashboard/TripTimeline';
+import { DocumentsHub } from '@/components/dashboard/DocumentsHub';
+import { SmartTripPlanner } from '@/components/dashboard/SmartTripPlanner';
+import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
 import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
 import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
 
@@ -162,18 +166,26 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="mb-8">
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-8">
+            <TabsList className="grid w-full grid-cols-6 max-w-4xl mx-auto mb-8">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <Eye className="h-4 w-4" />
                 Overview
               </TabsTrigger>
+              <TabsTrigger value="trips" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Trips
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Documents
+              </TabsTrigger>
+              <TabsTrigger value="planner" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Planner
+              </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Analytics
-              </TabsTrigger>
-              <TabsTrigger value="realtime" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Live Feed
               </TabsTrigger>
               <TabsTrigger value="bookings" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -183,7 +195,12 @@ export const Dashboard: React.FC = () => {
 
             <TabsContent value="overview">
               <div className="space-y-8">
-                <TravelTechMetrics />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <TravelTechMetrics />
+                  </div>
+                  <NotificationCenter />
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <LoyaltyWidget />
                   <SmartRecommendations />
@@ -191,13 +208,22 @@ export const Dashboard: React.FC = () => {
               </div>
             </TabsContent>
 
+            <TabsContent value="trips">
+              <TripTimeline />
+            </TabsContent>
+
+            <TabsContent value="documents">
+              <DocumentsHub />
+            </TabsContent>
+
+            <TabsContent value="planner">
+              <SmartTripPlanner />
+            </TabsContent>
+
             <TabsContent value="analytics">
               <SmartAnalytics />
             </TabsContent>
 
-            <TabsContent value="realtime">
-              <RealTimeFeeds />
-            </TabsContent>
 
             <TabsContent value="bookings">
               <div className="mb-6">
