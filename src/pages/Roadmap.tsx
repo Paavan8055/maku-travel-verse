@@ -399,7 +399,7 @@ const RoadmapPage = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold">Journey Progress</h3>
               <Badge className="bg-gradient-to-r from-travel-coral to-travel-sunset text-white">
-                {Math.round((currentStep + 1) / filteredRoadmap.length * 100)}% Complete
+                {filteredRoadmap.length > 0 ? Math.round((currentStep + 1) / filteredRoadmap.length * 100) : 0}% Complete
               </Badge>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
