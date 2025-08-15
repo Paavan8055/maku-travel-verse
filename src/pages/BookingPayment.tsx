@@ -81,7 +81,7 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
 };
 
 const BookingPaymentPage = () => {
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("stripe");
   const [paymentGateway, setPaymentGateway] = useState<"stripe" | "card" | "afterpay" | "crypto">("stripe");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const { createBookingPayment, isLoading } = useBookingPayment();
@@ -320,7 +320,7 @@ const BookingPaymentPage = () => {
   };
 
   useEffect(() => {
-    if ((paymentGateway === 'card' || paymentGateway === 'stripe') && !clientSecret && stripePromise) {
+    if (paymentGateway === 'stripe' && !clientSecret && stripePromise) {
       ensurePaymentIntent();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -356,8 +356,8 @@ const BookingPaymentPage = () => {
 
     console.log('Payment gateway:', paymentGateway, 'Customer info:', customerInfo);
 
-    // If using on-site card collection (Stripe Elements)
-    if ((paymentGateway === 'card' || paymentGateway === 'stripe')) {
+    // If using Stripe Elements payment
+    if (paymentGateway === 'stripe') {
       try {
         console.log('Using Stripe payment, clientSecret:', !!clientSecret, 'bookingId:', !!bookingId, 'confirmFn:', !!confirmFn);
         
@@ -378,35 +378,34 @@ const BookingPaymentPage = () => {
         const result: any = await confirmFn();
         console.log('Payment confirmation result:', result);
         
+        if (result.error) {
+          throw new Error(result.error.message || 'Payment confirmation failed');
+        }
+        
         const piId = result?.paymentIntent?.id;
-        if (!piId || !bookingId) {
-          throw new Error('Missing payment intent or booking');
+        if (!piId || result?.paymentIntent?.status !== 'succeeded') {
+          throw new Error('Payment was not completed successfully');
         }
         
         console.log('Verifying payment with booking...');
-        // For guest bookings, don't include authorization header
         const verifyOptions: any = {
           body: { bookingId, paymentIntentId: piId },
         };
-        
-        // Only include auth header if user is logged in
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          console.log('User authenticated, including auth header');
-        } else {
-          console.log('Guest checkout, proceeding without auth');
-        }
         
         const verifyResult = await supabase.functions.invoke('verify-booking-payment', verifyOptions);
         
         console.log('Verification result:', verifyResult);
         
+        if (verifyResult.error || !verifyResult.data?.success) {
+          throw new Error(verifyResult.error?.message || 'Payment verification failed');
+        }
+        
         toast({ title: 'Payment successful!', description: 'Redirecting to confirmation...', variant: 'default' });
         window.location.href = `/booking/confirmation?booking_id=${bookingId}`;
         return;
       } catch (err: any) {
-        console.error('Card confirmation failed', err);
-        const message = err?.message || 'Card confirmation failed';
+        console.error('Stripe payment failed', err);
+        const message = err?.message || 'Payment failed';
         toast({ title: 'Payment failed', description: message, variant: 'destructive' });
         return;
       }
@@ -465,21 +464,10 @@ const BookingPaymentPage = () => {
                 <div className="space-y-4">
                   {/* Payment Options */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    {/* Stripe */}
-                    <div
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentGateway === 'stripe' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                      onClick={() => { setPaymentGateway('stripe'); setPaymentMethod('card'); }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <CreditCard className="h-5 w-5" />
-                        <span className="font-medium">Stripe</span>
-                      </div>
-                    </div>
-
                     {/* Credit/Debit Card */}
                     <div
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentGateway === 'card' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                      onClick={() => { setPaymentGateway('card'); setPaymentMethod('card'); }}
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentGateway === 'stripe' ? 'border-primary bg-primary/5' : 'border-border'}`}
+                      onClick={() => { setPaymentGateway('stripe'); setPaymentMethod('stripe'); }}
                     >
                       <div className="flex items-center space-x-3">
                         <CreditCard className="h-5 w-5" />
@@ -507,7 +495,7 @@ const BookingPaymentPage = () => {
                   </div>
 
                   {/* Card Details via Stripe Elements */}
-                  {(paymentMethod === "card" || paymentMethod === "split") && (
+                  {paymentGateway === "stripe" && (
                     <div className="space-y-4 mt-6">
                       {isInitializingPI ? (
                         <div className="flex items-center gap-2 text-muted-foreground p-6 bg-muted/50 rounded-lg">
@@ -696,12 +684,12 @@ const BookingPaymentPage = () => {
 
                 <Button
                   onClick={handleCheckout}
-                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto" || ((paymentGateway === 'card' || paymentGateway === 'stripe') && (!confirmFn))}
+                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto" || (paymentGateway === 'stripe' && (!confirmFn || !clientSecret))}
                   className="w-full mt-6 btn-primary h-12"
                 >
                   {isLoading ? (
                     <>Processing...</>
-                  ) : ((paymentGateway === 'card' || paymentGateway === 'stripe') && !confirmFn ? (
+                  ) : (paymentGateway === 'stripe' && (!confirmFn || !clientSecret) ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Preparing payment...
