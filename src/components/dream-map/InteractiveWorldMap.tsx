@@ -251,14 +251,14 @@ const InteractiveWorldMap: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="h-96 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-screen w-full">
+    <div className="relative h-96 w-full">
       {/* Search and Filter Controls */}
       <div className="absolute top-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-lg p-4 shadow-lg max-w-sm">
         <div className="space-y-3">
