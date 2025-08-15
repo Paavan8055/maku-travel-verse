@@ -445,7 +445,11 @@ const RoadmapPage = () => {
               NFT experiences, and revolutionary bidding features that will transform how the world travels.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-travel-coral to-travel-sunset hover:shadow-floating text-lg px-8 py-4">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-travel-coral to-travel-sunset hover:shadow-floating text-lg px-8 py-4"
+                onClick={() => window.open('https://maku.travel/early-access', '_blank')}
+              >
                 <Users className="mr-3 h-6 w-6" />
                 Join Early Access
                 <ArrowRight className="ml-3 h-6 w-6" />
