@@ -137,11 +137,14 @@ const FlightCheckout = () => {
           {/* Passenger Form */}
           <div className="lg:col-span-2 space-y-6">
             <div id="passenger-details">
-              <PassengerDetailsForm onChange={(data, valid) => { 
-                console.log('Passenger form change:', { data, valid });
-                setPassenger(data); 
-                setPassengerValid(valid); 
-              }} />
+              <PassengerDetailsForm 
+                bookingType="flight"
+                onChange={(data, valid) => { 
+                  console.log('Passenger form change:', { data, valid });
+                  setPassenger(data); 
+                  setPassengerValid(valid); 
+                }} 
+              />
             </div>
 
             {/* Payment CTA */}

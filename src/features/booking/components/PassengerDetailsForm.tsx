@@ -44,10 +44,12 @@ export type PassengerFormData = z.infer<typeof GuestSchema>;
 interface PassengerDetailsFormProps {
   onChange?: (data: PassengerFormData | null, isValid: boolean) => void;
   initial?: Partial<PassengerFormData>;
+  bookingType?: 'flight' | 'hotel' | 'activity';
 }
 export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   onChange,
-  initial
+  initial,
+  bookingType = 'hotel'
 }) => {
   const [isAutofilling, setIsAutofilling] = useState(false);
   const { toast } = useToast();
@@ -161,9 +163,16 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold">Guest Details</h2>
+            <h2 className="text-xl font-bold">
+              {bookingType === 'flight' ? 'Passenger Details' : 
+               bookingType === 'activity' ? 'Participant Details' : 'Guest Details'}
+            </h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Enter guest information as it appears on your ID document. This information will be used for hotel check-in.
+              {bookingType === 'flight' ? 
+                'Enter passenger information as it appears on your ID document. This information will be used for flight check-in and boarding.' :
+               bookingType === 'activity' ?
+                'Enter participant information as it appears on your ID document.' :
+                'Enter guest information as it appears on your ID document. This information will be used for hotel check-in.'}
             </p>
           </div>
           <div className="flex gap-2">
@@ -263,7 +272,11 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
             shouldValidate: true
           })} />
             <Label htmlFor="acknowledge" className="text-sm leading-5">
-              I confirm the provided information is accurate and will be used for hotel check-in and communication purposes.
+              I confirm the provided information is accurate and will be used for {
+                bookingType === 'flight' ? 'flight check-in, boarding, and communication purposes.' :
+                bookingType === 'activity' ? 'activity booking and communication purposes.' :
+                'hotel check-in and communication purposes.'
+              }
             </Label>
           </div>
           {errors.acknowledge && <p className="text-xs text-destructive mt-1">{errors.acknowledge.message}</p>}
