@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Rocket, Zap, Globe, Heart, Star, Calendar, Users, Brain, Sparkles, MapPin, Plane, Building2, Shield, TrendingUp, CheckCircle, Clock, ArrowRight, Target, Compass, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/features/auth/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface RoadmapItem {
   id: string;
@@ -185,10 +190,21 @@ const statusConfig = {
 };
 
 const RoadmapPage = () => {
+  const { user, signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
+  const [showSignupDialog, setShowSignupDialog] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupData, setSignupData] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: ''
+  });
 
   const filteredRoadmap = roadmapData.filter(item => {
     const yearMatch = selectedYear === "all" || item.year === selectedYear;
@@ -212,6 +228,58 @@ const RoadmapPage = () => {
     if (progress >= 50) return "bg-travel-gold";
     if (progress >= 20) return "bg-travel-ocean";
     return "bg-muted";
+  };
+
+  const handleJoinEarlyAccess = () => {
+    if (user) {
+      // User is already logged in, redirect to dashboard
+      navigate('/dashboard');
+    } else {
+      // Show signup dialog
+      setShowSignupDialog(true);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignupLoading(true);
+
+    try {
+      const { error } = await signUp(
+        signupData.email,
+        signupData.password,
+        {
+          first_name: signupData.firstName,
+          last_name: signupData.lastName
+        }
+      );
+
+      if (error) {
+        toast({
+          title: "Sign Up Error",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Welcome to Maku.travel!",
+          description: "Your account has been created. Redirecting to dashboard..."
+        });
+        setShowSignupDialog(false);
+        // Redirect to dashboard after successful signup
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setSignupLoading(false);
+    }
   };
 
   return (
@@ -459,7 +527,11 @@ const RoadmapPage = () => {
               NFT experiences, and revolutionary bidding features that will transform how the world travels.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-travel-coral to-travel-sunset hover:shadow-floating text-lg px-8 py-4">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-travel-coral to-travel-sunset hover:shadow-floating text-lg px-8 py-4"
+                onClick={handleJoinEarlyAccess}
+              >
                 <Users className="mr-3 h-6 w-6" />
                 Join Early Access
                 <ArrowRight className="ml-3 h-6 w-6" />
@@ -475,6 +547,74 @@ const RoadmapPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Signup Dialog */}
+      <Dialog open={showSignupDialog} onOpenChange={setShowSignupDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-travel-gold via-travel-coral to-travel-sunset bg-clip-text text-transparent">
+              Join Early Access
+            </DialogTitle>
+            <DialogDescription>
+              Create your account to get exclusive access to MAKU tokens and blockchain travel features.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={signupData.firstName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={signupData.lastName}
+                  onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={signupData.email}
+                onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={signupData.password}
+                onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+                required
+                minLength={6}
+              />
+            </div>
+            
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-travel-coral to-travel-sunset hover:opacity-90"
+              disabled={signupLoading}
+            >
+              {signupLoading ? "Creating Account..." : "Join Early Access"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
