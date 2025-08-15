@@ -148,6 +148,13 @@ export const Dashboard: React.FC = () => {
     fetchBookings();
   }, [authLoading, user]);
 
+  console.log('Dashboard: Starting render');
+  
+  if (authLoading) {
+    console.log('Dashboard: Auth loading');
+    return <div>Loading auth...</div>;
+  }
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-background">
@@ -155,202 +162,16 @@ export const Dashboard: React.FC = () => {
         
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Zap className="h-8 w-8 text-travel-gold" />
-                <Badge className="bg-gradient-to-r from-travel-gold to-travel-sunset text-white">
-                  Smart Dashboard
-                </Badge>
-              </div>
-              <NotificationBell />
-            </div>
             <h1 className="text-4xl font-bold text-foreground mb-2">
-              Your <span className="hero-text">Travel Hub</span>
+              Dashboard Test
             </h1>
-            <p className="text-muted-foreground">AI-powered travel management with real-time insights</p>
+            <p className="text-muted-foreground">Testing basic functionality</p>
           </div>
 
-          <Tabs defaultValue="overview" className="mb-8">
-            <TabsList className="grid w-full grid-cols-6 max-w-4xl mx-auto mb-8">
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Dream Map
-              </TabsTrigger>
-              <TabsTrigger value="trips" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Trips
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Documents
-              </TabsTrigger>
-              <TabsTrigger value="planner" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Planner
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger value="bookings" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Bookings
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="h-[calc(100vh-200px)]">
-              <div className="p-8 text-center">
-                <h2 className="text-2xl font-bold">Interactive World Map</h2>
-                <p className="text-muted-foreground">Map temporarily disabled for debugging</p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="trips">
-              <TripTimeline />
-            </TabsContent>
-
-            <TabsContent value="documents">
-              <DocumentsHub />
-            </TabsContent>
-
-            <TabsContent value="planner">
-              <SmartTripPlanner />
-            </TabsContent>
-
-            <TabsContent value="analytics">
-              <SmartAnalytics />
-            </TabsContent>
-
-
-            <TabsContent value="bookings">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                  <Calendar className="h-6 w-6 text-travel-ocean" />
-                  Your Bookings
-                </h2>
-                <p className="text-muted-foreground">Manage your travel bookings and view details</p>
-              </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <span className="ml-2 text-muted-foreground">Loading your bookings...</span>
-            </div>
-          ) : bookings.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No bookings yet</h3>
-                <p className="text-muted-foreground mb-6">Start planning your next adventure!</p>
-                <Button onClick={() => navigate('/search')}>
-                  Browse Hotels & Flights
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {bookings.map((booking) => (
-                <Card key={booking.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl font-semibold">
-                          Booking #{booking.booking_reference}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Created on {formatDate(booking.created_at)}
-                        </p>
-                      </div>
-                      {getStatusBadge(booking.status)}
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-5 h-5 text-primary" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Check-in</p>
-                          <p className="font-medium">{formatDate(booking.check_in_date)}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <Users className="w-5 h-5 text-primary" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Guests</p>
-                          <p className="font-medium">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <DollarSign className="w-5 h-5 text-primary" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Total</p>
-                          <p className="font-medium">{formatCurrency(booking.total_amount, booking.currency)}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <h4 className="font-medium mb-2">Items ({booking.items?.length || 0})</h4>
-                      <div className="space-y-2">
-                        {booking.items?.slice(0, 2).map((item) => (
-                          <div key={item.id} className="text-sm bg-muted/50 p-3 rounded-lg">
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium capitalize">{item.item_type}</span>
-                              <span>{formatCurrency(item.total_price, booking.currency)}</span>
-                            </div>
-                            <p className="text-muted-foreground text-xs mt-1">
-                              Qty: {item.quantity} × {formatCurrency(item.unit_price, booking.currency)}
-                            </p>
-                          </div>
-                        ))}
-                        {booking.items?.length > 2 && (
-                          <p className="text-sm text-muted-foreground">
-                            +{booking.items.length - 2} more item{booking.items.length - 2 > 1 ? 's' : ''}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <Separator className="my-4" />
-                    
-                    <div className="flex flex-wrap gap-3">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigate(`/dashboard/bookings/${booking.id}`)}
-                        className="flex items-center gap-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Details
-                      </Button>
-                      
-                      {booking.status === 'confirmed' && (
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleCancelBooking(booking.id)}
-                          disabled={cancelling === booking.id}
-                          className="flex items-center gap-2"
-                        >
-                          {cancelling === booking.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <X className="w-4 h-4" />
-                          )}
-                          {cancelling === booking.id ? 'Cancelling...' : 'Cancel Booking'}
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            )}
-            </TabsContent>
-          </Tabs>
+          <div className="p-8 text-center">
+            <h2 className="text-2xl font-bold">Dashboard Simplified</h2>
+            <p className="text-muted-foreground">Testing if the error persists with minimal components</p>
+          </div>
         </div>
       </div>
     </AuthGuard>
