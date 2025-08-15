@@ -63,7 +63,7 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
       <Button
         onClick={() => {
           if (bookingType === 'flight') {
-            // Handle different trip types
+            // Handle different trip types - skip baggage step, go directly to flight checkout
             if (bookingData?.tripType === 'multicity' && bookingData?.segments) {
               const params = new URLSearchParams({
                 tripType: 'multicity',
@@ -71,7 +71,7 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
                 amount: String(amount),
                 currency
               });
-              navigate(`/booking/baggage?${params.toString()}`);
+              navigate(`/booking/flight?${params.toString()}`);
               return;
             }
 
@@ -87,17 +87,19 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
                 amount: String(amount),
                 currency
               });
-              navigate(`/booking/baggage?${params.toString()}`);
+              navigate(`/booking/flight?${params.toString()}`);
               return;
             }
 
+            // One-way flights
             const params = new URLSearchParams({
               flightId: bookingData?.id || '',
               fareType: bookingData?.fareType || 'basic',
+              tripType: bookingData?.tripType || 'oneway',
               amount: String(amount),
               currency
             });
-            navigate(`/booking/baggage?${params.toString()}`);
+            navigate(`/booking/flight?${params.toString()}`);
           } else {
             setShowBookingForm(true);
           }

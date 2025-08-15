@@ -28,11 +28,11 @@ const HotelCheckout = () => {
     }
   }
   
-  // Extract search parameters for dates and guests
-  const checkInParam = urlParams.get('checkin') || urlParams.get('checkIn');
-  const checkOutParam = urlParams.get('checkout') || urlParams.get('checkOut');
-  const adultsParam = urlParams.get('adults');
-  const childrenParam = urlParams.get('children');
+  // Extract search parameters for dates and guests (standardized to camelCase)
+  const checkInParam = urlParams.get('checkIn') || urlParams.get('checkin');
+  const checkOutParam = urlParams.get('checkOut') || urlParams.get('checkout');
+  const adultsParam = urlParams.get('adults') || '2';
+  const childrenParam = urlParams.get('children') || '0';
   
   // Parse dates
   let checkInDate = "Mar 15, 2025";

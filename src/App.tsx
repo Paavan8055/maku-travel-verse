@@ -82,9 +82,11 @@ const App = () => (
                   <Route path="/booking/hotel" element={<HotelCheckout />} />
                   <Route path="/booking/activity" element={<ActivityCheckout />} />
                   <Route path="/booking/:id" element={<BookingDetails />} />
-                  <Route path="/booking/:id/select" element={<BookingSelect />} />
+                   {/* Legacy select route - now bypassed in direct flow */}
+                   <Route path="/booking/select" element={<BookingSelect />} />
                   <Route path="/booking/:id/extras" element={<BookingExtras />} />
-                  <Route path="/booking/:id/baggage" element={<BookingBaggage />} />
+                   {/* Legacy baggage route - now skipped in direct flow */}
+                   <Route path="/booking/:id/baggage" element={<BookingBaggage />} />
                   
                   {/* Legacy routes for backward compatibility */}
                   <Route path="/booking-confirmation" element={<BookingConfirmation />} />

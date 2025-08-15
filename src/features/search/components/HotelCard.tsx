@@ -37,12 +37,15 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
 
   const handleSelectHotel = () => {
-    // Get ALL current search parameters to preserve them
+    // Get current search parameters to preserve them
     const currentUrlParams = new URLSearchParams(window.location.search);
     
     console.log('Current URL params when selecting hotel:', Object.fromEntries(currentUrlParams.entries()));
     
-    // Pass hotel data via URL params for the booking select page
+    // Create new search parameters for hotel checkout
+    const searchParams = new URLSearchParams();
+    
+    // Pass hotel data directly 
     const hotelData = encodeURIComponent(JSON.stringify({
       id: hotel.id,
       name: hotel.name,
@@ -62,53 +65,26 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
       breakfast: hotel.breakfast,
       deals: hotel.deals
     }));
-    
-    // Create new search parameters starting with hotel data
-    const searchParams = new URLSearchParams();
     searchParams.set('hotel', hotelData);
     
-    // Preserve ALL existing search parameters
-    ['checkin', 'checkout', 'adults', 'children', 'rooms', 'destination', 'q'].forEach(param => {
-      const value = currentUrlParams.get(param);
-      if (value) {
-        searchParams.set(param, value);
-        console.log(`Preserving ${param}:`, value);
-      }
-    });
-    
-    // Also check for alternative parameter names
+    // Standardize parameter names (use camelCase consistently)
     const checkInValue = currentUrlParams.get('checkIn') || currentUrlParams.get('checkin');
     const checkOutValue = currentUrlParams.get('checkOut') || currentUrlParams.get('checkout');
+    const adultsValue = currentUrlParams.get('adults') || '2';
+    const childrenValue = currentUrlParams.get('children') || '0';
+    const roomsValue = currentUrlParams.get('rooms') || '1';
     
-    if (checkInValue) {
-      searchParams.set('checkin', checkInValue);
-      console.log('Preserving checkIn as checkin:', checkInValue);
-    }
-    if (checkOutValue) {
-      searchParams.set('checkout', checkOutValue);
-      console.log('Preserving checkOut as checkout:', checkOutValue);
-    }
+    if (checkInValue) searchParams.set('checkIn', checkInValue);
+    if (checkOutValue) searchParams.set('checkOut', checkOutValue);
+    searchParams.set('adults', adultsValue);
+    searchParams.set('children', childrenValue);
+    searchParams.set('rooms', roomsValue);
     
-    // Store comprehensive search parameters in session storage as fallback
-    const searchCriteria = {
-      checkin: checkInValue || currentUrlParams.get('checkin'),
-      checkout: checkOutValue || currentUrlParams.get('checkout'),
-      adults: currentUrlParams.get('adults') || '2',
-      children: currentUrlParams.get('children') || '0',
-      rooms: currentUrlParams.get('rooms') || '1',
-      destination: currentUrlParams.get('destination') || currentUrlParams.get('q') || 'Sydney'
-    };
+    console.log('Hotel checkout params:', Object.fromEntries(searchParams.entries()));
     
-    console.log('Storing search criteria in session storage:', searchCriteria);
-    
-    try {
-      sessionStorage.setItem('hotelSearchCriteria', JSON.stringify(searchCriteria));
-    } catch (error) {
-      console.error('Failed to save search criteria:', error);
-    }
-    
-    const finalUrl = `/booking/select?${searchParams.toString()}`;
-    console.log('Navigating to:', finalUrl);
+    // Navigate directly to hotel checkout (skip the intermediate select page)
+    const finalUrl = `/booking/hotel?${searchParams.toString()}`;
+    console.log('Navigating directly to hotel checkout:', finalUrl);
     navigate(finalUrl);
   };
 

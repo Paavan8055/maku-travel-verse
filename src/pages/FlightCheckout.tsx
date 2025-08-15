@@ -115,7 +115,7 @@ const FlightCheckout = () => {
         <div className="max-w-7xl mx-auto">
           <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-4">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Baggage
+            Back to Search
           </Button>
           
           <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Flight Booking</span></h1>

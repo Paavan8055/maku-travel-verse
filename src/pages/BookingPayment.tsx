@@ -116,9 +116,9 @@ const BookingPaymentPage = () => {
   // Parse URL parameters to determine booking type and data
   const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   
-  // Extract search parameters for dates and guests
-  const checkInParam = params.get('checkin') || params.get('checkIn');
-  const checkOutParam = params.get('checkout') || params.get('checkOut');
+  // Extract search parameters for dates and guests (standardized to camelCase)
+  const checkInParam = params.get('checkIn') || params.get('checkin');
+  const checkOutParam = params.get('checkOut') || params.get('checkout');
   const roomsParam = params.get('rooms');
   const adultsParam = params.get('adults');
   const childrenParam = params.get('children');
