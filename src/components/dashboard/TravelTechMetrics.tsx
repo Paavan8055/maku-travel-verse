@@ -77,5 +77,34 @@ export const TravelTechMetrics: React.FC<{
     color: "text-travel-forest",
     bgColor: "bg-travel-forest/10"
   }];
-  return;
+
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Zap className="h-5 w-5 text-travel-gold" />
+          Travel Tech Metrics
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {techFeatures.map((feature, index) => (
+            <div key={index} className={`p-4 rounded-lg ${feature.bgColor}`}>
+              <div className="flex items-center gap-3 mb-2">
+                <feature.icon className={`h-5 w-5 ${feature.color}`} />
+                <div>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <p className="text-2xl font-bold">{feature.value}</p>
+                </div>
+                {feature.isLive && (
+                  <Badge className="bg-red-500 text-white text-xs">Live</Badge>
+                )}
+              </div>
+              <h3 className="font-medium text-sm">{feature.title}</h3>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
 };

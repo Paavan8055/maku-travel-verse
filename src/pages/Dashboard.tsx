@@ -17,7 +17,7 @@ import { RealTimeFeeds } from '@/components/dashboard/RealTimeFeeds';
 import { TripTimeline } from '@/components/dashboard/TripTimeline';
 import { DocumentsHub } from '@/components/dashboard/DocumentsHub';
 import { SmartTripPlanner } from '@/components/dashboard/SmartTripPlanner';
-import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
+import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
 import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
 
@@ -153,11 +153,14 @@ export const Dashboard: React.FC = () => {
         
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Zap className="h-8 w-8 text-travel-gold" />
-              <Badge className="bg-gradient-to-r from-travel-gold to-travel-sunset text-white">
-                Smart Dashboard
-              </Badge>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Zap className="h-8 w-8 text-travel-gold" />
+                <Badge className="bg-gradient-to-r from-travel-gold to-travel-sunset text-white">
+                  Smart Dashboard
+                </Badge>
+              </div>
+              <NotificationBell />
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-2">
               Your <span className="hero-text">Travel Hub</span>
@@ -195,12 +198,7 @@ export const Dashboard: React.FC = () => {
 
             <TabsContent value="overview">
               <div className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <TravelTechMetrics />
-                  </div>
-                  <NotificationCenter />
-                </div>
+                <TravelTechMetrics />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <LoyaltyWidget />
                   <SmartRecommendations />
