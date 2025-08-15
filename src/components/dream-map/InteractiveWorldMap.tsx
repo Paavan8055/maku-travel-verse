@@ -343,7 +343,7 @@ const InteractiveWorldMap: React.FC = () => {
 
       {/* Map */}
       <MapContainer
-        center={[20, 0] as LatLngExpression}
+        center={[20, 0]}
         zoom={2}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
@@ -354,7 +354,7 @@ const InteractiveWorldMap: React.FC = () => {
         {filteredDestinations.map((destination) => (
           <Marker
             key={destination.id}
-            position={[destination.latitude, destination.longitude] as LatLngExpression}
+            position={[destination.latitude, destination.longitude]}
             icon={createCustomIcon(destination.category, isBookmarked(destination.id))}
           >
             <Popup>
