@@ -305,9 +305,21 @@ const BookingPaymentPage = () => {
                            bookingDetails.total;
       
       const currentBookingType = isFlightCheckout ? 'flight' : isActivityBooking ? 'activity' : 'hotel';
-      const currentBookingData = isFlightCheckout ? { flight: flightParams } : 
-                                 isActivityBooking ? { activity: activityDetails } :
-                                 { hotel: bookingDetails };
+      const currentBookingData = isFlightCheckout ? { 
+        flight: {
+          ...flightParams,
+          isRoundtrip: flightParams.isRoundtrip
+        },
+        passengers: passenger ? [passenger] : null
+      } : 
+      isActivityBooking ? { 
+        activity: activityDetails,
+        participants: activityGuest ? [activityGuest] : activityDetails.participants
+      } :
+      { 
+        hotel: bookingDetails,
+        guests: guest ? [guest] : null
+      };
       
       console.log('Payment intent data (before API call):', {
         bookingType: currentBookingType,

@@ -27,41 +27,38 @@ async function createBookingItems(supabaseClient: any, bookingId: string, bookin
   
   try {
     if (bookingType === 'flight') {
-      // Create items for flight segments
-      if (bookingData.flightDetails?.outbound) {
+      // Create items for outbound flight
+      if (bookingData.flight?.outbound?.id) {
         items.push({
           booking_id: bookingId,
           item_type: 'flight_segment',
           item_details: {
-            type: 'outbound',
-            route: `${bookingData.flightDetails.outbound.departure} - ${bookingData.flightDetails.outbound.arrival}`,
-            date: bookingData.flightDetails.outbound.departureDate,
-            flight: bookingData.flightDetails.outbound.flightNumber,
-            airline: bookingData.flightDetails.outbound.airline,
-            duration: bookingData.flightDetails.outbound.duration,
-            class: bookingData.flightDetails.outbound.class || 'Economy'
+            direction: 'outbound',
+            flight_id: bookingData.flight.outbound.id,
+            fare_type: bookingData.flight.outbound.fareType,
+            trip_type: bookingData.flight.tripType || 'oneway',
+            passenger_count: bookingData.passengers?.length || 1
           },
           quantity: bookingData.passengers?.length || 1,
-          unit_price: totalAmount * 0.6, // 60% for outbound
-          total_price: (totalAmount * 0.6) * (bookingData.passengers?.length || 1)
+          unit_price: bookingData.flight.isRoundtrip ? totalAmount * 0.6 : totalAmount,
+          total_price: (bookingData.flight.isRoundtrip ? totalAmount * 0.6 : totalAmount) * (bookingData.passengers?.length || 1)
         });
       }
       
-      if (bookingData.flightDetails?.return) {
+      // Create items for inbound flight (if exists)
+      if (bookingData.flight?.inbound?.id) {
         items.push({
           booking_id: bookingId,
           item_type: 'flight_segment',
           item_details: {
-            type: 'return',
-            route: `${bookingData.flightDetails.return.departure} - ${bookingData.flightDetails.return.arrival}`,
-            date: bookingData.flightDetails.return.departureDate,
-            flight: bookingData.flightDetails.return.flightNumber,
-            airline: bookingData.flightDetails.return.airline,
-            duration: bookingData.flightDetails.return.duration,
-            class: bookingData.flightDetails.return.class || 'Economy'
+            direction: 'inbound',
+            flight_id: bookingData.flight.inbound.id,
+            fare_type: bookingData.flight.inbound.fareType,
+            trip_type: bookingData.flight.tripType || 'roundtrip',
+            passenger_count: bookingData.passengers?.length || 1
           },
           quantity: bookingData.passengers?.length || 1,
-          unit_price: totalAmount * 0.4, // 40% for return
+          unit_price: totalAmount * 0.4,
           total_price: (totalAmount * 0.4) * (bookingData.passengers?.length || 1)
         });
       }
@@ -88,8 +85,8 @@ async function createBookingItems(supabaseClient: any, bookingId: string, bookin
       
     } else if (bookingType === 'hotel') {
       // Create items for hotel room nights
-      const checkIn = new Date(bookingData.checkInDate);
-      const checkOut = new Date(bookingData.checkOutDate);
+      const checkIn = new Date(bookingData.hotel?.checkIn || bookingData.checkInDate);
+      const checkOut = new Date(bookingData.hotel?.checkOut || bookingData.checkOutDate);
       const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
       const roomPrice = totalAmount / nights;
       
@@ -101,13 +98,13 @@ async function createBookingItems(supabaseClient: any, bookingId: string, bookin
           booking_id: bookingId,
           item_type: 'hotel_night',
           item_details: {
-            hotel_name: bookingData.hotelName,
-            room_type: bookingData.roomType,
+            hotel_name: bookingData.hotel?.name || bookingData.hotelName,
+            room_type: bookingData.hotel?.roomType || bookingData.roomType,
             date: night.toISOString().split('T')[0],
             night_number: i + 1,
             total_nights: nights,
-            guests: bookingData.guestCount || 1,
-            amenities: bookingData.amenities || []
+            guests: bookingData.hotel?.guests || bookingData.guestCount || 1,
+            amenities: bookingData.hotel?.amenities || bookingData.amenities || []
           },
           quantity: 1,
           unit_price: roomPrice,
@@ -135,21 +132,40 @@ async function createBookingItems(supabaseClient: any, bookingId: string, bookin
       
     } else if (bookingType === 'activity') {
       // Create items for activity participants
-      const basePrice = totalAmount / (bookingData.participants?.length || 1);
+      const participants = bookingData.activity?.participants || bookingData.participants || 1;
+      const basePrice = totalAmount / (typeof participants === 'number' ? participants : participants.length);
       
-      if (bookingData.participants) {
-        bookingData.participants.forEach((participant: any, index: number) => {
+      if (typeof participants === 'number') {
+        // Simple participant count
+        items.push({
+          booking_id: bookingId,
+          item_type: 'activity_participant',
+          item_details: {
+            activity_name: bookingData.activity?.title || bookingData.activityName,
+            participant_count: participants,
+            date: bookingData.activity?.date || bookingData.activityDate,
+            time: bookingData.activity?.time || bookingData.activityTime,
+            duration: bookingData.activity?.duration || bookingData.duration,
+            location: bookingData.activity?.location || bookingData.location
+          },
+          quantity: participants,
+          unit_price: basePrice,
+          total_price: totalAmount
+        });
+      } else if (Array.isArray(participants)) {
+        // Detailed participant array
+        participants.forEach((participant: any, index: number) => {
           items.push({
             booking_id: bookingId,
             item_type: 'activity_participant',
             item_details: {
-              activity_name: bookingData.activityName,
+              activity_name: bookingData.activity?.title || bookingData.activityName,
               participant_name: `${participant.firstName} ${participant.lastName}`,
               participant_type: participant.type || 'adult',
-              date: bookingData.activityDate,
-              time: bookingData.activityTime,
-              duration: bookingData.duration,
-              location: bookingData.location,
+              date: bookingData.activity?.date || bookingData.activityDate,
+              time: bookingData.activity?.time || bookingData.activityTime,
+              duration: bookingData.activity?.duration || bookingData.duration,
+              location: bookingData.activity?.location || bookingData.location,
               special_requirements: participant.specialRequirements
             },
             quantity: 1,
