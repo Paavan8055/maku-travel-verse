@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ data: any; error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithOAuth: (provider: 'google' | 'github' | 'twitter') => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
@@ -69,17 +69,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (email: string, password: string, metadata?: any) => {
     const redirectUrl = `${window.location.origin}/dashboard`;
     
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: metadata
-      }
-    });
-    
-    // If signup successful and user is confirmed immediately, they should be logged in
-    return { data, error };
+    try {
+      console.log('AuthContext: Attempting signup for:', email);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: metadata
+        }
+      });
+      
+      console.log('AuthContext: Signup response:', { 
+        user: data?.user?.id, 
+        session: !!data?.session, 
+        error: error?.message 
+      });
+      
+      return { data, error };
+    } catch (err) {
+      console.error('AuthContext: Signup error:', err);
+      return { data: null, error: err as any };
+    }
   };
 
   const signIn = async (email: string, password: string) => {

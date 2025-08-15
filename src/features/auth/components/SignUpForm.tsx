@@ -28,7 +28,8 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin }) => {
     setLoading(true);
 
     try {
-      const { error } = await signUp(
+      console.log('Starting signup process for email:', formData.email);
+      const { data, error } = await signUp(
         formData.email, 
         formData.password,
         {
@@ -37,20 +38,55 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin }) => {
         }
       );
 
+      console.log('Signup response:', { data, error });
+
       if (error) {
-        toast({
-          title: "Sign Up Error",
-          description: error.message,
-          variant: "destructive"
-        });
+        // Handle specific error cases
+        if (error.message?.includes('User already registered') || 
+            error.message?.includes('already been registered') ||
+            error.status === 422) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive"
+          });
+          
+          // Auto-switch to login after a delay
+          setTimeout(() => {
+            onSwitchToLogin();
+          }, 2000);
+        } else {
+          toast({
+            title: "Sign Up Error",
+            description: error.message,
+            variant: "destructive"
+          });
+        }
       } else {
-        toast({
-          title: "Welcome to Maku.travel!",
-          description: "Account created successfully. Redirecting to dashboard..."
-        });
-        // The AuthContext and Auth page will handle the redirection
+        console.log('Signup successful, checking session...');
+        // Check if user was immediately confirmed
+        if (data?.user && data?.session) {
+          console.log('User immediately confirmed with session');
+          toast({
+            title: "Welcome to Maku.travel!",
+            description: "Account created successfully. Redirecting to dashboard..."
+          });
+        } else if (data?.user && !data?.session) {
+          console.log('User created but needs email confirmation');
+          toast({
+            title: "Check Your Email",
+            description: "Please check your email and click the confirmation link to complete your signup."
+          });
+        } else {
+          console.log('Unexpected signup response');
+          toast({
+            title: "Account Created",
+            description: "Your account has been created. Please try signing in."
+          });
+        }
       }
     } catch (error) {
+      console.error('Signup error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",

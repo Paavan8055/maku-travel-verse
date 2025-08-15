@@ -245,7 +245,8 @@ const RoadmapPage = () => {
     setSignupLoading(true);
 
     try {
-      const { error } = await signUp(
+      console.log('Roadmap signup: Starting signup process for email:', signupData.email);
+      const { data, error } = await signUp(
         signupData.email,
         signupData.password,
         {
@@ -254,21 +255,58 @@ const RoadmapPage = () => {
         }
       );
 
+      console.log('Roadmap signup response:', { data, error });
+
       if (error) {
-        toast({
-          title: "Sign Up Error",
-          description: error.message,
-          variant: "destructive"
-        });
+        // Handle specific error cases
+        if (error.message?.includes('User already registered') || 
+            error.message?.includes('already been registered') ||
+            error.status === 422) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email already exists. Please sign in to access your dashboard.",
+            variant: "destructive"
+          });
+          
+          // Redirect to auth page for sign in
+          setTimeout(() => {
+            navigate('/auth');
+          }, 2000);
+        } else {
+          toast({
+            title: "Sign Up Error",
+            description: error.message,
+            variant: "destructive"
+          });
+        }
       } else {
-        toast({
-          title: "Welcome to Maku.travel!",
-          description: "Account created successfully. Redirecting to dashboard..."
-        });
-        setShowSignupDialog(false);
-        // The auth context will handle redirection automatically
+        console.log('Roadmap signup successful, checking session...');
+        // Check if user was immediately confirmed
+        if (data?.user && data?.session) {
+          console.log('User immediately confirmed with session');
+          toast({
+            title: "Welcome to Maku.travel!",
+            description: "Account created successfully. Redirecting to dashboard..."
+          });
+          setShowSignupDialog(false);
+        } else if (data?.user && !data?.session) {
+          console.log('User created but needs email confirmation');
+          toast({
+            title: "Check Your Email",
+            description: "Please check your email and click the confirmation link to complete your signup."
+          });
+          setShowSignupDialog(false);
+        } else {
+          console.log('Unexpected signup response');
+          toast({
+            title: "Account Created",
+            description: "Your account has been created. Please try signing in."
+          });
+          setShowSignupDialog(false);
+        }
       }
     } catch (error) {
+      console.error('Roadmap signup error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
