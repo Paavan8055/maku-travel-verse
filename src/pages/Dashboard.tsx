@@ -168,10 +168,169 @@ export const Dashboard: React.FC = () => {
             <p className="text-muted-foreground">Testing basic functionality</p>
           </div>
 
-          <div className="p-8 text-center">
-            <h2 className="text-2xl font-bold">Dashboard Simplified</h2>
-            <p className="text-muted-foreground">Testing if the error persists with minimal components</p>
-          </div>
+          {/* Step 1: Basic Cards and Tabs Layout */}
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="bookings">My Bookings</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="tools">Smart Tools</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{bookings.length}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Active reservations
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Travel Spend</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {formatCurrency(
+                        bookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0),
+                        'USD'
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      This year
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Destinations</CardTitle>
+                    <Activity className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {new Set(bookings.map(b => b.booking_data?.destination || 'Unknown')).size}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Countries visited
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Step 2: Add Simple Dashboard Widgets */}
+              <TravelTechMetrics />
+              <SmartAnalytics />
+            </TabsContent>
+
+            <TabsContent value="bookings" className="space-y-6">
+              {loading ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2">Loading bookings...</span>
+                </div>
+              ) : bookings.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <h3 className="text-lg font-semibold mb-2">No bookings yet</h3>
+                    <p className="text-muted-foreground mb-4">Start planning your next adventure!</p>
+                    <Button onClick={() => navigate('/')}>
+                      Explore Destinations
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {bookings.map((booking) => (
+                    <Card key={booking.id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg">
+                              {booking.booking_reference}
+                            </CardTitle>
+                            <p className="text-muted-foreground">
+                              {formatDate(booking.check_in_date)} - {formatDate(booking.check_out_date)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(booking.status)}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/booking-details/${booking.id}`)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            {booking.status === 'confirmed' && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleCancelBooking(booking.id)}
+                                disabled={cancelling === booking.id}
+                              >
+                                {cancelling === booking.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                ) : (
+                                  <X className="h-4 w-4 mr-1" />
+                                )}
+                                Cancel
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Guests</p>
+                            <p className="font-medium">{booking.guest_count}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Total</p>
+                            <p className="font-medium">
+                              {formatCurrency(booking.total_amount, booking.currency)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Payment</p>
+                            <p className="font-medium">
+                              {booking.latest_payment?.status || 'Pending'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Created</p>
+                            <p className="font-medium">{formatDate(booking.created_at)}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6">
+              <RealTimeFeeds />
+            </TabsContent>
+
+            <TabsContent value="tools" className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <SmartTripPlanner />
+                <DocumentsHub />
+              </div>
+              <TripTimeline />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </AuthGuard>
