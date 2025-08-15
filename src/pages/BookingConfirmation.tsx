@@ -53,7 +53,16 @@ const BookingConfirmationPage = () => {
               })
             );
           } catch {}
-          toast({ title: "Payment confirmed", description: "Your booking is finalized." });
+          toast({ 
+            title: "Payment confirmed", 
+            description: "Your booking is finalized. Redirecting to dashboard...",
+            duration: 3000
+          });
+          
+          // Auto-redirect to dashboard after 3 seconds
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 3000);
         }
       } catch (e) {
         console.error("Verification exception", e);
@@ -122,15 +131,12 @@ const BookingConfirmationPage = () => {
                   )}
 
                   <div className="mt-6 flex flex-wrap gap-3">
-                    {user && bookingId ? (
-                      <Button asChild className="btn-primary">
-                        <Link to={`/dashboard/bookings/${bookingId}`}>View booking details</Link>
-                      </Button>
-                    ) : (
-                      <Button asChild className="btn-primary">
-                        <Link to="/dashboard">Go to dashboard</Link>
-                      </Button>
-                    )}
+                    <Button asChild className="btn-primary" onClick={() => {
+                      // Refresh booking data before redirect
+                      setTimeout(() => window.location.href = '/dashboard', 1000);
+                    }}>
+                      <Link to="/dashboard">Go to Dashboard</Link>
+                    </Button>
                     <Button variant="outline" onClick={() => window.print()} className="inline-flex items-center gap-2">
                       <Printer className="h-4 w-4" /> Print / Save PDF
                     </Button>

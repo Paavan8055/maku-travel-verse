@@ -75,16 +75,23 @@ const App = () => (
                   <Route path="/roadmap" element={<Roadmap />} />
                   <Route path="/car-rental" element={<CarRental />} />
                   <Route path="/partners" element={<Partners />} />
+                  {/* Consistent booking routing structure */}
+                  <Route path="/booking/confirmation" element={<BookingConfirmation />} />
+                  <Route path="/booking/payment" element={<BookingPayment />} />
+                  <Route path="/booking/flight" element={<FlightCheckout />} />
+                  <Route path="/booking/hotel" element={<HotelCheckout />} />
+                  <Route path="/booking/activity" element={<ActivityCheckout />} />
+                  <Route path="/booking/:id" element={<BookingDetails />} />
+                  <Route path="/booking/:id/select" element={<BookingSelect />} />
+                  <Route path="/booking/:id/extras" element={<BookingExtras />} />
+                  <Route path="/booking/:id/baggage" element={<BookingBaggage />} />
+                  
+                  {/* Legacy routes for backward compatibility */}
                   <Route path="/booking-confirmation" element={<BookingConfirmation />} />
                   <Route path="/booking-cancelled" element={<BookingCancelled />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                   <Route path="/payment-setup" element={<PaymentSetup />} />
-                  <Route path="/booking/:id" element={<BookingDetails />} />
-                  <Route path="/booking/:id/select" element={<BookingSelect />} />
-                  <Route path="/booking/:id/extras" element={<BookingExtras />} />
-                  <Route path="/booking/:id/baggage" element={<BookingBaggage />} />
-                  <Route path="/booking/:id/payment" element={<BookingPayment />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/checkout/hotel" element={<HotelCheckout />} />
                   <Route path="/checkout/flight" element={<FlightCheckout />} />

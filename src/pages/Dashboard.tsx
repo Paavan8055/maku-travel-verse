@@ -64,13 +64,31 @@ export const Dashboard: React.FC = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
+      console.log('Dashboard: Fetching user bookings...');
+      
       const { data, error } = await supabase.rpc('get_user_bookings');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Dashboard: RPC error:', error);
+        throw error;
+      }
       
-      setBookings((data as unknown as BookingData[]) || []);
+      console.log('Dashboard: Raw booking data:', data);
+      const bookingData = (data as unknown as BookingData[]) || [];
+      console.log('Dashboard: Parsed bookings:', bookingData);
+      
+      setBookings(bookingData);
+      
+      // Show success message if bookings were loaded
+      if (bookingData.length > 0) {
+        toast({
+          title: "Bookings loaded",
+          description: `Found ${bookingData.length} booking${bookingData.length === 1 ? '' : 's'}`,
+          duration: 2000
+        });
+      }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('Dashboard: Error fetching bookings:', error);
       toast({
         title: "Error",
         description: "Failed to load bookings. Please try again.",
@@ -145,7 +163,20 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     if (authLoading) return;
     if (!user) return;
+    
+    console.log('Dashboard: User authenticated, fetching bookings');
     fetchBookings();
+    
+    // Also check for fresh booking completion from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const justCompleted = urlParams.get('booking_completed');
+    if (justCompleted) {
+      console.log('Dashboard: Fresh booking completion detected, refreshing data');
+      // Remove the parameter from URL
+      window.history.replaceState({}, '', window.location.pathname);
+      // Force a fresh fetch after a short delay
+      setTimeout(fetchBookings, 1000);
+    }
   }, [authLoading, user]);
 
   console.log('Dashboard: Starting render');

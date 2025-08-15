@@ -70,7 +70,7 @@ const BookingBaggagePage = () => {
       if (fareType) params.set('fareType', fareType);
     }
 
-    navigate(`/booking/checkout/flight?${params.toString()}`);
+    navigate(`/booking/flight?${params.toString()}`);
   };
 
   return (

@@ -36,10 +36,10 @@ const CheckoutPage = () => {
     
     if (isFlightBooking) {
       console.log('Redirecting to flight checkout');
-      navigate(`/booking/checkout/flight${window.location.search}`, { replace: true });
+      navigate(`/booking/flight${window.location.search}`, { replace: true });
     } else if (isHotelBooking) {
       console.log('Redirecting to hotel checkout');
-      navigate(`/booking/checkout/hotel${window.location.search}`, { replace: true });
+      navigate(`/booking/hotel${window.location.search}`, { replace: true });
     } else {
       console.log('No specific booking type detected, staying on generic checkout');
       // Could redirect to a default or show an error
