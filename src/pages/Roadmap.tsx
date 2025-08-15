@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/Navbar";
+
 interface RoadmapItem {
   id: string;
   title: string;
@@ -18,6 +19,7 @@ interface RoadmapItem {
   impact: string;
   features: string[];
 }
+
 const roadmapData: RoadmapItem[] = [{
   id: '1',
   title: 'Journey Begins - Platform Foundation',
@@ -151,6 +153,7 @@ const roadmapData: RoadmapItem[] = [{
   impact: 'Global blockchain travel network',
   features: ['Multi-currency', 'Compliance', 'Local Partnerships', 'Regional Tokens']
 }];
+
 const categoryConfig = {
   platform: {
     icon: Rocket,
@@ -183,6 +186,7 @@ const categoryConfig = {
     label: 'Blockchain'
   }
 };
+
 const statusConfig = {
   completed: {
     icon: CheckCircle,
@@ -209,11 +213,13 @@ const statusConfig = {
     label: 'Future'
   }
 };
+
 const RoadmapPage = () => {
   const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
+
   const filteredRoadmap = roadmapData.filter(item => {
     const yearMatch = selectedYear === "all" || item.year === selectedYear;
     const categoryMatch = selectedCategory === "all" || item.category === selectedCategory;
@@ -228,12 +234,14 @@ const RoadmapPage = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [isPlaying, filteredRoadmap.length]);
+
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return "bg-green-500";
     if (progress >= 50) return "bg-travel-gold";
     if (progress >= 20) return "bg-travel-ocean";
     return "bg-muted";
   };
+
   return <div className="min-h-screen bg-background">
       <Navbar />
       
@@ -271,23 +279,25 @@ const RoadmapPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <Tabs value={selectedYear} onValueChange={setSelectedYear} className="w-full md:w-auto">
-            <TabsList className="grid w-full grid-cols-4 md:w-auto">
-              <TabsTrigger value="all">All Years</TabsTrigger>
-              <TabsTrigger value="2024">2024</TabsTrigger>
-              <TabsTrigger value="2025">2025</TabsTrigger>
-              <TabsTrigger value="2026">2026</TabsTrigger>
+        <div className="flex flex-col lg:flex-row gap-6 mb-12 justify-center items-center">
+          <Tabs value={selectedYear} onValueChange={setSelectedYear} className="w-full lg:w-auto">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 h-12">
+              <TabsTrigger value="all" className="px-6">All Years</TabsTrigger>
+              <TabsTrigger value="2024" className="px-6">2024</TabsTrigger>
+              <TabsTrigger value="2025" className="px-6">2025</TabsTrigger>
+              <TabsTrigger value="2026" className="px-6">2026</TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full md:w-auto">
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 md:w-auto">
-              <TabsTrigger value="all">All</TabsTrigger>
-              {Object.entries(categoryConfig).map(([key, config]) => <TabsTrigger key={key} value={key} className="flex items-center gap-1">
-                  <config.icon className="h-3 w-3" />
-                  
-                </TabsTrigger>)}
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full lg:w-auto">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 lg:w-auto h-12 gap-1">
+              <TabsTrigger value="all" className="px-4 text-xs lg:text-sm">All</TabsTrigger>
+              {Object.entries(categoryConfig).map(([key, config]) => 
+                <TabsTrigger key={key} value={key} className="flex items-center gap-1 px-2 lg:px-3 text-xs lg:text-sm">
+                  <config.icon className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">{config.label}</span>
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
         </div>
@@ -453,4 +463,5 @@ const RoadmapPage = () => {
       </div>
     </div>;
 };
+
 export default RoadmapPage;
