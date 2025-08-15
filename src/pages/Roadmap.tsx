@@ -448,7 +448,7 @@ const RoadmapPage = () => {
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-travel-coral to-travel-sunset hover:shadow-floating text-lg px-8 py-4"
-                onClick={() => window.open('https://maku.travel/early-access', '_blank')}
+                onClick={() => window.location.href = '/auth'}
               >
                 <Users className="mr-3 h-6 w-6" />
                 Join Early Access
