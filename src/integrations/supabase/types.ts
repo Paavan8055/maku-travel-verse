@@ -225,6 +225,60 @@ export type Database = {
           },
         ]
       }
+      dream_destinations: {
+        Row: {
+          avg_daily_cost: number | null
+          best_time_to_visit: string | null
+          budget_range: string | null
+          category: string
+          continent: string
+          country: string
+          created_at: string
+          description: string | null
+          highlights: string[] | null
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          photo_url: string | null
+          weather_info: Json | null
+        }
+        Insert: {
+          avg_daily_cost?: number | null
+          best_time_to_visit?: string | null
+          budget_range?: string | null
+          category: string
+          continent: string
+          country: string
+          created_at?: string
+          description?: string | null
+          highlights?: string[] | null
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          photo_url?: string | null
+          weather_info?: Json | null
+        }
+        Update: {
+          avg_daily_cost?: number | null
+          best_time_to_visit?: string | null
+          budget_range?: string | null
+          category?: string
+          continent?: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          highlights?: string[] | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          photo_url?: string | null
+          weather_info?: Json | null
+        }
+        Relationships: []
+      }
       dynamic_offers: {
         Row: {
           airline: string | null
@@ -1508,6 +1562,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_dream_bookmarks: {
+        Row: {
+          created_at: string
+          destination_id: string
+          id: string
+          notes: string | null
+          priority: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_id: string
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_id?: string
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_dream_bookmarks_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "dream_destinations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
