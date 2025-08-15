@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, X, Calendar, Users, DollarSign, Loader2, Zap, TrendingUp, Activity, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { TravelTechMetrics } from '@/components/dashboard/TravelTechMetrics';
+
 import { SmartAnalytics } from '@/components/dashboard/SmartAnalytics';
 import { RealTimeFeeds } from '@/components/dashboard/RealTimeFeeds';
 import { TripTimeline } from '@/components/dashboard/TripTimeline';
@@ -226,9 +226,6 @@ export const Dashboard: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Step 2: Add Simple Dashboard Widgets */}
-              <TravelTechMetrics />
-              <SmartAnalytics />
             </TabsContent>
 
             <TabsContent value="bookings" className="space-y-6">
