@@ -12,6 +12,7 @@ serve(async (req) => {
 
   try {
     const publishableKey = Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? '';
+    const secretKey = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 
     if (!publishableKey) {
       return new Response(
@@ -20,8 +21,21 @@ serve(async (req) => {
       );
     }
 
+    // Detect test mode and validate key consistency
+    const isTestMode = publishableKey.startsWith('pk_test_');
+    const isSecretTest = secretKey.startsWith('sk_test_');
+    
+    // Warn if keys don't match environments
+    if (isTestMode !== isSecretTest) {
+      console.warn('Stripe key environment mismatch detected');
+    }
+
     return new Response(
-      JSON.stringify({ publishableKey }),
+      JSON.stringify({ 
+        publishableKey,
+        isTestMode,
+        environment: isTestMode ? 'test' : 'live'
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {

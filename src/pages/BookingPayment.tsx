@@ -11,6 +11,7 @@ import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
+import TestModeIndicator from "@/components/TestModeIndicator";
 
 const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Promise<any>) | null>> }> = ({ setConfirm }) => {
   const stripe = useStripe();
@@ -63,7 +64,14 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
       <PaymentElement 
         options={{ 
           layout: 'tabs',
-          paymentMethodOrder: ['card']
+          paymentMethodOrder: ['card', 'link', 'us_bank_account'],
+          fields: {
+            billingDetails: 'auto'
+          },
+          wallets: {
+            applePay: 'auto',
+            googlePay: 'auto'
+          }
         }} 
         onReady={() => {
           console.log('PaymentElement is ready');
@@ -93,6 +101,7 @@ const BookingPaymentPage = () => {
   const { toast } = useToast();
   const [isInitializingPI, setIsInitializingPI] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
     document.title = "Payment | Maku Travel";
@@ -104,6 +113,7 @@ const BookingPaymentPage = () => {
         const { data } = await supabase.functions.invoke('get-stripe-publishable-key');
         if (data?.publishableKey) {
           const { loadStripe } = await import('@stripe/stripe-js');
+          setIsTestMode(data.isTestMode || false);
           setStripePromise(loadStripe(data.publishableKey));
         }
       } catch (e) {
@@ -453,6 +463,12 @@ const BookingPaymentPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pb-20">
+        {/* Test Mode Indicator */}
+        <TestModeIndicator 
+          isVisible={isTestMode} 
+          className="mb-6"
+        />
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Payment Form */}
           <div className="lg:col-span-2 space-y-6">

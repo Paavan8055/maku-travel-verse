@@ -103,7 +103,15 @@ const PaymentForm = () => {
           </div>
         )}
 
-        <PaymentElement />
+        <PaymentElement 
+          options={{
+            layout: 'tabs',
+            paymentMethodOrder: ['card', 'link'],
+            fields: {
+              billingDetails: 'auto'
+            }
+          }}
+        />
 
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Shield className="h-4 w-4" />
@@ -138,6 +146,7 @@ const PaymentSetup = () => {
   const [stripePublishableKey, setStripePublishableKey] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [keyLoading, setKeyLoading] = useState(true);
+  const [isTestMode, setIsTestMode] = useState(false);
 
   const clientSecret = searchParams.get('client_secret');
   const paymentType = searchParams.get('type');
@@ -166,6 +175,7 @@ const PaymentSetup = () => {
 
         if (data?.publishableKey) {
           setStripePublishableKey(data.publishableKey);
+          setIsTestMode(data.isTestMode || false);
           setStripePromise(loadStripe(data.publishableKey));
         } else {
           toast({
@@ -230,6 +240,29 @@ const PaymentSetup = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
       <div className="max-w-lg mx-auto pt-8">
+        {isTestMode && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span className="font-semibold text-yellow-800">Test Mode</span>
+            </div>
+            <p className="text-sm text-yellow-700 mb-3">
+              You're in test mode. Use test card numbers to simulate payments.
+            </p>
+            <details className="text-sm">
+              <summary className="cursor-pointer font-medium text-yellow-800 hover:text-yellow-900">
+                Show test cards
+              </summary>
+              <div className="mt-2 space-y-1 text-yellow-700">
+                <div><strong>Visa:</strong> 4242 4242 4242 4242</div>
+                <div><strong>Mastercard:</strong> 5555 5555 5555 4444</div>
+                <div><strong>Declined:</strong> 4000 0000 0000 0002</div>
+                <div className="text-xs mt-1">Use any future date for expiry and any 3-digit CVC</div>
+              </div>
+            </details>
+          </div>
+        )}
+        
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold font-['Playfair_Display'] mb-2">
             Complete Your <span className="hero-text">Registration</span>
