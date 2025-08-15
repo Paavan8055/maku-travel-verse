@@ -28,21 +28,42 @@ const BookingConfirmationPage = () => {
     const verify = async () => {
       if (!sessionId && !bookingId) return;
       setIsVerifying(true);
+      
+      console.log('Verifying payment:', { sessionId, bookingId, attempt: attempts + 1 });
+      
       try {
         const { data, error } = await supabase.functions.invoke("verify-booking-payment", {
           body: { bookingId, sessionId },
         });
+        
+        console.log('Verification response:', { data, error });
+        
         if (error || !data?.success) {
           console.error("Verification failed", error || data);
-          toast({
-            title: "Finalizing payment",
-            description: "We’re confirming your payment. This may take a moment.",
-          });
-          setVerified(false);
+          if (attempts < 5) {
+            toast({
+              title: "Finalizing payment",
+              description: "We're confirming your payment. This may take a moment.",
+            });
+            setVerified(false);
+          } else {
+            toast({
+              title: "Payment processing",
+              description: "Payment is still being processed. Please check your dashboard shortly.",
+              duration: 5000
+            });
+            // Redirect to dashboard even if verification is pending
+            setTimeout(() => {
+              window.location.href = '/dashboard?refresh=true';
+            }, 2000);
+          }
         } else {
           setVerified(true);
           setConfirmation(data);
-          // Persist a lightweight receipt for quick display
+          
+          console.log('Payment confirmed, booking details:', data.booking);
+          
+          // Persist booking data for dashboard refresh
           try {
             localStorage.setItem(
               `receipt:${bookingId}`,
@@ -52,20 +73,32 @@ const BookingConfirmationPage = () => {
                 saved_at: new Date().toISOString(),
               })
             );
-          } catch {}
+            
+            // Clear any temporary booking data
+            localStorage.removeItem('pendingBooking');
+            localStorage.removeItem('bookingFlow');
+          } catch (e) {
+            console.warn('Failed to store receipt:', e);
+          }
+          
           toast({ 
             title: "Payment confirmed", 
             description: "Your booking is finalized. Redirecting to dashboard...",
             duration: 3000
           });
           
-          // Auto-redirect to dashboard after 3 seconds
+          // Auto-redirect to dashboard after 3 seconds with refresh flag
           setTimeout(() => {
-            window.location.href = '/dashboard';
+            window.location.href = '/dashboard?booking_completed=true&refresh=true';
           }, 3000);
         }
       } catch (e) {
         console.error("Verification exception", e);
+        toast({
+          title: "Verification error",
+          description: "There was an issue verifying your payment. Please check your dashboard.",
+          duration: 5000
+        });
       } finally {
         setIsVerifying(false);
       }
@@ -78,7 +111,7 @@ const BookingConfirmationPage = () => {
         return () => clearTimeout(t);
       }
     }
-  }, [sessionId, bookingId, attempts, verified]);
+  }, [sessionId, bookingId, attempts, verified, toast]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,7 +127,7 @@ const BookingConfirmationPage = () => {
               ) : verified ? (
                 "Thank you! Your payment was successful."
               ) : attempts > 4 ? (
-                "We’re still processing your payment. Please refresh in a moment."
+                "We're still processing your payment. Please refresh in a moment."
               ) : (
                 "Confirming payment status..."
               )}
@@ -131,11 +164,13 @@ const BookingConfirmationPage = () => {
                   )}
 
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <Button asChild className="btn-primary" onClick={() => {
-                      // Refresh booking data before redirect
-                      setTimeout(() => window.location.href = '/dashboard', 1000);
-                    }}>
-                      <Link to="/dashboard">Go to Dashboard</Link>
+                    <Button 
+                      onClick={() => {
+                        window.location.href = '/dashboard?refresh=true';
+                      }}
+                      className="btn-primary"
+                    >
+                      Go to Dashboard
                     </Button>
                     <Button variant="outline" onClick={() => window.print()} className="inline-flex items-center gap-2">
                       <Printer className="h-4 w-4" /> Print / Save PDF

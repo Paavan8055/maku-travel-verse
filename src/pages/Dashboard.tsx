@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, X, Calendar, Users, DollarSign, Loader2, Zap, TrendingUp, Activity, BarChart3 } from 'lucide-react';
+import { Eye, X, Calendar, Users, DollarSign, Loader2, Zap, TrendingUp, Activity, BarChart3, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 import { SmartAnalytics } from '@/components/dashboard/SmartAnalytics';
@@ -31,6 +31,7 @@ interface BookingData {
   guest_count: number;
   total_amount: number;
   currency: string;
+  booking_type: string;
   booking_data: any;
   created_at: string;
   updated_at: string;
@@ -62,36 +63,56 @@ export const Dashboard: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
 
   const fetchBookings = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    console.log('Dashboard: Fetching bookings for user:', user.id);
+    
     try {
-      setLoading(true);
-      console.log('Dashboard: Fetching user bookings...');
-      
       const { data, error } = await supabase.rpc('get_user_bookings');
       
       if (error) {
-        console.error('Dashboard: RPC error:', error);
-        throw error;
-      }
-      
-      console.log('Dashboard: Raw booking data:', data);
-      const bookingData = (data as unknown as BookingData[]) || [];
-      console.log('Dashboard: Parsed bookings:', bookingData);
-      
-      setBookings(bookingData);
-      
-      // Show success message if bookings were loaded
-      if (bookingData.length > 0) {
+        console.error('Error fetching bookings:', error);
         toast({
-          title: "Bookings loaded",
-          description: `Found ${bookingData.length} booking${bookingData.length === 1 ? '' : 's'}`,
-          duration: 2000
+          title: "Error",
+          description: "Failed to load your bookings. Please try again.",
+          variant: "destructive",
         });
+        return;
       }
-    } catch (error) {
-      console.error('Dashboard: Error fetching bookings:', error);
+
+      // Type-safe handling of the JSON response
+      const bookingsArray = Array.isArray(data) ? (data as unknown as BookingData[]) : [];
+      console.log('Dashboard: Booking fetch result:', { 
+        bookingsArray, 
+        error, 
+        user: user.id,
+        userEmail: user.email,
+        dataLength: bookingsArray.length || 0 
+      });
+      
+      setBookings(bookingsArray);
+      
+      console.log('Dashboard: Set bookings count:', bookingsArray.length);
+      
+      // If no bookings found, check if there's a recent receipt in localStorage
+      if (bookingsArray.length === 0) {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('receipt:'));
+        if (keys.length > 0) {
+          console.log('Dashboard: Found recent receipts in localStorage, will refresh again');
+          // Try again in 3 seconds
+          setTimeout(() => {
+            console.log('Dashboard: Retrying booking fetch after localStorage hint');
+            fetchBookings();
+          }, 3000);
+        }
+      }
+      
+    } catch (err) {
+      console.error('Fetch bookings exception:', err);
       toast({
         title: "Error",
-        description: "Failed to load bookings. Please try again.",
+        description: "Failed to load your bookings. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -146,6 +167,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -161,23 +183,32 @@ export const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) return;
-    
-    console.log('Dashboard: User authenticated, fetching bookings');
-    fetchBookings();
-    
-    // Also check for fresh booking completion from URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const justCompleted = urlParams.get('booking_completed');
-    if (justCompleted) {
-      console.log('Dashboard: Fresh booking completion detected, refreshing data');
-      // Remove the parameter from URL
-      window.history.replaceState({}, '', window.location.pathname);
-      // Force a fresh fetch after a short delay
-      setTimeout(fetchBookings, 1000);
+    if (user) {
+      fetchBookings();
+      
+      // Check if user just completed a booking or needs refresh
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookingCompleted = urlParams.get('booking_completed') === 'true';
+      const shouldRefresh = urlParams.get('refresh') === 'true';
+      
+      if (bookingCompleted || shouldRefresh) {
+        console.log('Dashboard: Detected completion/refresh, fetching bookings with delay');
+        // Add a delay to ensure data is ready in the database
+        setTimeout(() => {
+          fetchBookings();
+          if (bookingCompleted) {
+            toast({
+              title: "Booking completed!",
+              description: "Your booking has been confirmed and is now visible in your bookings.",
+              duration: 5000,
+            });
+          }
+          // Clean up URL
+          window.history.replaceState({}, '', '/dashboard');
+        }, 2000); // Increased delay to 2 seconds
+      }
     }
-  }, [authLoading, user]);
+  }, [user, toast]);
 
   console.log('Dashboard: Starting render');
   
@@ -193,10 +224,23 @@ export const Dashboard: React.FC = () => {
         
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-2">
-              Dashboard Test
-            </h1>
-            <p className="text-muted-foreground">Testing basic functionality</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-foreground mb-2">
+                  Your Dashboard
+                </h1>
+                <p className="text-muted-foreground">Manage your bookings and travel plans</p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={fetchBookings}
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {/* Step 1: Basic Cards and Tabs Layout */}
@@ -286,7 +330,10 @@ export const Dashboard: React.FC = () => {
                               {booking.booking_reference}
                             </CardTitle>
                             <p className="text-muted-foreground">
-                              {formatDate(booking.check_in_date)} - {formatDate(booking.check_out_date)}
+                              {booking.booking_type?.charAt(0).toUpperCase() + booking.booking_type?.slice(1) || 'Booking'} 
+                              {booking.check_in_date && booking.check_out_date && 
+                                ` • ${formatDate(booking.check_in_date)} - ${formatDate(booking.check_out_date)}`
+                              }
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -321,7 +368,7 @@ export const Dashboard: React.FC = () => {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">Guests</p>
-                            <p className="font-medium">{booking.guest_count}</p>
+                            <p className="font-medium">{booking.guest_count || 1}</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">Total</p>
