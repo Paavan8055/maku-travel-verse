@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+import L, { LatLngExpression, DivIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -62,7 +61,7 @@ const categoryIcons = {
   cities: '🏙️',
 };
 
-function createCustomIcon(category: string, isBookmarked: boolean = false) {
+function createCustomIcon(category: string, isBookmarked: boolean = false): DivIcon {
   const color = categoryColors[category as keyof typeof categoryColors] || '#6b7280';
   const icon = categoryIcons[category as keyof typeof categoryIcons] || '📍';
   
@@ -344,7 +343,7 @@ const InteractiveWorldMap: React.FC = () => {
 
       {/* Map */}
       <MapContainer
-        center={[20, 0]}
+        center={[20, 0] as LatLngExpression}
         zoom={2}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
@@ -355,7 +354,7 @@ const InteractiveWorldMap: React.FC = () => {
         {filteredDestinations.map((destination) => (
           <Marker
             key={destination.id}
-            position={[destination.latitude, destination.longitude]}
+            position={[destination.latitude, destination.longitude] as LatLngExpression}
             icon={createCustomIcon(destination.category, isBookmarked(destination.id))}
           >
             <Popup>
