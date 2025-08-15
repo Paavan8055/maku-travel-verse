@@ -1,32 +1,42 @@
 import { fetchUserPreferences, fetchPassportInfo } from './bookingDataClient';
 
 // Mock data generators for testing and development
-export const generateMockPersonalData = () => ({
-  title: "MR" as 'MR' | 'MRS' | 'MS' | 'DR' | 'PROF',
-  firstName: "JOHN",
-  lastName: "SMITH",
-  dateOfBirth: "1985-03-15",
-  nationality: "US",
-  idDocument: "P123456789",
-  email: "john.smith@example.com",
-  phone: "+15551234567",
-  specialRequests: "Late check-in preferred",
-  acknowledge: true
-});
+export const generateMockPersonalData = () => {
+  const baseData = {
+    title: "MR" as 'MR' | 'MRS' | 'MS' | 'DR' | 'PROF',
+    firstName: "JOHN",
+    lastName: "SMITH",
+    dateOfBirth: "1985-03-15",
+    nationality: "US",
+    idDocument: "P123456789",
+    email: "john.smith@example.com",
+    phone: "+15551234567",
+    specialRequests: "Late check-in preferred",
+    acknowledge: true
+  };
+  
+  // Apply random variation to make demo data more realistic
+  return generateRandomVariation(baseData);
+};
 
-export const generateMockHotelGuest = () => ({
-  title: "Mr",
-  firstName: "JOHN",
-  lastName: "SMITH", 
-  email: "john.smith@example.com",
-  phone: "+15551234567",
-  arrivalTime: "3:00 PM",
-  roomPreferences: "High floor, quiet room",
-  specialRequests: "Extra towels and late check-in",
-  smsNotifications: true,
-  emailUpdates: true,
-  acknowledgment: true
-});
+export const generateMockHotelGuest = () => {
+  const baseData = {
+    title: "Mr",
+    firstName: "JOHN",
+    lastName: "SMITH", 
+    email: "john.smith@example.com",
+    phone: "+15551234567",
+    arrivalTime: "3:00 PM",
+    roomPreferences: "High floor, quiet room",
+    specialRequests: "Extra towels and late check-in",
+    smsNotifications: true,
+    emailUpdates: true,
+    acknowledgment: true
+  };
+  
+  // Apply random variation to make demo data more realistic
+  return generateRandomVariation(baseData);
+};
 
 export const generateMockActivityParticipants = (count: number = 2) => ({
   participants: Array.from({ length: count }, (_, i) => ({

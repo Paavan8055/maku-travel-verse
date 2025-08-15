@@ -53,6 +53,24 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Load existing data from sessionStorage on mount
+  const getInitialData = () => {
+    try {
+      const savedData = sessionStorage.getItem('passengerInfo');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        return { ...parsed, ...initial }; // initial props take precedence
+      }
+    } catch (error) {
+      console.error('Error loading saved passenger data:', error);
+    }
+    return {
+      title: "MR",
+      acknowledge: false,
+      ...initial
+    };
+  };
+
   const {
     register,
     setValue,
@@ -65,11 +83,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   } = useForm<PassengerFormData>({
     resolver: zodResolver(GuestSchema),
     mode: "onChange",
-    defaultValues: {
-      title: "MR",
-      acknowledge: false,
-      ...initial
-    }
+    defaultValues: getInitialData()
   });
 
   // Force uppercase for name fields as user types
@@ -136,6 +150,10 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
 
   const all = watch();
   useEffect(() => {
+    // Save form data to sessionStorage whenever it changes
+    if (isValid && all) {
+      sessionStorage.setItem('passengerInfo', JSON.stringify(all));
+    }
     onChange?.(isValid ? all : null, isValid);
   }, [all, isValid, onChange]);
   

@@ -43,10 +43,18 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const form = useForm<HotelGuestFormData>({
-    resolver: zodResolver(HotelGuestSchema),
-    mode: "onBlur", // Changed from onChange to reduce re-renders
-    defaultValues: {
+  // Load existing data from sessionStorage on mount
+  const getInitialData = () => {
+    try {
+      const savedData = sessionStorage.getItem('guestInfo');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        return { ...parsed, ...initial }; // initial props take precedence
+      }
+    } catch (error) {
+      console.error('Error loading saved guest data:', error);
+    }
+    return {
       title: "",
       firstName: "",
       lastName: "",
@@ -59,7 +67,13 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
       roomPreferences: "",
       acknowledgment: false,
       ...initial
-    }
+    };
+  };
+
+  const form = useForm<HotelGuestFormData>({
+    resolver: zodResolver(HotelGuestSchema),
+    mode: "onBlur", // Changed from onChange to reduce re-renders
+    defaultValues: getInitialData()
   });
 
   const { watch, formState: { isValid } } = form;
@@ -68,6 +82,10 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
   const handleFormChange = useCallback(() => {
     if (onChange) {
       const currentData = form.getValues();
+      // Save form data to sessionStorage whenever it changes
+      if (isValid) {
+        sessionStorage.setItem('guestInfo', JSON.stringify(currentData));
+      }
       onChange(currentData, isValid);
     }
   }, [onChange, isValid, form]);
