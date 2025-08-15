@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Car, MapPin, Gift, Users as UsersIcon, ChevronDown } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Car, MapPin, Rocket, Users as UsersIcon, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [language, setLanguage] = useState("EN");
@@ -18,6 +20,7 @@ const Navbar = () => {
   const {
     toast
   } = useToast();
+
   const handleSignOut = async () => {
     try {
       const {
@@ -44,7 +47,9 @@ const Navbar = () => {
       });
     }
   };
-  return <nav className="sticky top-0 z-50 bg-white border-b border-border">
+
+  return (
+    <nav className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -73,9 +78,9 @@ const Navbar = () => {
               <span>Car Rental</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/deals')}>
-              <Gift className="h-4 w-4" />
-              <span>Deals</span>
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/roadmap')}>
+              <Rocket className="h-4 w-4" />
+              <span>Roadmap</span>
             </Button>
             
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/partners')}>
@@ -143,52 +148,56 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && <div className="md:hidden border-t border-border py-4 animate-slideIn">
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-border py-4 animate-slideIn">
             <div className="space-y-2">
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/search/hotels');
-            setIsMenuOpen(false);
-          }}>
+                navigate('/search/hotels');
+                setIsMenuOpen(false);
+              }}>
                 Hotels
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/search/flights');
-            setIsMenuOpen(false);
-          }}>
+                navigate('/search/flights');
+                setIsMenuOpen(false);
+              }}>
                 <Plane className="mr-2 h-4 w-4" />
                 Flights
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/search/activities');
-            setIsMenuOpen(false);
-          }}>
+                navigate('/search/activities');
+                setIsMenuOpen(false);
+              }}>
                 <MapPin className="mr-2 h-4 w-4" />
                 Activities
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/car-rental');
-            setIsMenuOpen(false);
-          }}>
+                navigate('/car-rental');
+                setIsMenuOpen(false);
+              }}>
                 <Car className="mr-2 h-4 w-4" />
                 Car Rental
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/deals');
-            setIsMenuOpen(false);
-          }}>
-                <Gift className="mr-2 h-4 w-4" />
-                Deals
+                navigate('/roadmap');
+                setIsMenuOpen(false);
+              }}>
+                <Rocket className="mr-2 h-4 w-4" />
+                Roadmap
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
-            navigate('/partners');
-            setIsMenuOpen(false);
-          }}>
+                navigate('/partners');
+                setIsMenuOpen(false);
+              }}>
                 <UsersIcon className="mr-2 h-4 w-4" />
                 Partners
               </Button>
             </div>
-          </div>}
+          </div>
+        )}
       </div>
-    </nav>;
+    </nav>
+  );
 };
+
 export default Navbar;
