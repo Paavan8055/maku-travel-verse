@@ -286,7 +286,7 @@ const RoadmapPage = () => {
               <TabsTrigger value="all">All</TabsTrigger>
               {Object.entries(categoryConfig).map(([key, config]) => <TabsTrigger key={key} value={key} className="flex items-center gap-1">
                   <config.icon className="h-3 w-3" />
-                  <span className="hidden sm:inline">{config.label}</span>
+                  
                 </TabsTrigger>)}
             </TabsList>
           </Tabs>
