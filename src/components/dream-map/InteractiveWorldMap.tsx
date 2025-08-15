@@ -100,11 +100,20 @@ const InteractiveWorldMap: React.FC = () => {
   const [selectedBudget, setSelectedBudget] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [isBookmarkPanelOpen, setIsBookmarkPanelOpen] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const { toast } = useToast();
   
   console.log('InteractiveWorldMap: About to call useAuth');
-  const { user } = useAuth();
-  console.log('InteractiveWorldMap: useAuth result:', { user: !!user });
+  let user: any = null;
+  
+  try {
+    const authResult = useAuth();
+    user = authResult.user;
+    console.log('InteractiveWorldMap: useAuth result:', { user: !!user });
+  } catch (error) {
+    console.error('InteractiveWorldMap: useAuth error:', error);
+    setMapError('Authentication error');
+  }
 
   useEffect(() => {
     fetchDestinations();
@@ -253,6 +262,20 @@ const InteractiveWorldMap: React.FC = () => {
     return (
       <div className="h-96 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (mapError) {
+    return (
+      <div className="h-96 flex items-center justify-center bg-muted rounded-lg">
+        <div className="text-center p-8">
+          <h3 className="text-lg font-semibold mb-2">Map temporarily unavailable</h3>
+          <p className="text-muted-foreground mb-4">{mapError}</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Refresh Page
+          </Button>
+        </div>
       </div>
     );
   }

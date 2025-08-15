@@ -20,7 +20,7 @@ import { SmartTripPlanner } from '@/components/dashboard/SmartTripPlanner';
 import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
 import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
-import InteractiveWorldMap from '@/components/dream-map/InteractiveWorldMap';
+import SimpleDreamMap from '@/components/dream-map/SimpleDreamMap';
 
 interface BookingData {
   id: string;
@@ -336,10 +336,8 @@ export const Dashboard: React.FC = () => {
                   </CardTitle>
                   <p className="text-muted-foreground">Explore and bookmark your dream travel destinations</p>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <div className="h-96 w-full">
-                    <InteractiveWorldMap />
-                  </div>
+                <CardContent>
+                  <SimpleDreamMap />
                 </CardContent>
               </Card>
             </TabsContent>
