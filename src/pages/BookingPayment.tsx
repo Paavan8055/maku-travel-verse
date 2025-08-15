@@ -126,6 +126,10 @@ const BookingPaymentPage = () => {
   // Parse URL parameters to determine booking type and data
   const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   
+  // Determine booking type
+  const bookingType = params.get('booking_type') || params.get('type') || 'hotel';
+  const isActivityBooking = bookingType === 'activity';
+  
   // Extract search parameters for dates and guests (standardized to camelCase)
   const checkInParam = params.get('checkIn') || params.get('checkin');
   const checkOutParam = params.get('checkOut') || params.get('checkout');
@@ -204,6 +208,19 @@ const BookingPaymentPage = () => {
     total: basePrice + extrasPrice + fundContribution,
   };
 
+  // Activity booking details
+  const activityDetails = {
+    activityId: params.get('activityId') || '',
+    title: params.get('title') || 'Activity Booking',
+    date: params.get('date') || '',
+    time: params.get('time') || '',
+    participants: parseInt(params.get('participants') || '1'),
+    total: parseFloat(params.get('total') || '0'),
+    location: params.get('location') || 'Activity Location',
+    duration: params.get('duration') || '2 hours',
+    description: params.get('description') || 'Activity experience'
+  };
+
   // Flight params parsing
   const rawTripType = (params.get('tripType') || '').toLowerCase();
   const hasOutboundId = params.get('outboundId');
@@ -243,7 +260,9 @@ const BookingPaymentPage = () => {
 
   console.log('Payment page booking data:', {
     isFlightCheckout,
+    isActivityBooking,
     bookingDetails,
+    activityDetails,
     flightParams,
     urlParams: Object.fromEntries(params.entries())
   });
@@ -261,12 +280,14 @@ const BookingPaymentPage = () => {
 
       let passenger: any = null;
       let guest: any = null;
+      let activityGuest: any = null;
       try {
         passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
         guest = JSON.parse(sessionStorage.getItem('guestInfo') || 'null');
+        activityGuest = JSON.parse(params.get('guest_data') || 'null');
       } catch {}
 
-      const person = passenger || guest;
+      const person = passenger || guest || activityGuest;
       if (!person) {
         throw new Error('No customer information available. Please go back and complete the booking form.');
       }
@@ -279,21 +300,27 @@ const BookingPaymentPage = () => {
       };
 
       // Fix amount calculation - ensure we're using the correct value
-      const bookingAmount = isFlightCheckout ? flightParams.amount : bookingDetails.total;
+      const bookingAmount = isFlightCheckout ? flightParams.amount : 
+                           isActivityBooking ? activityDetails.total : 
+                           bookingDetails.total;
+      
+      const currentBookingType = isFlightCheckout ? 'flight' : isActivityBooking ? 'activity' : 'hotel';
+      const currentBookingData = isFlightCheckout ? { flight: flightParams } : 
+                                 isActivityBooking ? { activity: activityDetails } :
+                                 { hotel: bookingDetails };
       
       console.log('Payment intent data (before API call):', {
-        bookingType: isFlightCheckout ? 'flight' : 'hotel',
+        bookingType: currentBookingType,
         bookingAmount,
-        bookingDetails: !isFlightCheckout ? bookingDetails : null,
-        flightParams: isFlightCheckout ? flightParams : null,
+        bookingData: currentBookingData,
         currency: isFlightCheckout ? flightParams.currency : 'USD',
         customerInfo
       });
 
       const { data, error } = await supabase.functions.invoke('create-card-payment-intent', {
         body: {
-          bookingType: isFlightCheckout ? 'flight' : 'hotel',
-          bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
+          bookingType: currentBookingType,
+          bookingData: currentBookingData,
           amount: bookingAmount,
           currency: isFlightCheckout ? flightParams.currency : 'USD',
           customerInfo,
@@ -351,12 +378,14 @@ const BookingPaymentPage = () => {
 
     let passenger: any = null;
     let guest: any = null;
+    let activityGuest: any = null;
     try {
       passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
       guest = JSON.parse(sessionStorage.getItem('guestInfo') || 'null');
+      activityGuest = JSON.parse(params.get('guest_data') || 'null');
     } catch {}
 
-    const person = passenger || guest;
+    const person = passenger || guest || activityGuest;
     const customerInfo = {
       email: person?.email || 'guest@example.com',
       firstName: person?.firstName || 'GUEST',
@@ -422,10 +451,18 @@ const BookingPaymentPage = () => {
     }
 
     // Fallback to redirect-based flow
+    const currentBookingType = isFlightCheckout ? 'flight' : isActivityBooking ? 'activity' : 'hotel';
+    const currentBookingData = isFlightCheckout ? { flight: flightParams } : 
+                               isActivityBooking ? { activity: activityDetails } :
+                               { hotel: bookingDetails };
+    const currentAmount = isFlightCheckout ? flightParams.amount : 
+                         isActivityBooking ? activityDetails.total : 
+                         bookingDetails.total;
+    
     const result = await createBookingPayment({
-      bookingType: isFlightCheckout ? 'flight' : 'hotel',
-      bookingData: isFlightCheckout ? { flight: flightParams } : { hotel: bookingDetails },
-      amount: isFlightCheckout ? flightParams.amount : bookingDetails.total,
+      bookingType: currentBookingType,
+      bookingData: currentBookingData,
+      amount: currentAmount,
       currency: isFlightCheckout ? flightParams.currency : 'USD',
       customerInfo,
       paymentMethod: paymentMethod as 'card' | 'fund' | 'split',

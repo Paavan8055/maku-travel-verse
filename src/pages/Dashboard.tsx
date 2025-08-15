@@ -21,6 +21,7 @@ import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
 import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
 import SimpleDreamMap from '@/components/dream-map/SimpleDreamMap';
+import { DetailedBookingCard } from '@/components/dashboard/DetailedBookingCard';
 
 interface BookingData {
   id: string;
@@ -320,75 +321,21 @@ export const Dashboard: React.FC = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-4">
+                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                   {bookings.map((booking) => (
-                    <Card key={booking.id}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-lg">
-                              {booking.booking_reference}
-                            </CardTitle>
-                            <p className="text-muted-foreground">
-                              {booking.booking_type?.charAt(0).toUpperCase() + booking.booking_type?.slice(1) || 'Booking'} 
-                              {booking.check_in_date && booking.check_out_date && 
-                                ` • ${formatDate(booking.check_in_date)} - ${formatDate(booking.check_out_date)}`
-                              }
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {getStatusBadge(booking.status)}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/booking-details/${booking.id}`)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                            {booking.status === 'confirmed' && (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleCancelBooking(booking.id)}
-                                disabled={cancelling === booking.id}
-                              >
-                                {cancelling === booking.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                                ) : (
-                                  <X className="h-4 w-4 mr-1" />
-                                )}
-                                Cancel
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Guests</p>
-                            <p className="font-medium">{booking.guest_count || 1}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Total</p>
-                            <p className="font-medium">
-                              {formatCurrency(booking.total_amount, booking.currency)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Payment</p>
-                            <p className="font-medium">
-                              {booking.latest_payment?.status || 'Pending'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Created</p>
-                            <p className="font-medium">{formatDate(booking.created_at)}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <DetailedBookingCard
+                      key={booking.id}
+                      booking={booking}
+                      onViewDetails={(bookingId) => {
+                        navigate(`/booking-details/${bookingId}`);
+                      }}
+                      onDownloadItinerary={(bookingId) => {
+                        toast({
+                          title: "Download Started",
+                          description: "Your itinerary will be downloaded shortly",
+                        });
+                      }}
+                    />
                   ))}
                 </div>
               )}

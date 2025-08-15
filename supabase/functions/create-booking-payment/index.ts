@@ -22,6 +22,182 @@ interface BookingPaymentParams {
   fundAmount?: number;
 }
 
+async function createBookingItems(supabaseClient: any, bookingId: string, bookingType: string, bookingData: any, totalAmount: number) {
+  const items = [];
+  
+  try {
+    if (bookingType === 'flight') {
+      // Create items for flight segments
+      if (bookingData.flightDetails?.outbound) {
+        items.push({
+          booking_id: bookingId,
+          item_type: 'flight_segment',
+          item_details: {
+            type: 'outbound',
+            route: `${bookingData.flightDetails.outbound.departure} - ${bookingData.flightDetails.outbound.arrival}`,
+            date: bookingData.flightDetails.outbound.departureDate,
+            flight: bookingData.flightDetails.outbound.flightNumber,
+            airline: bookingData.flightDetails.outbound.airline,
+            duration: bookingData.flightDetails.outbound.duration,
+            class: bookingData.flightDetails.outbound.class || 'Economy'
+          },
+          quantity: bookingData.passengers?.length || 1,
+          unit_price: totalAmount * 0.6, // 60% for outbound
+          total_price: (totalAmount * 0.6) * (bookingData.passengers?.length || 1)
+        });
+      }
+      
+      if (bookingData.flightDetails?.return) {
+        items.push({
+          booking_id: bookingId,
+          item_type: 'flight_segment',
+          item_details: {
+            type: 'return',
+            route: `${bookingData.flightDetails.return.departure} - ${bookingData.flightDetails.return.arrival}`,
+            date: bookingData.flightDetails.return.departureDate,
+            flight: bookingData.flightDetails.return.flightNumber,
+            airline: bookingData.flightDetails.return.airline,
+            duration: bookingData.flightDetails.return.duration,
+            class: bookingData.flightDetails.return.class || 'Economy'
+          },
+          quantity: bookingData.passengers?.length || 1,
+          unit_price: totalAmount * 0.4, // 40% for return
+          total_price: (totalAmount * 0.4) * (bookingData.passengers?.length || 1)
+        });
+      }
+      
+      // Add passenger details
+      if (bookingData.passengers) {
+        bookingData.passengers.forEach((passenger: any, index: number) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'passenger',
+            item_details: {
+              name: `${passenger.firstName} ${passenger.lastName}`,
+              type: passenger.type || 'adult',
+              seat: passenger.selectedSeat,
+              meal: passenger.mealPreference,
+              baggage: passenger.baggage
+            },
+            quantity: 1,
+            unit_price: 0,
+            total_price: 0
+          });
+        });
+      }
+      
+    } else if (bookingType === 'hotel') {
+      // Create items for hotel room nights
+      const checkIn = new Date(bookingData.checkInDate);
+      const checkOut = new Date(bookingData.checkOutDate);
+      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+      const roomPrice = totalAmount / nights;
+      
+      for (let i = 0; i < nights; i++) {
+        const night = new Date(checkIn);
+        night.setDate(night.getDate() + i);
+        
+        items.push({
+          booking_id: bookingId,
+          item_type: 'hotel_night',
+          item_details: {
+            hotel_name: bookingData.hotelName,
+            room_type: bookingData.roomType,
+            date: night.toISOString().split('T')[0],
+            night_number: i + 1,
+            total_nights: nights,
+            guests: bookingData.guestCount || 1,
+            amenities: bookingData.amenities || []
+          },
+          quantity: 1,
+          unit_price: roomPrice,
+          total_price: roomPrice
+        });
+      }
+      
+      // Add room extras if any
+      if (bookingData.extras) {
+        bookingData.extras.forEach((extra: any) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'hotel_extra',
+            item_details: {
+              name: extra.name,
+              description: extra.description,
+              type: extra.type
+            },
+            quantity: extra.quantity || 1,
+            unit_price: extra.price || 0,
+            total_price: (extra.price || 0) * (extra.quantity || 1)
+          });
+        });
+      }
+      
+    } else if (bookingType === 'activity') {
+      // Create items for activity participants
+      const basePrice = totalAmount / (bookingData.participants?.length || 1);
+      
+      if (bookingData.participants) {
+        bookingData.participants.forEach((participant: any, index: number) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'activity_participant',
+            item_details: {
+              activity_name: bookingData.activityName,
+              participant_name: `${participant.firstName} ${participant.lastName}`,
+              participant_type: participant.type || 'adult',
+              date: bookingData.activityDate,
+              time: bookingData.activityTime,
+              duration: bookingData.duration,
+              location: bookingData.location,
+              special_requirements: participant.specialRequirements
+            },
+            quantity: 1,
+            unit_price: basePrice,
+            total_price: basePrice
+          });
+        });
+      }
+      
+      // Add activity add-ons
+      if (bookingData.addOns) {
+        bookingData.addOns.forEach((addOn: any) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'activity_addon',
+            item_details: {
+              name: addOn.name,
+              description: addOn.description,
+              type: addOn.type
+            },
+            quantity: addOn.quantity || 1,
+            unit_price: addOn.price || 0,
+            total_price: (addOn.price || 0) * (addOn.quantity || 1)
+          });
+        });
+      }
+    }
+    
+    // Insert all booking items
+    if (items.length > 0) {
+      const { error } = await supabaseClient
+        .from('booking_items')
+        .insert(items);
+        
+      if (error) {
+        console.error('Error creating booking items:', error);
+        throw error;
+      }
+      
+      console.log(`Created ${items.length} booking items for booking ${bookingId}`);
+    }
+    
+  } catch (error) {
+    console.error('Error in createBookingItems:', error);
+    throw error;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -79,6 +255,9 @@ serve(async (req) => {
     }
 
     console.log('Booking created:', booking.id);
+
+    // Create detailed booking items
+    await createBookingItems(supabaseClient, booking.id, params.bookingType, params.bookingData, params.amount);
 
     // Handle payment based on method
     let checkoutUrl = null;
