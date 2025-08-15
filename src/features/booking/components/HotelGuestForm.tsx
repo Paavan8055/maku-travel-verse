@@ -34,7 +34,7 @@ const HotelGuestSchema = z.object({
 export type HotelGuestFormData = z.infer<typeof HotelGuestSchema>;
 
 interface HotelGuestFormProps {
-  onChange?: (isValid: boolean, data: HotelGuestFormData) => void;
+  onChange?: (data: HotelGuestFormData, isValid: boolean) => void;
   initial?: Partial<HotelGuestFormData>;
 }
 
@@ -68,7 +68,7 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
   const handleFormChange = useCallback(() => {
     if (onChange) {
       const currentData = form.getValues();
-      onChange(isValid, currentData);
+      onChange(currentData, isValid);
     }
   }, [onChange, isValid, form]);
 

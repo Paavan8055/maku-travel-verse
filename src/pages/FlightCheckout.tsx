@@ -105,6 +105,13 @@ const FlightCheckout = () => {
   };
 
   const isButtonDisabled = !passengerValid || !passenger;
+  
+  console.log('Flight checkout button state:', { 
+    passengerValid, 
+    hasPassenger: !!passenger, 
+    isButtonDisabled,
+    passenger: passenger ? Object.keys(passenger) : null
+  });
 
   return (
     <div className="min-h-screen bg-background">

@@ -143,9 +143,17 @@ const HotelCheckout = () => {
   }, [isLoading, guestValid, guest, bookingDetails, toast, goToPayment]);
 
   const isButtonDisabled = !guestValid || !guest || isLoading;
+  
+  console.log('Hotel checkout button state:', { 
+    guestValid, 
+    hasGuest: !!guest, 
+    isLoading, 
+    isButtonDisabled,
+    guest: guest ? Object.keys(guest) : null
+  });
 
   // Memoize the form change handler to prevent infinite loops
-  const handleGuestFormChange = useCallback((valid: boolean, data: HotelGuestFormData) => {
+  const handleGuestFormChange = useCallback((data: HotelGuestFormData, valid: boolean) => {
     console.log('Guest form change:', { valid, data });
     setGuest(data);
     setGuestValid(valid);
