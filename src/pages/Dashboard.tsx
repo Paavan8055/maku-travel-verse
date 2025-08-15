@@ -20,6 +20,7 @@ import { SmartTripPlanner } from '@/components/dashboard/SmartTripPlanner';
 import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
 import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
+import InteractiveWorldMap from '@/components/dream-map/InteractiveWorldMap';
 
 interface BookingData {
   id: string;
@@ -172,7 +173,7 @@ export const Dashboard: React.FC = () => {
             <TabsList className="grid w-full grid-cols-6 max-w-4xl mx-auto mb-8">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <Eye className="h-4 w-4" />
-                Overview
+                Dream Map
               </TabsTrigger>
               <TabsTrigger value="trips" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -196,14 +197,8 @@ export const Dashboard: React.FC = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview">
-              <div className="space-y-8">
-                <TravelTechMetrics />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <LoyaltyWidget />
-                  <SmartRecommendations />
-                </div>
-              </div>
+            <TabsContent value="overview" className="h-[calc(100vh-200px)]">
+              <InteractiveWorldMap />
             </TabsContent>
 
             <TabsContent value="trips">
