@@ -45,9 +45,10 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin }) => {
         });
       } else {
         toast({
-          title: "Success!",
-          description: "Please check your email to confirm your account."
+          title: "Welcome to Maku.travel!",
+          description: "Account created successfully. Redirecting to dashboard..."
         });
+        // The AuthContext and Auth page will handle the redirection
       }
     } catch (error) {
       toast({

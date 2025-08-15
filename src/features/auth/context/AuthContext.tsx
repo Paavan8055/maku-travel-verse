@@ -67,9 +67,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/dashboard`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -77,7 +77,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         data: metadata
       }
     });
-    return { error };
+    
+    // If signup successful and user is confirmed immediately, they should be logged in
+    return { data, error };
   };
 
   const signIn = async (email: string, password: string) => {

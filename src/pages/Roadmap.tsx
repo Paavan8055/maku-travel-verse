@@ -263,13 +263,10 @@ const RoadmapPage = () => {
       } else {
         toast({
           title: "Welcome to Maku.travel!",
-          description: "Your account has been created. Redirecting to dashboard..."
+          description: "Account created successfully. Redirecting to dashboard..."
         });
         setShowSignupDialog(false);
-        // Redirect to dashboard after successful signup
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
+        // The auth context will handle redirection automatically
       }
     } catch (error) {
       toast({

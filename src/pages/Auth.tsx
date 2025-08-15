@@ -15,9 +15,11 @@ const Auth = () => {
   // Redirect authenticated users to their intended destination
   useEffect(() => {
     if (user && !loading) {
+      // Check if coming from roadmap or should go to dashboard
+      const destination = from === '/roadmap' || from === '/' ? '/dashboard' : from;
       // Small delay to allow auth state to fully settle
       const timer = setTimeout(() => {
-        window.location.href = from;
+        window.location.href = destination;
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -34,7 +36,8 @@ const Auth = () => {
 
   // Redirect if already authenticated
   if (user) {
-    return <Navigate to={from} replace />;
+    const destination = from === '/roadmap' || from === '/' ? '/dashboard' : from;
+    return <Navigate to={destination} replace />;
   }
 
   return (
