@@ -90,6 +90,8 @@ function createCustomIcon(category: string, isBookmarked: boolean = false): DivI
 }
 
 const InteractiveWorldMap: React.FC = () => {
+  console.log('InteractiveWorldMap: Component mounting');
+  
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,7 +101,10 @@ const InteractiveWorldMap: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isBookmarkPanelOpen, setIsBookmarkPanelOpen] = useState(false);
   const { toast } = useToast();
+  
+  console.log('InteractiveWorldMap: About to call useAuth');
   const { user } = useAuth();
+  console.log('InteractiveWorldMap: useAuth result:', { user: !!user });
 
   useEffect(() => {
     fetchDestinations();

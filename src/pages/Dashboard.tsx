@@ -53,6 +53,7 @@ interface BookingData {
 }
 
 export const Dashboard: React.FC = () => {
+  console.log('Dashboard: Component mounting');
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
@@ -198,7 +199,10 @@ export const Dashboard: React.FC = () => {
             </TabsList>
 
             <TabsContent value="overview" className="h-[calc(100vh-200px)]">
-              <InteractiveWorldMap />
+              <div className="p-8 text-center">
+                <h2 className="text-2xl font-bold">Interactive World Map</h2>
+                <p className="text-muted-foreground">Map temporarily disabled for debugging</p>
+              </div>
             </TabsContent>
 
             <TabsContent value="trips">

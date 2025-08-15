@@ -128,5 +128,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
   };
 
+  console.log('AuthContext: Providing value:', { user: !!user, session: !!session, loading });
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
