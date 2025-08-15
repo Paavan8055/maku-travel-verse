@@ -326,6 +326,22 @@ export const Dashboard: React.FC = () => {
                 <DocumentsHub />
               </div>
               <TripTimeline />
+              
+              {/* Dream Map Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    100 Dream Destinations
+                  </CardTitle>
+                  <p className="text-muted-foreground">Explore and bookmark your dream travel destinations</p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="h-96 w-full">
+                    <InteractiveWorldMap />
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
