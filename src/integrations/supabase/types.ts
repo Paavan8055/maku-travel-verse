@@ -1746,6 +1746,10 @@ export type Database = {
         Args: { p_limit?: number; p_user_id: string }
         Returns: Json
       }
+      grant_admin_role: {
+        Args: { _target_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean
