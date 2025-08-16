@@ -253,6 +253,10 @@ serve(async (req) => {
     // Generate booking reference
     const bookingReference = `MK${Date.now().toString().slice(-8)}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
+    // Extract IP address for audit logging
+    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+
     // Create booking record
     const { data: booking, error: bookingError } = await supabaseClient
       .from('bookings')
@@ -266,7 +270,13 @@ serve(async (req) => {
         booking_data: {
           ...params.bookingData,
           customerInfo: params.customerInfo,
-          paymentMethod: params.paymentMethod
+          paymentMethod: params.paymentMethod,
+          sessionStart: new Date().toISOString(),
+          analytics: {
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            pagesVisited: 1
+          }
         }
       })
       .select()
@@ -277,6 +287,46 @@ serve(async (req) => {
     }
 
     console.log('Booking created:', booking.id);
+
+    // Generate guest access token for guest bookings
+    let guestAccessToken = null;
+    if (!user && params.customerInfo.email) {
+      try {
+        const { data: tokenData, error: tokenError } = await supabaseClient
+          .rpc('generate_guest_booking_token', {
+            _booking_id: booking.id,
+            _email: params.customerInfo.email
+          });
+        
+        if (!tokenError) {
+          guestAccessToken = tokenData;
+          console.log('Guest access token generated for booking:', booking.id);
+        }
+      } catch (tokenError) {
+        console.error('Failed to generate guest token:', tokenError);
+        // Don't fail the booking if token generation fails
+      }
+    }
+
+    // Log booking access attempt
+    try {
+      await supabaseClient.rpc('log_booking_access', {
+        _booking_id: booking.id,
+        _access_type: user ? 'authenticated_user' : 'guest_token',
+        _access_method: 'booking_creation',
+        _ip_address: ipAddress,
+        _user_agent: userAgent,
+        _accessed_data: {
+          action: 'create_booking',
+          booking_type: params.bookingType,
+          amount: params.amount
+        },
+        _success: true
+      });
+    } catch (auditError) {
+      console.error('Audit logging failed:', auditError);
+      // Don't fail the booking if audit logging fails
+    }
 
     // Create detailed booking items
     await createBookingItems(supabaseClient, booking.id, params.bookingType, params.bookingData, params.amount);
@@ -403,12 +453,18 @@ serve(async (req) => {
         reference: bookingReference,
         status: paymentStatus === 'paid' ? 'confirmed' : 'pending',
         amount: params.amount,
-        currency: params.currency || 'USD'
+        currency: params.currency || 'USD',
+        guestAccessToken: guestAccessToken // For guest bookings
       },
       payment: {
         method: params.paymentMethod,
         status: paymentStatus,
         checkoutUrl: checkoutUrl
+      },
+      security: {
+        isGuestBooking: !user,
+        accessTokenGenerated: !!guestAccessToken,
+        auditLogged: true
       }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

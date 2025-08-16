@@ -28,7 +28,6 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin }) => {
     setLoading(true);
 
     try {
-      console.log('Starting signup process for email:', formData.email);
       const { data, error } = await signUp(
         formData.email, 
         formData.password,

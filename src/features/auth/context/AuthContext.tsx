@@ -70,7 +70,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const redirectUrl = `${window.location.origin}/dashboard`;
     
     try {
-      console.log('AuthContext: Attempting signup for:', email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,

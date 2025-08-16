@@ -212,3 +212,84 @@ export async function saveVisaDocument(data: any) {
   if (error) throw error;
   return result;
 }
+
+// Guest Booking Security API
+export async function lookupGuestBooking(bookingReference: string, email: string, accessToken?: string) {
+  const { data, error } = await supabase.functions.invoke('guest-booking-lookup', {
+    body: {
+      bookingReference,
+      email,
+      accessToken
+    }
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function generateGuestAccessToken(bookingId: string, email: string) {
+  const { data, error } = await supabase.rpc('generate_guest_booking_token', {
+    _booking_id: bookingId,
+    _email: email
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+// AI Training Data API (Admin only)
+export async function triggerAITrainingAnonymization(bookingId?: string, batchSize?: number) {
+  const { data, error } = await supabase.functions.invoke('ai-training-anonymizer', {
+    body: {
+      bookingId,
+      batchSize
+    }
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getAITrainingStats() {
+  const { data, error } = await supabase
+    .from('ai_training_bookings')
+    .select('booking_type, created_at')
+    .order('created_at', { ascending: false })
+    .limit(1000);
+
+  if (error) throw error;
+
+  // Process stats client-side for better performance
+  const last24Hours = data?.filter(item => 
+    new Date(item.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+  ).length || 0;
+
+  const byType = data?.reduce((acc: any, item: any) => {
+    acc[item.booking_type] = (acc[item.booking_type] || 0) + 1;
+    return acc;
+  }, {}) || {};
+
+  return {
+    total: data?.length || 0,
+    last24Hours,
+    byType
+  };
+}
+
+// Security Audit API (Admin only)
+export async function getBookingAccessAudit(bookingId?: string, limit = 50) {
+  let query = supabase
+    .from('booking_access_audit')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (bookingId) {
+    query = query.eq('booking_id', bookingId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data || [];
+}

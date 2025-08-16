@@ -1839,9 +1839,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anonymize_booking_for_ai: {
+        Args: { _booking_id: string }
+        Returns: undefined
+      }
+      auto_anonymize_old_guest_bookings: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cancel_booking: {
         Args: { p_booking_id: string }
         Returns: Json
+      }
+      cleanup_expired_guest_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       cleanup_guest_data: {
         Args: Record<PropertyKey, never>
