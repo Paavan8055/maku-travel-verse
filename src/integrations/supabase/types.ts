@@ -1682,6 +1682,10 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: Json
       }
+      cleanup_guest_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_partner_property: {
         Args: { p_partner_id: string; p_property_data: Json }
         Returns: Json
