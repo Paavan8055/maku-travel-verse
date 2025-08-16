@@ -161,13 +161,13 @@ serve(async (req) => {
                 <li>Enjoy your adventure! ✈️</li>
               </ol>
               
-              <p><strong>Valid for 1 year</strong> from today. Start planning your dream getaway!</p>
+              <p><strong>Never expires!</strong> Your gift card maintains its full value forever. Start planning your dream getaway!</p>
             </div>
             
             <div class="footer">
               <p>Happy travels! 🌍<br>
               The Maku Travel Team</p>
-              <p><small>This gift card expires on ${new Date(giftCard.expires_at).toLocaleDateString()}</small></p>
+              <p><small>This gift card never expires and maintains its full value</small></p>
             </div>
           </div>
         </body>

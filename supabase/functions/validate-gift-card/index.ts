@@ -55,16 +55,7 @@ serve(async (req) => {
       });
     }
 
-    // Check if expired
-    if (new Date(giftCard.expires_at) <= new Date()) {
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: "Gift card has expired"
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      });
-    }
+    // Skip expiration check as gift cards don't expire
 
     // Check if not active
     if (giftCard.status !== 'active') {

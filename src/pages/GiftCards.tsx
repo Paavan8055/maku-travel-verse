@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Gift, Heart, Calendar, Send, Check, AlertCircle, Mountain, Waves, Building, Sunset, Sparkles, Shield, RefreshCw } from "lucide-react";
+import { Gift, Heart, Send, Check, AlertCircle, Mountain, Waves, Building, Sunset, Sparkles, Shield, RefreshCw, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+// Import travel images
+import heroMaldives from "@/assets/hero-maldives.jpg";
+import heroSwissAlps from "@/assets/hero-swiss-alps.jpg";
+import heroTokyo from "@/assets/hero-tokyo.jpg";
+import mapSydney from "@/assets/map-sydney.jpg";
 
 const GiftCardsPage = () => {
   const [searchParams] = useSearchParams();
@@ -23,43 +29,43 @@ const GiftCardsPage = () => {
   const [recipientName, setRecipientName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
-  const [selectedDesign, setSelectedDesign] = useState("mountain");
+  const [selectedDesign, setSelectedDesign] = useState("maldives");
 
   // Check for success/cancelled status from URL params
   const isSuccess = searchParams.get("success") === "true";
   const isCancelled = searchParams.get("cancelled") === "true";
   const giftCardCode = searchParams.get("code");
 
-  const predefinedAmounts = [25, 50, 100, 250, 500, 1000];
+  const predefinedAmounts = [100, 250, 500, 1000, 5000, 10000];
 
   const giftCardDesigns = [
     { 
-      id: "mountain", 
-      name: "Mountain Escape", 
-      icon: Mountain, 
-      gradient: "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-900",
-      pattern: "bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.1),transparent_50%)]"
-    },
-    { 
-      id: "ocean", 
-      name: "Ocean Breeze", 
+      id: "maldives", 
+      name: "Maldives Paradise", 
       icon: Waves, 
-      gradient: "bg-gradient-to-br from-cyan-600 via-blue-700 to-indigo-900",
-      pattern: "bg-[radial-gradient(circle_at_30%_80%,rgba(255,255,255,0.15),transparent_60%)]"
+      image: heroMaldives,
+      colors: "from-cyan-600 via-blue-700 to-indigo-900"
     },
     { 
-      id: "city", 
-      name: "City Lights", 
+      id: "swiss_alps", 
+      name: "Swiss Alps Adventure", 
+      icon: Mountain, 
+      image: heroSwissAlps,
+      colors: "from-slate-600 via-slate-700 to-slate-900"
+    },
+    { 
+      id: "tokyo", 
+      name: "Tokyo Experience", 
       icon: Building, 
-      gradient: "bg-gradient-to-br from-purple-700 via-indigo-800 to-gray-900",
-      pattern: "bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_75%,rgba(255,255,255,0.1)_75%)]"
+      image: heroTokyo,
+      colors: "from-purple-700 via-indigo-800 to-gray-900"
     },
     { 
-      id: "sunset", 
-      name: "Sunset Safari", 
+      id: "sydney", 
+      name: "Sydney Harbour", 
       icon: Sunset, 
-      gradient: "bg-gradient-to-br from-orange-600 via-red-700 to-pink-900",
-      pattern: "bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.1),transparent_70%)]"
+      image: mapSydney,
+      colors: "from-orange-600 via-red-700 to-pink-900"
     }
   ];
 
@@ -80,10 +86,10 @@ const GiftCardsPage = () => {
   const handlePurchase = async () => {
     const amount = getSelectedAmount();
     
-    if (amount < 25 || amount > 1000) {
+    if (amount < 100 || amount > 10000) {
       toast({
         title: "Invalid Amount",
-        description: "Gift card amount must be between $25 and $1000",
+        description: "Gift card amount must be between $100 and $10,000",
         variant: "destructive"
       });
       return;
@@ -154,7 +160,7 @@ const GiftCardsPage = () => {
               Premium Travel Gift Cards
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Inspire wanderlust with beautifully crafted gift cards. Perfect for birthdays, holidays, or any special occasion.
+              Give the gift of unforgettable journeys. Our premium gift cards never expire and can be used for any travel experience on Maku Travel.
             </p>
           </div>
         </div>
@@ -210,18 +216,18 @@ const GiftCardsPage = () => {
                         onClick={() => handleAmountSelection(amount)}
                         className="h-14 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-md"
                       >
-                        ${amount}
+                        ${amount.toLocaleString()}
                       </Button>
                     ))}
                   </div>
                   <div className="relative">
                     <Input
                       type="number"
-                      placeholder="Custom amount ($25-$1000)"
+                      placeholder="Custom amount ($100-$10,000)"
                       value={customAmount}
                       onChange={(e) => handleCustomAmountChange(e.target.value)}
-                      min="25"
-                      max="1000"
+                      min="100"
+                      max="10000"
                       className="h-12 text-lg"
                     />
                   </div>
@@ -238,15 +244,21 @@ const GiftCardsPage = () => {
                         <button
                           key={design.id}
                           onClick={() => setSelectedDesign(design.id)}
-                          className={`relative h-20 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 ${
+                          className={`relative h-24 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 ${
                             isSelected 
                               ? 'ring-2 ring-primary shadow-lg' 
                               : 'hover:shadow-md border border-border'
                           }`}
                         >
-                          <div className={`${design.gradient} ${design.pattern} h-full w-full flex flex-col items-center justify-center text-white`}>
-                            <IconComponent className="h-6 w-6 mb-1" />
-                            <span className="text-sm font-medium">{design.name}</span>
+                          <div 
+                            className="h-full w-full relative bg-cover bg-center flex flex-col items-center justify-center text-white"
+                            style={{ backgroundImage: `url(${design.image})` }}
+                          >
+                            <div className="absolute inset-0 bg-black/40"></div>
+                            <div className="relative z-10 flex flex-col items-center">
+                              <IconComponent className="h-6 w-6 mb-1" />
+                              <span className="text-sm font-medium">{design.name}</span>
+                            </div>
                           </div>
                           {isSelected && (
                             <div className="absolute top-2 right-2">
@@ -316,7 +328,7 @@ const GiftCardsPage = () => {
 
                 <Button 
                   onClick={handlePurchase} 
-                  disabled={loading || getSelectedAmount() < 25}
+                  disabled={loading || getSelectedAmount() < 100}
                   className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-travel-ocean hover:from-primary/90 hover:to-travel-ocean/90 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   {loading ? (
@@ -325,7 +337,7 @@ const GiftCardsPage = () => {
                       <span>Processing...</span>
                     </div>
                   ) : (
-                    `Purchase Gift Card • $${getSelectedAmount() || 0} AUD`
+                    `Purchase Gift Card • $${getSelectedAmount().toLocaleString() || 0} AUD`
                   )}
                 </Button>
               </CardContent>
@@ -341,18 +353,24 @@ const GiftCardsPage = () => {
               <CardContent className="p-6">
                 {(() => {
                   const selectedDesignData = giftCardDesigns.find(d => d.id === selectedDesign);
-                  const IconComponent = selectedDesignData?.icon || Mountain;
+                  const IconComponent = selectedDesignData?.icon || Waves;
                   return (
                     <div className="relative">
-                      <div className={`${selectedDesignData?.gradient} ${selectedDesignData?.pattern} rounded-xl p-8 text-white relative overflow-hidden aspect-[16/10] shadow-xl`}>
+                      <div 
+                        className="rounded-xl p-8 text-white relative overflow-hidden aspect-[16/10] shadow-xl bg-cover bg-center"
+                        style={{ backgroundImage: `url(${selectedDesignData?.image})` }}
+                      >
+                        {/* Overlay for better text readability */}
+                        <div className="absolute inset-0 bg-black/50 rounded-xl"></div>
+                        
                         {/* Decorative elements */}
-                        <div className="absolute top-4 right-4 opacity-20">
+                        <div className="absolute top-4 right-4 opacity-30 z-10">
                           <IconComponent className="h-12 w-12" />
                         </div>
-                        <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-16 translate-y-16"></div>
+                        <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full transform translate-x-16 translate-y-16 z-10"></div>
                         
                         {/* Content */}
-                        <div className="relative z-10 h-full flex flex-col justify-between">
+                        <div className="relative z-20 h-full flex flex-col justify-between">
                           <div>
                             <div className="flex items-center space-x-3 mb-2">
                               <IconComponent className="h-8 w-8" />
@@ -365,13 +383,13 @@ const GiftCardsPage = () => {
                           
                           <div className="text-center">
                             <div className="text-3xl font-bold mb-2">
-                              ${getSelectedAmount() || 0} AUD
+                              ${getSelectedAmount().toLocaleString() || 0} AUD
                             </div>
                             <p className="text-sm opacity-90 mb-3">
                               For: {recipientName || "Recipient Name"}
                             </p>
                             {personalMessage && (
-                              <div className="mt-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg text-sm border border-white/20">
+                              <div className="mt-4 p-4 bg-white/15 backdrop-blur-sm rounded-lg text-sm border border-white/20">
                                 <p className="italic">"{personalMessage}"</p>
                                 <p className="text-xs opacity-70 mt-2">— {senderName || "Gift Sender"}</p>
                               </div>
@@ -379,7 +397,7 @@ const GiftCardsPage = () => {
                           </div>
                           
                           <div className="text-right">
-                            <p className="text-xs opacity-60">Valid for 12 months</p>
+                            <p className="text-xs opacity-60">Never Expires</p>
                           </div>
                         </div>
                       </div>
@@ -395,11 +413,21 @@ const GiftCardsPage = () => {
               <div className="space-y-4">
                 <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50">
                   <div className="w-12 h-12 bg-travel-sky/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Calendar className="h-6 w-6 text-travel-sky" />
+                    <Shield className="h-6 w-6 text-travel-sky" />
                   </div>
                   <div>
-                    <h4 className="font-medium mb-1">12 Month Validity</h4>
-                    <p className="text-sm text-muted-foreground">Plenty of time to plan the perfect trip</p>
+                    <h4 className="font-medium mb-1">Never Expires</h4>
+                    <p className="text-sm text-muted-foreground">Your gift maintains its full value forever, with no expiration date.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50">
+                  <div className="w-12 h-12 bg-travel-ocean/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Plane className="h-6 w-6 text-travel-ocean" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Global Adventures</h4>
+                    <p className="text-sm text-muted-foreground">Use for flights, hotels, activities, and experiences worldwide.</p>
                   </div>
                 </div>
                 
@@ -409,17 +437,17 @@ const GiftCardsPage = () => {
                   </div>
                   <div>
                     <h4 className="font-medium mb-1">Instant Delivery</h4>
-                    <p className="text-sm text-muted-foreground">Delivered immediately via email</p>
+                    <p className="text-sm text-muted-foreground">Digital delivery straight to their inbox with a personalized message.</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50">
-                  <div className="w-12 h-12 bg-travel-gold/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Shield className="h-6 w-6 text-travel-gold" />
+                  <div className="w-12 h-12 bg-travel-sky/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Heart className="h-6 w-6 text-travel-sky" />
                   </div>
                   <div>
-                    <h4 className="font-medium mb-1">Secure & Reliable</h4>
-                    <p className="text-sm text-muted-foreground">Protected by industry-standard security</p>
+                    <h4 className="font-medium mb-1">Premium Designs</h4>
+                    <p className="text-sm text-muted-foreground">Beautiful designs featuring stunning travel destinations from around the world.</p>
                   </div>
                 </div>
               </div>

@@ -568,7 +568,7 @@ export type Database = {
           created_at: string
           currency: string
           design_template: string | null
-          expires_at: string
+          expires_at: string | null
           id: string
           original_amount: number
           personal_message: string | null
@@ -588,7 +588,7 @@ export type Database = {
           created_at?: string
           currency?: string
           design_template?: string | null
-          expires_at?: string
+          expires_at?: string | null
           id?: string
           original_amount: number
           personal_message?: string | null
@@ -608,7 +608,7 @@ export type Database = {
           created_at?: string
           currency?: string
           design_template?: string | null
-          expires_at?: string
+          expires_at?: string | null
           id?: string
           original_amount?: number
           personal_message?: string | null
