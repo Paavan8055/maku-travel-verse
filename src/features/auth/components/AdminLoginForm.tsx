@@ -37,8 +37,19 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSwitchToRegula
         return;
       }
 
-      // Check if user is admin after successful login using secure function
-      const { data: isAdmin } = await supabase.rpc('get_admin_status');
+      // Check if user is admin after successful login using ultra-secure function
+      const { data: isAdmin, error: adminCheckError } = await supabase.rpc('get_admin_status');
+
+      if (adminCheckError) {
+        console.error('Admin status check failed:', adminCheckError);
+        await supabase.auth.signOut();
+        toast({
+          title: "Security Error",
+          description: "Unable to verify admin status. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (!isAdmin) {
         await supabase.auth.signOut();

@@ -1637,6 +1637,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_active: boolean | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          role: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       visa_documents: {
         Row: {
           country: string
@@ -1710,16 +1746,29 @@ export type Database = {
         Args: { p_limit?: number; p_user_id: string }
         Returns: Json
       }
+      has_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
       is_admin: {
         Args: { user_id_param: string }
+        Returns: boolean
+      }
+      is_secure_admin: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       is_user_admin: {
         Args: { check_user_id: string }
         Returns: boolean
       }
+      log_admin_access_attempt: {
+        Args: { _action: string; _success: boolean; _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
+      app_role: "admin" | "partner" | "user"
       booking_status: "pending" | "confirmed" | "cancelled"
       integration_status: "connected" | "disconnected" | "error" | "pending"
       partner_type:
@@ -1864,6 +1913,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "partner", "user"],
       booking_status: ["pending", "confirmed", "cancelled"],
       integration_status: ["connected", "disconnected", "error", "pending"],
       partner_type: [

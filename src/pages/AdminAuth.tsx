@@ -18,8 +18,13 @@ const AdminAuth = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
-        const { data: isAdmin } = await supabase.rpc('get_admin_status');
-        setIsAdmin(!!isAdmin);
+        const { data: isAdmin, error } = await supabase.rpc('get_admin_status');
+        if (error) {
+          console.error('Admin status check failed:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(!!isAdmin);
+        }
       } else {
         setIsAdmin(null);
       }
