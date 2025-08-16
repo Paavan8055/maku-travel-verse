@@ -375,7 +375,7 @@ const GiftCardsPage = () => {
                             <div className="flex items-center space-x-3 mb-2">
                               <IconComponent className="h-8 w-8" />
                               <div>
-                                <h3 className="text-xl font-bold">Maku Travel</h3>
+                                <h3 className="text-xl font-bold">maku.travel</h3>
                                 <p className="text-xs opacity-80">Gift Card</p>
                               </div>
                             </div>
