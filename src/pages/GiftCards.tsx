@@ -388,7 +388,7 @@ const GiftCardsPage = () => {
                           
                           {/* Footer */}
                           <div className="text-right">
-                            <span className="text-xs opacity-70">Gift Card Mak U Travel</span>
+                            <span className="text-xs opacity-70">Gift card which mak U travel</span>
                           </div>
                         </div>
                       </div>
