@@ -526,6 +526,104 @@ export type Database = {
           },
         ]
       }
+      gift_card_redemptions: {
+        Row: {
+          amount_redeemed: number
+          booking_id: string | null
+          created_at: string
+          gift_card_id: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_redeemed: number
+          booking_id?: string | null
+          created_at?: string
+          gift_card_id: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_redeemed?: number
+          booking_id?: string | null
+          created_at?: string
+          gift_card_id?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_card_redemptions_gift_card_id_fkey"
+            columns: ["gift_card_id"]
+            isOneToOne: false
+            referencedRelation: "gift_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gift_cards: {
+        Row: {
+          amount: number
+          code: string
+          created_at: string
+          currency: string
+          design_template: string | null
+          expires_at: string
+          id: string
+          original_amount: number
+          personal_message: string | null
+          recipient_email: string
+          recipient_name: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          sender_email: string
+          sender_id: string | null
+          sender_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          code: string
+          created_at?: string
+          currency?: string
+          design_template?: string | null
+          expires_at?: string
+          id?: string
+          original_amount: number
+          personal_message?: string | null
+          recipient_email: string
+          recipient_name: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          sender_email: string
+          sender_id?: string | null
+          sender_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          code?: string
+          created_at?: string
+          currency?: string
+          design_template?: string | null
+          expires_at?: string
+          id?: string
+          original_amount?: number
+          personal_message?: string | null
+          recipient_email?: string
+          recipient_name?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          sender_email?: string
+          sender_id?: string | null
+          sender_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       guest_booking_tokens: {
         Row: {
           access_count: number | null
@@ -1863,6 +1961,10 @@ export type Database = {
         Args: { p_partner_id: string; p_property_data: Json }
         Returns: Json
       }
+      generate_gift_card_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_guest_booking_token: {
         Args: { _booking_id: string; _email: string }
         Returns: string
@@ -1923,6 +2025,15 @@ export type Database = {
           _user_agent?: string
         }
         Returns: undefined
+      }
+      redeem_gift_card: {
+        Args: {
+          p_amount: number
+          p_booking_id?: string
+          p_code: string
+          p_user_id?: string
+        }
+        Returns: Json
       }
       verify_guest_booking_access: {
         Args: { _booking_id: string; _email: string; _token?: string }
