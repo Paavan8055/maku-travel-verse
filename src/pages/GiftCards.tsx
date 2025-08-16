@@ -180,7 +180,7 @@ const GiftCardsPage = () => {
             {/* Animated Title */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-slideIn">
               <span className="bg-gradient-to-r from-primary via-travel-ocean to-travel-coral bg-clip-text text-transparent animate-pulse-soft">
-                Premium Travel
+                Maku Travel
               </span>
               <br />
               <span className="bg-gradient-to-r from-travel-sunset via-travel-coral to-primary bg-clip-text text-transparent">
