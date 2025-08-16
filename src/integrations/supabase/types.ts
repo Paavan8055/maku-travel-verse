@@ -71,6 +71,84 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_training_bookings: {
+        Row: {
+          anonymized_at: string | null
+          anonymized_data: Json
+          behavioral_patterns: Json | null
+          booking_flow_data: Json | null
+          booking_type: string
+          created_at: string | null
+          id: string
+          location_data: Json | null
+          original_booking_id: string
+          price_patterns: Json | null
+        }
+        Insert: {
+          anonymized_at?: string | null
+          anonymized_data: Json
+          behavioral_patterns?: Json | null
+          booking_flow_data?: Json | null
+          booking_type: string
+          created_at?: string | null
+          id?: string
+          location_data?: Json | null
+          original_booking_id: string
+          price_patterns?: Json | null
+        }
+        Update: {
+          anonymized_at?: string | null
+          anonymized_data?: Json
+          behavioral_patterns?: Json | null
+          booking_flow_data?: Json | null
+          booking_type?: string
+          created_at?: string | null
+          id?: string
+          location_data?: Json | null
+          original_booking_id?: string
+          price_patterns?: Json | null
+        }
+        Relationships: []
+      }
+      booking_access_audit: {
+        Row: {
+          access_method: string | null
+          access_type: string
+          accessed_data: Json | null
+          booking_id: string
+          created_at: string | null
+          failure_reason: string | null
+          id: string
+          ip_address: unknown | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          access_method?: string | null
+          access_type: string
+          accessed_data?: Json | null
+          booking_id: string
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          access_method?: string | null
+          access_type?: string
+          accessed_data?: Json | null
+          booking_id?: string
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       booking_items: {
         Row: {
           booking_id: string
@@ -445,6 +523,53 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      guest_booking_tokens: {
+        Row: {
+          access_count: number | null
+          access_level: string
+          access_token: string
+          booking_id: string
+          created_at: string | null
+          email_hash: string
+          expires_at: string
+          id: string
+          last_accessed: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_count?: number | null
+          access_level?: string
+          access_token: string
+          booking_id: string
+          created_at?: string | null
+          email_hash: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_count?: number | null
+          access_level?: string
+          access_token?: string
+          booking_id?: string
+          created_at?: string | null
+          email_hash?: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_booking_tokens_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
           },
         ]
       }
