@@ -375,19 +375,19 @@ const GiftCardsPage = () => {
                             <div className="flex items-center space-x-3 mb-2">
                               <IconComponent className="h-8 w-8" />
                               <div>
-                                <h3 className="text-xl font-bold">maku.travel</h3>
+                                <h3 className="text-xl font-bold">**maku.travel**</h3>
                                 <p className="text-xs opacity-80">Gift Card</p>
                               </div>
                             </div>
                           </div>
                           
                           <div className="text-center">
-                            <p className="text-sm opacity-90 mb-3">
+                            <div className="text-3xl font-bold mb-3">
                               {recipientName || "Recipient Name"}
-                            </p>
-                            <div className="text-3xl font-bold mb-2">
-                              ${getSelectedAmount().toLocaleString() || 0} AUD
                             </div>
+                            <p className="text-sm opacity-90 mb-2">
+                              ${getSelectedAmount().toLocaleString() || 0} AUD
+                            </p>
                             {personalMessage && (
                               <div className="mt-4 p-4 bg-white/15 backdrop-blur-sm rounded-lg text-sm border border-white/20">
                                 <p className="italic">"{personalMessage}"</p>
