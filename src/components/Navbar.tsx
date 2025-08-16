@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Car, MapPin, Rocket, Users as UsersIcon, ChevronDown } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -73,9 +73,9 @@ const Navbar = () => {
               <span>Activities</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/car-rental')}>
-              <Car className="h-4 w-4" />
-              <span>Car Rental</span>
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')}>
+              <Gift className="h-4 w-4" />
+              <span>Gift Cards</span>
             </Button>
             
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/roadmap')}>
@@ -172,11 +172,11 @@ const Navbar = () => {
                 Activities
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/car-rental');
+                navigate('/gift-cards');
                 setIsMenuOpen(false);
               }}>
-                <Car className="mr-2 h-4 w-4" />
-                Car Rental
+                <Gift className="mr-2 h-4 w-4" />
+                Gift Cards
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
                 navigate('/roadmap');

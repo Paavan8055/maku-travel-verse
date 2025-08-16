@@ -112,7 +112,7 @@ return <footer className="bg-primary text-primary-foreground">
                 <li><a href="/search/hotels" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Hotels & Accommodation</a></li>
                 <li><a href="/search/flights" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Flight Booking</a></li>
                 <li><a href="/search/activities" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Tours & Activities</a></li>
-                <li><a href="/car-rental" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Car Rentals</a></li>
+                <li><a href="/gift-cards" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Gift Cards</a></li>
                 <li><a href="/deals" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Travel Deals</a></li>
               </ul>
             </div>
