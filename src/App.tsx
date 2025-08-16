@@ -20,7 +20,7 @@ import Search from "./pages/Search";
 import Hotels from "./pages/Hotels";
 import Deals from "./pages/Deals";
 import Roadmap from "./pages/Roadmap";
-import CarRental from "./pages/CarRental";
+import GiftCards from "./pages/GiftCards";
 import Partners from "./pages/Partners";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingCancelled from "./pages/BookingCancelled";
@@ -73,7 +73,7 @@ const App = () => (
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/deals" element={<Deals />} />
                   <Route path="/roadmap" element={<Roadmap />} />
-                  <Route path="/car-rental" element={<CarRental />} />
+                  <Route path="/gift-cards" element={<GiftCards />} />
                   <Route path="/partners" element={<Partners />} />
                   {/* Direct booking flow routes */}
                   <Route path="/booking/confirmation" element={<BookingConfirmation />} />
