@@ -49,8 +49,8 @@ serve(async (req) => {
     const giftCardData: GiftCardRequest = await req.json();
 
     // Validate request
-    if (!giftCardData.amount || giftCardData.amount < 25 || giftCardData.amount > 1000) {
-      throw new Error("Gift card amount must be between $25 and $1000");
+    if (!giftCardData.amount || giftCardData.amount < 100 || giftCardData.amount > 10000) {
+      throw new Error("Gift card amount must be between $100 and $10,000");
     }
 
     if (!giftCardData.senderName || !giftCardData.senderEmail || 
