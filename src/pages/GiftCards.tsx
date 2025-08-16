@@ -357,51 +357,38 @@ const GiftCardsPage = () => {
                   return (
                     <div className="relative">
                       <div 
-                        className="rounded-xl p-8 text-white relative overflow-hidden aspect-[16/10] shadow-xl bg-cover bg-center"
+                        className="rounded-xl text-white relative overflow-hidden aspect-[16/10] shadow-xl bg-cover bg-center"
                         style={{ backgroundImage: `url(${selectedDesignData?.image})` }}
                       >
-                        {/* Overlay for better text readability */}
-                        <div className="absolute inset-0 bg-black/50 rounded-xl"></div>
-                        
-                        {/* Decorative elements */}
-                        <div className="absolute top-4 right-4 opacity-30 z-10">
-                          <IconComponent className="h-12 w-12" />
-                        </div>
-                        <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full transform translate-x-16 translate-y-16 z-10"></div>
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-black/40 rounded-xl"></div>
                         
                         {/* Content */}
-                        <div className="relative z-20 h-full p-8 flex flex-col">
-                          {/* Header */}
-                          <div className="flex items-center space-x-3 mb-8">
-                            <IconComponent className="h-10 w-10" />
-                            <div>
-                              <h3 className="text-2xl font-bold">maku.travel</h3>
-                              <p className="text-sm opacity-80">Gift Card</p>
-                            </div>
+                        <div className="relative z-10 h-full p-6 flex flex-col justify-between">
+                          {/* Brand */}
+                          <div className="flex items-center space-x-2">
+                            <IconComponent className="h-6 w-6" />
+                            <span className="text-sm font-medium opacity-90">maku.travel</span>
                           </div>
                           
                           {/* Main Content */}
-                          <div className="flex-1 flex flex-col justify-center text-center space-y-6">
-                            <div>
-                              <h4 className="text-4xl font-bold mb-2">
-                                {recipientName || "Recipient Name"}
-                              </h4>
-                              <p className="text-2xl font-semibold opacity-90">
-                                ${getSelectedAmount().toLocaleString() || 0} AUD
-                              </p>
+                          <div className="text-center">
+                            <div className="text-3xl font-bold mb-1">
+                              ${getSelectedAmount().toLocaleString() || 0}
                             </div>
-                            
+                            <div className="text-lg mb-3">
+                              for {recipientName || "Recipient Name"}
+                            </div>
                             {personalMessage && (
-                              <div className="max-w-sm mx-auto p-4 bg-white/15 backdrop-blur-sm rounded-lg text-sm border border-white/20">
-                                <p className="italic">"{personalMessage}"</p>
-                                <p className="text-xs opacity-70 mt-2">— {senderName || "Gift Sender"}</p>
+                              <div className="text-sm opacity-80 italic max-w-xs mx-auto">
+                                "{personalMessage}"
                               </div>
                             )}
                           </div>
                           
                           {/* Footer */}
                           <div className="text-right">
-                            <p className="text-xs opacity-60">Never Expires</p>
+                            <span className="text-xs opacity-70">Gift Card • Never Expires</span>
                           </div>
                         </div>
                       </div>
