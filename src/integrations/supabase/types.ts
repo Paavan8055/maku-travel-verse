@@ -1851,6 +1851,10 @@ export type Database = {
         Args: { p_partner_id: string; p_property_data: Json }
         Returns: Json
       }
+      generate_guest_booking_token: {
+        Args: { _booking_id: string; _email: string }
+        Returns: string
+      }
       get_admin_status: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -1894,6 +1898,23 @@ export type Database = {
       log_admin_access_attempt: {
         Args: { _action: string; _success: boolean; _user_id: string }
         Returns: undefined
+      }
+      log_booking_access: {
+        Args: {
+          _access_method?: string
+          _access_type: string
+          _accessed_data?: Json
+          _booking_id: string
+          _failure_reason?: string
+          _ip_address?: unknown
+          _success?: boolean
+          _user_agent?: string
+        }
+        Returns: undefined
+      }
+      verify_guest_booking_access: {
+        Args: { _booking_id: string; _email: string; _token?: string }
+        Returns: boolean
       }
     }
     Enums: {
