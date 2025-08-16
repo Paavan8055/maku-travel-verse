@@ -369,37 +369,37 @@ const GiftCardsPage = () => {
                         </div>
                         <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full transform translate-x-16 translate-y-16 z-10"></div>
                         
-                        {/* Content with equal spacing */}
-                        <div className="relative z-20 h-full flex flex-col justify-between">
-                          <div className="flex-1 flex items-center justify-center">
-                            <div className="flex items-center space-x-3">
-                              <IconComponent className="h-8 w-8" />
-                              <div>
-                                <h3 className="text-xl font-bold">maku.travel</h3>
-                                <p className="text-xs opacity-80">Gift Card</p>
+                        {/* Content */}
+                        <div className="relative z-20 h-full p-8 flex flex-col">
+                          {/* Header */}
+                          <div className="flex items-center space-x-3 mb-8">
+                            <IconComponent className="h-10 w-10" />
+                            <div>
+                              <h3 className="text-2xl font-bold">maku.travel</h3>
+                              <p className="text-sm opacity-80">Gift Card</p>
+                            </div>
+                          </div>
+                          
+                          {/* Main Content */}
+                          <div className="flex-1 flex flex-col justify-center text-center space-y-6">
+                            <div>
+                              <h4 className="text-4xl font-bold mb-2">
+                                {recipientName || "Recipient Name"}
+                              </h4>
+                              <p className="text-2xl font-semibold opacity-90">
+                                ${getSelectedAmount().toLocaleString() || 0} AUD
+                              </p>
+                            </div>
+                            
+                            {personalMessage && (
+                              <div className="max-w-sm mx-auto p-4 bg-white/15 backdrop-blur-sm rounded-lg text-sm border border-white/20">
+                                <p className="italic">"{personalMessage}"</p>
+                                <p className="text-xs opacity-70 mt-2">— {senderName || "Gift Sender"}</p>
                               </div>
-                            </div>
+                            )}
                           </div>
                           
-                          <div className="flex-1 flex items-center justify-center text-center">
-                            <div className="text-3xl font-bold">
-                              {recipientName || "Recipient Name"}
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 flex items-center justify-center text-center">
-                            <p className="text-sm opacity-90">
-                              ${getSelectedAmount().toLocaleString() || 0} AUD
-                            </p>
-                          </div>
-                          
-                          {personalMessage && (
-                            <div className="mt-4 p-4 bg-white/15 backdrop-blur-sm rounded-lg text-sm border border-white/20">
-                              <p className="italic">"{personalMessage}"</p>
-                              <p className="text-xs opacity-70 mt-2">— {senderName || "Gift Sender"}</p>
-                            </div>
-                          )}
-                          
+                          {/* Footer */}
                           <div className="text-right">
                             <p className="text-xs opacity-60">Never Expires</p>
                           </div>
