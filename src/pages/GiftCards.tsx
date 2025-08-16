@@ -386,7 +386,7 @@ const GiftCardsPage = () => {
                               ${getSelectedAmount().toLocaleString() || 0} AUD
                             </div>
                             <p className="text-sm opacity-90 mb-3">
-                              For: {recipientName || "Recipient Name"}
+                              {recipientName || "Recipient Name"}
                             </p>
                             {personalMessage && (
                               <div className="mt-4 p-4 bg-white/15 backdrop-blur-sm rounded-lg text-sm border border-white/20">
