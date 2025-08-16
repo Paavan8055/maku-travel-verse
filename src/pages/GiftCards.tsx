@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Gift, Heart, Send, Check, AlertCircle, Mountain, Waves, Building, Sunset, Sparkles, Shield, RefreshCw, Plane } from "lucide-react";
+import { Gift, Heart, Send, Check, AlertCircle, Mountain, Waves, Building, Sunset, Sparkles, Shield, RefreshCw, Plane, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -148,20 +149,79 @@ const GiftCardsPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-travel-sky/5 via-travel-ocean/5 to-travel-coral/5 border-b">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--travel-sky),0.1),transparent_50%)]"></div>
-        <div className="container mx-auto px-4 py-16 relative">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-              <Gift className="h-8 w-8 text-primary" />
+      {/* Enhanced Hero Section with Animations */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-travel-sky/10 via-travel-ocean/15 to-travel-coral/20 border-b">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          {/* Floating Particles */}
+          <div className="absolute top-20 left-20 w-3 h-3 bg-travel-sky/30 rounded-full animate-float"></div>
+          <div className="absolute top-40 right-32 w-2 h-2 bg-travel-coral/40 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-60 left-1/3 w-4 h-4 bg-travel-ocean/25 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-32 right-1/4 w-2.5 h-2.5 bg-travel-sunset/35 rounded-full animate-float" style={{ animationDelay: '3s' }}></div>
+          
+          {/* Gradient Orbs */}
+          <div className="absolute top-16 left-16 w-32 h-32 bg-gradient-to-br from-travel-sky/20 to-travel-ocean/10 rounded-full blur-xl animate-pulse-soft"></div>
+          <div className="absolute bottom-20 right-20 w-40 h-40 bg-gradient-to-br from-travel-coral/15 to-travel-sunset/10 rounded-full blur-2xl animate-pulse-soft" style={{ animationDelay: '1.5s' }}></div>
+          
+          {/* Radial Gradient Overlay */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--travel-sky),0.15),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(var(--travel-coral),0.1),transparent_50%)]"></div>
+        </div>
+
+        <div className="container mx-auto px-4 py-20 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Animated Gift Icon */}
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary/20 to-travel-ocean/20 rounded-full mb-8 relative animate-float">
+              <Gift className="h-10 w-10 text-primary animate-pulse-soft" />
+              {/* Sparkle Effects */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-travel-coral/30 rounded-full animate-ping"></div>
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-travel-sky/40 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-travel-ocean to-travel-coral bg-clip-text text-transparent mb-4">
-              Premium Travel Gift Cards
+
+            {/* Animated Title */}
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-slideIn">
+              <span className="bg-gradient-to-r from-primary via-travel-ocean to-travel-coral bg-clip-text text-transparent animate-pulse-soft">
+                Premium Travel
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-travel-sunset via-travel-coral to-primary bg-clip-text text-transparent">
+                Gift Cards
+              </span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Give the gift of unforgettable journeys. Our premium gift cards never expire and can be used for any travel experience on Maku Travel.
+
+            {/* Enhanced Description */}
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8 animate-fadeIn" style={{ animationDelay: '0.5s' }}>
+              ✨ Give the gift of <span className="text-primary font-semibold">unforgettable journeys</span> ✨
+              <br />
+              Premium gift cards that unlock <span className="text-travel-ocean font-semibold">extraordinary adventures</span> worldwide
             </p>
+
+            {/* Feature Badges */}
+            <div className="flex flex-wrap justify-center gap-3 mb-8 animate-fadeIn" style={{ animationDelay: '1s' }}>
+              <Badge variant="secondary" className="px-4 py-2 bg-travel-sky/10 text-travel-sky border-travel-sky/20 hover:bg-travel-sky/20 transition-colors duration-300">
+                <Star className="w-4 h-4 mr-2" />
+                Never Expires
+              </Badge>
+              <Badge variant="secondary" className="px-4 py-2 bg-travel-coral/10 text-travel-coral border-travel-coral/20 hover:bg-travel-coral/20 transition-colors duration-300">
+                <Plane className="w-4 h-4 mr-2" />
+                Global Coverage
+              </Badge>
+              <Badge variant="secondary" className="px-4 py-2 bg-travel-ocean/10 text-travel-ocean border-travel-ocean/20 hover:bg-travel-ocean/20 transition-colors duration-300">
+                <Send className="w-4 h-4 mr-2" />
+                Instant Delivery
+              </Badge>
+            </div>
+
+            {/* CTA Button */}
+            <div className="animate-fadeIn" style={{ animationDelay: '1.5s' }}>
+              <Button 
+                onClick={() => document.getElementById('purchase-form')?.scrollIntoView({ behavior: 'smooth' })}
+                className="h-16 px-12 text-lg font-bold bg-gradient-to-r from-primary via-travel-coral to-travel-sunset hover:from-primary/90 hover:via-travel-coral/90 hover:to-travel-sunset/90 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 animate-pulse-soft"
+              >
+                <Gift className="w-6 h-6 mr-3" />
+                Create Your Gift Card
+                <Sparkles className="w-6 h-6 ml-3" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -170,7 +230,7 @@ const GiftCardsPage = () => {
 
         {/* Success/Cancelled Messages */}
         {isSuccess && giftCardCode && (
-          <Alert className="mb-8 border-green-500/20 bg-green-500/5 backdrop-blur-sm">
+          <Alert className="mb-8 border-green-500/20 bg-green-500/5 backdrop-blur-sm animate-slideIn">
             <Check className="h-5 w-5 text-green-600" />
             <AlertDescription className="text-green-700">
               <div className="font-semibold mb-2">Gift card purchased successfully!</div>
@@ -183,7 +243,7 @@ const GiftCardsPage = () => {
         )}
 
         {isCancelled && (
-          <Alert className="mb-8 border-orange-500/20 bg-orange-500/5 backdrop-blur-sm">
+          <Alert className="mb-8 border-orange-500/20 bg-orange-500/5 backdrop-blur-sm animate-slideIn">
             <AlertCircle className="h-5 w-5 text-orange-600" />
             <AlertDescription className="text-orange-700">
               <div className="font-semibold">Payment was cancelled</div>
@@ -192,10 +252,10 @@ const GiftCardsPage = () => {
           </Alert>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="purchase-form">
           {/* Gift Card Purchase Form */}
           <div className="lg:col-span-2">
-            <Card className="border-0 shadow-luxury bg-card/50 backdrop-blur-sm">
+            <Card className="border-0 shadow-luxury bg-card/50 backdrop-blur-sm animate-slideIn">
               <CardHeader className="pb-6">
                 <CardTitle className="text-xl font-semibold flex items-center space-x-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -346,7 +406,7 @@ const GiftCardsPage = () => {
 
           {/* Gift Card Preview */}
           <div className="space-y-6">
-            <Card className="border-0 shadow-luxury bg-card/50 backdrop-blur-sm overflow-hidden">
+            <Card className="border-0 shadow-luxury bg-card/50 backdrop-blur-sm overflow-hidden animate-slideIn" style={{ animationDelay: '0.3s' }}>
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg font-semibold text-center">Live Preview</CardTitle>
               </CardHeader>
@@ -357,7 +417,7 @@ const GiftCardsPage = () => {
                   return (
                     <div className="relative">
                       <div 
-                        className="rounded-xl text-white relative overflow-hidden aspect-[16/10] shadow-xl bg-cover bg-center"
+                        className="rounded-xl text-white relative overflow-hidden aspect-[16/10] shadow-xl bg-cover bg-center transform hover:scale-105 transition-all duration-300"
                         style={{ backgroundImage: `url(${selectedDesignData?.image})` }}
                       >
                         {/* Overlay */}
@@ -399,10 +459,10 @@ const GiftCardsPage = () => {
             </Card>
 
             {/* Features */}
-            <div className="space-y-6">
+            <div className="space-y-6 animate-slideIn" style={{ animationDelay: '0.6s' }}>
               <h3 className="font-semibold text-lg text-center">Why Choose Our Gift Cards</h3>
               <div className="space-y-4">
-                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50">
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50 hover:bg-card/50 transition-colors duration-300">
                   <div className="w-12 h-12 bg-travel-sky/10 rounded-full flex items-center justify-center flex-shrink-0">
                     <Shield className="h-6 w-6 text-travel-sky" />
                   </div>
@@ -412,7 +472,7 @@ const GiftCardsPage = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50">
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50 hover:bg-card/50 transition-colors duration-300">
                   <div className="w-12 h-12 bg-travel-ocean/10 rounded-full flex items-center justify-center flex-shrink-0">
                     <Plane className="h-6 w-6 text-travel-ocean" />
                   </div>
@@ -422,7 +482,7 @@ const GiftCardsPage = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50">
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50 hover:bg-card/50 transition-colors duration-300">
                   <div className="w-12 h-12 bg-travel-coral/10 rounded-full flex items-center justify-center flex-shrink-0">
                     <Send className="h-6 w-6 text-travel-coral" />
                   </div>
@@ -432,7 +492,7 @@ const GiftCardsPage = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50">
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50 hover:bg-card/50 transition-colors duration-300">
                   <div className="w-12 h-12 bg-travel-sky/10 rounded-full flex items-center justify-center flex-shrink-0">
                     <Heart className="h-6 w-6 text-travel-sky" />
                   </div>
