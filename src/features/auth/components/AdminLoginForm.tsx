@@ -37,15 +37,10 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSwitchToRegula
         return;
       }
 
-      // Check if user is admin after successful login
-      const { data: adminUser } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('email', formData.email)
-        .eq('is_active', true)
-        .single();
+      // Check if user is admin after successful login using secure function
+      const { data: isAdmin } = await supabase.rpc('get_admin_status');
 
-      if (!adminUser) {
+      if (!isAdmin) {
         await supabase.auth.signOut();
         toast({
           title: "Access Denied",

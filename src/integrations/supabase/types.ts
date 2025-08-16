@@ -1686,6 +1686,10 @@ export type Database = {
         Args: { p_partner_id: string; p_property_data: Json }
         Returns: Json
       }
+      get_admin_status: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       get_partner_dashboard_data: {
         Args: { p_partner_id: string }
         Returns: Json
@@ -1704,6 +1708,10 @@ export type Database = {
       }
       is_admin: {
         Args: { user_id_param: string }
+        Returns: boolean
+      }
+      is_user_admin: {
+        Args: { check_user_id: string }
         Returns: boolean
       }
     }
