@@ -116,6 +116,12 @@ verify_jwt = false
 [functions.get-stripe-publishable-key]
 verify_jwt = false
 
+[functions.security-cleanup]
+verify_jwt = false
+
+[functions.rate-limiter]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327
