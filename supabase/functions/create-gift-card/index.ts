@@ -62,7 +62,10 @@ serve(async (req) => {
     const { data: codeData, error: codeError } = await supabaseClient
       .rpc('generate_gift_card_code');
     
-    if (codeError) throw new Error("Failed to generate gift card code");
+    if (codeError || !codeData) {
+      console.error("Gift card code generation error:", codeError);
+      throw new Error(`Failed to generate gift card code: ${codeError?.message || 'Unknown error'}`);
+    }
     const giftCardCode = codeData;
 
     // Create Stripe checkout session
