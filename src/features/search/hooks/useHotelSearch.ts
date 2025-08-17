@@ -41,6 +41,19 @@ interface Hotel {
   };
 }
 
+interface SearchMeta {
+  pathTaken: string[];
+  dateAdjusted: boolean;
+  suggestedDates?: { checkIn: string; checkOut: string };
+  alternativeAreas?: string[];
+  apiCallsUsed: number;
+  errors: Array<{ step: string; error: string; statusCode?: number }>;
+  totalResults: number;
+  isEmpty?: boolean;
+  message?: string;
+  alternativeSuggestions?: string[];
+}
+
 // Transform Amadeus hotel data to our interface - NO MOCK DATA
 const transformAmadeusHotel = (amadeusHotel: any): Hotel => {
   return {
@@ -70,6 +83,8 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEmpty, setIsEmpty] = useState(false);
+  const [meta, setMeta] = useState<SearchMeta | null>(null);
 
   useEffect(() => {
     console.log("Hotel search criteria:", criteria);
@@ -92,6 +107,8 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
       console.log("Starting hotel search...");
       setLoading(true);
       setError(null);
+      setIsEmpty(false);
+      setMeta(null);
 
       try {
         console.log("Calling amadeus-hotel-search function with:", {
@@ -101,16 +118,14 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
           guests: searchCriteria.guests
         });
 
-        // Use direct Amadeus Hotel Search API with correct parameter names
+        // Use enhanced Amadeus Hotel Search API with robust fallback strategy
         const { data, error: functionError } = await supabase.functions.invoke('amadeus-hotel-search', {
           body: {
             destination: searchCriteria.destination,
             checkInDate: searchCriteria.checkIn,
             checkOutDate: searchCriteria.checkOut,
             guests: searchCriteria.guests,
-            rooms: 1,
-            radius: 5,
-            bestRateOnly: true
+            rooms: 1
           }
         });
 
@@ -121,65 +136,92 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
           setError("Failed to search hotels with Amadeus API");
           toast.error("Hotel search failed. Please try again.");
           setHotels([]);
+          setIsEmpty(true);
           return;
         }
 
-        if (data?.success && data?.hotels && data.hotels.length > 0) {
-          console.log("Found real hotel data:", data.hotels.length, "hotels");
+        // Handle the response with new metadata structure
+        if (data?.success) {
+          setMeta(data.meta || null);
           
-          // Transform Amadeus data to match our Hotel interface and enrich with additional data
-          const transformedHotels = await Promise.all(
-            data.hotels.map(async (hotel: any) => {
-              const baseHotel = transformAmadeusHotel(hotel);
-              
-              // Enrich with real photos if hotel ID is available
-              if (hotel.hotelId || hotel.id) {
-                try {
-                  const photosResponse = await supabase.functions.invoke('amadeus-hotel-photos', {
-                    body: { hotelId: hotel.hotelId || hotel.id }
-                  });
-                  
-                  if (photosResponse.data?.success && photosResponse.data.photos?.length > 0) {
-                    baseHotel.images = photosResponse.data.photos.map((photo: any) => photo.url);
-                  }
-                } catch (photoErr) {
-                  console.warn("Failed to fetch photos for hotel:", hotel.hotelId || hotel.id, photoErr);
-                }
-              }
-              
-              // Add safety rating if coordinates are available
-              if (hotel.location?.latitude && hotel.location?.longitude) {
-                try {
-                  const safetyResponse = await supabase.functions.invoke('amadeus-safe-place', {
-                    body: { 
-                      latitude: hotel.location.latitude, 
-                      longitude: hotel.location.longitude 
+          if (data.isEmpty || !data.hotels || data.hotels.length === 0) {
+            console.log("No hotels found, showing empty state with suggestions");
+            setIsEmpty(true);
+            setHotels([]);
+            setError(data.error || "No hotels found for your search criteria");
+            
+            // Show helpful message based on metadata
+            if (data.meta?.dateAdjusted && data.meta?.suggestedDates) {
+              toast.info(`Moved search to ${data.meta.suggestedDates.checkIn} - ${data.meta.suggestedDates.checkOut} for test availability`);
+            } else if (data.meta?.alternativeSuggestions?.length > 0) {
+              toast.info("No hotels found. " + data.meta.alternativeSuggestions[0]);
+            }
+          } else {
+            console.log("Found real hotel data:", data.hotels.length, "hotels");
+            
+            // Show date adjustment notification if applicable
+            if (data.meta?.dateAdjusted && data.meta?.suggestedDates) {
+              toast.info(`Dates adjusted to ${data.meta.suggestedDates.checkIn} - ${data.meta.suggestedDates.checkOut} for better availability`);
+            }
+            
+            // Transform Amadeus data to match our Hotel interface and enrich with additional data
+            const transformedHotels = await Promise.all(
+              data.hotels.map(async (hotel: any) => {
+                const baseHotel = transformAmadeusHotel(hotel);
+                
+                // Enrich with real photos if hotel ID is available
+                if (hotel.hotelId || hotel.id) {
+                  try {
+                    const photosResponse = await supabase.functions.invoke('amadeus-hotel-photos', {
+                      body: { hotelId: hotel.hotelId || hotel.id }
+                    });
+                    
+                    if (photosResponse.data?.success && photosResponse.data.photos?.length > 0) {
+                      baseHotel.images = photosResponse.data.photos.map((photo: any) => photo.url);
                     }
-                  });
-                  
-                  if (safetyResponse.data?.success && safetyResponse.data.safetyInfo) {
-                    baseHotel.safetyRating = safetyResponse.data.safetyInfo.overallSafety;
+                  } catch (photoErr) {
+                    console.warn("Failed to fetch photos for hotel:", hotel.hotelId || hotel.id, photoErr);
                   }
-                } catch (safetyErr) {
-                  console.warn("Failed to fetch safety rating for hotel:", hotel.hotelId || hotel.id, safetyErr);
                 }
-              }
-              
-              return baseHotel;
-            })
-          );
-          
-          setHotels(transformedHotels);
+                
+                // Add safety rating if coordinates are available
+                if (hotel.location?.latitude && hotel.location?.longitude) {
+                  try {
+                    const safetyResponse = await supabase.functions.invoke('amadeus-safe-place', {
+                      body: { 
+                        latitude: hotel.location.latitude, 
+                        longitude: hotel.location.longitude 
+                      }
+                    });
+                    
+                    if (safetyResponse.data?.success && safetyResponse.data.safetyInfo) {
+                      baseHotel.safetyRating = safetyResponse.data.safetyInfo.overallSafety;
+                    }
+                  } catch (safetyErr) {
+                    console.warn("Failed to fetch safety rating for hotel:", hotel.hotelId || hotel.id, safetyErr);
+                  }
+                }
+                
+                return baseHotel;
+              })
+            );
+            
+            setHotels(transformedHotels);
+            setIsEmpty(false);
+          }
         } else {
-          console.error("No hotels found in Amadeus response:", data);
-          setError("No hotels found for your search criteria");
+          console.error("API call failed:", data);
+          setError(data?.error || "Failed to search hotels");
           setHotels([]);
+          setIsEmpty(true);
+          toast.error("Hotel search failed. Please try again.");
         }
       } catch (err) {
         console.error("Hotel search error:", err);
         setError(err instanceof Error ? err.message : "Failed to search hotels");
         toast.error("Failed to search hotels. Please try again.");
         setHotels([]);
+        setIsEmpty(true);
       } finally {
         setLoading(false);
       }
@@ -188,7 +230,7 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
     searchHotels();
   }, [criteria.destination, criteria.checkIn, criteria.checkOut, criteria.guests]);
 
-  return { hotels, loading, error };
+  return { hotels, loading, error, isEmpty, meta };
 };
 
 // This function has been removed to force use of real Amadeus data only
