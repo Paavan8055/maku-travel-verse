@@ -32,6 +32,8 @@ interface Hotel {
   amenities: string[];
   cancellationPolicy: string;
   breakfast: boolean;
+  safetyRating?: string;
+  pointsOfInterest?: any[];
   deals?: {
     type: string;
     description: string;
@@ -80,6 +82,7 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
     
     if (!criteria.destination || !criteria.checkIn || !criteria.checkOut) {
       console.log("Missing search criteria, not searching");
+      setHotels([]); // Clear previous results
       return;
     }
 
@@ -112,16 +115,59 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
         console.log("Amadeus hotel search response:", { data, error: functionError });
 
         if (functionError) {
-          throw functionError;
+          console.log("Function error, using mock data:", functionError);
+          setHotels(generateMockHotels(criteria));
+          return;
         }
 
         if (data?.success && data?.hotels && data.hotels.length > 0) {
           console.log("Found real hotel data:", data.hotels.length, "hotels");
-          // Transform Amadeus data to match our Hotel interface
-          const transformedHotels = data.hotels.map(transformAmadeusHotel);
+          
+          // Transform Amadeus data to match our Hotel interface and enrich with additional data
+          const transformedHotels = await Promise.all(
+            data.hotels.map(async (hotel: any) => {
+              const baseHotel = transformAmadeusHotel(hotel);
+              
+              // Enrich with real photos if hotel ID is available
+              if (hotel.hotelId || hotel.id) {
+                try {
+                  const photosResponse = await supabase.functions.invoke('amadeus-hotel-photos', {
+                    body: { hotelId: hotel.hotelId || hotel.id }
+                  });
+                  
+                  if (photosResponse.data?.success && photosResponse.data.photos?.length > 0) {
+                    baseHotel.images = photosResponse.data.photos.map((photo: any) => photo.url);
+                  }
+                } catch (photoErr) {
+                  console.warn("Failed to fetch photos for hotel:", hotel.hotelId || hotel.id, photoErr);
+                }
+              }
+              
+              // Add safety rating if coordinates are available
+              if (hotel.location?.latitude && hotel.location?.longitude) {
+                try {
+                  const safetyResponse = await supabase.functions.invoke('amadeus-safe-place', {
+                    body: { 
+                      latitude: hotel.location.latitude, 
+                      longitude: hotel.location.longitude 
+                    }
+                  });
+                  
+                  if (safetyResponse.data?.success && safetyResponse.data.safetyInfo) {
+                    baseHotel.safetyRating = safetyResponse.data.safetyInfo.overallSafety;
+                  }
+                } catch (safetyErr) {
+                  console.warn("Failed to fetch safety rating for hotel:", hotel.hotelId || hotel.id, safetyErr);
+                }
+              }
+              
+              return baseHotel;
+            })
+          );
+          
           setHotels(transformedHotels);
         } else {
-          console.log("No real hotel data, using mock data. API Response:", data);
+          console.log("No real hotel data found, using mock data. API Response:", data);
           // Fallback to mock data for development
           setHotels(generateMockHotels(criteria));
         }

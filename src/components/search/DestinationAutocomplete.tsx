@@ -138,6 +138,31 @@ export const DestinationAutocomplete = ({
               console.log("Amadeus results:", results.length);
             }
 
+            // Try hotel name autocomplete for accommodation searches
+            try {
+              const { data: hotelAutocompleteData } = await supabase.functions.invoke('amadeus-hotel-autocomplete', {
+                body: { query: q, limit: 4 }
+              });
+
+              if (hotelAutocompleteData?.success && hotelAutocompleteData.suggestions?.length > 0) {
+                const hotelResults = hotelAutocompleteData.suggestions.map((hotel: any) => ({
+                  id: hotel.hotelId || hotel.id,
+                  name: hotel.name,
+                  city: hotel.address?.cityName,
+                  country: hotel.address?.countryCode,
+                  type: "hotel" as const,
+                  coordinates: hotel.geoCode ? [hotel.geoCode.longitude, hotel.geoCode.latitude] as [number, number] : undefined,
+                  displayName: `${hotel.name} — ${hotel.address?.cityName || 'Hotel'}`
+                }));
+                
+                // Add hotel results to the mix
+                results = [...results, ...hotelResults].slice(0, 12);
+                console.log("Added hotel autocomplete results:", hotelResults.length);
+              }
+            } catch (hotelError) {
+              console.warn("Hotel autocomplete failed:", hotelError);
+            }
+
             // Try HotelBeds as supplementary for non-airport searches
             if (searchType !== "airport") {
               try {

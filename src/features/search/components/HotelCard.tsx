@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { MapPin, Star, Wifi, Car, Utensils, Waves } from "lucide-react";
+import { MapPin, Star, Wifi, Car, Utensils, Waves, Shield, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,8 @@ interface Hotel {
   amenities: string[];
   cancellationPolicy: string;
   breakfast: boolean;
+  safetyRating?: string;
+  pointsOfInterest?: any[];
   deals?: {
     type: string;
     description: string;
@@ -161,6 +163,12 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                     ({hotel.reviewCount} reviews)
                   </span>
                   <Badge variant="secondary">{hotel.propertyType}</Badge>
+                  {hotel.safetyRating && (
+                    <Badge variant="outline" className="text-xs">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Safety: {hotel.safetyRating}
+                    </Badge>
+                  )}
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
