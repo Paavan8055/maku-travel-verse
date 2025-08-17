@@ -24,7 +24,7 @@ interface DestinationAutocompleteProps {
   onDestinationSelect: (destination: Destination) => void;
   placeholder?: string;
   className?: string;
-  searchType?: "city" | "airport" | "both";
+  searchType?: "city" | "airport" | "both" | "hotel";
 }
 
 export const DestinationAutocomplete = ({
@@ -138,29 +138,35 @@ export const DestinationAutocomplete = ({
               console.log("Amadeus results:", results.length);
             }
 
-            // Try hotel name autocomplete for accommodation searches
-            try {
-              const { data: hotelAutocompleteData } = await supabase.functions.invoke('amadeus-hotel-autocomplete', {
-                body: { query: q, limit: 4 }
-              });
+            // Try hotel name autocomplete - prioritize for hotel search mode
+            if (searchType === "hotel" || searchType === "both") {
+              try {
+                const { data: hotelAutocompleteData } = await supabase.functions.invoke('amadeus-hotel-autocomplete', {
+                  body: { query: q, limit: searchType === "hotel" ? 8 : 4 }
+                });
 
-              if (hotelAutocompleteData?.success && hotelAutocompleteData.suggestions?.length > 0) {
-                const hotelResults = hotelAutocompleteData.suggestions.map((hotel: any) => ({
-                  id: hotel.hotelId || hotel.id,
-                  name: hotel.name,
-                  city: hotel.address?.cityName,
-                  country: hotel.address?.countryCode,
-                  type: "hotel" as const,
-                  coordinates: hotel.geoCode ? [hotel.geoCode.longitude, hotel.geoCode.latitude] as [number, number] : undefined,
-                  displayName: `${hotel.name} — ${hotel.address?.cityName || 'Hotel'}`
-                }));
-                
-                // Add hotel results to the mix
-                results = [...results, ...hotelResults].slice(0, 12);
-                console.log("Added hotel autocomplete results:", hotelResults.length);
+                if (hotelAutocompleteData?.success && hotelAutocompleteData.suggestions?.length > 0) {
+                  const hotelResults = hotelAutocompleteData.suggestions.map((hotel: any) => ({
+                    id: hotel.hotelId || hotel.id,
+                    name: hotel.name,
+                    city: hotel.address?.cityName,
+                    country: hotel.address?.countryCode,
+                    type: "hotel" as const,
+                    coordinates: hotel.geoCode ? [hotel.geoCode.longitude, hotel.geoCode.latitude] as [number, number] : undefined,
+                    displayName: `${hotel.name} — ${hotel.address?.cityName || 'Hotel'}`
+                  }));
+                  
+                  // For hotel search mode, prioritize hotels at the top
+                  if (searchType === "hotel") {
+                    results = [...hotelResults, ...results].slice(0, 12);
+                  } else {
+                    results = [...results, ...hotelResults].slice(0, 12);
+                  }
+                  console.log("Added hotel autocomplete results:", hotelResults.length);
+                }
+              } catch (hotelError) {
+                console.warn("Hotel autocomplete failed:", hotelError);
               }
-            } catch (hotelError) {
-              console.warn("Hotel autocomplete failed:", hotelError);
             }
 
             // Try HotelBeds as supplementary for non-airport searches
