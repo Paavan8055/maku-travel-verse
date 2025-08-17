@@ -4,6 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Plane, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Import destination images
+import tokyoImg from '@/assets/destinations/tokyo.jpg';
+import londonImg from '@/assets/destinations/london.jpg';
+import bangkokImg from '@/assets/destinations/bangkok.jpg';
+import newYorkImg from '@/assets/destinations/new-york.jpg';
+import singaporeImg from '@/assets/destinations/singapore.jpg';
+import dubaiImg from '@/assets/destinations/dubai.jpg';
+import maldivesImg from '@/assets/hero-maldives.jpg';
+import swissAlpsImg from '@/assets/hero-swiss-alps.jpg';
+
 interface PopularRoute {
   id: string;
   destination: string;
@@ -37,6 +47,24 @@ const getDestinationName = (code: string): string => {
     'BNE': 'Brisbane',
   };
   return destinations[code] || code;
+};
+
+const getDestinationImage = (code: string): string => {
+  const images: Record<string, string> = {
+    'NRT': tokyoImg,
+    'LON': londonImg,
+    'BKK': bangkokImg,
+    'NYC': newYorkImg,
+    'SIN': singaporeImg,
+    'DXB': dubaiImg,
+    'BOM': maldivesImg,
+    'LAX': swissAlpsImg,
+    'SYD': maldivesImg,
+    'MEL': swissAlpsImg,
+    'PER': dubaiImg,
+    'BNE': bangkokImg,
+  };
+  return images[code] || maldivesImg;
 };
 
 export function PopularRoutesSection({ onRouteSelect, origin = 'SYD' }: PopularRoutesSectionProps) {
@@ -107,34 +135,39 @@ export function PopularRoutesSection({ onRouteSelect, origin = 'SYD' }: PopularR
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {routes.slice(0, 8).map((route) => (
-          <Card key={route.id} className="hover:shadow-md transition-shadow cursor-pointer group" onClick={() => handleRouteClick(route)}>
+          <Card key={route.id} className="hover:shadow-xl transition-all duration-300 cursor-pointer group overflow-hidden border-0 bg-white shadow-lg" onClick={() => handleRouteClick(route)}>
+            <div className="relative h-48 overflow-hidden">
+              <img 
+                src={getDestinationImage(route.destination)} 
+                alt={getDestinationName(route.destination)}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="absolute top-3 left-3 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
+                <span className="font-medium text-sm">{route.departure}</span>
+                <Plane className="h-3 w-3 text-primary rotate-45" />
+                <span className="font-medium text-sm">{route.destination}</span>
+              </div>
+              <div className="absolute bottom-3 left-3 text-white">
+                <h3 className="font-bold text-lg">{getDestinationName(route.destination)}</h3>
+              </div>
+            </div>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{route.departure}</span>
-                  <Plane className="h-4 w-4 text-muted-foreground rotate-45" />
-                  <span className="font-medium text-sm">{route.destination}</span>
-                </div>
-              </div>
-              
-              <div className="mb-3">
-                <p className="text-sm text-muted-foreground">{getDestinationName(route.destination)}</p>
-              </div>
-              
               <div className="flex items-center justify-between">
                 {route.price && (
                   <div className="text-left">
-                    <p className="text-sm text-muted-foreground">from</p>
-                    <p className="font-semibold text-lg text-primary">
-                      {route.price.currency} ${route.price.total}
+                    <p className="text-xs text-muted-foreground">from</p>
+                    <p className="font-bold text-xl text-primary">
+                      ${route.price.total}
                     </p>
+                    <p className="text-xs text-muted-foreground">{route.price.currency}</p>
                   </div>
                 )}
                 
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   size="sm"
-                  className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                  className="group-hover:bg-primary-600 transition-colors shadow-md"
                 >
                   Search
                 </Button>
