@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, MapPin, Star, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ interface ActivityCardProps {
 
 export const ActivityCard = ({ activity }: ActivityCardProps) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
 
   const handleSelectActivity = () => {
     // Navigate directly to activity checkout (skip intermediate pages)
@@ -89,9 +91,10 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
     <Card className="hover:shadow-md transition-shadow h-full">
       <div className="relative">
         <img
-          src={activity.images[0] || "/placeholder.svg"}
+          src={imageError ? "/placeholder.svg" : (activity.images[0] || "/placeholder.svg")}
           alt={activity.title}
           className="w-full h-48 object-cover rounded-t-lg"
+          onError={() => setImageError(true)}
         />
         <div className="absolute top-3 left-3 flex space-x-2">
           <Badge className={getCategoryColor(activity.category)}>
