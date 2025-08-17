@@ -151,10 +151,10 @@ const searchHotels = async (params: HotelSearchParams, accessToken: string) => {
   if (params.priceRange) searchParams.append('priceRange', params.priceRange);
   if (params.bestRateOnly !== undefined) searchParams.append('bestRateOnly', params.bestRateOnly.toString());
 
-  console.log('Amadeus API call:', `https://test.api.amadeus.com/v3/shopping/hotel-offers?${searchParams}`);
+  console.log('Amadeus API call:', `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`);
 
   const response = await fetch(
-    `https://test.api.amadeus.com/v3/shopping/hotel-offers?${searchParams}`,
+    `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`,
     {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
