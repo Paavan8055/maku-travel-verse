@@ -50,13 +50,13 @@ const parseISO8601DurationToMinutes = (duration?: string): number => {
   return hours * 60 + minutes;
 };
 
-export const useFlightSearch = (criteria: FlightSearchCriteria) => {
+export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!criteria.destination || !criteria.departureDate) {
+    if (!criteria || !criteria.destination || !criteria.departureDate) {
       return;
     }
 
@@ -145,7 +145,7 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
     };
 
     searchFlights();
-  }, [criteria.origin, criteria.destination, criteria.departureDate, criteria.returnDate, criteria.passengers]);
+  }, [criteria?.origin, criteria?.destination, criteria?.departureDate, criteria?.returnDate, criteria?.passengers]);
 
   return { flights, loading, error };
 };
