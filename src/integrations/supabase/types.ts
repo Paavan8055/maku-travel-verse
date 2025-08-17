@@ -202,6 +202,75 @@ export type Database = {
         }
         Relationships: []
       }
+      airlines: {
+        Row: {
+          business_name: string | null
+          common_name: string | null
+          country_code: string | null
+          iata_code: string
+          icao_code: string | null
+          raw: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          common_name?: string | null
+          country_code?: string | null
+          iata_code: string
+          icao_code?: string | null
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          common_name?: string | null
+          country_code?: string | null
+          iata_code?: string
+          icao_code?: string | null
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      airports: {
+        Row: {
+          city_code: string | null
+          country_code: string | null
+          iata_code: string
+          icao_code: string | null
+          latitude: number | null
+          longitude: number | null
+          name: string | null
+          raw: Json | null
+          time_zone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          city_code?: string | null
+          country_code?: string | null
+          iata_code: string
+          icao_code?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string | null
+          raw?: Json | null
+          time_zone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          city_code?: string | null
+          country_code?: string | null
+          iata_code?: string
+          icao_code?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string | null
+          raw?: Json | null
+          time_zone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       booking_access_audit: {
         Row: {
           access_method: string | null
@@ -320,6 +389,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      cancellation_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string
+          order_type: string | null
+          profile_id: string | null
+          provider_payload: Json | null
+          reason: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id: string
+          order_type?: string | null
+          profile_id?: string | null
+          provider_payload?: Json | null
+          reason?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          order_type?: string | null
+          profile_id?: string | null
+          provider_payload?: Json | null
+          reason?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancellation_requests_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cities: {
         Row: {
@@ -628,6 +741,85 @@ export type Database = {
           ttl_expires_at?: string | null
         }
         Relationships: []
+      }
+      flight_order_events: {
+        Row: {
+          created_at: string | null
+          event_type: string | null
+          flights_order_id: string | null
+          id: string
+          payload: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type?: string | null
+          flights_order_id?: string | null
+          id?: string
+          payload?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string | null
+          flights_order_id?: string | null
+          id?: string
+          payload?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_order_events_flights_order_id_fkey"
+            columns: ["flights_order_id"]
+            isOneToOne: false
+            referencedRelation: "flights_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_passengers: {
+        Row: {
+          created_at: string | null
+          date_of_birth: string | null
+          document: Json | null
+          first_name: string | null
+          gender: string | null
+          id: string
+          last_name: string | null
+          loyalty: Json | null
+          profile_id: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          document?: Json | null
+          first_name?: string | null
+          gender?: string | null
+          id?: string
+          last_name?: string | null
+          loyalty?: Json | null
+          profile_id?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          document?: Json | null
+          first_name?: string | null
+          gender?: string | null
+          id?: string
+          last_name?: string | null
+          loyalty?: Json | null
+          profile_id?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_passengers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       flights_orders: {
         Row: {
@@ -1920,11 +2112,15 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          country_code: string | null
           created_at: string | null
+          currency: string | null
           email: string | null
           first_name: string | null
+          full_name: string | null
           id: string
           last_name: string | null
+          phone: string | null
           points: number | null
           total_distance: number | null
           trips_booked: number | null
@@ -1933,11 +2129,15 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string | null
+          currency?: string | null
           email?: string | null
           first_name?: string | null
+          full_name?: string | null
           id?: string
           last_name?: string | null
+          phone?: string | null
           points?: number | null
           total_distance?: number | null
           trips_booked?: number | null
@@ -1946,11 +2146,15 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string | null
+          currency?: string | null
           email?: string | null
           first_name?: string | null
+          full_name?: string | null
           id?: string
           last_name?: string | null
+          phone?: string | null
           points?: number | null
           total_distance?: number | null
           trips_booked?: number | null
