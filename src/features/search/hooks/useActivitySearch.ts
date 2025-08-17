@@ -8,6 +8,11 @@ import blueMountainsImg from "@/assets/activity-blue-mountains.jpg";
 import operaHouseImg from "@/assets/activity-opera-house.jpg";
 import surfingImg from "@/assets/activity-surfing.jpg";
 import wineTastingImg from "@/assets/activity-wine-tasting.jpg";
+import whaleWatchingImg from "@/assets/activity-whale-watching.jpg";
+import foodTourImg from "@/assets/activity-food-tour.jpg";
+import kayakingImg from "@/assets/activity-kayaking.jpg";
+import botanicGardensImg from "@/assets/activity-botanic-gardens.jpg";
+import jetBoatImg from "@/assets/activity-jet-boat.jpg";
 
 interface ActivitySearchCriteria {
   destination: string;
@@ -103,13 +108,13 @@ const generateMockActivities = (criteria: ActivitySearchCriteria): Activity[] =>
     { title: "Sydney Harbour Bridge Climb", image: bridgeClimbImg },
     { title: "Blue Mountains Day Tour", image: blueMountainsImg },
     { title: "Sydney Opera House Tour", image: operaHouseImg },
-    { title: "Whale Watching Cruise", image: "/placeholder.svg" },
+    { title: "Whale Watching Cruise", image: whaleWatchingImg },
     { title: "Bondi Beach Surfing Lesson", image: surfingImg },
     { title: "Hunter Valley Wine Tasting", image: wineTastingImg },
-    { title: "Sydney Food Walking Tour", image: "/placeholder.svg" },
-    { title: "Manly Beach Kayaking", image: "/placeholder.svg" },
-    { title: "Royal Botanic Gardens Tour", image: "/placeholder.svg" },
-    { title: "Harbour Jet Boat Ride", image: "/placeholder.svg" }
+    { title: "Sydney Food Walking Tour", image: foodTourImg },
+    { title: "Manly Beach Kayaking", image: kayakingImg },
+    { title: "Royal Botanic Gardens Tour", image: botanicGardensImg },
+    { title: "Harbour Jet Boat Ride", image: jetBoatImg }
   ];
 
   const categories = ["Adventure", "Cultural", "Food & Drink", "Nature", "Sightseeing", "Water Sports"];
