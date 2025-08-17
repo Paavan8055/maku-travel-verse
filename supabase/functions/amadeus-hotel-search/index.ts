@@ -167,8 +167,8 @@ const getHotelIds = async (cityCode: string, accessToken: string) => {
     meta: result.meta
   });
 
-  // Extract hotel IDs and limit to 20 hotels for better performance
-  const hotelIds = result.data?.map((hotel: any) => hotel.hotelId).slice(0, 20) || [];
+  // Extract hotel IDs and limit to 10 hotels for better API performance and reliability
+  const hotelIds = result.data?.map((hotel: any) => hotel.hotelId).slice(0, 10) || [];
   console.log('Extracted hotel IDs:', hotelIds.length, 'hotels');
 
   return hotelIds;
@@ -221,6 +221,36 @@ const searchHotels = async (params: HotelSearchParams, accessToken: string) => {
       params: params,
       hotelIds: hotelIds.slice(0, 5) // Log first 5 IDs for debugging
     });
+    
+    // If we get a 404, try with fewer hotels (fallback strategy)
+    if (response.status === 404 && hotelIds.length > 5) {
+      console.log('Retrying with fewer hotels due to 404 error...');
+      const fallbackHotelIds = hotelIds.slice(0, 5);
+      
+      const fallbackParams = new URLSearchParams();
+      fallbackParams.append('hotelIds', fallbackHotelIds.join(','));
+      fallbackParams.append('checkInDate', params.checkInDate);
+      fallbackParams.append('checkOutDate', params.checkOutDate);
+      if (params.roomQuantity) fallbackParams.append('roomQuantity', params.roomQuantity.toString());
+      if (params.adults) fallbackParams.append('adults', params.adults.toString());
+      if (params.bestRateOnly !== undefined) fallbackParams.append('bestRateOnly', params.bestRateOnly.toString());
+
+      const fallbackResponse = await fetch(
+        `https://test.api.amadeus.com/v2/shopping/hotel-offers?${fallbackParams}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (fallbackResponse.ok) {
+        console.log('Fallback request successful with', fallbackHotelIds.length, 'hotels');
+        return await fallbackResponse.json();
+      }
+    }
+    
     throw new Error(`Hotel search failed: ${response.statusText} - ${errorText}`);
   }
 
@@ -312,8 +342,17 @@ serve(async (req) => {
     // Validate date logic
     const checkIn = new Date(formattedCheckIn);
     const checkOut = new Date(formattedCheckOut);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     if (checkOut <= checkIn) {
       throw new Error('Check-out date must be after check-in date');
+    }
+    
+    // Validate minimum advance booking (at least 1 day from now for test API)
+    const daysDifference = Math.ceil((checkIn.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    if (daysDifference < 1) {
+      throw new Error('Check-in date must be at least 1 day from today for hotel availability');
     }
 
     // Resolve city code
