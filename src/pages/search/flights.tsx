@@ -18,6 +18,8 @@ import { DestinationAutocomplete } from "@/components/search/DestinationAutocomp
 import MultiCitySegments, { Segment as FlightSegment } from "@/components/search/MultiCitySegments";
 import { MultiCityFlightSelector } from "@/components/MultiCityFlightSelector";
 import { FlightCard } from "@/features/search/components/FlightCard";
+import { PopularRoutesSection } from "@/components/search/PopularRoutesSection";
+import { FeaturedDealsCarousel } from "@/components/search/FeaturedDealsCarousel";
 
 const FlightSearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -90,6 +92,7 @@ const FlightSearchPage = () => {
   // Multi-city state
   const [multiCitySelections, setMultiCitySelections] = useState<Array<{ segmentIndex: number; flight: any }>>([]);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const searchCriteria = {
     origin: searchParams.get("origin") || "SYD",
@@ -510,6 +513,7 @@ const FlightSearchPage = () => {
                     params.set("infants", String(infants));
                     params.set("cabinClass", cabinClass);
 
+                    setHasSearched(true);
                     navigate(`/search/flights?${params.toString()}`);
                   }}
                 >
@@ -558,6 +562,7 @@ const FlightSearchPage = () => {
                       date: format(s.date as Date, "yyyy-MM-dd"),
                     }));
                     params.set("segments", JSON.stringify(segs));
+                    setHasSearched(true);
                     navigate(`/search/flights?${params.toString()}`);
                   }}
                 >
@@ -601,23 +606,65 @@ const FlightSearchPage = () => {
           />
         )}
 
-        {/* Flight Header */}
-        <div className="mb-6">
-          {tripType === "multicity" ? (
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Segment {currentSegmentIndex + 1} of {multiCitySegments.length}: {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
-            </h1>
-          ) : (
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
-            </h1>
-          )}
-          {isRoundtrip && (
-            <p className="text-sm text-muted-foreground">
-              Return date: {searchCriteria.returnDate} • Showing departing and return options
-            </p>
-          )}
-        </div>
+        {/* Show inspiration content when no search performed yet */}
+        {!hasSearched && filteredAndSortedFlights.length === 0 && !loading ? (
+          <div className="space-y-12">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold mb-2">Discover Your Next Adventure</h1>
+              <p className="text-muted-foreground">Explore popular destinations and exclusive deals</p>
+            </div>
+            
+            <PopularRoutesSection 
+              origin={searchCriteria.origin} 
+              onRouteSelect={(departure, destination, departureDate, returnDate) => {
+                const params = new URLSearchParams();
+                params.set("tripType", returnDate ? "roundtrip" : "oneway");
+                params.set("origin", departure);
+                params.set("destination", destination);
+                if (departureDate) params.set("departureDate", departureDate);
+                if (returnDate) params.set("returnDate", returnDate);
+                params.set("passengers", String(totalPassengers));
+                
+                setHasSearched(true);
+                navigate(`/search/flights?${params.toString()}`);
+              }}
+            />
+            
+            <FeaturedDealsCarousel 
+              origin={searchCriteria.origin}
+              onDealSelect={(departure, destination, departureDate, returnDate) => {
+                const params = new URLSearchParams();
+                params.set("tripType", returnDate ? "roundtrip" : "oneway");
+                params.set("origin", departure);
+                params.set("destination", destination);
+                if (departureDate) params.set("departureDate", departureDate);
+                if (returnDate) params.set("returnDate", returnDate);
+                params.set("passengers", String(totalPassengers));
+                
+                setHasSearched(true);
+                navigate(`/search/flights?${params.toString()}`);
+              }}
+            />
+          </div>
+        ) : (
+          <React.Fragment>
+            {/* Flight Header */}
+            <div className="mb-6">
+              {tripType === "multicity" ? (
+                <h1 className="text-2xl font-bold text-foreground mb-2">
+                  Segment {currentSegmentIndex + 1} of {multiCitySegments.length}: {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
+                </h1>
+              ) : (
+                <h1 className="text-2xl font-bold text-foreground mb-2">
+                  {filteredAndSortedFlights.length} flights from {searchCriteria.origin} to {searchCriteria.destination}
+                </h1>
+              )}
+              {isRoundtrip && (
+                <p className="text-sm text-muted-foreground">
+                  Return date: {searchCriteria.returnDate} • Showing departing and return options
+                </p>
+              )}
+            </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
@@ -1106,8 +1153,10 @@ const FlightSearchPage = () => {
             )}
 
           </div>
-        </div>
+          </React.Fragment>
+        )}
       </div>
+      
       <FareSelectionDialog
         open={fareOpen}
         onOpenChange={(open) => {
