@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities_offers_cache: {
+        Row: {
+          bbox: Json | null
+          city_iata: string | null
+          created_at: string | null
+          date_from: string | null
+          date_to: string | null
+          id: string
+          offers: Json
+          search_key: string
+          ttl_expires_at: string | null
+        }
+        Insert: {
+          bbox?: Json | null
+          city_iata?: string | null
+          created_at?: string | null
+          date_from?: string | null
+          date_to?: string | null
+          id?: string
+          offers: Json
+          search_key: string
+          ttl_expires_at?: string | null
+        }
+        Update: {
+          bbox?: Json | null
+          city_iata?: string | null
+          created_at?: string | null
+          date_from?: string | null
+          date_to?: string | null
+          id?: string
+          offers?: Json
+          search_key?: string
+          ttl_expires_at?: string | null
+        }
+        Relationships: []
+      }
+      activities_orders: {
+        Row: {
+          activity_id: string
+          created_at: string | null
+          currency: string | null
+          id: string
+          meta: Json | null
+          offer_json: Json
+          participants: Json | null
+          partner_booking_id: string | null
+          profile_id: string | null
+          scheduled_at: string
+          status: string | null
+          total_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json: Json
+          participants?: Json | null
+          partner_booking_id?: string | null
+          profile_id?: string | null
+          scheduled_at: string
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json?: Json
+          participants?: Json | null
+          partner_booking_id?: string | null
+          profile_id?: string | null
+          scheduled_at?: string
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_orders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -485,6 +577,125 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      flight_offers_cache: {
+        Row: {
+          adults: number | null
+          cabin: string | null
+          children: number | null
+          created_at: string | null
+          currency: string | null
+          departure_date: string | null
+          destination: string
+          id: string
+          infants: number | null
+          offers: Json
+          origin: string
+          return_date: string | null
+          search_key: string
+          ttl_expires_at: string | null
+        }
+        Insert: {
+          adults?: number | null
+          cabin?: string | null
+          children?: number | null
+          created_at?: string | null
+          currency?: string | null
+          departure_date?: string | null
+          destination: string
+          id?: string
+          infants?: number | null
+          offers: Json
+          origin: string
+          return_date?: string | null
+          search_key: string
+          ttl_expires_at?: string | null
+        }
+        Update: {
+          adults?: number | null
+          cabin?: string | null
+          children?: number | null
+          created_at?: string | null
+          currency?: string | null
+          departure_date?: string | null
+          destination?: string
+          id?: string
+          infants?: number | null
+          offers?: Json
+          origin?: string
+          return_date?: string | null
+          search_key?: string
+          ttl_expires_at?: string | null
+        }
+        Relationships: []
+      }
+      flights_orders: {
+        Row: {
+          amadeus_order_id: string | null
+          analytics: Json | null
+          checkin_links: Json | null
+          created_at: string | null
+          id: string
+          meta: Json | null
+          offer_json: Json
+          offer_source: string
+          passengers: Json | null
+          pnr: string | null
+          price_currency: string | null
+          price_total: number | null
+          profile_id: string | null
+          seatmaps: Json | null
+          status: string | null
+          ticket_numbers: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          amadeus_order_id?: string | null
+          analytics?: Json | null
+          checkin_links?: Json | null
+          created_at?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json: Json
+          offer_source: string
+          passengers?: Json | null
+          pnr?: string | null
+          price_currency?: string | null
+          price_total?: number | null
+          profile_id?: string | null
+          seatmaps?: Json | null
+          status?: string | null
+          ticket_numbers?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          amadeus_order_id?: string | null
+          analytics?: Json | null
+          checkin_links?: Json | null
+          created_at?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json?: Json
+          offer_source?: string
+          passengers?: Json | null
+          pnr?: string | null
+          price_currency?: string | null
+          price_total?: number | null
+          profile_id?: string | null
+          seatmaps?: Json | null
+          status?: string | null
+          ticket_numbers?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flights_orders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fund_balances: {
         Row: {
@@ -967,6 +1178,33 @@ export type Database = {
           total_points?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      market_analytics: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          metric: string
+          scope: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data: Json
+          id?: string
+          metric: string
+          scope: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          metric?: string
+          scope?: Json
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1836,6 +2074,134 @@ export type Database = {
         }
         Relationships: []
       }
+      search_audit: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          params: Json
+          product: string
+          result_count: number | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          params: Json
+          product: string
+          result_count?: number | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          params?: Json
+          product?: string
+          result_count?: number | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      transfers_offers_cache: {
+        Row: {
+          created_at: string | null
+          destination: Json
+          id: string
+          luggage: Json | null
+          offers: Json
+          origin: Json
+          passengers: number | null
+          pickup_at: string
+          search_key: string
+          ttl_expires_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          destination: Json
+          id?: string
+          luggage?: Json | null
+          offers: Json
+          origin: Json
+          passengers?: number | null
+          pickup_at: string
+          search_key: string
+          ttl_expires_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          destination?: Json
+          id?: string
+          luggage?: Json | null
+          offers?: Json
+          origin?: Json
+          passengers?: number | null
+          pickup_at?: string
+          search_key?: string
+          ttl_expires_at?: string | null
+        }
+        Relationships: []
+      }
+      transfers_orders: {
+        Row: {
+          amadeus_transfer_order_id: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          meta: Json | null
+          offer_json: Json
+          passengers: Json | null
+          pickup_at: string
+          profile_id: string | null
+          status: string | null
+          total_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          amadeus_transfer_order_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json: Json
+          passengers?: Json | null
+          pickup_at: string
+          profile_id?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          amadeus_transfer_order_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json?: Json
+          passengers?: Json | null
+          pickup_at?: string
+          profile_id?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfers_orders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       travel_analytics: {
         Row: {
           carbon_footprint: number | null
@@ -2150,9 +2516,75 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_activity_order: {
+        Args: {
+          p_activity_id: string
+          p_currency: string
+          p_meta: Json
+          p_offer_json: Json
+          p_participants: Json
+          p_partner_booking_id: string
+          p_profile_id: string
+          p_scheduled: string
+          p_status: string
+          p_total_price: number
+        }
+        Returns: string
+      }
+      create_flight_order: {
+        Args: {
+          p_amadeus_order_id: string
+          p_analytics: Json
+          p_checkin_links: Json
+          p_meta: Json
+          p_offer_json: Json
+          p_offer_source: string
+          p_passengers: Json
+          p_pnr: string
+          p_price_currency: string
+          p_price_total: number
+          p_profile_id: string
+          p_seatmaps: Json
+          p_status: string
+          p_ticket_numbers: string[]
+        }
+        Returns: string
+      }
+      create_hotel_order: {
+        Args: {
+          p_amadeus_booking_id: string
+          p_checkin: string
+          p_checkout: string
+          p_confirmation_code: string
+          p_currency: string
+          p_guests: Json
+          p_hotel_id: string
+          p_meta: Json
+          p_offer_json: Json
+          p_profile_id: string
+          p_rooms: number
+          p_status: string
+          p_total_price: number
+        }
+        Returns: string
+      }
       create_partner_property: {
         Args: { p_partner_id: string; p_property_data: Json }
         Returns: Json
+      }
+      create_transfer_order: {
+        Args: {
+          p_amadeus_transfer_order_id: string
+          p_currency: string
+          p_meta: Json
+          p_offer_json: Json
+          p_passengers: Json
+          p_pickup: string
+          p_profile_id: string
+          p_status: string
+          p_total_price: number
+        }
+        Returns: string
       }
       generate_gift_card_code: {
         Args: Record<PropertyKey, never>
@@ -2227,6 +2659,69 @@ export type Database = {
           p_user_id?: string
         }
         Returns: Json
+      }
+      save_activity_search: {
+        Args: {
+          p_bbox: Json
+          p_city_iata: string
+          p_from: string
+          p_offers: Json
+          p_search_key: string
+          p_to: string
+          p_ttl: string
+        }
+        Returns: string
+      }
+      save_flight_search: {
+        Args: {
+          p_adults: number
+          p_cabin: string
+          p_children: number
+          p_currency: string
+          p_departure: string
+          p_destination: string
+          p_infants: number
+          p_offers: Json
+          p_origin: string
+          p_return: string
+          p_search_key: string
+          p_ttl: string
+        }
+        Returns: string
+      }
+      save_hotel_search: {
+        Args: {
+          p_adults: number
+          p_checkin: string
+          p_checkout: string
+          p_children: number
+          p_city_iata: string
+          p_currency: string
+          p_hotel_id: string
+          p_offers: Json
+          p_rooms: number
+          p_search_key: string
+          p_sentiments: Json
+          p_ttl: string
+        }
+        Returns: string
+      }
+      save_transfer_search: {
+        Args: {
+          p_destination: Json
+          p_luggage: Json
+          p_offers: Json
+          p_origin: Json
+          p_passengers: number
+          p_pickup: string
+          p_search_key: string
+          p_ttl: string
+        }
+        Returns: string
+      }
+      upsert_market_analytics: {
+        Args: { p_data: Json; p_metric: string; p_scope: Json }
+        Returns: string
       }
       verify_guest_booking_access: {
         Args: { _booking_id: string; _email: string; _token?: string }
