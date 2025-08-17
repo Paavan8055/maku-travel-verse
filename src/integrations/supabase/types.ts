@@ -846,7 +846,15 @@ export type Database = {
           total_price?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hotels_orders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       local_insights: {
         Row: {
@@ -2006,10 +2014,10 @@ export type Database = {
           language: string | null
           meal_preferences: string[] | null
           preferred_airlines: string[] | null
+          profile_id: string
           room_type: string | null
           seat_class: string | null
           updated_at: string | null
-          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -2018,10 +2026,10 @@ export type Database = {
           language?: string | null
           meal_preferences?: string[] | null
           preferred_airlines?: string[] | null
+          profile_id: string
           room_type?: string | null
           seat_class?: string | null
           updated_at?: string | null
-          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -2030,12 +2038,20 @@ export type Database = {
           language?: string | null
           meal_preferences?: string[] | null
           preferred_airlines?: string[] | null
+          profile_id?: string
           room_type?: string | null
           seat_class?: string | null
           updated_at?: string | null
-          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
