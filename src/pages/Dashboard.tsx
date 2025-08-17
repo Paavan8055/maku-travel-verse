@@ -22,7 +22,7 @@ import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
 import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
 import SimpleDreamMap from '@/components/dream-map/SimpleDreamMap';
 import { DetailedBookingCard } from '@/components/dashboard/DetailedBookingCard';
-import { BookingManagementDashboard } from '@/components/dashboard/BookingManagementDashboard';
+import { MyTripsSection } from '@/components/dashboard/MyTripsSection';
 
 interface BookingData {
   id: string;
@@ -306,7 +306,7 @@ export const Dashboard: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="bookings" className="space-y-6">
-              <BookingManagementDashboard />
+              <MyTripsSection />
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-6">
