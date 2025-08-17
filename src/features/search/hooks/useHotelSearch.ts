@@ -75,10 +75,14 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
     console.log("Hotel search criteria:", criteria);
     
     // Set default values if criteria is missing to force real API calls
+    // Use dates further in the future for better hotel availability
+    const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000);
+    const tenDaysFromNow = new Date(Date.now() + 10 * 86400000);
+    
     const searchCriteria = {
       destination: criteria.destination || "Sydney",
-      checkIn: criteria.checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
-      checkOut: criteria.checkOut || new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0], // Day after tomorrow
+      checkIn: criteria.checkIn || sevenDaysFromNow.toISOString().split('T')[0], // 7 days from now
+      checkOut: criteria.checkOut || tenDaysFromNow.toISOString().split('T')[0], // 10 days from now (3 night stay)
       guests: criteria.guests || 2
     };
     
