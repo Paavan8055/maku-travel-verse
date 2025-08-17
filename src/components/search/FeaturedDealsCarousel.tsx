@@ -5,6 +5,16 @@ import { Badge } from '@/components/ui/badge';
 import { Plane, Calendar, Percent } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Import destination images
+import tokyoImg from '@/assets/destinations/tokyo.jpg';
+import londonImg from '@/assets/destinations/london.jpg';
+import bangkokImg from '@/assets/destinations/bangkok.jpg';
+import newYorkImg from '@/assets/destinations/new-york.jpg';
+import singaporeImg from '@/assets/destinations/singapore.jpg';
+import dubaiImg from '@/assets/destinations/dubai.jpg';
+import maldivesImg from '@/assets/hero-maldives.jpg';
+import swissAlpsImg from '@/assets/hero-swiss-alps.jpg';
+
 interface FeaturedDeal {
   id: string;
   destination: string;
@@ -46,6 +56,24 @@ const calculateSavings = (price: string): string => {
   const priceNum = parseInt(price);
   const savings = Math.floor(priceNum * 0.15); // Mock 15% savings
   return savings.toString();
+};
+
+const getDestinationImage = (code: string): string => {
+  const images: Record<string, string> = {
+    'NRT': tokyoImg,
+    'LON': londonImg,
+    'BKK': bangkokImg,
+    'NYC': newYorkImg,
+    'SIN': singaporeImg,
+    'DXB': dubaiImg,
+    'BOM': maldivesImg,
+    'LAX': swissAlpsImg,
+    'SYD': maldivesImg,
+    'MEL': swissAlpsImg,
+    'PER': dubaiImg,
+    'BNE': bangkokImg,
+  };
+  return images[code] || maldivesImg;
 };
 
 export function FeaturedDealsCarousel({ onDealSelect, origin = 'SYD' }: FeaturedDealsCarouselProps) {
@@ -130,59 +158,84 @@ export function FeaturedDealsCarousel({ onDealSelect, origin = 'SYD' }: Featured
         <Badge variant="secondary" className="bg-primary/10 text-primary">Limited Time</Badge>
       </div>
       
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-6 overflow-x-auto pb-4">
         {deals.slice(0, 6).map((deal) => (
           <Card 
             key={deal.id} 
-            className="flex-shrink-0 w-80 hover:shadow-lg transition-all cursor-pointer group border-l-4 border-l-primary"
+            className="flex-shrink-0 w-96 hover:shadow-2xl transition-all duration-300 cursor-pointer group overflow-hidden border-0 bg-white shadow-xl"
             onClick={() => handleDealClick(deal)}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <Badge variant="destructive" className="bg-gradient-to-r from-orange-500 to-red-500">
-                  Save ${deal.savings}
-                </Badge>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDate(deal.departureDate)}</span>
+            <div className="relative h-56 overflow-hidden">
+              <img 
+                src={getDestinationImage(deal.destination)} 
+                alt={getDestinationName(deal.destination)}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              
+              {/* Savings badge */}
+              <Badge className="absolute top-4 left-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold px-3 py-1">
+                Save ${deal.savings}
+              </Badge>
+              
+              {/* Date */}
+              <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm">
+                <Calendar className="h-4 w-4" />
+                <span>{formatDate(deal.departureDate)}</span>
+              </div>
+              
+              {/* Route indicator */}
+              <div className="absolute bottom-20 left-4 right-4">
+                <div className="flex items-center justify-between text-white">
+                  <div className="text-center">
+                    <p className="font-bold text-lg">{deal.departure}</p>
+                    <p className="text-xs opacity-90">{getDestinationName(deal.departure)}</p>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-px bg-white/50"></div>
+                    <Plane className="h-5 w-5 mx-2 rotate-45" />
+                    <div className="w-8 h-px bg-white/50"></div>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-bold text-lg">{deal.destination}</p>
+                    <p className="text-xs opacity-90">{getDestinationName(deal.destination)}</p>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 mb-4">
-                <div className="text-center">
-                  <p className="font-semibold text-lg">{deal.departure}</p>
-                  <p className="text-xs text-muted-foreground">{getDestinationName(deal.departure)}</p>
-                </div>
-                <div className="flex-1 flex items-center justify-center">
-                  <Plane className="h-6 w-6 text-primary rotate-45" />
-                </div>
-                <div className="text-center">
-                  <p className="font-semibold text-lg">{deal.destination}</p>
-                  <p className="text-xs text-muted-foreground">{getDestinationName(deal.destination)}</p>
-                </div>
-              </div>
-              
-              <div className="space-y-2 mb-4">
+              {/* Destination name */}
+              <div className="absolute bottom-4 left-4">
+                <h3 className="font-bold text-2xl text-white">{getDestinationName(deal.destination)}</h3>
                 {deal.airline && (
-                  <p className="text-sm text-muted-foreground">{deal.airline}</p>
+                  <p className="text-sm text-white/80">{deal.airline}</p>
                 )}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground line-through">
-                    ${(parseInt(deal.price.total) + parseInt(deal.savings || '0')).toString()}
-                  </span>
-                  <span className="text-2xl font-bold text-primary">
-                    ${deal.price.total}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{deal.price.currency}</span>
-                </div>
               </div>
-              
-              <Button 
-                className="w-full group-hover:bg-primary-600 transition-colors" 
-                size="lg"
-              >
-                Book Now
-              </Button>
+            </div>
+            
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm text-muted-foreground line-through">
+                      ${(parseInt(deal.price.total) + parseInt(deal.savings || '0')).toString()}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold text-primary">
+                      ${deal.price.total}
+                    </span>
+                    <span className="text-sm text-muted-foreground">{deal.price.currency}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">per person</p>
+                </div>
+                
+                <Button 
+                  className="bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg group-hover:shadow-xl transition-all" 
+                  size="lg"
+                >
+                  Book Deal
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
