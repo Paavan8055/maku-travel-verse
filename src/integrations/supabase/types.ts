@@ -229,6 +229,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cities: {
+        Row: {
+          country_code: string | null
+          iata_code: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          raw: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          country_code?: string | null
+          iata_code: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          country_code?: string | null
+          iata_code?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       detailed_reviews: {
         Row: {
           booking_id: string | null
@@ -670,6 +700,153 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hotel_offers_cache: {
+        Row: {
+          adults: number | null
+          checkin: string | null
+          checkout: string | null
+          children: number | null
+          city_iata: string | null
+          created_at: string | null
+          currency: string | null
+          hotel_id: string | null
+          id: string
+          offers: Json
+          rooms: number | null
+          search_key: string
+          sentiments: Json | null
+          ttl_expires_at: string | null
+        }
+        Insert: {
+          adults?: number | null
+          checkin?: string | null
+          checkout?: string | null
+          children?: number | null
+          city_iata?: string | null
+          created_at?: string | null
+          currency?: string | null
+          hotel_id?: string | null
+          id?: string
+          offers: Json
+          rooms?: number | null
+          search_key: string
+          sentiments?: Json | null
+          ttl_expires_at?: string | null
+        }
+        Update: {
+          adults?: number | null
+          checkin?: string | null
+          checkout?: string | null
+          children?: number | null
+          city_iata?: string | null
+          created_at?: string | null
+          currency?: string | null
+          hotel_id?: string | null
+          id?: string
+          offers?: Json
+          rooms?: number | null
+          search_key?: string
+          sentiments?: Json | null
+          ttl_expires_at?: string | null
+        }
+        Relationships: []
+      }
+      hotels: {
+        Row: {
+          address: Json | null
+          amenities: string[] | null
+          city_iata: string | null
+          contact: Json | null
+          hotel_id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          raw: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: Json | null
+          amenities?: string[] | null
+          city_iata?: string | null
+          contact?: Json | null
+          hotel_id: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: Json | null
+          amenities?: string[] | null
+          city_iata?: string | null
+          contact?: Json | null
+          hotel_id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hotels_orders: {
+        Row: {
+          amadeus_booking_id: string | null
+          checkin: string | null
+          checkout: string | null
+          confirmation_code: string | null
+          created_at: string | null
+          currency: string | null
+          guests: Json | null
+          hotel_id: string | null
+          id: string
+          meta: Json | null
+          offer_json: Json
+          profile_id: string | null
+          rooms: number | null
+          status: string | null
+          total_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          amadeus_booking_id?: string | null
+          checkin?: string | null
+          checkout?: string | null
+          confirmation_code?: string | null
+          created_at?: string | null
+          currency?: string | null
+          guests?: Json | null
+          hotel_id?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json: Json
+          profile_id?: string | null
+          rooms?: number | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          amadeus_booking_id?: string | null
+          checkin?: string | null
+          checkout?: string | null
+          confirmation_code?: string | null
+          created_at?: string | null
+          currency?: string | null
+          guests?: Json | null
+          hotel_id?: string | null
+          id?: string
+          meta?: Json | null
+          offer_json?: Json
+          profile_id?: string | null
+          rooms?: number | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       local_insights: {
         Row: {
