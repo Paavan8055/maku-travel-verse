@@ -11,8 +11,13 @@ import bangkokImg from '@/assets/destinations/bangkok.jpg';
 import newYorkImg from '@/assets/destinations/new-york.jpg';
 import singaporeImg from '@/assets/destinations/singapore.jpg';
 import dubaiImg from '@/assets/destinations/dubai.jpg';
+import mumbaiImg from '@/assets/destinations/mumbai.jpg';
+import losAngelesImg from '@/assets/destinations/los-angeles.jpg';
+import sydneyImg from '@/assets/destinations/sydney.jpg';
+import melbourneImg from '@/assets/destinations/melbourne.jpg';
+import perthImg from '@/assets/destinations/perth.jpg';
+import brisbaneImg from '@/assets/destinations/brisbane.jpg';
 import maldivesImg from '@/assets/hero-maldives.jpg';
-import swissAlpsImg from '@/assets/hero-swiss-alps.jpg';
 
 interface PopularRoute {
   id: string;
@@ -57,12 +62,12 @@ const getDestinationImage = (code: string): string => {
     'NYC': newYorkImg,
     'SIN': singaporeImg,
     'DXB': dubaiImg,
-    'BOM': maldivesImg,
-    'LAX': swissAlpsImg,
-    'SYD': maldivesImg,
-    'MEL': swissAlpsImg,
-    'PER': dubaiImg,
-    'BNE': bangkokImg,
+    'BOM': mumbaiImg,
+    'LAX': losAngelesImg,
+    'SYD': sydneyImg,
+    'MEL': melbourneImg,
+    'PER': perthImg,
+    'BNE': brisbaneImg,
   };
   return images[code] || maldivesImg;
 };
