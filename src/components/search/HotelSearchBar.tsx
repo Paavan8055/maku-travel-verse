@@ -65,6 +65,7 @@ const HotelSearchBar: React.FC<HotelSearchBarProps> = ({ className }) => {
     if (dateRange?.to) qs.set("checkOut", toYMD(dateRange.to));
     qs.set("guests", String(totalGuests));
     qs.set("rooms", String(rooms.length));
+    qs.set("searched", "true"); // Add flag to indicate user searched
 
     navigate(`/search/hotels?${qs.toString()}`);
   };

@@ -130,7 +130,7 @@ const searchReducer = (state: SearchState, action: SearchAction): SearchState =>
   }
 };
 
-export const useHotelSearch = (criteria: HotelSearchCriteria) => {
+export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
   const [state, dispatch] = useReducer(searchReducer, {
     hotels: [],
     loading: false,
@@ -139,18 +139,13 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
     meta: null
   });
 
-  // Memoize search criteria to prevent unnecessary re-renders
-  const memoizedCriteria = useMemo(() => {
-    const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000);
-    const tenDaysFromNow = new Date(Date.now() + 10 * 86400000);
-    
-    return {
-      destination: criteria.destination || "Sydney",
-      checkIn: criteria.checkIn || sevenDaysFromNow.toISOString().split('T')[0],
-      checkOut: criteria.checkOut || tenDaysFromNow.toISOString().split('T')[0],
-      guests: criteria.guests || 2
-    };
-  }, [criteria.destination, criteria.checkIn, criteria.checkOut, criteria.guests]);
+  // Memoize search criteria to prevent unnecessary re-renders - only when criteria is provided
+  const memoizedCriteria = useMemo(() => criteria, [
+    criteria?.destination,
+    criteria?.checkIn,
+    criteria?.checkOut,
+    criteria?.guests
+  ]);
 
   // Stable search function
   const searchHotels = useCallback(async (searchCriteria: typeof memoizedCriteria, signal: AbortSignal) => {
@@ -228,8 +223,12 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
+    // Only search if criteria is provided and has required fields
+    if (!memoizedCriteria?.destination || !memoizedCriteria?.checkIn || !memoizedCriteria?.checkOut) {
+      return;
+    }
 
+    const controller = new AbortController();
     searchHotels(memoizedCriteria, controller.signal);
     
     return () => {

@@ -13,6 +13,8 @@ import MemberPriceBanner from "@/components/search/MemberPriceBanner";
 import SortChips from "@/components/search/SortChips";
 import MapPreviewCard from "@/components/search/MapPreviewCard";
 import HotelSearchBar from "@/components/search/HotelSearchBar";
+import { PopularHotelsSection } from "@/components/search/PopularHotelsSection";
+import { FeaturedHotelDeals } from "@/components/search/FeaturedHotelDeals";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -28,20 +30,36 @@ const HotelSearchPage = () => {
     propertyTypes: [] as string[],
     distanceFromCenter: 50
   });
-  const searchCriteria = {
-    destination: searchParams.get("destination") || "",
-    checkIn: searchParams.get("checkIn") || "",
-    checkOut: searchParams.get("checkOut") || "",
-    guests: parseInt(searchParams.get("guests") || "2")
+  const [hasSearched, setHasSearched] = useState(false);
+  
+  const destination = searchParams.get("destination") || "";
+  const checkIn = searchParams.get("checkIn") || "";
+  const checkOut = searchParams.get("checkOut") || "";
+  const guests = parseInt(searchParams.get("guests") || "2");
+
+  // Check if user came from a search (URL has 'searched' param)
+  useEffect(() => {
+    if (searchParams.get('searched') === 'true' && destination && checkIn && checkOut) {
+      setHasSearched(true);
+    }
+  }, [searchParams, destination, checkIn, checkOut]);
+
+  const { hotels, loading, error } = useHotelSearch(hasSearched ? {
+    destination,
+    checkIn,
+    checkOut,
+    guests,
+  } : null);
+
+  const handleHotelSelect = (location: string, hotelName?: string) => {
+    // This will be handled by the search bar or navigation
+    setHasSearched(true);
   };
 
-  // Check if this is a default search (no parameters provided)
-  const isDefaultSearch = !searchCriteria.destination && !searchCriteria.checkIn && !searchCriteria.checkOut;
-  const {
-    hotels,
-    loading,
-    error
-  } = useHotelSearch(searchCriteria);
+  const handleDealSelect = (location: string, hotelName?: string, checkIn?: string) => {
+    // This will be handled by the search bar or navigation
+    setHasSearched(true);
+  };
 
   // Mock user travel fund balance
   const travelFundBalance = 250.00;
@@ -97,35 +115,15 @@ const HotelSearchPage = () => {
         {/* Enhanced Header with Search Actions */}
         <HotelSearchBar />
 
-        {/* Default Search Banner */}
-        {isDefaultSearch && !loading && !error && (
-          <div className="mb-6">
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-6 text-center">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <Star className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold text-primary">Popular Hotels in Sydney</h3>
-                    <Star className="h-5 w-5 text-primary" />
-                  </div>
-                  <p className="text-muted-foreground">
-                    Showing top-rated hotels in Sydney, Australia. Use the search form above to find hotels for your specific destination and dates.
-                  </p>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary">
-                    Real hotel data from Amadeus
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+        {!hasSearched ? (
+          <div className="space-y-8">
+            <PopularHotelsSection onHotelSelect={handleHotelSelect} />
+            <FeaturedHotelDeals onDealSelect={handleDealSelect} />
           </div>
-        )}
-
-        {/* Guest Reviews Section */}
-        {/* Search Results with Enhanced Layout */}
-        <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
-              <SearchHeaderBand destination={searchCriteria.destination} checkIn={searchCriteria.checkIn} checkOut={searchCriteria.checkOut} guests={searchCriteria.guests} />
-              
-            </>} extrasBelowControls={<SortChips filters={filters} onFiltersChange={setFilters} />} sidebarAddon={<MapPreviewCard destination={searchCriteria.destination} />}>
+        ) : (
+          <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
+              <SearchHeaderBand destination={destination} checkIn={checkIn} checkOut={checkOut} guests={guests} />
+            </>} extrasBelowControls={<SortChips filters={filters} onFiltersChange={setFilters} />} sidebarAddon={<MapPreviewCard destination={destination} />}>
           {loading && <div className="space-y-4">
               {[...Array(5)].map((_, i) => <Card key={i} className="animate-pulse">
                   <CardContent className="p-6">
@@ -200,7 +198,8 @@ const HotelSearchPage = () => {
                 </div>
               </CardContent>
             </Card>}
-        </SearchResultsLayout>
+          </SearchResultsLayout>
+        )}
       </div>
     </div>;
 };
