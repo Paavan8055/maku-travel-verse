@@ -418,7 +418,8 @@ serve(async (req) => {
       checkInDate, 
       checkOutDate, 
       guests = 1,
-      rooms = 1
+      rooms = 1,
+      hotelName
     } = input;
 
     console.log('=== Amadeus Hotel Search Request ===', input);
@@ -596,7 +597,7 @@ serve(async (req) => {
     }
 
     // Enhanced transformation with better data handling
-    const transformedHotels = searchResult.data?.map((offer: any) => {
+    let transformedHotels = searchResult.data?.map((offer: any) => {
       const hotel = offer.hotel;
       const bestOffer = offer.offers?.[0];
       
@@ -658,8 +659,35 @@ serve(async (req) => {
       };
     }) || [];
 
+    // Filter by hotel name if provided
+    let finalHotels = transformedHotels;
+    let hotelFilterMessage = '';
+    
+    if (hotelName && transformedHotels.length > 0) {
+      const normalizedSearchName = hotelName.toLowerCase();
+      const filteredHotels = transformedHotels.filter(hotel => {
+        const hotelNameLower = hotel.name?.toLowerCase() || '';
+        return hotelNameLower.includes(normalizedSearchName) ||
+               normalizedSearchName.includes(hotelNameLower) ||
+               // Check for partial matches (brand names, etc.)
+               hotelNameLower.split(' ').some(word => normalizedSearchName.includes(word)) ||
+               normalizedSearchName.split(' ').some(word => hotelNameLower.includes(word));
+      });
+      
+      if (filteredHotels.length > 0) {
+        finalHotels = filteredHotels;
+        console.log(`Found ${filteredHotels.length} hotels matching "${hotelName}"`);
+      } else {
+        // Keep all hotels but add a message
+        hotelFilterMessage = `${hotelName} not available, showing other hotels in ${destination}`;
+        console.log(`Hotel "${hotelName}" not found, showing all ${transformedHotels.length} hotels in ${destination}`);
+      }
+    }
+
     console.log(`=== Search Complete ===`, {
-      hotelsFound: transformedHotels.length,
+      hotelsFound: finalHotels.length,
+      originalCount: transformedHotels.length,
+      hotelFiltered: !!hotelName,
       cityResolved: searchContext.cityCode || `${searchContext.latitude},${searchContext.longitude}`,
       pathTaken: meta.pathTaken,
       dateAdjusted: meta.dateAdjusted,
@@ -669,19 +697,22 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       source: 'amadeus',
-      hotels: transformedHotels,
+      hotels: finalHotels,
       searchCriteria: { 
         destination: searchContext.cityCode || destination,
         checkInDate: searchContext.checkInDate, 
         checkOutDate: searchContext.checkOutDate, 
         guests, 
-        rooms 
+        rooms,
+        hotelName 
       },
       meta: {
         ...meta,
-        totalResults: transformedHotels.length,
+        totalResults: finalHotels.length,
+        originalResults: transformedHotels.length,
         apiProvider: 'Amadeus',
-        searchId: crypto.randomUUID()
+        searchId: crypto.randomUUID(),
+        message: hotelFilterMessage || undefined
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

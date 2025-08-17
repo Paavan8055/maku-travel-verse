@@ -36,6 +36,7 @@ const HotelSearchPage = () => {
   const checkIn = searchParams.get("checkIn") || "";
   const checkOut = searchParams.get("checkOut") || "";
   const guests = parseInt(searchParams.get("guests") || "2");
+  const hotelName = searchParams.get("hotelName") || "";
 
   // Check if user came from a search (URL has 'searched' param)
   useEffect(() => {
@@ -49,6 +50,7 @@ const HotelSearchPage = () => {
     checkIn,
     checkOut,
     guests,
+    hotelName: hotelName || undefined
   } : null);
 
   const handleHotelSelect = (location: string, hotelName?: string) => {
@@ -122,7 +124,7 @@ const HotelSearchPage = () => {
           </div>
         ) : (
           <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
-              <SearchHeaderBand destination={destination} checkIn={checkIn} checkOut={checkOut} guests={guests} />
+              <SearchHeaderBand destination={destination} checkIn={checkIn} checkOut={checkOut} guests={guests} hotelName={hotelName} />
             </>} extrasBelowControls={<SortChips filters={filters} onFiltersChange={setFilters} />} sidebarAddon={<MapPreviewCard destination={destination} />}>
           {loading && <div className="space-y-4">
               {[...Array(5)].map((_, i) => <Card key={i} className="animate-pulse">

@@ -42,6 +42,7 @@ const HotelSearchBar: React.FC<HotelSearchBarProps> = ({ className }) => {
   // Rooms & Guests (default 1 room, 2 adults)
   const initialGuests = Math.max(1, parseInt(params.get("guests") || "2"));
   const [rooms, setRooms] = useState([{ adults: Math.min(initialGuests, 8), children: [] as number[] }]);
+  const hotelName = params.get("hotelName") || "";
 
   useEffect(() => {
     // If guests > 8, just keep a single room and cap adults; simple MVP
@@ -80,8 +81,11 @@ const HotelSearchBar: React.FC<HotelSearchBarProps> = ({ className }) => {
               value={destination}
               onChange={setDestination}
               onDestinationSelect={(d) => setDestination(d.name)}
-              placeholder="Search places or properties"
+              placeholder={hotelName ? `${hotelName} in ${destination}` : "Search places or properties"}
             />
+            {hotelName && (
+              <p className="text-sm text-muted-foreground mt-1">Searching for: {hotelName}</p>
+            )}
           </div>
 
           {/* Dates */}
