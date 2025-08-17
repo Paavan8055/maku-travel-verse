@@ -80,11 +80,15 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
   useEffect(() => {
     console.log("Hotel search criteria:", criteria);
     
-    if (!criteria.destination || !criteria.checkIn || !criteria.checkOut) {
-      console.log("Missing search criteria, not searching");
-      setHotels([]); // Clear previous results
-      return;
-    }
+    // Set default values if criteria is missing to force real API calls
+    const searchCriteria = {
+      destination: criteria.destination || "Sydney",
+      checkIn: criteria.checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+      checkOut: criteria.checkOut || new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0], // Day after tomorrow
+      guests: criteria.guests || 2
+    };
+    
+    console.log("Using search criteria (with defaults):", searchCriteria);
 
     const searchHotels = async () => {
       console.log("Starting hotel search...");
@@ -93,19 +97,19 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
 
       try {
         console.log("Calling amadeus-hotel-search function with:", {
-          destination: criteria.destination,
-          checkInDate: criteria.checkIn,
-          checkOutDate: criteria.checkOut,
-          guests: criteria.guests
+          destination: searchCriteria.destination,
+          checkInDate: searchCriteria.checkIn,
+          checkOutDate: searchCriteria.checkOut,
+          guests: searchCriteria.guests
         });
 
         // Use direct Amadeus Hotel Search API with correct parameter names
         const { data, error: functionError } = await supabase.functions.invoke('amadeus-hotel-search', {
           body: {
-            destination: criteria.destination,
-            checkInDate: criteria.checkIn,
-            checkOutDate: criteria.checkOut,
-            guests: criteria.guests,
+            destination: searchCriteria.destination,
+            checkInDate: searchCriteria.checkIn,
+            checkOutDate: searchCriteria.checkOut,
+            guests: searchCriteria.guests,
             rooms: 1,
             radius: 5,
             bestRateOnly: true
@@ -115,8 +119,10 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
         console.log("Amadeus hotel search response:", { data, error: functionError });
 
         if (functionError) {
-          console.log("Function error, using mock data:", functionError);
-          setHotels(generateMockHotels(criteria));
+          console.error("Amadeus API error:", functionError);
+          setError("Failed to search hotels with Amadeus API");
+          toast.error("Hotel search failed. Please try again.");
+          setHotels([]);
           return;
         }
 
@@ -167,17 +173,15 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
           
           setHotels(transformedHotels);
         } else {
-          console.log("No real hotel data found, using mock data. API Response:", data);
-          // Fallback to mock data for development
-          setHotels(generateMockHotels(criteria));
+          console.error("No hotels found in Amadeus response:", data);
+          setError("No hotels found for your search criteria");
+          setHotels([]);
         }
       } catch (err) {
         console.error("Hotel search error:", err);
         setError(err instanceof Error ? err.message : "Failed to search hotels");
-        toast.error("Failed to search hotels. Showing sample results.");
-        
-        // Show mock data on error
-        setHotels(generateMockHotels(criteria));
+        toast.error("Failed to search hotels. Please try again.");
+        setHotels([]);
       } finally {
         setLoading(false);
       }
@@ -189,58 +193,4 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
   return { hotels, loading, error };
 };
 
-// Mock data generator for development
-const generateMockHotels = (criteria: HotelSearchCriteria): Hotel[] => {
-  const hotelData = [
-    { name: "Shangri-La Sydney", image: shangriLaImg },
-    { name: "Park Hyatt Sydney", image: parkHyattImg },
-    { name: "Four Seasons Sydney", image: boutiqueImg },
-    { name: "The Langham Sydney", image: shangriLaImg },
-    { name: "InterContinental Sydney", image: parkHyattImg },
-    { name: "Hilton Sydney", image: budgetImg },
-    { name: "Marriott Sydney Harbour", image: boutiqueImg },
-    { name: "Swissotel Sydney", image: budgetImg }
-  ];
-
-  const propertyTypes = ["Hotel", "Resort", "Boutique", "Apartment"];
-  const amenities = ["WiFi", "Pool", "Gym", "Spa", "Parking", "Restaurant", "Bar", "Room Service"];
-
-  const hotels: Hotel[] = [];
-  
-  const checkInDate = new Date(criteria.checkIn);
-  const checkOutDate = new Date(criteria.checkOut);
-  const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
-
-  for (let i = 0; i < hotelData.length; i++) {
-    const basePrice = 150 + Math.random() * 350;
-    const starRating = Math.floor(Math.random() * 3) + 3; // 3-5 stars
-    const rating = 3.5 + Math.random() * 1.5; // 3.5-5.0 rating
-    const hotelAmenities = amenities.sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 4) + 3);
-    
-    hotels.push({
-      id: `hotel-${i + 1}`,
-      name: hotelData[i].name,
-      description: `Experience luxury and comfort at ${hotelData[i].name}, perfectly located in the heart of ${criteria.destination}. Enjoy stunning views, world-class amenities, and exceptional service.`,
-      address: `${Math.floor(Math.random() * 500) + 1} ${criteria.destination} Street, ${criteria.destination}`,
-      images: [hotelData[i].image],
-      starRating,
-      rating: Math.round(rating * 10) / 10,
-      reviewCount: Math.floor(Math.random() * 2000) + 100,
-      pricePerNight: Math.round(basePrice),
-      currency: "$",
-      totalPrice: Math.round(basePrice * nights),
-      propertyType: propertyTypes[Math.floor(Math.random() * propertyTypes.length)],
-      distanceFromCenter: Math.round((Math.random() * 5 + 0.1) * 10) / 10,
-      amenities: hotelAmenities,
-      cancellationPolicy: Math.random() < 0.6 ? "Free cancellation" : "Non-refundable",
-      breakfast: Math.random() < 0.4,
-      deals: Math.random() < 0.3 ? {
-        type: "Early Bird",
-        description: "Book now and save",
-        savings: Math.floor(Math.random() * 100) + 20
-      } : undefined
-    });
-  }
-
-  return hotels.sort((a, b) => a.pricePerNight - b.pricePerNight);
-};
+// This function has been removed to force use of real Amadeus data only
