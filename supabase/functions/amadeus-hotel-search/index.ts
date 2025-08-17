@@ -6,25 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Configuration
+const MIN_LEAD_DAYS = parseInt(Deno.env.get("MIN_HOTEL_LEAD_DAYS") || "7");
+const MAX_RADIUS_KM = 25;
+const BASE_RADIUS_KM = 10;
+
 interface AmadeusAuthResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
 }
 
-interface HotelSearchParams {
-  cityCode: string;
+interface SearchContext {
+  cityCode?: string;
+  cityName?: string;
+  latitude?: number;
+  longitude?: number;
   checkInDate: string;
   checkOutDate: string;
-  roomQuantity?: number;
-  adults?: number;
+  adults: number;
+  roomQuantity: number;
   radius?: number;
-  radiusUnit?: string;
-  amenities?: string[];
-  ratings?: string[];
-  hotelChain?: string;
-  priceRange?: string;
-  bestRateOnly?: boolean;
+}
+
+interface SearchMeta {
+  pathTaken: string[];
+  dateAdjusted: boolean;
+  suggestedDates?: { checkIn: string; checkOut: string };
+  alternativeAreas?: string[];
+  apiCallsUsed: number;
+  errors: Array<{ step: string; error: string; statusCode?: number }>;
 }
 
 // Comprehensive city mapping for better coverage
@@ -60,49 +71,147 @@ const getCityMapping = (): { [key: string]: string } => ({
   'lahore': 'LHE', 'kabul': 'KBL'
 });
 
-// Validate and format dates
-const validateDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date format: ${dateString}`);
+// Enhanced date handling with auto-adjustment
+const ensureDateLead = (checkIn: string, checkOut: string): { 
+  checkInDate: string; 
+  checkOutDate: string; 
+  dateAdjusted: boolean; 
+  suggestedDates?: { checkIn: string; checkOut: string }; 
+} => {
+  const checkInDate = new Date(checkIn);
+  const checkOutDate = new Date(checkOut);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
+    throw new Error('Invalid date format provided');
   }
-  return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+  
+  if (checkOutDate <= checkInDate) {
+    throw new Error('Check-out date must be after check-in date');
+  }
+  
+  const leadDays = Math.ceil((checkInDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+  
+  if (leadDays < MIN_LEAD_DAYS) {
+    const adjustedCheckIn = new Date(today);
+    adjustedCheckIn.setDate(today.getDate() + MIN_LEAD_DAYS);
+    const stayLength = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
+    const adjustedCheckOut = new Date(adjustedCheckIn);
+    adjustedCheckOut.setDate(adjustedCheckIn.getDate() + stayLength);
+    
+    return {
+      checkInDate: adjustedCheckIn.toISOString().split('T')[0],
+      checkOutDate: adjustedCheckOut.toISOString().split('T')[0],
+      dateAdjusted: true,
+      suggestedDates: {
+        checkIn: adjustedCheckIn.toISOString().split('T')[0],
+        checkOut: adjustedCheckOut.toISOString().split('T')[0]
+      }
+    };
+  }
+  
+  return {
+    checkInDate: checkIn,
+    checkOutDate: checkOut,
+    dateAdjusted: false
+  };
 };
 
-// Enhanced city code resolution
-const resolveCityCode = (destination: string): string => {
-  if (!destination) {
-    throw new Error('Destination is required');
+// Enhanced city resolution with Amadeus API
+const resolveCity = async (input: { destination?: string; cityCode?: string; latitude?: number; longitude?: number }, accessToken: string): Promise<{
+  cityCode?: string;
+  cityName?: string;
+  latitude?: number;
+  longitude?: number;
+}> => {
+  const destination = input.destination || input.cityCode;
+  
+  if (!destination && !input.latitude) {
+    throw new Error('Destination or coordinates are required');
   }
 
+  // A: Direct cityCode validation
+  if (input.cityCode && /^[A-Z]{3}$/.test(input.cityCode)) {
+    return { cityCode: input.cityCode };
+  }
+  
   // If it's already a 3-letter code, return as is
-  if (/^[A-Z]{3}$/.test(destination)) {
-    return destination;
+  if (destination && /^[A-Z]{3}$/.test(destination)) {
+    return { cityCode: destination };
   }
 
   const cityMappings = getCityMapping();
-  const normalizedDestination = destination.toLowerCase().trim();
+  const normalizedDestination = destination?.toLowerCase().trim();
   
-  // Direct mapping
-  if (cityMappings[normalizedDestination]) {
-    return cityMappings[normalizedDestination];
+  // Direct mapping first
+  if (normalizedDestination && cityMappings[normalizedDestination]) {
+    return { cityCode: cityMappings[normalizedDestination], cityName: destination };
   }
   
-  // Partial matching for common variations
+  try {
+    // B: Try Amadeus cities API
+    if (destination) {
+      const citiesResponse = await fetch(
+        `https://test.api.amadeus.com/v1/reference-data/locations/cities?keyword=${encodeURIComponent(destination)}&max=5`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+      );
+      
+      if (citiesResponse.ok) {
+        const citiesData = await citiesResponse.json();
+        if (citiesData.data?.[0]) {
+          const city = citiesData.data[0];
+          return {
+            cityCode: city.iataCode,
+            cityName: city.name,
+            latitude: city.geoCode?.latitude,
+            longitude: city.geoCode?.longitude
+          };
+        }
+      }
+    }
+    
+    // C: Try general locations API
+    if (destination) {
+      const locationsResponse = await fetch(
+        `https://test.api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(destination)}&subType=CITY,AIRPORT&max=10`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+      );
+      
+      if (locationsResponse.ok) {
+        const locationsData = await locationsResponse.json();
+        const city = locationsData.data?.find((loc: any) => loc.subType === 'CITY') || locationsData.data?.[0];
+        if (city) {
+          return {
+            cityCode: city.iataCode,
+            cityName: city.name,
+            latitude: city.geoCode?.latitude,
+            longitude: city.geoCode?.longitude
+          };
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('Amadeus location resolution failed:', error.message);
+  }
+  
+  // Fallback to static mapping or throw
   for (const [city, code] of Object.entries(cityMappings)) {
-    if (city.includes(normalizedDestination) || normalizedDestination.includes(city)) {
-      return code;
+    if (normalizedDestination && (city.includes(normalizedDestination) || normalizedDestination.includes(city))) {
+      return { cityCode: code, cityName: destination };
     }
   }
   
-  // If no mapping found, try to extract first 3 letters and uppercase
-  const fallbackCode = destination.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase();
-  if (fallbackCode.length === 3) {
-    console.warn(`Using fallback city code ${fallbackCode} for destination: ${destination}`);
-    return fallbackCode;
+  // Use coordinates if available
+  if (input.latitude && input.longitude) {
+    return { latitude: input.latitude, longitude: input.longitude };
   }
   
-  throw new Error(`Unable to resolve city code for destination: ${destination}`);
+  throw new Error(`Unable to resolve city: ${destination}`);
 };
 
 const getAmadeusAccessToken = async (): Promise<string> => {
@@ -135,55 +244,128 @@ const getAmadeusAccessToken = async (): Promise<string> => {
   return data.access_token;
 };
 
-// Try direct city search first without hotel IDs
-const searchHotelsByCity = async (params: HotelSearchParams, accessToken: string) => {
-  const searchParams = new URLSearchParams();
+// Multi-strategy search implementation
+const searchPrimaryV3 = async (ctx: SearchContext, accessToken: string): Promise<{ ok: boolean; data: any[]; statusCode: number; error?: string }> => {
+  if (!ctx.cityCode) return { ok: false, data: [], statusCode: 400, error: 'No cityCode available' };
   
-  // Use cityCode directly instead of hotel IDs
-  searchParams.append('cityCode', params.cityCode);
-  searchParams.append('checkInDate', params.checkInDate);
-  searchParams.append('checkOutDate', params.checkOutDate);
-
-  if (params.roomQuantity) searchParams.append('roomQuantity', params.roomQuantity.toString());
-  if (params.adults) searchParams.append('adults', params.adults.toString());
-  if (params.radius) searchParams.append('radius', params.radius.toString());
-  if (params.amenities?.length) searchParams.append('amenities', params.amenities.join(','));
-  if (params.ratings?.length) searchParams.append('ratings', params.ratings.join(','));
-  if (params.hotelChain) searchParams.append('hotelChain', params.hotelChain);
-  if (params.priceRange) searchParams.append('priceRange', params.priceRange);
-  if (params.bestRateOnly !== undefined) searchParams.append('bestRateOnly', params.bestRateOnly.toString());
-
-  console.log('Direct city search API call:', `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`);
-
-  const response = await fetch(
-    `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Amadeus direct city search error:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText,
-      params: params
-    });
-    throw new Error(`Direct city search failed: ${response.statusText} - ${errorText}`);
-  }
-
-  const result = await response.json();
-  console.log('Amadeus Direct City Search API response:', {
-    dataCount: result.data?.length || 0,
-    meta: result.meta,
-    warnings: result.warnings
+  const searchParams = new URLSearchParams({
+    cityCode: ctx.cityCode,
+    checkInDate: ctx.checkInDate,
+    checkOutDate: ctx.checkOutDate,
+    adults: ctx.adults.toString(),
+    roomQuantity: ctx.roomQuantity.toString()
   });
+  
+  if (ctx.radius) searchParams.append('radius', ctx.radius.toString());
+  
+  try {
+    const response = await fetch(
+      `https://test.api.amadeus.com/v3/shopping/hotel-offers?${searchParams}`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    
+    const result = await response.json();
+    return {
+      ok: response.ok,
+      data: result.data || [],
+      statusCode: response.status,
+      error: response.ok ? undefined : result.errors?.[0]?.detail || response.statusText
+    };
+  } catch (error) {
+    return { ok: false, data: [], statusCode: 500, error: error.message };
+  }
+};
 
-  return result;
+const searchFallbackV2 = async (ctx: SearchContext, accessToken: string): Promise<{ ok: boolean; data: any[]; statusCode: number; error?: string }> => {
+  if (!ctx.cityCode) return { ok: false, data: [], statusCode: 400, error: 'No cityCode available' };
+  
+  const searchParams = new URLSearchParams({
+    cityCode: ctx.cityCode,
+    checkInDate: ctx.checkInDate,
+    checkOutDate: ctx.checkOutDate,
+    adults: ctx.adults.toString(),
+    roomQuantity: ctx.roomQuantity.toString()
+  });
+  
+  try {
+    const response = await fetch(
+      `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    
+    const result = await response.json();
+    return {
+      ok: response.ok,
+      data: result.data || [],
+      statusCode: response.status,
+      error: response.ok ? undefined : result.errors?.[0]?.detail || response.statusText
+    };
+  } catch (error) {
+    return { ok: false, data: [], statusCode: 500, error: error.message };
+  }
+};
+
+const listHotelsByCity = async (cityCode: string, accessToken: string): Promise<string[]> => {
+  try {
+    const response = await fetch(
+      `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=${cityCode}&radius=15&radiusUnit=KM&hotelSource=ALL`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result.data?.map((hotel: any) => hotel.hotelId).slice(0, 100) || [];
+    }
+  } catch (error) {
+    console.warn('Hotel list by city failed:', error.message);
+  }
+  return [];
+};
+
+const listHotelsByGeocode = async (latitude: number, longitude: number, radiusKm: number, accessToken: string): Promise<string[]> => {
+  try {
+    const response = await fetch(
+      `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode?latitude=${latitude}&longitude=${longitude}&radius=${radiusKm}&radiusUnit=KM&hotelSource=ALL`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result.data?.map((hotel: any) => hotel.hotelId).slice(0, 100) || [];
+    }
+  } catch (error) {
+    console.warn('Hotel list by geocode failed:', error.message);
+  }
+  return [];
+};
+
+const offersByHotelIds = async (ctx: SearchContext, hotelIds: string[], accessToken: string): Promise<{ ok: boolean; data: any[]; statusCode: number; error?: string }> => {
+  if (!hotelIds.length) return { ok: false, data: [], statusCode: 400, error: 'No hotel IDs provided' };
+  
+  const searchParams = new URLSearchParams({
+    hotelIds: hotelIds.join(','),
+    checkInDate: ctx.checkInDate,
+    checkOutDate: ctx.checkOutDate,
+    adults: ctx.adults.toString(),
+    roomQuantity: ctx.roomQuantity.toString()
+  });
+  
+  try {
+    const response = await fetch(
+      `https://test.api.amadeus.com/v3/shopping/hotel-offers?${searchParams}`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    
+    const result = await response.json();
+    return {
+      ok: response.ok,
+      data: result.data || [],
+      statusCode: response.status,
+      error: response.ok ? undefined : result.errors?.[0]?.detail || response.statusText
+    };
+  } catch (error) {
+    return { ok: false, data: [], statusCode: 500, error: error.message };
+  }
 };
 
 // Enhanced amenity parsing
@@ -227,96 +409,201 @@ serve(async (req) => {
   }
 
   try {
+    const input = await req.json();
     const { 
       destination,
+      cityCode,
+      latitude,
+      longitude,
       checkInDate, 
       checkOutDate, 
       guests = 1,
-      rooms = 1,
-      radius = 5,
-      amenities,
-      ratings,
-      hotelChain,
-      priceRange
-    } = await req.json();
+      rooms = 1
+    } = input;
 
-    console.log('=== Amadeus Hotel Search Request ===', {
-      destination,
-      checkInDate,
-      checkOutDate,
-      guests,
-      rooms,
-      radius
-    });
+    console.log('=== Amadeus Hotel Search Request ===', input);
 
-    // Validate required fields
-    if (!destination) {
-      throw new Error('Destination is required');
-    }
-    if (!checkInDate || !checkOutDate) {
-      throw new Error('Check-in and check-out dates are required');
-    }
+    const meta: SearchMeta = {
+      pathTaken: [],
+      dateAdjusted: false,
+      apiCallsUsed: 0,
+      errors: []
+    };
 
-    // Validate and format dates
-    const formattedCheckIn = validateDate(checkInDate);
-    const formattedCheckOut = validateDate(checkOutDate);
-
-    // Validate date logic
-    const checkIn = new Date(formattedCheckIn);
-    const checkOut = new Date(formattedCheckOut);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Enhanced date handling with auto-adjustment
+    const dateResult = ensureDateLead(checkInDate, checkOutDate);
+    const searchDates = {
+      checkInDate: dateResult.checkInDate,
+      checkOutDate: dateResult.checkOutDate
+    };
     
-    if (checkOut <= checkIn) {
-      throw new Error('Check-out date must be after check-in date');
+    if (dateResult.dateAdjusted) {
+      meta.dateAdjusted = true;
+      meta.suggestedDates = dateResult.suggestedDates;
+      console.log('Dates adjusted for minimum lead time:', meta.suggestedDates);
     }
-    
-    // Validate minimum advance booking (at least 1 day from now for test API)
-    const daysDifference = Math.ceil((checkIn.getTime() - today.getTime()) / (1000 * 3600 * 24));
-    if (daysDifference < 1) {
-      throw new Error('Check-in date must be at least 1 day from today for hotel availability');
-    }
-
-    // Resolve city code
-    const cityCode = resolveCityCode(destination);
-    console.log(`Resolved city code: ${destination} -> ${cityCode}`);
 
     // Get Amadeus access token
     const accessToken = await getAmadeusAccessToken();
+    meta.apiCallsUsed++;
 
-    // Try direct city search first (this is more reliable than hotel IDs)
-    let hotelOffers;
-    try {
-      console.log('Attempting direct city search...');
-      hotelOffers = await searchHotelsByCity({
-        cityCode,
-        checkInDate: formattedCheckIn,
-        checkOutDate: formattedCheckOut,
-        roomQuantity: rooms,
-        adults: guests,
-        radius,
-        amenities,
-        ratings,
-        hotelChain,
-        priceRange,
-        bestRateOnly: true
-      }, accessToken);
-    } catch (error) {
-      console.error('Direct city search failed, this might be expected for some cities:', error.message);
-      throw new Error(`Hotel search failed: ${error.message}. Please try a different destination or date range.`);
+    // Enhanced city resolution
+    const cityResolution = await resolveCity({ destination, cityCode, latitude, longitude }, accessToken);
+    meta.apiCallsUsed++;
+    
+    const searchContext: SearchContext = {
+      ...cityResolution,
+      ...searchDates,
+      adults: guests,
+      roomQuantity: rooms,
+      radius: BASE_RADIUS_KM
+    };
+
+    console.log('Resolved search context:', searchContext);
+
+    // Multi-strategy search chain
+    let searchResult: { ok: boolean; data: any[]; statusCode: number; error?: string } | null = null;
+
+    // Primary: v3 by cityCode
+    if (searchContext.cityCode) {
+      console.log('Attempting primary v3 search...');
+      searchResult = await searchPrimaryV3(searchContext, accessToken);
+      meta.apiCallsUsed++;
+      meta.pathTaken.push('v3_primary');
+      
+      if (!searchResult.ok) {
+        meta.errors.push({ step: 'v3_primary', error: searchResult.error || 'Unknown error', statusCode: searchResult.statusCode });
+      }
     }
 
-    if (!hotelOffers.data || hotelOffers.data.length === 0) {
-      throw new Error('No hotels found for the specified search criteria. Please try different dates or destination.');
+    // Fallback 1: v2 by cityCode
+    if ((!searchResult?.ok || !searchResult.data.length) && searchContext.cityCode) {
+      console.log('Attempting v2 fallback...');
+      searchResult = await searchFallbackV2(searchContext, accessToken);
+      meta.apiCallsUsed++;
+      meta.pathTaken.push('v2_fallback');
+      
+      if (!searchResult.ok) {
+        meta.errors.push({ step: 'v2_fallback', error: searchResult.error || 'Unknown error', statusCode: searchResult.statusCode });
+      }
+    }
+
+    // Fallback 2: hotel list → by-hotel offers
+    if ((!searchResult?.ok || !searchResult.data.length) && searchContext.cityCode) {
+      console.log('Attempting hotel list by city...');
+      const hotelIds = await listHotelsByCity(searchContext.cityCode, accessToken);
+      meta.apiCallsUsed++;
+      meta.pathTaken.push('hotel_list_city');
+      
+      if (hotelIds.length > 0) {
+        console.log(`Found ${hotelIds.length} hotels, searching offers...`);
+        searchResult = await offersByHotelIds(searchContext, hotelIds, accessToken);
+        meta.apiCallsUsed++;
+        meta.pathTaken.push('offers_by_hotels');
+        
+        if (!searchResult.ok) {
+          meta.errors.push({ step: 'offers_by_hotels', error: searchResult.error || 'Unknown error', statusCode: searchResult.statusCode });
+        }
+      }
+    }
+
+    // Fallback 3: geocode search with expanding radius
+    if ((!searchResult?.ok || !searchResult.data.length) && searchContext.latitude && searchContext.longitude) {
+      for (const radius of [BASE_RADIUS_KM, MAX_RADIUS_KM]) {
+        console.log(`Attempting geocode search with ${radius}km radius...`);
+        const hotelIds = await listHotelsByGeocode(searchContext.latitude, searchContext.longitude, radius, accessToken);
+        meta.apiCallsUsed++;
+        meta.pathTaken.push(`geocode_${radius}km`);
+        
+        if (hotelIds.length > 0) {
+          searchResult = await offersByHotelIds(searchContext, hotelIds, accessToken);
+          meta.apiCallsUsed++;
+          meta.pathTaken.push(`offers_geocode_${radius}km`);
+          
+          if (searchResult.ok && searchResult.data.length > 0) {
+            break;
+          } else if (!searchResult.ok) {
+            meta.errors.push({ step: `offers_geocode_${radius}km`, error: searchResult.error || 'Unknown error', statusCode: searchResult.statusCode });
+          }
+        }
+      }
+    }
+
+    // Fallback 4: date bump (+7 days) and retry once
+    if ((!searchResult?.ok || !searchResult.data.length) && !meta.dateAdjusted) {
+      console.log('Attempting date bump fallback...');
+      const bumpedCheckIn = new Date(searchContext.checkInDate);
+      bumpedCheckIn.setDate(bumpedCheckIn.getDate() + 7);
+      const bumpedCheckOut = new Date(searchContext.checkOutDate);
+      bumpedCheckOut.setDate(bumpedCheckOut.getDate() + 7);
+      
+      const bumpedContext = {
+        ...searchContext,
+        checkInDate: bumpedCheckIn.toISOString().split('T')[0],
+        checkOutDate: bumpedCheckOut.toISOString().split('T')[0]
+      };
+      
+      if (bumpedContext.cityCode) {
+        searchResult = await searchPrimaryV3(bumpedContext, accessToken);
+        meta.apiCallsUsed++;
+        meta.pathTaken.push('date_bump_v3');
+        meta.dateAdjusted = true;
+        meta.suggestedDates = {
+          checkIn: bumpedContext.checkInDate,
+          checkOut: bumpedContext.checkOutDate
+        };
+        
+        if (!searchResult.ok) {
+          meta.errors.push({ step: 'date_bump_v3', error: searchResult.error || 'Unknown error', statusCode: searchResult.statusCode });
+        }
+      }
+    }
+
+    console.log('Search completed:', {
+      success: searchResult?.ok && searchResult.data.length > 0,
+      dataCount: searchResult?.data.length || 0,
+      pathTaken: meta.pathTaken,
+      apiCallsUsed: meta.apiCallsUsed
+    });
+
+    // Check if we have any results
+    if (!searchResult?.ok || !searchResult.data.length) {
+      // Provide friendly guidance instead of hard error
+      const isEmpty = true;
+      const friendlyError = meta.dateAdjusted 
+        ? `No test-environment offers found for ${searchContext.cityName || searchContext.cityCode || destination}. We tried adjusting your dates to ${meta.suggestedDates?.checkIn} - ${meta.suggestedDates?.checkOut}.`
+        : `No test-environment offers found for ${searchContext.cityName || searchContext.cityCode || destination} on these dates.`;
+      
+      return new Response(JSON.stringify({
+        success: true,
+        hotels: [],
+        isEmpty: true,
+        error: friendlyError,
+        meta: {
+          ...meta,
+          totalResults: 0,
+          isEmpty: true,
+          message: 'Try different dates or nearby areas',
+          alternativeSuggestions: [
+            meta.suggestedDates ? 'Try the suggested dates above' : 'Try dates 1-2 weeks from now',
+            'Search for nearby cities or areas',
+            'Consider different guest counts or room configurations'
+          ]
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Enhanced transformation with better data handling
-    const transformedHotels = hotelOffers.data?.map((offer: any) => {
+    const transformedHotels = searchResult.data?.map((offer: any) => {
       const hotel = offer.hotel;
       const bestOffer = offer.offers?.[0];
       
       // Calculate nights for proper total pricing
-      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 3600 * 24));
+      const checkInDate = new Date(searchContext.checkInDate);
+      const checkOutDate = new Date(searchContext.checkOutDate);
+      const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
       const pricePerNight = bestOffer ? parseFloat(bestOffer.price.total) / nights : 150;
 
       return {
@@ -327,7 +614,7 @@ serve(async (req) => {
         starRating: hotel.rating || 4,
         location: {
           address: hotel.address?.lines?.join(', ') || 'City Center',
-          city: hotel.address?.cityName || cityCode,
+          city: hotel.address?.cityName || searchContext.cityCode,
           country: hotel.address?.countryCode || 'Unknown',
           latitude: hotel.geoCode?.latitude,
           longitude: hotel.geoCode?.longitude
@@ -373,7 +660,9 @@ serve(async (req) => {
 
     console.log(`=== Search Complete ===`, {
       hotelsFound: transformedHotels.length,
-      cityCode,
+      cityResolved: searchContext.cityCode || `${searchContext.latitude},${searchContext.longitude}`,
+      pathTaken: meta.pathTaken,
+      dateAdjusted: meta.dateAdjusted,
       searchSuccess: true
     });
 
@@ -382,13 +671,14 @@ serve(async (req) => {
       source: 'amadeus',
       hotels: transformedHotels,
       searchCriteria: { 
-        destination: cityCode, 
-        checkInDate: formattedCheckIn, 
-        checkOutDate: formattedCheckOut, 
+        destination: searchContext.cityCode || destination,
+        checkInDate: searchContext.checkInDate, 
+        checkOutDate: searchContext.checkOutDate, 
         guests, 
         rooms 
       },
       meta: {
+        ...meta,
         totalResults: transformedHotels.length,
         apiProvider: 'Amadeus',
         searchId: crypto.randomUUID()
@@ -398,16 +688,30 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('=== Amadeus Hotel Search Error ===', {
+    console.error('=== Amadeus Hotel Search Critical Error ===', {
       error: error.message,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      input: req.url
     });
 
     return new Response(JSON.stringify({
       success: false,
       error: error.message,
       source: 'amadeus',
+      isEmpty: true,
+      meta: {
+        pathTaken: ['error'],
+        dateAdjusted: false,
+        apiCallsUsed: 0,
+        errors: [{ step: 'critical', error: error.message }],
+        message: 'Please try again with different search criteria',
+        alternativeSuggestions: [
+          'Check your destination name or try a nearby city',
+          'Ensure dates are in the future',
+          'Try different guest counts or room configurations'
+        ]
+      },
       details: {
         errorType: error.name,
         timestamp: new Date().toISOString()
