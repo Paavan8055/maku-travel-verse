@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
@@ -134,73 +135,25 @@ const getAmadeusAccessToken = async (): Promise<string> => {
   return data.access_token;
 };
 
-const getHotelIds = async (cityCode: string, accessToken: string) => {
-  const searchParams = new URLSearchParams();
-  searchParams.append('cityCode', cityCode);
-  
-  console.log('Step 1: Getting hotel IDs for city:', cityCode);
-
-  const response = await fetch(
-    `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?${searchParams}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Amadeus hotel list error:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText,
-      cityCode: cityCode
-    });
-    throw new Error(`Hotel list failed: ${response.statusText} - ${errorText}`);
-  }
-
-  const result = await response.json();
-  console.log('Hotel IDs response:', {
-    dataCount: result.data?.length || 0,
-    meta: result.meta
-  });
-
-  // Extract hotel IDs and limit to 10 hotels for better API performance and reliability
-  const hotelIds = result.data?.map((hotel: any) => hotel.hotelId).slice(0, 10) || [];
-  console.log('Extracted hotel IDs:', hotelIds.length, 'hotels');
-
-  return hotelIds;
-};
-
-const searchHotels = async (params: HotelSearchParams, accessToken: string) => {
-  // Step 1: Get hotel IDs for the city
-  const hotelIds = await getHotelIds(params.cityCode, accessToken);
-  
-  if (hotelIds.length === 0) {
-    throw new Error('No hotels found for the specified city');
-  }
-
-  console.log('Step 2: Searching hotel offers for', hotelIds.length, 'hotels');
-
-  // Step 2: Search hotel offers using hotel IDs
+// Try direct city search first without hotel IDs
+const searchHotelsByCity = async (params: HotelSearchParams, accessToken: string) => {
   const searchParams = new URLSearchParams();
   
-  // Use hotel IDs instead of city code (this is the key fix!)
-  searchParams.append('hotelIds', hotelIds.join(','));
+  // Use cityCode directly instead of hotel IDs
+  searchParams.append('cityCode', params.cityCode);
   searchParams.append('checkInDate', params.checkInDate);
   searchParams.append('checkOutDate', params.checkOutDate);
 
   if (params.roomQuantity) searchParams.append('roomQuantity', params.roomQuantity.toString());
   if (params.adults) searchParams.append('adults', params.adults.toString());
+  if (params.radius) searchParams.append('radius', params.radius.toString());
   if (params.amenities?.length) searchParams.append('amenities', params.amenities.join(','));
   if (params.ratings?.length) searchParams.append('ratings', params.ratings.join(','));
   if (params.hotelChain) searchParams.append('hotelChain', params.hotelChain);
   if (params.priceRange) searchParams.append('priceRange', params.priceRange);
   if (params.bestRateOnly !== undefined) searchParams.append('bestRateOnly', params.bestRateOnly.toString());
 
-  console.log('Amadeus Hotel Search API call:', `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`);
+  console.log('Direct city search API call:', `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`);
 
   const response = await fetch(
     `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`,
@@ -214,48 +167,17 @@ const searchHotels = async (params: HotelSearchParams, accessToken: string) => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus hotel search error:', {
+    console.error('Amadeus direct city search error:', {
       status: response.status,
       statusText: response.statusText,
       error: errorText,
-      params: params,
-      hotelIds: hotelIds.slice(0, 5) // Log first 5 IDs for debugging
+      params: params
     });
-    
-    // If we get a 404, try with fewer hotels (fallback strategy)
-    if (response.status === 404 && hotelIds.length > 5) {
-      console.log('Retrying with fewer hotels due to 404 error...');
-      const fallbackHotelIds = hotelIds.slice(0, 5);
-      
-      const fallbackParams = new URLSearchParams();
-      fallbackParams.append('hotelIds', fallbackHotelIds.join(','));
-      fallbackParams.append('checkInDate', params.checkInDate);
-      fallbackParams.append('checkOutDate', params.checkOutDate);
-      if (params.roomQuantity) fallbackParams.append('roomQuantity', params.roomQuantity.toString());
-      if (params.adults) fallbackParams.append('adults', params.adults.toString());
-      if (params.bestRateOnly !== undefined) fallbackParams.append('bestRateOnly', params.bestRateOnly.toString());
-
-      const fallbackResponse = await fetch(
-        `https://test.api.amadeus.com/v2/shopping/hotel-offers?${fallbackParams}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (fallbackResponse.ok) {
-        console.log('Fallback request successful with', fallbackHotelIds.length, 'hotels');
-        return await fallbackResponse.json();
-      }
-    }
-    
-    throw new Error(`Hotel search failed: ${response.statusText} - ${errorText}`);
+    throw new Error(`Direct city search failed: ${response.statusText} - ${errorText}`);
   }
 
   const result = await response.json();
-  console.log('Amadeus Hotel Search API response:', {
+  console.log('Amadeus Direct City Search API response:', {
     dataCount: result.data?.length || 0,
     meta: result.meta,
     warnings: result.warnings
@@ -362,20 +284,31 @@ serve(async (req) => {
     // Get Amadeus access token
     const accessToken = await getAmadeusAccessToken();
 
-    // Search hotels
-    const hotelOffers = await searchHotels({
-      cityCode,
-      checkInDate: formattedCheckIn,
-      checkOutDate: formattedCheckOut,
-      roomQuantity: rooms,
-      adults: guests,
-      radius,
-      amenities,
-      ratings,
-      hotelChain,
-      priceRange,
-      bestRateOnly: true
-    }, accessToken);
+    // Try direct city search first (this is more reliable than hotel IDs)
+    let hotelOffers;
+    try {
+      console.log('Attempting direct city search...');
+      hotelOffers = await searchHotelsByCity({
+        cityCode,
+        checkInDate: formattedCheckIn,
+        checkOutDate: formattedCheckOut,
+        roomQuantity: rooms,
+        adults: guests,
+        radius,
+        amenities,
+        ratings,
+        hotelChain,
+        priceRange,
+        bestRateOnly: true
+      }, accessToken);
+    } catch (error) {
+      console.error('Direct city search failed, this might be expected for some cities:', error.message);
+      throw new Error(`Hotel search failed: ${error.message}. Please try a different destination or date range.`);
+    }
+
+    if (!hotelOffers.data || hotelOffers.data.length === 0) {
+      throw new Error('No hotels found for the specified search criteria. Please try different dates or destination.');
+    }
 
     // Enhanced transformation with better data handling
     const transformedHotels = hotelOffers.data?.map((offer: any) => {
