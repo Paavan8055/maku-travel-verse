@@ -34,6 +34,9 @@ const HotelSearchPage = () => {
     checkOut: searchParams.get("checkOut") || "",
     guests: parseInt(searchParams.get("guests") || "2")
   };
+
+  // Check if this is a default search (no parameters provided)
+  const isDefaultSearch = !searchCriteria.destination && !searchCriteria.checkIn && !searchCriteria.checkOut;
   const {
     hotels,
     loading,
@@ -94,6 +97,29 @@ const HotelSearchPage = () => {
         {/* Enhanced Header with Search Actions */}
         <HotelSearchBar />
 
+        {/* Default Search Banner */}
+        {isDefaultSearch && !loading && !error && (
+          <div className="mb-6">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="p-6 text-center">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2">
+                    <Star className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-semibold text-primary">Popular Hotels in Sydney</h3>
+                    <Star className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-muted-foreground">
+                    Showing top-rated hotels in Sydney, Australia. Use the search form above to find hotels for your specific destination and dates.
+                  </p>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary">
+                    Real hotel data from Amadeus
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Guest Reviews Section */}
         {/* Search Results with Enhanced Layout */}
         <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
@@ -111,7 +137,9 @@ const HotelSearchPage = () => {
           {error && <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-destructive">Error loading hotels: {error}</p>
-                <p className="text-sm text-muted-foreground mt-2">Showing sample results instead.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Please try searching for a specific destination or check your search criteria.
+                </p>
               </CardContent>
             </Card>}
 

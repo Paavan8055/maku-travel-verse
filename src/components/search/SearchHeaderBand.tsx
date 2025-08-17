@@ -18,7 +18,7 @@ const SearchHeaderBand: React.FC<SearchHeaderBandProps> = ({
     <div className="w-full rounded-xl border bg-card text-card-foreground p-4 sm:p-5 flex flex-wrap items-center gap-4">
       <div className="flex items-center gap-2 pr-4 border-r last:border-r-0">
         <MapPin className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium">{destination || "Add destination"}</span>
+        <span className="font-medium">{destination || "Sydney (Default)"}</span>
       </div>
       <div className="flex items-center gap-2 pr-4 border-r last:border-r-0">
         <CalendarDays className="h-4 w-4 text-muted-foreground" />
