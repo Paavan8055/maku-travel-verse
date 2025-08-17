@@ -41,34 +41,28 @@ interface Hotel {
   };
 }
 
-// Transform Amadeus hotel data to our interface
+// Transform Amadeus hotel data to our interface - NO MOCK DATA
 const transformAmadeusHotel = (amadeusHotel: any): Hotel => {
-  const checkInDate = new Date(amadeusHotel.checkInDate || Date.now());
-  const checkOutDate = new Date(amadeusHotel.checkOutDate || Date.now() + 86400000);
-  const nights = Math.max(1, Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)));
-
   return {
-    id: amadeusHotel.id || `amadeus-${Date.now()}`,
-    name: amadeusHotel.name || 'Luxury Hotel',
-    description: amadeusHotel.description || 'Experience luxury and comfort with world-class amenities.',
-    address: amadeusHotel.location?.address || 'City Center',
-    images: amadeusHotel.images && amadeusHotel.images.length > 0 ? amadeusHotel.images : [parkHyattImg],
-    starRating: amadeusHotel.starRating || 4,
-    rating: 4.0 + Math.random() * 1.0, // Amadeus doesn't provide ratings, generate reasonable ones
-    reviewCount: Math.floor(Math.random() * 1500) + 200,
-    pricePerNight: Math.round(amadeusHotel.pricePerNight || 200),
-    currency: amadeusHotel.currency === 'USD' ? '$' : amadeusHotel.currency || '$',
-    totalPrice: Math.round((amadeusHotel.totalPrice || amadeusHotel.pricePerNight || 200) * nights),
-    propertyType: 'Hotel',
-    distanceFromCenter: Math.round((Math.random() * 3 + 0.5) * 10) / 10,
-    amenities: amadeusHotel.amenities || ['WiFi', 'Restaurant', 'Fitness Center'],
-    cancellationPolicy: amadeusHotel.cancellationPolicy || 'Free cancellation',
-    breakfast: amadeusHotel.breakfast || Math.random() > 0.5,
-    deals: Math.random() < 0.2 ? {
-      type: "Member Rate",
-      description: "Save with member pricing",
-      savings: Math.floor(Math.random() * 50) + 10
-    } : undefined
+    id: amadeusHotel.id || amadeusHotel.hotelId || `hotel-${Date.now()}`,
+    name: amadeusHotel.name || 'Hotel',
+    description: amadeusHotel.description || 'Hotel accommodation',
+    address: amadeusHotel.location?.address || amadeusHotel.address || 'Location not available',
+    images: amadeusHotel.images && amadeusHotel.images.length > 0 ? amadeusHotel.images : ['/placeholder.svg'],
+    starRating: amadeusHotel.starRating || amadeusHotel.rating || 0,
+    rating: amadeusHotel.guestRating || 0,
+    reviewCount: amadeusHotel.reviewCount || 0,
+    pricePerNight: amadeusHotel.pricePerNight || 0,
+    currency: amadeusHotel.currency || 'USD',
+    totalPrice: amadeusHotel.totalPrice || 0,
+    propertyType: amadeusHotel.propertyType || 'Hotel',
+    distanceFromCenter: amadeusHotel.distanceFromCenter || 0,
+    amenities: amadeusHotel.amenities || [],
+    cancellationPolicy: amadeusHotel.cancellationPolicy || 'No cancellation policy available',
+    breakfast: amadeusHotel.breakfast || false,
+    safetyRating: amadeusHotel.safetyRating,
+    pointsOfInterest: amadeusHotel.pointsOfInterest,
+    deals: amadeusHotel.deals
   };
 };
 
