@@ -81,7 +81,8 @@ const HotelSearchBar: React.FC<HotelSearchBarProps> = ({ className }) => {
               value={destination}
               onChange={setDestination}
               onDestinationSelect={(d) => setDestination(d.name)}
-              placeholder={hotelName ? `${hotelName} in ${destination}` : "Search places or properties"}
+              placeholder={hotelName ? `${hotelName} in ${destination}` : "Search hotels or destinations"}
+              searchType="hotel"
             />
             {hotelName && (
               <p className="text-sm text-muted-foreground mt-1">Searching for: {hotelName}</p>
