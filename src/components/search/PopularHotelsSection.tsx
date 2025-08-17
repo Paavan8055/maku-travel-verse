@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, TrendingUp } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 // Import hotel images
 import parkHyattImg from '@/assets/hotel-park-hyatt.jpg';
@@ -128,10 +129,24 @@ const popularHotels: PopularHotel[] = [
 ];
 
 export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProps) {
+  const navigate = useNavigate();
+
   const handleHotelClick = (hotel: PopularHotel) => {
-    if (onHotelSelect) {
-      onHotelSelect(hotel.location, hotel.name);
-    }
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const searchParams = new URLSearchParams({
+      destination: hotel.location,
+      checkIn: today,
+      checkOut: tomorrow,
+      guests: '2',
+      rooms: '1',
+      hotelName: hotel.name,
+      searched: 'true'
+    });
+    
+    navigate(`/search/hotels?${searchParams.toString()}`);
+    onHotelSelect?.(hotel.location, hotel.name);
   };
 
   return (

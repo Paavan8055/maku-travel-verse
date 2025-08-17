@@ -13,6 +13,7 @@ interface HotelSearchCriteria {
   checkIn: string;
   checkOut: string;
   guests: number;
+  hotelName?: string;
 }
 
 interface Hotel {
@@ -144,7 +145,8 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
     criteria?.destination,
     criteria?.checkIn,
     criteria?.checkOut,
-    criteria?.guests
+    criteria?.guests,
+    criteria?.hotelName
   ]);
 
   // Stable search function
@@ -158,7 +160,8 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
           checkInDate: searchCriteria.checkIn,
           checkOutDate: searchCriteria.checkOut,
           guests: searchCriteria.guests,
-          rooms: 1
+          rooms: 1,
+          hotelName: searchCriteria.hotelName
         }
       });
 
