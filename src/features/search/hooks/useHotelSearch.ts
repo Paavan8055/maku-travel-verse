@@ -67,15 +67,16 @@ export const useHotelSearch = (criteria: HotelSearchCriteria) => {
           providers: ['hotelbeds', 'travelport']
         });
 
-        // Call unified search with real providers
-        const { data, error: functionError } = await supabase.functions.invoke('unified-search', {
+        // Use direct Amadeus Hotel Search API
+        const { data, error: functionError } = await supabase.functions.invoke('amadeus-hotel-search', {
           body: {
-            type: 'hotel',
             destination: criteria.destination,
             checkIn: criteria.checkIn,
             checkOut: criteria.checkOut,
-            guests: criteria.guests,
-            providers: ['hotelbeds', 'travelport']
+            adults: criteria.guests,
+            children: 0,
+            rooms: 1,
+            currency: 'USD'
           }
         });
 

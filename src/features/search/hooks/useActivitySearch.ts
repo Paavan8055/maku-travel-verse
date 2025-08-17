@@ -65,8 +65,8 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
       setError(null);
 
       try {
-        // Call Supabase edge function for activity search
-        const { data, error: functionError } = await supabase.functions.invoke('activity-search', {
+        // Use direct Amadeus Tours & Activities API
+        const { data, error: functionError } = await supabase.functions.invoke('amadeus-tours-activities', {
           body: {
             destination: criteria.destination,
             date: criteria.date,

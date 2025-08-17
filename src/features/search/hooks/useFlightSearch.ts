@@ -65,16 +65,20 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
       setError(null);
 
       try {
-        // Call unified search with real providers
-        const { data, error: functionError } = await supabase.functions.invoke('unified-search', {
+        // Use direct Amadeus Flight Search API for real-time results
+        const { data, error: functionError } = await supabase.functions.invoke('amadeus-flight-search', {
           body: {
-            type: 'flight',
             origin: criteria.origin,
             destination: criteria.destination,
             departureDate: criteria.departureDate,
             returnDate: criteria.returnDate,
-            passengers: criteria.passengers,
-            providers: ['amadeus', 'travelport']
+            adults: criteria.passengers,
+            children: 0,
+            infants: 0,
+            travelClass: 'ECONOMY',
+            nonStop: false,
+            maxPrice: 5000,
+            currency: 'USD'
           }
         });
 
