@@ -14,64 +14,7 @@ import SortChips from "@/components/search/SortChips";
 import MapPreviewCard from "@/components/search/MapPreviewCard";
 import HotelSearchBar from "@/components/search/HotelSearchBar";
 
-// Fallback mock hotels shown when API returns no results
-const mockHotels: any[] = [
-  {
-    id: "h1",
-    name: "Ocean Breeze Resort",
-    description: "Luxury beachfront resort with stunning ocean views.",
-    address: "123 Beach Rd, Seminyak",
-    images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"],
-    starRating: 5,
-    rating: 4.7,
-    reviewCount: 1284,
-    pricePerNight: 450,
-    currency: "$",
-    totalPrice: 3150,
-    propertyType: "Resort",
-    distanceFromCenter: 2.3,
-    amenities: ["wifi", "pool", "restaurant", "parking"],
-    cancellationPolicy: "Free cancellation",
-    breakfast: true,
-    deals: { type: "flash", description: "Limited time deal", savings: 130 }
-  },
-  {
-    id: "h2",
-    name: "City Lights Hotel",
-    description: "Modern comfort in the heart of the city.",
-    address: "45 Queen St",
-    images: ["https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=600&fit=crop"],
-    starRating: 4,
-    rating: 4.3,
-    reviewCount: 672,
-    pricePerNight: 189,
-    currency: "$",
-    totalPrice: 1323,
-    propertyType: "Hotel",
-    distanceFromCenter: 0.8,
-    amenities: ["wifi", "parking", "restaurant"],
-    cancellationPolicy: "Non-refundable",
-    breakfast: false
-  },
-  {
-    id: "h3",
-    name: "Riverside Boutique",
-    description: "Charming boutique stay by the river.",
-    address: "8 Riverside Ln",
-    images: ["https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=600&fit=crop"],
-    starRating: 3,
-    rating: 4.1,
-    reviewCount: 241,
-    pricePerNight: 129,
-    currency: "$",
-    totalPrice: 903,
-    propertyType: "Boutique",
-    distanceFromCenter: 3.9,
-    amenities: ["wifi"],
-    cancellationPolicy: "Free cancellation",
-    breakfast: true
-  }
-];
+// Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
   const [searchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState("price");
@@ -99,7 +42,7 @@ const HotelSearchPage = () => {
 
   // Mock user travel fund balance
   const travelFundBalance = 250.00;
-  const sourceHotels = (!loading && (error || hotels.length === 0)) ? mockHotels : hotels;
+  const sourceHotels = hotels; // Only use real hotel data from Amadeus APIs
   const filteredAndSortedHotels = sourceHotels.filter(hotel => {
     if (filters.priceRange[0] > 0 && hotel.pricePerNight < filters.priceRange[0]) return false;
     if (filters.priceRange[1] < 1000 && hotel.pricePerNight > filters.priceRange[1]) return false;
