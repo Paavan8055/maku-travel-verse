@@ -134,24 +134,73 @@ const getAmadeusAccessToken = async (): Promise<string> => {
   return data.access_token;
 };
 
-const searchHotels = async (params: HotelSearchParams, accessToken: string) => {
-  const searchParams = new URLSearchParams({
-    cityCode: params.cityCode,
-    checkInDate: params.checkInDate,
-    checkOutDate: params.checkOutDate,
+const getHotelIds = async (cityCode: string, accessToken: string) => {
+  const searchParams = new URLSearchParams();
+  searchParams.append('cityCode', cityCode);
+  
+  console.log('Step 1: Getting hotel IDs for city:', cityCode);
+
+  const response = await fetch(
+    `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?${searchParams}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Amadeus hotel list error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText,
+      cityCode: cityCode
+    });
+    throw new Error(`Hotel list failed: ${response.statusText} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  console.log('Hotel IDs response:', {
+    dataCount: result.data?.length || 0,
+    meta: result.meta
   });
+
+  // Extract hotel IDs and limit to 20 hotels for better performance
+  const hotelIds = result.data?.map((hotel: any) => hotel.hotelId).slice(0, 20) || [];
+  console.log('Extracted hotel IDs:', hotelIds.length, 'hotels');
+
+  return hotelIds;
+};
+
+const searchHotels = async (params: HotelSearchParams, accessToken: string) => {
+  // Step 1: Get hotel IDs for the city
+  const hotelIds = await getHotelIds(params.cityCode, accessToken);
+  
+  if (hotelIds.length === 0) {
+    throw new Error('No hotels found for the specified city');
+  }
+
+  console.log('Step 2: Searching hotel offers for', hotelIds.length, 'hotels');
+
+  // Step 2: Search hotel offers using hotel IDs
+  const searchParams = new URLSearchParams();
+  
+  // Use hotel IDs instead of city code (this is the key fix!)
+  searchParams.append('hotelIds', hotelIds.join(','));
+  searchParams.append('checkInDate', params.checkInDate);
+  searchParams.append('checkOutDate', params.checkOutDate);
 
   if (params.roomQuantity) searchParams.append('roomQuantity', params.roomQuantity.toString());
   if (params.adults) searchParams.append('adults', params.adults.toString());
-  if (params.radius) searchParams.append('radius', params.radius.toString());
-  if (params.radiusUnit) searchParams.append('radiusUnit', params.radiusUnit);
   if (params.amenities?.length) searchParams.append('amenities', params.amenities.join(','));
   if (params.ratings?.length) searchParams.append('ratings', params.ratings.join(','));
   if (params.hotelChain) searchParams.append('hotelChain', params.hotelChain);
   if (params.priceRange) searchParams.append('priceRange', params.priceRange);
   if (params.bestRateOnly !== undefined) searchParams.append('bestRateOnly', params.bestRateOnly.toString());
 
-  console.log('Amadeus API call:', `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`);
+  console.log('Amadeus Hotel Search API call:', `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`);
 
   const response = await fetch(
     `https://test.api.amadeus.com/v2/shopping/hotel-offers?${searchParams}`,
@@ -169,13 +218,14 @@ const searchHotels = async (params: HotelSearchParams, accessToken: string) => {
       status: response.status,
       statusText: response.statusText,
       error: errorText,
-      params: params
+      params: params,
+      hotelIds: hotelIds.slice(0, 5) // Log first 5 IDs for debugging
     });
     throw new Error(`Hotel search failed: ${response.statusText} - ${errorText}`);
   }
 
   const result = await response.json();
-  console.log('Amadeus API response:', {
+  console.log('Amadeus Hotel Search API response:', {
     dataCount: result.data?.length || 0,
     meta: result.meta,
     warnings: result.warnings
