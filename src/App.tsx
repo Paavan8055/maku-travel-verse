@@ -43,6 +43,7 @@ import SearchIndex from "./pages/search/index";
 import SearchHotels from "./pages/search/hotels";
 import SearchFlights from "./pages/search/flights";
 import SearchActivities from "./pages/search/activities";
+import SearchCars from "./pages/search/cars";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
                   <Route path="/search/hotels" element={<SearchHotels />} />
                   <Route path="/search/flights" element={<SearchFlights />} />
                   <Route path="/search/activities" element={<SearchActivities />} />
+                  <Route path="/search/cars" element={<SearchCars />} />
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/deals" element={<Deals />} />
                   <Route path="/roadmap" element={<Roadmap />} />
