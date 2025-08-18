@@ -90,6 +90,17 @@ export const HotelOffersDisplay = ({
     navigate('/search/hotels');
   };
 
+  // Helper function to safely extract text from description object
+  const getDescriptionText = (description: any): string => {
+    if (typeof description === 'string') {
+      return description;
+    }
+    if (description && typeof description === 'object' && description.text) {
+      return description.text;
+    }
+    return '';
+  };
+
   if (loading) {
     return (
       <Card className="w-full">
@@ -199,81 +210,85 @@ export const HotelOffersDisplay = ({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Available Rooms ({offers.length})</h3>
         
-        {offers.map((offer) => (
-          <Card key={offer.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Bed className="h-5 w-5 text-primary" />
-                    <h4 className="text-lg font-semibold">
-                      {offer.room.type || offer.room.typeEstimated?.category || 'Standard Room'}
-                    </h4>
-                    {offer.rateFamilyEstimated && (
-                      <Badge variant="secondary">
-                        {offer.rateFamilyEstimated.code}
+        {offers.map((offer) => {
+          const descriptionText = getDescriptionText(offer.room.description);
+          
+          return (
+            <Card key={offer.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Bed className="h-5 w-5 text-primary" />
+                      <h4 className="text-lg font-semibold">
+                        {offer.room.type || offer.room.typeEstimated?.category || 'Standard Room'}
+                      </h4>
+                      {offer.rateFamilyEstimated && (
+                        <Badge variant="secondary">
+                          {offer.rateFamilyEstimated.code}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {descriptionText && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {descriptionText}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        Capacity: {offer.room.capacity || offer.guests?.adults || 2}
+                      </div>
+                      {offer.policies?.cancellation && (
+                        <div className="flex items-center gap-1">
+                          <CreditCard className="h-4 w-4" />
+                          {offer.policies.cancellation.type === 'FULL_STAY' ? 'Free cancellation' : 'Non-refundable'}
+                        </div>
+                      )}
+                    </div>
+
+                    {offer.policies?.paymentType && (
+                      <Badge variant="outline" className="text-xs">
+                        Payment: {offer.policies.paymentType}
                       </Badge>
                     )}
                   </div>
 
-                  {offer.room.description && (
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {offer.room.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      Capacity: {offer.room.capacity}
-                    </div>
-                    {offer.policies?.cancellation && (
-                      <div className="flex items-center gap-1">
-                        <CreditCard className="h-4 w-4" />
-                        {offer.policies.cancellation.type === 'FULL_STAY' ? 'Free cancellation' : 'Non-refundable'}
-                      </div>
-                    )}
-                  </div>
-
-                  {offer.policies?.paymentType && (
-                    <Badge variant="outline" className="text-xs">
-                      Payment: {offer.policies.paymentType}
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="text-right space-y-2 ml-6">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total price</p>
-                    <p className="text-2xl font-bold text-primary">
-                      {offer.price.currency} {offer.price.total}
-                    </p>
-                    {offer.price.base !== offer.price.total && (
-                      <p className="text-sm text-muted-foreground">
-                        Base: {offer.price.currency} {offer.price.base}
+                  <div className="text-right space-y-2 ml-6">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total price</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {offer.price.currency} {offer.price.total}
                       </p>
-                    )}
+                      {offer.price.base !== offer.price.total && (
+                        <p className="text-sm text-muted-foreground">
+                          Base: {offer.price.currency} {offer.price.base}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <Button 
+                      className="w-full"
+                      onClick={() => handleBookOffer(offer.id, offer.price.total)}
+                      disabled={bookingLoading}
+                    >
+                      {bookingLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Booking...
+                        </>
+                      ) : (
+                        'Book now'
+                      )}
+                    </Button>
                   </div>
-                  
-                  <Button 
-                    className="w-full"
-                    onClick={() => handleBookOffer(offer.id, offer.price.total)}
-                    disabled={bookingLoading}
-                  >
-                    {bookingLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Booking...
-                      </>
-                    ) : (
-                      'Book now'
-                    )}
-                  </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
