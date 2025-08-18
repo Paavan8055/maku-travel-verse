@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Bed, Users, CreditCard, Calendar, MapPin, AlertCircle, Search, Image } from 'lucide-react';
+import { Loader2, Bed, Users, CreditCard, Calendar, MapPin, AlertCircle, Search, Image, Building } from 'lucide-react';
 import { useHotelOffers } from '@/hooks/useHotelOffers';
 import { useHotelPhotos } from '@/hooks/useHotelPhotos';
 import { useHotelBooking } from '@/features/booking/hooks/useHotelBooking';
@@ -235,14 +235,18 @@ export const HotelOffersDisplay = ({
                       />
                     ) : null}
                     
-                    {/* Fallback placeholder */}
-                    <div className={`w-full h-full bg-muted rounded-lg flex items-center justify-center ${photos.length > 0 ? 'hidden' : ''}`}>
+                    {/* Enhanced fallback placeholder */}
+                    <div className={`w-full h-full bg-gradient-to-br from-muted/50 to-muted rounded-lg flex flex-col items-center justify-center ${photos.length > 0 ? 'hidden' : ''}`}>
                       {photosLoading ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        <div className="text-center text-muted-foreground">
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                          <p className="text-xs">Loading photo...</p>
+                        </div>
                       ) : (
                         <div className="text-center text-muted-foreground">
-                          <Image className="h-8 w-8 mx-auto mb-2" />
-                          <p className="text-xs">No image available</p>
+                          <Building className="h-8 w-8 mx-auto mb-2" />
+                          <p className="text-xs font-medium">{hotel?.name || hotelName}</p>
+                          <p className="text-xs opacity-75">Photo not available</p>
                         </div>
                       )}
                     </div>
