@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,6 +76,12 @@ export default function BookingSelect() {
     })
   });
 
+  const handleBackClick = () => {
+    // Try to go back to hotel search with the current search parameters
+    const searchUrl = `/search/hotels?destination=${encodeURIComponent(hotelName.split(' ')[0])}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${totalGuests}`;
+    navigate(searchUrl);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Header */}
@@ -84,7 +89,7 @@ export default function BookingSelect() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(-1)}
+          onClick={handleBackClick}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
