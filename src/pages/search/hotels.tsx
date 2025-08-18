@@ -166,27 +166,21 @@ const HotelSearchPage = () => {
               {filteredAndSortedHotels.map((hotel, index) => <div key={hotel.id} className="relative">
                   {/* Enhanced Hotel Card with Conversion Features */}
                   <div className="space-y-3">
-                    {/* Enhanced Features */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                      <RealTimeOccupancy hotelId={hotel.id} />
-                      {index === 0 && (
-                        <DateFlexibilityMatrix 
-                          currentCheckIn={checkIn}
-                          currentCheckOut={checkOut}
-                          currentPrice={hotel.pricePerNight}
-                          onDateSelect={(newCheckIn, newCheckOut) => 
-                            console.log('New dates:', newCheckIn, newCheckOut)
-                          }
-                        />
-                      )}
-                      {index === 1 && (
-                        <PredictivePricing 
-                          hotelId={hotel.id}
-                          currentPrice={hotel.pricePerNight}
-                          checkInDate={checkIn}
-                        />
-                      )}
-                    </div>
+                    {/* Compact Enhanced Features - only show for first few results */}
+                    {index < 2 && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+                        {index === 0 && (
+                          <RealTimeOccupancy hotelId={hotel.id} />
+                        )}
+                        {index === 1 && (
+                          <PredictivePricing 
+                            hotelId={hotel.id}
+                            currentPrice={hotel.pricePerNight}
+                            checkInDate={checkIn}
+                          />
+                        )}
+                      </div>
+                    )}
                     
                     {/* Urgency Badges */}
                     <div className="flex items-center space-x-2">
