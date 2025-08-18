@@ -218,7 +218,7 @@ export const PredictivePricing: React.FC<PredictivePricingProps> = ({
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-2 p-3">
+      <CardContent className="space-y-2 pt-0 px-3 pb-3">
         {/* Compact Recommendation */}
         <div className={`p-2 rounded-lg border ${getActionColor(prediction.recommendation.action)}`}>
           <div className="flex items-center space-x-2">
