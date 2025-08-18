@@ -168,14 +168,30 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
       // Check if request was aborted
       if (signal.aborted) return;
 
+      // PHASE 1 & 2: Enhanced error handling with user-friendly messages
       if (functionError) {
-        console.error("Amadeus API error:", functionError);
-        dispatch({ type: 'SEARCH_ERROR', payload: "Failed to search hotels with Amadeus API" });
-        toast.error("Hotel search failed. Please try again.");
+        console.error("❌ Hotel search function error:", functionError);
+        
+        // Provide specific error messages based on error type
+        let userMessage = "Hotel search failed. Please try again.";
+        if (functionError.message?.includes('AMADEUS_AUTH_INVALID_CREDENTIALS')) {
+          userMessage = "Hotel search temporarily unavailable. Please try again later.";
+        } else if (functionError.message?.includes('network') || functionError.message?.includes('timeout')) {
+          userMessage = "Connection issue. Please check your internet and try again.";
+        }
+        
+        dispatch({ type: 'SEARCH_ERROR', payload: "Unable to search hotels at this time" });
+        toast.error(userMessage);
         return;
       }
 
+      // PHASE 2: Handle both success and system error responses
       if (data?.success) {
+        // Log data quality for monitoring
+        if (data.meta?.dataSource) {
+          console.log(`✅ Hotel data received from: ${data.meta.dataSource}`);
+        }
+        
         if (data.isEmpty || !data.hotels || data.hotels.length === 0) {
           dispatch({ 
             type: 'SEARCH_EMPTY', 
@@ -185,18 +201,26 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
             }
           });
           
-          if (data.meta?.dateAdjusted && data.meta?.suggestedDates) {
+          // Enhanced user feedback for empty results
+          if (data.meta?.suggestions?.length > 0) {
+            toast.info(`No hotels found. Try: ${data.meta.suggestions[0]}`);
+          } else if (data.meta?.dateAdjusted && data.meta?.suggestedDates) {
             toast.info(`Moved search to ${data.meta.suggestedDates.checkIn} - ${data.meta.suggestedDates.checkOut} for test availability`);
-          } else if (data.meta?.alternativeSuggestions?.length > 0) {
-            toast.info("No hotels found. " + data.meta.alternativeSuggestions[0]);
+          } else {
+            toast.info("No hotels found for your criteria. Try different dates or locations.");
           }
         } else {
           if (data.meta?.dateAdjusted && data.meta?.suggestedDates) {
             toast.info(`Dates adjusted to ${data.meta.suggestedDates.checkIn} - ${data.meta.suggestedDates.checkOut} for better availability`);
           }
           
-          // Transform hotels without making additional API calls for now (for stability)
+          // PHASE 2: Use only real Amadeus data
           const transformedHotels = data.hotels.map(transformAmadeusHotel);
+          
+          // Show success notification for live data
+          if (data.meta?.dataSource === 'amadeus_live') {
+            toast.success(`Found ${transformedHotels.length} hotels with live pricing`);
+          }
           
           dispatch({ 
             type: 'SEARCH_SUCCESS', 
@@ -206,7 +230,19 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
             }
           });
         }
+      } else if (data?.systemError) {
+        // PHASE 1: Handle system-level errors (circuit breaker, service unavailable)
+        console.error("🚨 System error:", data.technicalError);
+        
+        let userMessage = "Hotel search is temporarily unavailable. Please try again in a few minutes.";
+        if (data.retryAfter) {
+          userMessage = `Hotel search temporarily unavailable. Please try again in ${data.retryAfter} seconds.`;
+        }
+        
+        dispatch({ type: 'SEARCH_ERROR', payload: data.error || "Service temporarily unavailable" });
+        toast.error(userMessage);
       } else {
+        // Generic failure
         dispatch({ 
           type: 'SEARCH_ERROR', 
           payload: data?.error || "Failed to search hotels" 
