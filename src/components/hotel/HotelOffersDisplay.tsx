@@ -53,42 +53,36 @@ export const HotelOffersDisplay = ({
     }
   }, [hotelId, checkIn, checkOut, adults, children, rooms, currency, fetchOffers, fetchPhotos]);
 
-  const handleBookOffer = async (offerId: string, price: string) => {
-    console.log('Booking offer:', offerId);
+  const handleBookOffer = (offerId: string, price: string) => {
+    // Find the selected offer to store its details
+    const selectedOffer = offers.find(offer => offer.id === offerId);
     
-    // For demo purposes - in production, collect guest details properly
-    const guestDetails = {
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      phone: '+1234567890'
-    };
+    // Store offer details for the booking flow
+    sessionStorage.setItem('selectedHotelOffer', JSON.stringify(selectedOffer));
+    sessionStorage.setItem('selectedHotelPrice', price);
+    sessionStorage.setItem('hotelBookingSelections', JSON.stringify({
+      hotelId: hotelId,
+      hotelName: hotelName,
+      offerId: offerId,
+      roomType: selectedOffer?.room?.typeEstimated?.category || 'Standard Room',
+      boardType: 'Room Only'
+    }));
 
-    const roomDetails = {
-      roomType: 'Standard',
-      boardType: 'Room Only',
-      checkIn,
-      checkOut,
-      guests: adults
-    };
+    // Navigate to guest details page
+    const params = new URLSearchParams({
+      hotelId: hotelId,
+      hotelName: hotelName,
+      checkIn: checkIn,
+      checkOut: checkOut,
+      adults: String(adults),
+      children: String(children),
+      rooms: String(rooms),
+      offerId: offerId,
+      price: price,
+      currency: selectedOffer?.price?.currency || currency
+    });
 
-    try {
-      const result = await createHotelBooking({
-        hotelOfferId: offerId,
-        guestDetails,
-        roomDetails,
-        useRealAmadeusBooking: true
-      });
-
-      if (result.success) {
-        console.log('Booking successful:', result);
-        if (result.redirectUrl) {
-          window.location.href = result.redirectUrl;
-        }
-      }
-    } catch (error) {
-      console.error('Booking failed:', error);
-    }
+    navigate(`/hotel-checkout?${params.toString()}`);
   };
 
   const handleSearchAgain = () => {
