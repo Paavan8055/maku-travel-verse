@@ -16,6 +16,14 @@ import HotelSearchBar from "@/components/search/HotelSearchBar";
 import { PopularHotelsSection } from "@/components/search/PopularHotelsSection";
 import { FeaturedHotelDeals } from "@/components/search/FeaturedHotelDeals";
 import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
+import { VoiceSearchInterface } from "@/components/hotel/VoiceSearchInterface";
+import { SmartLocationSearch } from "@/components/hotel/SmartLocationSearch";
+import { DateFlexibilityMatrix } from "@/components/hotel/DateFlexibilityMatrix";
+import { RealTimeOccupancy } from "@/components/hotel/RealTimeOccupancy";
+import { AccessibilityFilters } from "@/components/hotel/AccessibilityFilters";
+import { RevenueAnalyticsDashboard } from "@/components/hotel/RevenueAnalyticsDashboard";
+import { ABTestingFramework } from "@/components/hotel/ABTestingFramework";
+import { PredictivePricing } from "@/components/hotel/PredictivePricing";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -120,6 +128,19 @@ const HotelSearchPage = () => {
 
         {!hasSearched ? (
           <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <VoiceSearchInterface 
+                onVoiceResult={(text) => console.log('Voice result:', text)}
+                onDestinationChange={(dest) => console.log('Destination:', dest)}
+              />
+              <SmartLocationSearch 
+                onLocationSelect={(location) => console.log('Location selected:', location)}
+              />
+              <AccessibilityFilters 
+                selectedAccessibility={[]}
+                onAccessibilityChange={(filters) => console.log('Accessibility filters:', filters)}
+              />
+            </div>
             <PopularHotelsSection onHotelSelect={handleHotelSelect} />
             <FeaturedHotelDeals onDealSelect={handleDealSelect} />
           </div>
@@ -149,11 +170,32 @@ const HotelSearchPage = () => {
               {filteredAndSortedHotels.map((hotel, index) => <div key={hotel.id} className="relative">
                   {/* Enhanced Hotel Card with Conversion Features */}
                   <div className="space-y-3">
+                    {/* Enhanced Features */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                      <RealTimeOccupancy hotelId={hotel.id} />
+                      {index === 0 && (
+                        <DateFlexibilityMatrix 
+                          currentCheckIn={checkIn}
+                          currentCheckOut={checkOut}
+                          currentPrice={hotel.pricePerNight}
+                          onDateSelect={(newCheckIn, newCheckOut) => 
+                            console.log('New dates:', newCheckIn, newCheckOut)
+                          }
+                        />
+                      )}
+                      {index === 1 && (
+                        <PredictivePricing 
+                          hotelId={hotel.id}
+                          currentPrice={hotel.pricePerNight}
+                          checkInDate={checkIn}
+                        />
+                      )}
+                    </div>
+                    
                     {/* Urgency Badges */}
                     <div className="flex items-center space-x-2">
                       {index === 0 && <UrgencyBadge type="rooms_left" value={3} />}
-                      {hotel.deals && <UrgencyBadge type="flash_deal" endTime={new Date(Date.now() + 2 * 60 * 60 * 1000)} // 2 hours from now
-                />}
+                      {hotel.deals && <UrgencyBadge type="flash_deal" endTime={new Date(Date.now() + 2 * 60 * 60 * 1000)} />}
                       {index === 1 && <UrgencyBadge type="last_booking" value={7} />}
                       {index === 2 && <UrgencyBadge type="high_demand" />}
                     </div>
