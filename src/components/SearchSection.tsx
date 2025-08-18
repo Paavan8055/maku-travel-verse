@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Search, Calendar, Users, MapPin, Plane, Building, Car, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,16 @@ const [activityChildren, setActivityChildren] = useState(0);
     "Rome, Italy",
     "Dubai, UAE"
   ];
+
+  const handleHotelSearch = () => {
+    const params = new URLSearchParams();
+    if (destination) params.set("destination", destination);
+    if (checkIn) params.set("checkIn", format(checkIn, "yyyy-MM-dd"));
+    if (checkOut) params.set("checkOut", format(checkOut, "yyyy-MM-dd"));
+    params.set("guests", guests);
+    params.set("searched", "true");
+    window.location.href = `/search/hotels?${params.toString()}`;
+  };
 
   return (
     <section className="relative -mt-32 z-30 px-6">
@@ -151,7 +162,7 @@ const [activityChildren, setActivityChildren] = useState(0);
               <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  onClick={() => window.location.href = `/search?type=hotels&destination=${encodeURIComponent(destination)}`}
+                  onClick={handleHotelSearch}
                 >
                   <Search className="mr-2 h-5 w-5" />
                   Search Hotels
@@ -421,7 +432,7 @@ const [activityChildren, setActivityChildren] = useState(0);
               <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  onClick={() => window.location.href = `/search?type=cars`}
+                  onClick={() => window.location.href = `/search/cars`}
                 >
                   <Search className="mr-2 h-5 w-5" />
                   Search Cars
