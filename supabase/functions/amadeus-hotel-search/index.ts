@@ -113,20 +113,53 @@ async function getAmadeusAccessToken(): Promise<string> {
   }
 }
 
-// Enhanced hotel search using correct Amadeus endpoints
-async function searchHotels(accessToken: string, context: SearchContext): Promise<any> {
+// Step 1: Get hotel list from city
+async function getHotelList(accessToken: string, cityCode: string, latitude?: number, longitude?: number): Promise<any> {
+  let url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city`;
+  const params = new URLSearchParams({ cityCode });
+  
+  // Use coordinates if available for more precise results
+  if (latitude && longitude) {
+    url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode`;
+    params.set('latitude', latitude.toString());
+    params.set('longitude', longitude.toString());
+    params.set('radius', '20'); // 20km radius
+    params.delete('cityCode');
+  }
+
+  console.log('Getting hotel list from:', `${url}?${params}`);
+
+  try {
+    const response = await fetch(`${url}?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Hotel list API failed:', response.status, response.statusText, errorText);
+      throw new Error(`Hotel list failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Hotel list successful, found', data.data?.length || 0, 'hotels');
+    return data;
+  } catch (error) {
+    console.error('Hotel list error:', error);
+    throw error;
+  }
+}
+
+// Step 2: Get offers for specific hotels
+async function getHotelOffers(accessToken: string, hotelIds: string[], context: SearchContext): Promise<any> {
   const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers`;
   
-  console.log('Searching hotels with params:', {
-    cityCode: context.cityCode,
-    checkInDate: context.checkInDate,
-    checkOutDate: context.checkOutDate,
-    adults: context.adults,
-    children: context.children,
-    currency: context.currency
-  });
+  console.log('Getting hotel offers for hotels:', hotelIds.slice(0, 5)); // Log first 5 hotel IDs
 
   const params = new URLSearchParams({
+    hotelIds: hotelIds.join(','),
     checkInDate: context.checkInDate,
     checkOutDate: context.checkOutDate,
     adults: context.adults.toString(),
@@ -134,9 +167,6 @@ async function searchHotels(accessToken: string, context: SearchContext): Promis
     currency: context.currency
   });
 
-  if (context.cityCode) {
-    params.append('cityCode', context.cityCode);
-  }
   if (context.children > 0) {
     params.append('children', context.children.toString());
   }
@@ -151,17 +181,76 @@ async function searchHotels(accessToken: string, context: SearchContext): Promis
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Hotel search failed:', response.status, response.statusText, errorText);
-      throw new Error(`Hotel search failed: ${response.statusText}`);
+      console.error('Hotel offers failed:', response.status, response.statusText, errorText);
+      throw new Error(`Hotel offers failed: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('Hotel search successful, found', data.data?.length || 0, 'hotels');
+    console.log('Hotel offers successful, found', data.data?.length || 0, 'hotel offers');
     return data;
   } catch (error) {
-    console.error('Hotel search error:', error);
+    console.error('Hotel offers error:', error);
     throw error;
   }
+}
+
+// Enhanced hotel search using correct Amadeus API flow
+async function searchHotels(accessToken: string, context: SearchContext): Promise<any> {
+  console.log('Starting hotel search with context:', {
+    cityCode: context.cityCode,
+    coordinates: context.coordinates,
+    checkInDate: context.checkInDate,
+    checkOutDate: context.checkOutDate,
+    adults: context.adults,
+    children: context.children,
+    currency: context.currency
+  });
+
+  // Step 1: Get list of hotels in the city/area
+  const hotelListData = await getHotelList(
+    accessToken, 
+    context.cityCode!, 
+    context.coordinates?.lat, 
+    context.coordinates?.lng
+  );
+
+  if (!hotelListData?.data || hotelListData.data.length === 0) {
+    console.warn('No hotels found in hotel list for', context.cityCode);
+    throw new Error('No hotels found for this destination');
+  }
+
+  // Step 2: Extract hotel IDs (limit to first 20 for performance)
+  const hotelIds = hotelListData.data
+    .slice(0, 20)
+    .map((hotel: any) => hotel.hotelId)
+    .filter((id: string) => id);
+
+  if (hotelIds.length === 0) {
+    throw new Error('No valid hotel IDs found');
+  }
+
+  console.log(`Found ${hotelIds.length} hotels, getting offers...`);
+
+  // Step 3: Get offers for these hotels
+  const offersData = await getHotelOffers(accessToken, hotelIds, context);
+  
+  // Combine hotel details with offers
+  const hotelsWithOffers = offersData.data?.map((offer: any) => {
+    const hotelDetails = hotelListData.data.find((h: any) => h.hotelId === offer.hotel?.hotelId);
+    return {
+      ...offer,
+      hotel: {
+        ...offer.hotel,
+        ...hotelDetails,
+        distance: hotelDetails?.distance
+      }
+    };
+  }) || [];
+
+  return {
+    ...offersData,
+    data: hotelsWithOffers
+  };
 }
 
 // City mapping for common destinations
@@ -238,72 +327,38 @@ async function resolveCity(destination: string, accessToken: string): Promise<{ 
   return { cityCode: 'SYD' };
 }
 
-// Fallback hotel data generator for when Amadeus is unavailable
-function generateFallbackHotels(destination: string, checkIn: string, checkOut: string, guests: number, currency: string = 'AUD') {
-  const baseHotels = [
-    {
-      id: 'fallback-shangri-la',
-      name: 'Shangri-La Hotel',
-      description: 'Luxury hotel with harbor views and world-class amenities',
-      images: ['/assets/hotel-shangri-la.jpg'],
-      starRating: 5,
-      rating: 4.6,
-      reviewCount: 2847,
-      pricePerNight: 450,
-      propertyType: 'Luxury Hotel',
-      amenities: ['Free WiFi', 'Pool', 'Spa', 'Gym', 'Restaurant', 'Room Service']
-    },
-    {
-      id: 'fallback-park-hyatt',
-      name: 'Park Hyatt',
-      description: 'Contemporary luxury hotel in prime location',
-      images: ['/assets/hotel-park-hyatt.jpg'],
-      starRating: 5,
-      rating: 4.5,
-      reviewCount: 1923,
-      pricePerNight: 380,
-      propertyType: 'Luxury Hotel',
-      amenities: ['Free WiFi', 'Pool', 'Spa', 'Gym', 'Restaurant', 'Concierge']
-    },
-    {
-      id: 'fallback-boutique',
-      name: 'The Boutique Hotel',
-      description: 'Stylish boutique accommodation with personalized service',
-      images: ['/assets/hotel-boutique.jpg'],
-      starRating: 4,
-      rating: 4.3,
-      reviewCount: 856,
-      pricePerNight: 220,
-      propertyType: 'Boutique Hotel',
-      amenities: ['Free WiFi', 'Restaurant', 'Bar', 'Concierge', 'Business Center']
-    },
-    {
-      id: 'fallback-budget',
-      name: 'Comfort Inn',
-      description: 'Clean, comfortable accommodation with excellent value',
-      images: ['/assets/hotel-budget.jpg'],
-      starRating: 3,
-      rating: 4.1,
-      reviewCount: 1247,
-      pricePerNight: 120,
-      propertyType: 'Budget Hotel',
-      amenities: ['Free WiFi', 'Breakfast', 'Parking', '24-hour Front Desk']
-    }
-  ];
-
-  return baseHotels.map(hotel => ({
-    ...hotel,
-    address: `${destination} City Center`,
-    currency,
-    totalPrice: hotel.pricePerNight * guests,
-    distanceFromCenter: Math.random() * 5,
-    cancellationPolicy: 'Free cancellation up to 24 hours before check-in',
-    breakfast: true,
-    checkIn,
-    checkOut,
-    availability: { rooms: 1, guests },
-    meta: { fallback: true, destination }
-  }));
+// Transform Amadeus hotel data to match frontend expectations
+function transformAmadeusHotels(hotelsData: any[]): any[] {
+  return hotelsData.map((hotelOffer: any) => {
+    const hotel = hotelOffer.hotel;
+    const offers = hotelOffer.offers || [];
+    const bestOffer = offers[0]; // Use first/best offer for display
+    
+    return {
+      id: hotel.hotelId,
+      name: hotel.name,
+      description: hotel.description || `${hotel.name} - Premium accommodation`,
+      address: hotel.address?.lines?.join(', ') || `${hotel.cityCode} City Center`,
+      images: ['/assets/hotel-budget.jpg'], // Default image for now
+      starRating: hotel.rating ? Math.round(parseFloat(hotel.rating)) : 3,
+      rating: hotel.rating ? parseFloat(hotel.rating) : 0,
+      reviewCount: 0, // Not available in Amadeus response
+      pricePerNight: bestOffer?.price?.total || 0,
+      currency: bestOffer?.price?.currency || 'USD',
+      totalPrice: bestOffer?.price?.total || 0,
+      propertyType: hotel.chainCode || 'Hotel',
+      distanceFromCenter: hotel.distance?.value || 0,
+      amenities: ['Free WiFi', 'Room Service', '24-hour Front Desk'],
+      cancellationPolicy: bestOffer?.policies?.cancellation?.description || 'Contact hotel for cancellation policy',
+      breakfast: false,
+      amadeus: {
+        hotelId: hotel.hotelId,
+        chainCode: hotel.chainCode,
+        dupeId: hotel.dupeId,
+        offers: offers
+      }
+    };
+  });
 }
 
 // PHASE 1: CIRCUIT BREAKER PATTERN - Prevent cascading failures
@@ -475,13 +530,32 @@ serve(async (req) => {
       
       searchResult = await searchHotels(accessToken, context);
       
-      if (searchResult?.data) {
+        if (searchResult?.data && searchResult.data.length > 0) {
         console.log(`✅ [${requestId}] Hotel search successful - found ${searchResult.data.length} hotels`);
-        meta.finalStrategy = 'amadeus_v3';
+        meta.finalStrategy = 'amadeus_hotel_list_with_offers';
         meta.totalOffersFound = searchResult.data.length;
+        
+        // Transform Amadeus data to frontend format
+        const transformedHotels = transformAmadeusHotels(searchResult.data);
         
         // Reset circuit breaker on success
         amadeusHealthy = true;
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            hotels: transformedHotels,
+            meta: {
+              dataSource: 'amadeus',
+              strategy: meta.finalStrategy,
+              totalFound: transformedHotels.length,
+              path: meta.path,
+              adjustments: meta.adjustments
+            },
+            requestId
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       } else {
         console.warn(`⚠️ [${requestId}] Hotel search returned no data`);
         meta.totalOffersFound = 0;
@@ -495,8 +569,17 @@ serve(async (req) => {
       amadeusHealthy = false;
       lastFailureTime = Date.now();
       
-      // Provide fallback data when search fails
-      const fallbackHotels = generateFallbackHotels(destination, normalizedCheckIn, normalizedCheckOut, guests, currency);
+      // Log detailed error for debugging
+      console.error(`❌ [${requestId}] Hotel search error details:`, {
+        error: error.message,
+        stack: error.stack,
+        context: {
+          destination,
+          cityCode: context.cityCode,
+          checkIn: normalizedCheckIn,
+          checkOut: normalizedCheckOut
+        }
+      });
       
       return new Response(
         JSON.stringify({
