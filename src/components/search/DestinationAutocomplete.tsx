@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,7 @@ interface Destination {
   country: string;
   code?: string;
   type: "city" | "airport" | "landmark" | "hotel";
-  coordinates?: [number, number];
+  coordinates?: { lat: number; lng: number };
   displayName?: string;
 }
 
@@ -36,232 +35,188 @@ export const DestinationAutocomplete = ({
   searchType = "city"
 }: DestinationAutocompleteProps) => {
   const [suggestions, setSuggestions] = useState<Destination[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [gettingLocation, setGettingLocation] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Popular destinations based on search type
-  const getPopularDestinations = (): Destination[] => {
-    if (searchType === "airport") {
-      return AIRPORTS.slice(0, 8).map(airport => ({
-        id: airport.iata.toLowerCase(),
-        name: airport.name,
-        city: airport.city,
-        country: airport.country,
-        code: airport.iata,
-        type: "airport" as const,
-        displayName: `${airport.city} (${airport.iata}) - ${airport.name}`
-      }));
-    }
-    
-    // Default city destinations
-    return [
-      { id: "syd", name: "Sydney", country: "Australia", type: "city", displayName: "Sydney, Australia" },
-      { id: "mel", name: "Melbourne", country: "Australia", type: "city", displayName: "Melbourne, Australia" },
-      { id: "bri", name: "Brisbane", country: "Australia", type: "city", displayName: "Brisbane, Australia" },
-      { id: "per", name: "Perth", country: "Australia", type: "city", displayName: "Perth, Australia" },
-      { id: "nyc", name: "New York", country: "United States", type: "city", displayName: "New York, United States" },
-      { id: "lon", name: "London", country: "United Kingdom", type: "city", displayName: "London, United Kingdom" },
-      { id: "par", name: "Paris", country: "France", type: "city", displayName: "Paris, France" },
-      { id: "tok", name: "Tokyo", country: "Japan", type: "city", displayName: "Tokyo, Japan" }
-    ];
-  };
+  // Popular destinations for fallback
+  const popularDestinations: Destination[] = [
+    { id: "syd", name: "Sydney", country: "Australia", type: "city" },
+    { id: "mel", name: "Melbourne", country: "Australia", type: "city" },
+    { id: "bri", name: "Brisbane", country: "Australia", type: "city" },
+    { id: "per", name: "Perth", country: "Australia", type: "city" },
+    { id: "nyc", name: "New York", country: "United States", type: "city" },
+    { id: "lon", name: "London", country: "United Kingdom", type: "city" },
+    { id: "par", name: "Paris", country: "France", type: "city" },
+    { id: "tok", name: "Tokyo", country: "Japan", type: "city" }
+  ];
 
-  const popularDestinations = getPopularDestinations();
-
-  // Helper function to search local airports
-  const getLocalAirportMatches = (query: string): Destination[] => {
-    const q = query.toLowerCase();
-    
-    return AIRPORTS
-      .filter(airport => 
-        airport.iata.toLowerCase().includes(q) ||
-        airport.city.toLowerCase().includes(q) ||
-        airport.name.toLowerCase().includes(q) ||
-        airport.country.toLowerCase().includes(q)
-      )
-      .slice(0, 8)
-      .map(airport => ({
-        id: airport.iata.toLowerCase(),
-        name: airport.name,
-        city: airport.city,
-        country: airport.country,
-        code: airport.iata,
-        type: "airport" as const,
-        displayName: `${airport.city} (${airport.iata}) - ${airport.name}`
-      }));
-  };
+  // Airport data mapped to our format
+  const airports = AIRPORTS.map(airport => ({
+    id: airport.iata,
+    name: airport.name,
+    city: airport.city,
+    country: airport.country,
+    code: airport.iata,
+    type: "airport" as const,
+    coordinates: { lat: 0, lng: 0 }
+  }));
 
   useEffect(() => {
-    let active = true;
-    const q = value.trim();
-    
-    if (q.length >= 2) {
-      setLoading(true);
-      const timeoutId = setTimeout(async () => {
+    const fetchSuggestions = async () => {
+      if (!value || value.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+
+      // Clear previous timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Debounce API calls
+      debounceTimerRef.current = setTimeout(async () => {
+        setIsLoading(true);
+        const q = value.trim();
+        let results: Destination[] = [];
+
         try {
-          console.log("Searching for destinations:", q);
-          
-          let results: Destination[] = [];
+          // Priority 1: Hotel search for hotel searchType
+          if (searchType === "hotel") {
+            try {
+              const { data: hotelData } = await supabase.functions.invoke('amadeus-hotel-autocomplete', {
+                body: { query: q, limit: 8 }
+              });
 
-          // For airport searches, try local airport data first for immediate results
-          if (searchType === "airport") {
-            const localAirports = getLocalAirportMatches(q);
-            if (localAirports.length > 0) {
-              results = localAirports;
-              console.log("Local airport results:", results.length);
+              if (hotelData?.success && hotelData.suggestions && Array.isArray(hotelData.suggestions)) {
+                const hotelResults = hotelData.suggestions.map((hotel: any) => ({
+                  id: hotel.hotelId || hotel.id,
+                  name: hotel.name,
+                  city: hotel.address?.cityName || '',
+                  country: hotel.address?.countryCode || '',
+                  code: hotel.hotelId || hotel.id,
+                  type: 'hotel' as const,
+                  coordinates: hotel.geoCode ? { 
+                    lat: parseFloat(hotel.geoCode.latitude), 
+                    lng: parseFloat(hotel.geoCode.longitude) 
+                  } : { lat: 0, lng: 0 }
+                }));
+                results = [...hotelResults];
+                console.log('Found hotel results:', results.length);
+              }
+            } catch (hotelError) {
+              console.warn('Hotel search failed, falling back to cities:', hotelError);
             }
           }
 
-          // If no local results or not an airport search, try APIs
-          if (results.length === 0) {
-            const searchTypes = searchType === "airport" ? ['AIRPORT'] : 
-                               searchType === "both" ? ['CITY', 'AIRPORT'] : ['CITY'];
-            
-            const { data: amadeusData, error: amadeusError } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
-              body: {
-                query: q,
-                types: searchTypes,
-                limit: 8
-              }
-            });
+          // Priority 2: Airport search for airport searchType
+          if (searchType === "airport") {
+            const airportMatches = airports.filter(airport =>
+              airport.name.toLowerCase().includes(q.toLowerCase()) ||
+              airport.city.toLowerCase().includes(q.toLowerCase()) ||
+              airport.code.toLowerCase().includes(q.toLowerCase())
+            ).slice(0, 8).map(airport => ({
+              id: airport.code,
+              name: `${airport.name} (${airport.code})`,
+              city: airport.city,
+              country: airport.country,
+              code: airport.code,
+              type: 'airport' as const,
+              coordinates: { lat: 0, lng: 0 }
+            }));
+            results = [...airportMatches];
+          }
 
-            if (!amadeusError && amadeusData?.results && Array.isArray(amadeusData.results)) {
-              results = amadeusData.results.map((d: any) => ({
-                ...d,
-                displayName: searchType === "airport" && d.code 
-                  ? `${d.city || d.name} (${d.code}) - ${d.name}`
-                  : d.city || d.name
-              }));
-              console.log("Amadeus results:", results.length);
-            }
-
-            // Try hotel name autocomplete - prioritize for hotel search mode
-            if (searchType === "hotel" || searchType === "both") {
-              try {
-                const { data: hotelAutocompleteData } = await supabase.functions.invoke('amadeus-hotel-autocomplete', {
-                  body: { query: q, limit: searchType === "hotel" ? 8 : 4 }
-                });
-
-                if (hotelAutocompleteData?.success && hotelAutocompleteData.suggestions?.length > 0) {
-                  const hotelResults = hotelAutocompleteData.suggestions.map((hotel: any) => ({
-                    id: hotel.hotelId || hotel.id,
-                    name: hotel.name,
-                    city: hotel.address?.cityName,
-                    country: hotel.address?.countryCode,
-                    type: "hotel" as const,
-                    coordinates: hotel.geoCode ? [hotel.geoCode.longitude, hotel.geoCode.latitude] as [number, number] : undefined,
-                    displayName: `${hotel.name} — ${hotel.address?.cityName || 'Hotel'}`
-                  }));
-                  
-                  // For hotel search mode, prioritize hotels at the top
-                  if (searchType === "hotel") {
-                    results = [...hotelResults, ...results].slice(0, 12);
-                  } else {
-                    results = [...results, ...hotelResults].slice(0, 12);
-                  }
-                  console.log("Added hotel autocomplete results:", hotelResults.length);
+          // Priority 3: City/destination search (fallback for hotels or primary for cities)
+          if (results.length < 3) {
+            try {
+              const { data: amadeusData } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
+                body: { 
+                  query: q, 
+                  types: searchType === "airport" ? ['AIRPORT'] : ['CITY'],
+                  limit: 8 
                 }
-              } catch (hotelError) {
-                console.warn("Hotel autocomplete failed:", hotelError);
+              });
+
+              if (amadeusData?.suggestions && Array.isArray(amadeusData.suggestions)) {
+                const amadeusResults = amadeusData.suggestions.map((d: any) => ({
+                  id: d.id || d.iataCode,
+                  name: d.name,
+                  city: d.city || d.address?.cityName,
+                  country: d.country || d.address?.countryName,
+                  code: d.iataCode || d.id,
+                  type: d.type === 'AIRPORT' ? 'airport' : 'city' as const,
+                  coordinates: d.geoCode ? { 
+                    lat: parseFloat(d.geoCode.latitude), 
+                    lng: parseFloat(d.geoCode.longitude) 
+                  } : { lat: 0, lng: 0 }
+                }));
+                
+                // Merge with existing results, avoiding duplicates
+                amadeusResults.forEach((amadeus: Destination) => {
+                  const isDuplicate = results.some(existing => 
+                    existing.id === amadeus.id || 
+                    (existing.name.toLowerCase() === amadeus.name.toLowerCase() && existing.city === amadeus.city)
+                  );
+                  if (!isDuplicate) {
+                    results.push(amadeus);
+                  }
+                });
               }
+            } catch (amadeusError) {
+              console.warn('Amadeus city search failed:', amadeusError);
             }
-
-            // HotelBeds integration removed - using Amadeus only for cleaner results
           }
 
-          // If still no results, try popular destinations that match the query
+          // Priority 4: Popular destinations fallback
           if (results.length === 0) {
-            const popularMatches = popularDestinations.filter(dest =>
-              dest.name.toLowerCase().includes(q.toLowerCase()) ||
-              dest.country.toLowerCase().includes(q.toLowerCase()) ||
-              (dest.code && dest.code.toLowerCase().includes(q.toLowerCase()))
-            );
-            results = popularMatches.slice(0, 6);
-            console.log("Using popular destinations fallback:", results.length);
+            const popularMatches = popularDestinations
+              .filter(dest => 
+                dest.name.toLowerCase().includes(q.toLowerCase()) ||
+                dest.country.toLowerCase().includes(q.toLowerCase())
+              )
+              .slice(0, 5);
+            results = [...popularMatches];
           }
 
-          if (!active) return;
-
-          setSuggestions(results);
-          setShowSuggestions(true);
-          setLoading(false);
+          setSuggestions(results.slice(0, 8));
         } catch (error) {
-          console.error("Search error:", error);
-          if (!active) return;
-          
-          // Fallback - for airports, try local search again, otherwise use popular destinations
-          let fallbackResults: Destination[] = [];
-          if (searchType === "airport") {
-            fallbackResults = getLocalAirportMatches(q);
-          }
-          
-          if (fallbackResults.length === 0) {
-            const popularMatches = popularDestinations.filter(dest =>
-              dest.name.toLowerCase().includes(q.toLowerCase()) ||
-              dest.country.toLowerCase().includes(q.toLowerCase()) ||
-              (dest.code && dest.code.toLowerCase().includes(q.toLowerCase()))
-            );
-            fallbackResults = popularMatches.slice(0, 6);
-          }
-          
-          setSuggestions(fallbackResults);
-          setShowSuggestions(true);
-          setLoading(false);
+          console.error('Error fetching suggestions:', error);
+          setSuggestions([]);
+        } finally {
+          setIsLoading(false);
         }
-      }, 300);
+      }, 300); // 300ms debounce
+    };
 
-      return () => {
-        active = false;
-        clearTimeout(timeoutId);
-      };
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setLoading(false);
-    }
+    fetchSuggestions();
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [value, searchType]);
 
-  const handleGetCurrentLocation = async () => {
-    setGettingLocation(true);
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-
-      const mockLocation = {
-        id: "current",
-        name: "Current Location",
-        country: "Your Area",
-        type: "city" as const,
-        coordinates: [position.coords.longitude, position.coords.latitude] as [number, number]
-      };
-      onDestinationSelect(mockLocation);
-      onChange("Current Location");
-      setShowSuggestions(false);
-    } catch (error) {
-      console.error("Error getting location:", error);
-    } finally {
-      setGettingLocation(false);
-    }
-  };
-
-  const formatDestinationLabel = (destination: Destination): string => {
-    if (destination.displayName) return destination.displayName;
+  const formatDestinationLabel = (destination: Destination) => {
+    // Add visual indicators for different types
+    const icon = destination.type === 'hotel' ? '🏨' : 
+                 destination.type === 'airport' ? '✈️' : '🏙️';
     
-    const cityOrName = destination.city || destination.name;
-    if (destination.type === "airport" && destination.code) {
-      return `${cityOrName} (${destination.code}) - ${destination.name}`;
+    if (destination.type === 'hotel') {
+      return `${icon} ${destination.name}${destination.city ? ` — ${destination.city}` : ''}`;
     }
-    if (destination.type === "hotel") {
-      return destination.city ? `${destination.name} — ${destination.city}` : destination.name;
+    if (destination.code && destination.code !== destination.name) {
+      return `${icon} ${destination.name} (${destination.code})`;
     }
-    if (destination.code) {
-      return `${cityOrName} (${destination.code})`;
+    if (destination.city && destination.city !== destination.name) {
+      return `${icon} ${destination.name}, ${destination.city}`;
     }
-    return destination.country ? `${destination.name}, ${destination.country}` : destination.name;
+    return `${icon} ${destination.name}`;
   };
 
   const handleSuggestionClick = (destination: Destination) => {
@@ -272,16 +227,28 @@ export const DestinationAutocomplete = ({
     inputRef.current?.blur();
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "airport":
-        return "✈️";
-      case "landmark":
-        return "🏛️";
-      case "hotel":
-        return "🏨";
-      default:
-        return "🏙️";
+  const handleGetCurrentLocation = async () => {
+    setIsGettingLocation(true);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+
+      const currentLocation: Destination = {
+        id: "current",
+        name: "Current Location",
+        country: "Your Area",
+        type: "city",
+        coordinates: { lat: position.coords.latitude, lng: position.coords.longitude }
+      };
+      
+      onDestinationSelect(currentLocation);
+      onChange("Current Location");
+      setShowSuggestions(false);
+    } catch (error) {
+      console.error("Error getting location:", error);
+    } finally {
+      setIsGettingLocation(false);
     }
   };
 
@@ -313,16 +280,24 @@ export const DestinationAutocomplete = ({
           onFocus={() => {
             if (value.length >= 2) {
               setShowSuggestions(true);
-            } else if (value.length === 0) {
-              // Show popular destinations when focused with empty input
-              setSuggestions(popularDestinations.slice(0, 6));
-              setShowSuggestions(true);
             }
           }}
           className={cn("pl-10 pr-12", className)}
         />
-        {gettingLocation && (
+        {isGettingLocation && (
           <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin" />
+        )}
+        {searchType !== "hotel" && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleGetCurrentLocation}
+            disabled={isGettingLocation}
+            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+          >
+            <Navigation className="h-4 w-4" />
+          </Button>
         )}
       </div>
 
@@ -331,37 +306,33 @@ export const DestinationAutocomplete = ({
           ref={suggestionsRef}
           className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
         >
-          {loading ? (
+          {isLoading ? (
             <div className="p-4 text-center">
               <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading destinations…</p>
+              <p className="text-sm text-muted-foreground">Searching destinations...</p>
             </div>
           ) : suggestions.length > 0 ? (
-            <>
-              {value.length === 0 && (
-                <div className="p-2 text-xs text-muted-foreground bg-muted/50 border-b">
-                  Popular destinations
-                </div>
-              )}
-              {suggestions.map(destination => (
-                <button
-                  key={destination.id}
-                  onClick={() => handleSuggestionClick(destination)}
-                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center space-x-3 border-b border-border last:border-b-0"
-                >
-                  <span className="text-lg">{getTypeIcon(destination.type)}</span>
-                  <div className="flex-1">
-                    <div className="font-medium text-foreground">
-                      {formatDestinationLabel(destination)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">{destination.country}</div>
+            suggestions.map((suggestion, index) => (
+              <button
+                key={`${suggestion.id}-${suggestion.type}-${index}`}
+                className="w-full px-4 py-3 text-left hover:bg-accent/50 flex items-center gap-3 transition-colors"
+                onClick={() => handleSuggestionClick(suggestion)}
+              >
+                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-foreground truncate">
+                    {formatDestinationLabel(suggestion)}
                   </div>
-                  <span className="text-xs text-muted-foreground capitalize">{destination.type}</span>
-                </button>
-              ))}
-            </>
+                  {suggestion.country && (
+                    <div className="text-sm text-muted-foreground truncate">
+                      {suggestion.country}
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))
           ) : (
-            <div className="p-3 text-center text-sm text-muted-foreground">
+            <div className="p-4 text-center text-sm text-muted-foreground">
               No destinations found. Try a different search term.
             </div>
           )}
