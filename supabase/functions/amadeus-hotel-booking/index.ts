@@ -58,6 +58,14 @@ async function getAmadeusAccessToken(): Promise<string> {
 }
 
 async function bookHotel(params: HotelBookingParams, accessToken: string): Promise<any> {
+  console.log('Creating Amadeus hotel booking:', {
+    offerId: params.hotelOfferId,
+    guest: `${params.guestDetails.firstName} ${params.guestDetails.lastName}`,
+    email: params.guestDetails.email,
+    checkIn: params.roomDetails.checkIn,
+    checkOut: params.roomDetails.checkOut
+  });
+
   const response = await fetch('https://api.amadeus.com/v1/booking/hotel-bookings', {
     method: 'POST',
     headers: {
@@ -69,7 +77,8 @@ async function bookHotel(params: HotelBookingParams, accessToken: string): Promi
         offerId: params.hotelOfferId,
         guests: [{
           name: {
-            title: 'MR',
+            title: params.guestDetails.firstName.toLowerCase().includes('ms') || 
+                   params.guestDetails.firstName.toLowerCase().includes('mrs') ? 'MS' : 'MR',
             firstName: params.guestDetails.firstName,
             lastName: params.guestDetails.lastName
           },
@@ -77,6 +86,9 @@ async function bookHotel(params: HotelBookingParams, accessToken: string): Promi
             phone: params.guestDetails.phone,
             email: params.guestDetails.email
           }
+        }],
+        payments: [{
+          method: 'creditCard'
         }]
       }
     }),
@@ -84,11 +96,22 @@ async function bookHotel(params: HotelBookingParams, accessToken: string): Promi
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus hotel booking error:', errorText);
-    throw new Error(`Hotel booking failed: ${response.statusText}`);
+    console.error('Amadeus hotel booking failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    });
+    throw new Error(`Hotel booking failed: ${response.statusText} - ${errorText}`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  console.log('Amadeus booking successful:', {
+    bookingId: result.data?.[0]?.id,
+    confirmationNumber: result.data?.[0]?.bookingReference,
+    status: result.data?.[0]?.status
+  });
+
+  return result;
 }
 
 serve(async (req) => {
@@ -102,15 +125,46 @@ serve(async (req) => {
     const accessToken = await getAmadeusAccessToken();
     const bookingResult = await bookHotel(params, accessToken);
     
+    // Extract real booking data from Amadeus response
+    const booking = bookingResult.data?.[0];
+    if (!booking) {
+      throw new Error('No booking data returned from Amadeus');
+    }
+
+    const realBookingData = {
+      amadeus_booking_id: booking.id,
+      confirmation_number: booking.bookingReference,
+      pnr_code: booking.providerConfirmationId || booking.bookingReference,
+      status: booking.status === 'CONFIRMED' ? 'confirmed' : 'pending',
+      total_amount: parseFloat(booking.associatedRecords?.[0]?.amountDue?.amount || booking.quote?.total?.amount || '0'),
+      currency: booking.associatedRecords?.[0]?.amountDue?.currency || booking.quote?.total?.currency || 'USD',
+      hotel_details: {
+        name: booking.hotel?.name || 'Hotel',
+        address: booking.hotel?.address,
+        contact: booking.hotel?.contact,
+        chainCode: booking.hotel?.chainCode
+      },
+      guest_details: params.guestDetails,
+      room_details: params.roomDetails,
+      check_in_time: booking.checkInDate || params.roomDetails.checkIn,
+      check_out_time: booking.checkOutDate || params.roomDetails.checkOut,
+      special_requests: params.specialRequests
+    };
+
     return new Response(
       JSON.stringify({
         success: true,
         booking: {
-          id: bookingResult.data?.id || `HOTEL_${Date.now()}`,
-          reference: bookingResult.data?.bookingReference || `HT${Date.now()}`,
-          status: 'confirmed',
-          totalPrice: bookingResult.data?.price?.total || 200,
-          currency: 'USD'
+          id: booking.id,
+          reference: booking.bookingReference,
+          pnr: booking.providerConfirmationId || booking.bookingReference,
+          status: booking.status === 'CONFIRMED' ? 'confirmed' : 'pending',
+          totalPrice: parseFloat(booking.associatedRecords?.[0]?.amountDue?.amount || booking.quote?.total?.amount || '0'),
+          currency: booking.associatedRecords?.[0]?.amountDue?.currency || booking.quote?.total?.currency || 'USD',
+          checkInTime: booking.checkInDate || params.roomDetails.checkIn,
+          checkOutTime: booking.checkOutDate || params.roomDetails.checkOut,
+          hotel: realBookingData.hotel_details,
+          amadeus: realBookingData
         }
       }),
       {
