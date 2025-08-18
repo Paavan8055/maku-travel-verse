@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
@@ -88,9 +89,12 @@ const getHotelOffers = async (
 
   const result = await response.json();
   console.log('Amadeus Hotel Offers API response:', {
-    hotelId: result.data?.hotel?.hotelId,
-    offersCount: result.data?.offers?.length,
-    available: result.data?.available
+    dataExists: !!result.data,
+    dataLength: result.data?.length || 0,
+    hotelExists: !!result.data?.[0]?.hotel,
+    offersCount: result.data?.[0]?.offers?.length || 0,
+    available: result.data?.[0]?.available,
+    fullResponse: JSON.stringify(result, null, 2)
   });
 
   return result;
@@ -131,8 +135,42 @@ serve(async (req) => {
       currency
     );
 
-    const hotel = offersData.data?.hotel;
-    const offers = offersData.data?.offers || [];
+    // Handle the response structure - Amadeus returns data as an array
+    const hotelData = offersData.data?.[0];
+    const hotel = hotelData?.hotel;
+    const offers = hotelData?.offers || [];
+
+    // Check if hotel was found
+    if (!hotel) {
+      console.log('=== Hotel Not Found ===', {
+        hotelId,
+        responseStructure: Object.keys(offersData),
+        dataExists: !!offersData.data,
+        dataLength: offersData.data?.length || 0
+      });
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Hotel with ID "${hotelId}" not found or not available`,
+        details: {
+          hotelId,
+          possibleReasons: [
+            'Hotel ID may not exist in Amadeus system',
+            'Hotel may not be bookable through Amadeus',
+            'Hotel may be temporarily unavailable'
+          ]
+        },
+        source: 'amadeus',
+        meta: {
+          apiProvider: 'Amadeus Hotel Offers',
+          searchId: crypto.randomUUID(),
+          timestamp: new Date().toISOString()
+        }
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Transform offers to match frontend expectations
     const transformedOffers = offers.map((offer: any) => ({
@@ -169,7 +207,7 @@ serve(async (req) => {
       hotelId: hotel?.hotelId,
       hotelName: hotel?.name,
       offersFound: transformedOffers.length,
-      available: offersData.data?.available
+      available: hotelData?.available
     });
 
     return new Response(JSON.stringify({
@@ -185,7 +223,7 @@ serve(async (req) => {
         longitude: hotel?.longitude
       },
       offers: transformedOffers,
-      available: offersData.data?.available,
+      available: hotelData?.available,
       meta: {
         apiProvider: 'Amadeus Hotel Offers',
         searchId: crypto.randomUUID(),

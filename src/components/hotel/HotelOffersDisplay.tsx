@@ -3,9 +3,10 @@ import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Bed, Users, CreditCard, Calendar, MapPin, AlertCircle } from 'lucide-react';
+import { Loader2, Bed, Users, CreditCard, Calendar, MapPin, AlertCircle, Search } from 'lucide-react';
 import { useHotelOffers } from '@/hooks/useHotelOffers';
 import { useHotelBooking } from '@/features/booking/hooks/useHotelBooking';
+import { useNavigate } from 'react-router-dom';
 
 interface HotelOffersDisplayProps {
   hotelId: string;
@@ -30,6 +31,7 @@ export const HotelOffersDisplay = ({
 }: HotelOffersDisplayProps) => {
   const { offers, hotel, loading, error, fetchOffers } = useHotelOffers();
   const { createHotelBooking, isLoading: bookingLoading } = useHotelBooking();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (hotelId && checkIn && checkOut) {
@@ -84,6 +86,10 @@ export const HotelOffersDisplay = ({
     }
   };
 
+  const handleSearchAgain = () => {
+    navigate('/search/hotels');
+  };
+
   if (loading) {
     return (
       <Card className="w-full">
@@ -96,23 +102,41 @@ export const HotelOffersDisplay = ({
   }
 
   if (error) {
+    const isHotelNotFound = error.includes('not found') || error.includes('not available');
+    
     return (
       <Card className="w-full">
         <CardContent className="p-8">
-          <div className="text-center text-destructive">
+          <div className="text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
-            <p className="text-lg font-semibold mb-2">Unable to load offers</p>
-            <p className="text-sm mb-4">{error}</p>
-            <p className="text-xs text-muted-foreground mb-4">
-              This may be due to invalid hotel data or API connectivity issues.
+            <p className="text-lg font-semibold mb-2">
+              {isHotelNotFound ? 'Hotel Not Available' : 'Unable to load offers'}
             </p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => fetchOffers({ hotelId, checkIn, checkOut, adults, children, rooms, currency })}
-            >
-              Try again
-            </Button>
+            <p className="text-sm mb-4 text-muted-foreground">{error}</p>
+            
+            {isHotelNotFound && (
+              <div className="bg-muted p-4 rounded-lg mb-4 text-sm text-left">
+                <p className="font-medium mb-2">This could happen because:</p>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  <li>The hotel is not available through our booking system</li>
+                  <li>The hotel ID may have changed or is no longer valid</li>
+                  <li>The hotel may be temporarily unavailable</li>
+                </ul>
+              </div>
+            )}
+            
+            <div className="flex gap-3 justify-center">
+              <Button 
+                variant="outline" 
+                onClick={() => fetchOffers({ hotelId, checkIn, checkOut, adults, children, rooms, currency })}
+              >
+                Try again
+              </Button>
+              <Button onClick={handleSearchAgain} className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                Search other hotels
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -124,10 +148,23 @@ export const HotelOffersDisplay = ({
       <Card className="w-full">
         <CardContent className="p-8">
           <div className="text-center">
+            <Bed className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-semibold mb-2">No rooms available</p>
-            <p className="text-sm text-muted-foreground">
-              No rooms are available for your selected dates. Please try different dates or search for other hotels.
+            <p className="text-sm text-muted-foreground mb-4">
+              No rooms are available for your selected dates at this hotel.
             </p>
+            <div className="bg-muted p-4 rounded-lg mb-4 text-sm text-left">
+              <p className="font-medium mb-2">Try these alternatives:</p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li>Search for different dates</li>
+                <li>Look for other hotels in the same area</li>
+                <li>Reduce the number of rooms or guests</li>
+              </ul>
+            </div>
+            <Button onClick={handleSearchAgain} className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Search other hotels
+            </Button>
           </div>
         </CardContent>
       </Card>
