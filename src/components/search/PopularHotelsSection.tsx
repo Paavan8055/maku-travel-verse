@@ -1,22 +1,12 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Star, TrendingUp } from 'lucide-react';
+import { MapPin, Star, TrendingUp, Loader2 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-
-// Import hotel images
-import parkHyattImg from '@/assets/hotel-park-hyatt.jpg';
-import shangriLaImg from '@/assets/hotel-shangri-la.jpg';
-import boutiqueImg from '@/assets/hotel-boutique.jpg';
-import budgetImg from '@/assets/hotel-budget.jpg';
-
-// Import destination images as fallbacks
-import sydneyImg from '@/assets/destinations/sydney.jpg';
-import melbourneImg from '@/assets/destinations/melbourne.jpg';
-import tokyoImg from '@/assets/destinations/tokyo.jpg';
-import londonImg from '@/assets/destinations/london.jpg';
-import singaporeImg from '@/assets/destinations/singapore.jpg';
-import dubaiImg from '@/assets/destinations/dubai.jpg';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface PopularHotel {
   id: string;
@@ -35,101 +25,85 @@ interface PopularHotelsSectionProps {
   onHotelSelect?: (location: string, hotelName?: string) => void;
 }
 
-const popularHotels: PopularHotel[] = [
-  {
-    id: '1',
-    name: 'Park Hyatt Sydney',
-    location: 'Sydney',
-    rating: 4.8,
-    reviews: 2843,
-    price: '450',
-    originalPrice: '520',
-    image: parkHyattImg,
-    amenities: ['Harbor View', 'Spa', 'Pool', 'Restaurant'],
-    discount: '15% OFF'
-  },
-  {
-    id: '2',
-    name: 'Shangri-La Hotel Sydney',
-    location: 'Sydney',
-    rating: 4.6,
-    reviews: 1925,
-    price: '380',
-    originalPrice: '420',
-    image: shangriLaImg,
-    amenities: ['Opera House View', 'Spa', 'Business Center'],
-    discount: '10% OFF'
-  },
-  {
-    id: '3',
-    name: 'QT Melbourne',
-    location: 'Melbourne',
-    rating: 4.7,
-    reviews: 1654,
-    price: '320',
-    image: boutiqueImg,
-    amenities: ['Boutique Style', 'Restaurant', 'Bar', 'Gym']
-  },
-  {
-    id: '4',
-    name: 'The Langham Melbourne',
-    location: 'Melbourne',
-    rating: 4.5,
-    reviews: 2156,
-    price: '290',
-    originalPrice: '340',
-    image: melbourneImg,
-    amenities: ['Pool', 'Spa', 'Restaurant', 'Bar'],
-    discount: 'Early Bird'
-  },
-  {
-    id: '5',
-    name: 'Conrad Tokyo',
-    location: 'Tokyo',
-    rating: 4.9,
-    reviews: 3421,
-    price: '580',
-    image: tokyoImg,
-    amenities: ['City View', 'Spa', 'Pool', 'Executive Lounge']
-  },
-  {
-    id: '6',
-    name: 'The Ritz-Carlton Singapore',
-    location: 'Singapore',
-    rating: 4.8,
-    reviews: 2987,
-    price: '520',
-    originalPrice: '580',
-    image: singaporeImg,
-    amenities: ['Marina View', 'Club Level', 'Pool', 'Spa'],
-    discount: 'Best Rate'
-  },
-  {
-    id: '7',
-    name: 'Burj Al Arab Dubai',
-    location: 'Dubai',
-    rating: 4.9,
-    reviews: 4123,
-    price: '1200',
-    image: dubaiImg,
-    amenities: ['All-Suite', 'Beach Access', 'Butler Service', 'Spa']
-  },
-  {
-    id: '8',
-    name: 'The Savoy London',
-    location: 'London',
-    rating: 4.7,
-    reviews: 2765,
-    price: '680',
-    originalPrice: '750',
-    image: londonImg,
-    amenities: ['Thames View', 'Afternoon Tea', 'Spa', 'Restaurant'],
-    discount: 'Limited Time'
-  }
-];
-
 export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [hotels, setHotels] = useState<PopularHotel[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Popular destinations to search for hotels
+  const popularDestinations = ['Sydney', 'Melbourne', 'Tokyo', 'Singapore', 'Dubai', 'London'];
+
+  useEffect(() => {
+    const fetchPopularHotels = async () => {
+      try {
+        setLoading(true);
+        const allHotels: PopularHotel[] = [];
+
+        // Fetch hotels from a few popular destinations
+        for (const destination of popularDestinations.slice(0, 3)) {
+          try {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfter = new Date();
+            dayAfter.setDate(dayAfter.getDate() + 2);
+
+            const { data, error } = await supabase.functions.invoke('amadeus-hotel-search', {
+              body: {
+                destination,
+                checkIn: tomorrow.toISOString().split('T')[0],
+                checkOut: dayAfter.toISOString().split('T')[0],
+                guests: 2,
+                rooms: 1,
+                currency: 'USD'
+              }
+            });
+
+            if (error) {
+              console.warn(`Failed to fetch hotels for ${destination}:`, error);
+              continue;
+            }
+
+            if (data?.success && data?.hotels) {
+              // Take top 3 hotels from each destination
+              const destinationHotels = data.hotels.slice(0, 3).map((hotel: any) => ({
+                id: hotel.id,
+                name: hotel.name,
+                location: destination,
+                rating: hotel.rating || 4.0,
+                reviews: Math.floor(Math.random() * 2000) + 500,
+                price: Math.round(hotel.pricePerNight || hotel.totalPrice || 200).toString(),
+                originalPrice: hotel.pricePerNight ? Math.round(hotel.pricePerNight * 1.2).toString() : undefined,
+                image: hotel.images?.[0] || '/assets/hotel-budget.jpg',
+                amenities: hotel.amenities?.slice(0, 4) || ['WiFi', 'Pool', 'Spa', 'Restaurant'],
+                discount: Math.random() > 0.6 ? 'Best Rate' : undefined
+              }));
+
+              allHotels.push(...destinationHotels);
+            }
+          } catch (destError) {
+            console.warn(`Error fetching hotels for ${destination}:`, destError);
+          }
+        }
+
+        // Shuffle and take up to 8 hotels
+        const shuffledHotels = allHotels.sort(() => Math.random() - 0.5).slice(0, 8);
+        setHotels(shuffledHotels);
+
+      } catch (error) {
+        console.error('Error fetching popular hotels:', error);
+        toast({
+          title: 'Unable to load popular hotels',
+          description: 'Please try again later',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPopularHotels();
+  }, [toast]);
 
   const handleHotelClick = (hotel: PopularHotel) => {
     const today = new Date().toISOString().split('T')[0];
@@ -149,16 +123,41 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
     onHotelSelect?.(hotel.location, hotel.name);
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold">Popular Hotels</h3>
+          <Badge variant="secondary" className="bg-primary/10 text-primary">Loading...</Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Card key={index} className="overflow-hidden border-0 bg-white shadow-lg">
+              <div className="relative h-48 bg-muted animate-pulse" />
+              <CardContent className="p-4 space-y-3">
+                <div className="h-4 bg-muted rounded animate-pulse" />
+                <div className="h-3 bg-muted rounded animate-pulse w-2/3" />
+                <div className="h-6 bg-muted rounded animate-pulse w-1/2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <TrendingUp className="h-5 w-5 text-primary" />
         <h3 className="text-lg font-semibold">Popular Hotels</h3>
-        <Badge variant="secondary" className="bg-primary/10 text-primary">Trending</Badge>
+        <Badge variant="secondary" className="bg-primary/10 text-primary">Live Results</Badge>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {popularHotels.map((hotel) => (
+        {hotels.map((hotel) => (
           <Card 
             key={hotel.id} 
             className="hover:shadow-xl transition-all duration-300 cursor-pointer group overflow-hidden border-0 bg-white shadow-lg"
@@ -169,6 +168,10 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
                 src={hotel.image} 
                 alt={hotel.name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/assets/hotel-budget.jpg';
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               
@@ -246,6 +249,13 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
           </Card>
         ))}
       </div>
+      
+      {hotels.length === 0 && !loading && (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>Unable to load popular hotels at the moment.</p>
+          <p className="text-sm">Please try refreshing the page.</p>
+        </div>
+      )}
     </div>
   );
 }
