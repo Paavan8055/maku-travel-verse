@@ -16,14 +16,10 @@ import HotelSearchBar from "@/components/search/HotelSearchBar";
 import { PopularHotelsSection } from "@/components/search/PopularHotelsSection";
 import { FeaturedHotelDeals } from "@/components/search/FeaturedHotelDeals";
 import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
-import { VoiceSearchInterface } from "@/components/hotel/VoiceSearchInterface";
-import { SmartLocationSearch } from "@/components/hotel/SmartLocationSearch";
-import { DateFlexibilityMatrix } from "@/components/hotel/DateFlexibilityMatrix";
 import { RealTimeOccupancy } from "@/components/hotel/RealTimeOccupancy";
-import { AccessibilityFilters } from "@/components/hotel/AccessibilityFilters";
-import { RevenueAnalyticsDashboard } from "@/components/hotel/RevenueAnalyticsDashboard";
-import { ABTestingFramework } from "@/components/hotel/ABTestingFramework";
+import { DateFlexibilityMatrix } from "@/components/hotel/DateFlexibilityMatrix";
 import { PredictivePricing } from "@/components/hotel/PredictivePricing";
+import { CompactSearchToolbar } from "@/components/hotel/CompactSearchToolbar";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -125,22 +121,22 @@ const HotelSearchPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header with Search Actions */}
         <HotelSearchBar />
+        
+        {/* Compact Advanced Features Toolbar */}
+        <CompactSearchToolbar 
+          destination={destination}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          guests={guests}
+          onDestinationChange={(dest) => console.log('Destination:', dest)}
+          onLocationSelect={(location) => console.log('Location selected:', location)}
+          selectedAccessibility={[]}
+          onAccessibilityChange={(filters) => console.log('Accessibility filters:', filters)}
+          className="mb-6"
+        />
 
         {!hasSearched ? (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <VoiceSearchInterface 
-                onVoiceResult={(text) => console.log('Voice result:', text)}
-                onDestinationChange={(dest) => console.log('Destination:', dest)}
-              />
-              <SmartLocationSearch 
-                onLocationSelect={(location) => console.log('Location selected:', location)}
-              />
-              <AccessibilityFilters 
-                selectedAccessibility={[]}
-                onAccessibilityChange={(filters) => console.log('Accessibility filters:', filters)}
-              />
-            </div>
             <PopularHotelsSection onHotelSelect={handleHotelSelect} />
             <FeaturedHotelDeals onDealSelect={handleDealSelect} />
           </div>
