@@ -166,19 +166,15 @@ const HotelSearchPage = () => {
               {filteredAndSortedHotels.map((hotel, index) => <div key={hotel.id} className="relative">
                   {/* Enhanced Hotel Card with Conversion Features */}
                   <div className="space-y-3">
-                    {/* Compact Enhanced Features - only show for first few results */}
-                    {index < 2 && (
+                    {/* Compact Enhanced Features - show both for first result only */}
+                    {index === 0 && (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
-                        {index === 0 && (
-                          <RealTimeOccupancy hotelId={hotel.id} />
-                        )}
-                        {index === 1 && (
-                          <PredictivePricing 
-                            hotelId={hotel.id}
-                            currentPrice={hotel.pricePerNight}
-                            checkInDate={checkIn}
-                          />
-                        )}
+                        <RealTimeOccupancy hotelId={hotel.id} />
+                        <PredictivePricing 
+                          hotelId={hotel.id}
+                          currentPrice={hotel.pricePerNight}
+                          checkInDate={checkIn}
+                        />
                       </div>
                     )}
                     
