@@ -210,89 +210,49 @@ export const PredictivePricing: React.FC<PredictivePricingProps> = ({
   };
 
   return (
-    <Card className={`travel-card ${className}`}>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center">
-          <TrendingUp className="h-5 w-5 mr-2" />
+    <Card className={`travel-card ${className} max-h-64`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center">
+          <TrendingUp className="h-4 w-4 mr-2" />
           AI Price Forecast
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        {/* Main Recommendation */}
-        <Card className={`border ${getActionColor(prediction.recommendation.action)}`}>
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              {getActionIcon(prediction.recommendation.action)}
-              <div className="flex-1">
-                <h3 className="font-semibold capitalize">
-                  {prediction.recommendation.action.replace('_', ' ')}
-                </h3>
-                <p className="text-sm mt-1">{prediction.recommendation.reason}</p>
-                <div className="flex items-center mt-2">
-                  <span className="text-xs">Confidence:</span>
-                  <Progress 
-                    value={prediction.recommendation.confidence} 
-                    className="h-2 w-20 ml-2" 
-                  />
-                  <span className="text-xs ml-2">{prediction.recommendation.confidence}%</span>
-                </div>
-              </div>
+      <CardContent className="space-y-2 p-3">
+        {/* Compact Recommendation */}
+        <div className={`p-2 rounded-lg border ${getActionColor(prediction.recommendation.action)}`}>
+          <div className="flex items-center space-x-2">
+            {getActionIcon(prediction.recommendation.action)}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium capitalize truncate">
+                {prediction.recommendation.action.replace('_', ' ')}
+              </p>
+              <p className="text-xs opacity-80 truncate">{prediction.recommendation.reason}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Optimal Booking Window */}
-        {prediction.optimalBookingWindow.expectedSavings > 0 && (
-          <div className="space-y-2">
-            <h4 className="font-medium">Optimal Booking Window</h4>
-            <div className="p-3 bg-muted rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">
-                  {new Date(prediction.optimalBookingWindow.start).toLocaleDateString()} - 
-                  {new Date(prediction.optimalBookingWindow.end).toLocaleDateString()}
-                </span>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Save ${prediction.optimalBookingWindow.expectedSavings}
-                </Badge>
-              </div>
-            </div>
+            <span className="text-xs font-medium">{prediction.recommendation.confidence}%</span>
           </div>
-        )}
+        </div>
 
-        {/* Price Trend Preview */}
-        <div className="space-y-2">
-          <h4 className="font-medium">7-Day Price Trend</h4>
-          <div className="space-y-2">
-            {prediction.predictedPrices.slice(0, 7).map((point, index) => (
-              <div key={point.date} className="flex items-center justify-between p-2 rounded border">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">
-                    {new Date(point.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+        {/* Compact 3-Day Price Trend */}
+        <div className="space-y-1">
+          <h4 className="text-xs font-medium">3-Day Trend</h4>
+          <div className="grid grid-cols-3 gap-1">
+            {prediction.predictedPrices.slice(0, 3).map((point, index) => (
+              <div key={point.date} className="text-center p-1 bg-muted rounded text-xs">
+                <div className="flex items-center justify-center space-x-1">
+                  <span className="truncate">
+                    {new Date(point.date).toLocaleDateString('en-US', { weekday: 'short' })}
                   </span>
                   {getTrendIcon(point.trend)}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs ${
-                      point.demandLevel === 'high' ? 'border-red-200 text-red-800' :
-                      point.demandLevel === 'medium' ? 'border-yellow-200 text-yellow-800' :
-                      'border-green-200 text-green-800'
-                    }`}
-                  >
-                    {point.demandLevel} demand
-                  </Badge>
-                  <span className="font-medium">${point.price}</span>
-                </div>
+                <div className="font-medium">${point.price}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          Predictions based on historical data, seasonal patterns, and market demand. 
-          Actual prices may vary and are subject to availability.
+        <p className="text-xs text-muted-foreground truncate">
+          AI predictions based on market patterns
         </p>
       </CardContent>
     </Card>
