@@ -329,13 +329,14 @@ const BookingPaymentPage = () => {
         customerInfo
       });
 
-      const { data, error } = await supabase.functions.invoke('create-card-payment-intent', {
+      const { data, error } = await supabase.functions.invoke('create-booking-payment', {
         body: {
           bookingType: currentBookingType,
           bookingData: currentBookingData,
           amount: bookingAmount,
           currency: isFlightCheckout ? flightParams.currency : 'USD',
           customerInfo,
+          paymentMethod: 'card'
         },
       });
 
@@ -349,9 +350,18 @@ const BookingPaymentPage = () => {
         return;
       }
 
-      console.log('Payment intent created successfully:', data);
-      setClientSecret(data.payment.clientSecret);
-      setBookingId(data.booking.id);
+      console.log('Booking payment created successfully:', data);
+      
+      // If payment URL returned, redirect to Stripe checkout
+      if (data.payment?.checkoutUrl) {
+        console.log('Redirecting to Stripe checkout');
+        window.location.href = data.payment.checkoutUrl;
+        return;
+      }
+      
+      // Otherwise, continue with elements flow
+      setClientSecret(data.payment?.clientSecret);
+      setBookingId(data.booking?.id);
       
       toast({ 
         title: 'Payment ready', 
@@ -462,12 +472,24 @@ const BookingPaymentPage = () => {
       }
     }
 
-    // Fallback to redirect-based flow
+    // Fallback to booking payment flow
     const currentBookingType = isFlightCheckout ? 'flight' : isActivityBooking ? 'activity' : 'hotel';
-    const currentBookingData = isFlightCheckout ? { flight: flightParams } : 
-                               isActivityBooking ? { activity: activityDetails } :
-                               { hotel: bookingDetails };
-    const currentAmount = isFlightCheckout ? flightParams.amount : 
+    const currentBookingData = isFlightCheckout ? { 
+      flight: {
+        ...flightParams,
+        isRoundtrip: flightParams.isRoundtrip
+      },
+      passengers: passenger ? [passenger] : null
+    } : 
+    isActivityBooking ? { 
+      activity: activityDetails,
+      participants: activityGuest ? [activityGuest] : activityDetails.participants
+    } :
+    { 
+      hotel: bookingDetails,
+      guests: guest ? [guest] : null
+    };
+    const currentAmount = isFlightCheckout ? flightParams.amount :
                          isActivityBooking ? activityDetails.total : 
                          bookingDetails.total;
     

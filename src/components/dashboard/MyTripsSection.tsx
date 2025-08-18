@@ -48,49 +48,53 @@ export const MyTripsSection: React.FC = () => {
 
     setLoading(true);
     try {
-      // Get user profile first
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
+      // Use the unified booking system instead of separate order tables
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          booking_reference,
+          booking_type,
+          status,
+          total_amount,
+          currency,
+          booking_data,
+          created_at,
+          updated_at,
+          booking_items (
+            id,
+            item_type,
+            item_details,
+            quantity,
+            unit_price,
+            total_price
+          )
+        `)
         .eq('user_id', user.id)
-        .single();
+        .order('created_at', { ascending: false });
 
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
+      if (bookingsError) {
+        console.error('Bookings fetch error:', bookingsError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your bookings. Please try again.',
+          variant: 'destructive'
+        });
         return;
       }
 
-      const profileId = profiles.id;
-
-      // Fetch all order types
-      const [flightRes, hotelRes, transferRes, activityRes] = await Promise.all([
-        supabase
-          .from('flights_orders')
-          .select('*')
-          .eq('profile_id', profileId)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('hotels_orders')
-          .select('*')
-          .eq('profile_id', profileId)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('transfers_orders')
-          .select('*')
-          .eq('profile_id', profileId)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('activities_orders')
-          .select('*')
-          .eq('profile_id', profileId)
-          .order('created_at', { ascending: false })
-      ]);
+      // Organize bookings by type
+      const allBookings = bookingsData || [];
+      const flights = allBookings.filter(b => b.booking_type === 'flight');
+      const hotels = allBookings.filter(b => b.booking_type === 'hotel');
+      const transfers = allBookings.filter(b => b.booking_type === 'transfer');
+      const activities = allBookings.filter(b => b.booking_type === 'activity');
 
       setTrips({
-        flights: flightRes.data || [],
-        hotels: hotelRes.data || [],
-        transfers: transferRes.data || [],
-        activities: activityRes.data || []
+        flights,
+        hotels,
+        transfers,
+        activities
       });
 
     } catch (error) {
@@ -256,26 +260,24 @@ export const MyTripsSection: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
+                   <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">
-                          {flight.offer_json?.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || 'N/A'} → 
-                          {flight.offer_json?.itineraries?.[0]?.segments?.slice(-1)[0]?.arrival?.iataCode || 'N/A'}
+                          {flight.booking_data?.flight?.origin || 'N/A'} → 
+                          {flight.booking_data?.flight?.destination || 'N/A'}
                         </span>
                       </div>
-                      {flight.pnr && (
-                        <div className="text-sm text-muted-foreground">
-                          PNR: {flight.pnr}
-                        </div>
-                      )}
+                      <div className="text-sm text-muted-foreground">
+                        Ref: {flight.booking_reference}
+                      </div>
                     </div>
                     <div className="space-y-2">
-                      {flight.price_total && (
+                      {flight.total_amount && (
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
                           <span className="font-semibold">
-                            {formatCurrency(flight.price_total, flight.price_currency)}
+                            {formatCurrency(flight.total_amount, flight.currency)}
                           </span>
                         </div>
                       )}
@@ -330,36 +332,34 @@ export const MyTripsSection: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <Building className="h-5 w-5" />
-                      {hotel.offer_json?.hotel?.name || 'Hotel Booking'}
+                      {hotel.booking_data?.hotel?.hotel || 'Hotel Booking'}
                     </CardTitle>
                     {getStatusBadge(hotel.status)}
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
+                   <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">
-                          {formatDate(hotel.checkin)} - {formatDate(hotel.checkout)}
+                          {hotel.booking_data?.hotel?.checkIn} - {hotel.booking_data?.hotel?.checkOut}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{hotel.rooms} room(s)</span>
+                        <span className="text-sm">{hotel.booking_data?.hotel?.guests || 1} guest(s)</span>
                       </div>
-                      {hotel.confirmation_code && (
-                        <div className="text-sm text-muted-foreground">
-                          Confirmation: {hotel.confirmation_code}
-                        </div>
-                      )}
+                      <div className="text-sm text-muted-foreground">
+                        Ref: {hotel.booking_reference}
+                      </div>
                     </div>
                     <div className="space-y-2">
-                      {hotel.total_price && (
+                      {hotel.total_amount && (
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
                           <span className="font-semibold">
-                            {formatCurrency(hotel.total_price, hotel.currency)}
+                            {formatCurrency(hotel.total_amount, hotel.currency)}
                           </span>
                         </div>
                       )}
