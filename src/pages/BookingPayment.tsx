@@ -288,8 +288,28 @@ const BookingPaymentPage = () => {
       } catch {}
 
       const person = passenger || guest || activityGuest;
+      
+      // Redirect to appropriate checkout page if guest data is missing
       if (!person) {
-        throw new Error('No customer information available. Please go back and complete the booking form.');
+        if (isFlightCheckout) {
+          // Redirect to flight checkout if missing passenger info
+          const redirectUrl = `/flight-checkout${window.location.search}`;
+          console.log('Missing passenger info, redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+          return;
+        } else if (isActivityBooking) {
+          // Redirect to activity checkout if missing activity guest info
+          const redirectUrl = `/activity-checkout${window.location.search}`;
+          console.log('Missing activity guest info, redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+          return;
+        } else {
+          // Redirect to hotel checkout if missing guest info
+          const redirectUrl = `/hotel-checkout${window.location.search}`;
+          console.log('Missing guest info, redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+          return;
+        }
       }
 
       const customerInfo = {
@@ -352,11 +372,11 @@ const BookingPaymentPage = () => {
 
       console.log('Booking payment created successfully:', data);
       
-      // If payment URL returned, redirect to Stripe checkout
+      // If payment URL returned, use embedded Elements instead of redirecting
       if (data.payment?.checkoutUrl) {
-        console.log('Redirecting to Stripe checkout');
-        window.location.href = data.payment.checkoutUrl;
-        return;
+        console.log('Stripe checkout URL received, but using embedded Elements flow');
+        // Open in new tab as fallback option
+        console.log('Checkout URL available as fallback:', data.payment.checkoutUrl);
       }
       
       // Otherwise, continue with elements flow
@@ -543,6 +563,70 @@ const BookingPaymentPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Payment Form */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Guest Information Status */}
+            {(() => {
+              let person: any = null;
+              try {
+                person = JSON.parse(sessionStorage.getItem(
+                  isFlightCheckout ? 'passengerInfo' : 
+                  isActivityBooking ? 'activityGuestInfo' : 
+                  'guestInfo'
+                ) || 'null');
+              } catch {}
+              
+              if (!person) {
+                return (
+                  <Card className="travel-card border-orange-200 bg-orange-50">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                            <Shield className="h-4 w-4 text-orange-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-orange-800">Guest Information Required</h3>
+                            <p className="text-sm text-orange-600">
+                              Please complete your {isFlightCheckout ? 'passenger' : isActivityBooking ? 'participant' : 'guest'} details first.
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            const redirectUrl = isFlightCheckout ? `/flight-checkout${window.location.search}` :
+                                              isActivityBooking ? `/activity-checkout${window.location.search}` :
+                                              `/hotel-checkout${window.location.search}`;
+                            window.location.href = redirectUrl;
+                          }}
+                          className="btn-primary"
+                          size="sm"
+                        >
+                          Complete Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              
+              return (
+                <Card className="travel-card border-green-200 bg-green-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <Check className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-green-800">
+                          {person.firstName} {person.lastName} ({person.email})
+                        </p>
+                        <p className="text-xs text-green-600">Guest details confirmed</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
             {/* Payment Method */}
             <Card className="travel-card">
               <CardContent className="p-6">
