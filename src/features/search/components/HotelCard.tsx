@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { MapPin, Star, Wifi, Car, Utensils, Waves, Shield, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,12 @@ interface Hotel {
     description: string;
     savings: number;
   };
+  amadeus?: {
+    hotelId: string;
+    chainCode: string;
+    dupeId: number;
+    offers: any[];
+  };
 }
 
 interface HotelCardProps {
@@ -43,36 +50,19 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
     const currentUrlParams = new URLSearchParams(window.location.search);
     
     console.log('Current URL params when selecting hotel:', Object.fromEntries(currentUrlParams.entries()));
+    console.log('Hotel selected:', hotel.name, 'with Amadeus ID:', hotel.amadeus?.hotelId || hotel.id);
     
-    // Create new search parameters for hotel checkout
+    // Create new search parameters for hotel offers
     const searchParams = new URLSearchParams();
     
-    // Pass hotel data directly 
-    const hotelData = encodeURIComponent(JSON.stringify({
-      id: hotel.id,
-      name: hotel.name,
-      description: hotel.description,
-      address: hotel.address,
-      images: hotel.images,
-      starRating: hotel.starRating,
-      rating: hotel.rating,
-      reviewCount: hotel.reviewCount,
-      pricePerNight: hotel.pricePerNight,
-      currency: hotel.currency,
-      totalPrice: hotel.totalPrice,
-      propertyType: hotel.propertyType,
-      distanceFromCenter: hotel.distanceFromCenter,
-      amenities: hotel.amenities,
-      cancellationPolicy: hotel.cancellationPolicy,
-      breakfast: hotel.breakfast,
-      deals: hotel.deals
-    }));
-    searchParams.set('hotel', hotelData);
+    // Use the real Amadeus hotel ID if available
+    const hotelId = hotel.amadeus?.hotelId || hotel.id;
+    searchParams.set('hotelId', hotelId);
     
     // Standardize parameter names (use camelCase consistently)
     const checkInValue = currentUrlParams.get('checkIn') || currentUrlParams.get('checkin');
     const checkOutValue = currentUrlParams.get('checkOut') || currentUrlParams.get('checkout');
-    const adultsValue = currentUrlParams.get('adults') || '2';
+    const adultsValue = currentUrlParams.get('adults') || currentUrlParams.get('guests') || '2';
     const childrenValue = currentUrlParams.get('children') || '0';
     const roomsValue = currentUrlParams.get('rooms') || '1';
     
@@ -82,11 +72,14 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
     searchParams.set('children', childrenValue);
     searchParams.set('rooms', roomsValue);
     
-    console.log('Hotel checkout params:', Object.fromEntries(searchParams.entries()));
+    // Pass hotel name for display
+    searchParams.set('hotelName', hotel.name);
     
-    // Navigate to room selection page first (proper booking flow)
+    console.log('Hotel offers params:', Object.fromEntries(searchParams.entries()));
+    
+    // Navigate to hotel offers page
     const finalUrl = `/booking/select?${searchParams.toString()}`;
-    console.log('Navigating to room selection:', finalUrl);
+    console.log('Navigating to hotel offers:', finalUrl);
     navigate(finalUrl);
   };
 
@@ -126,9 +119,6 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
               src="/placeholder.svg"
               alt={hotel.name}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.svg";
-              }}
             />
             {hotel.deals && (
               <div className="absolute top-3 left-3">
