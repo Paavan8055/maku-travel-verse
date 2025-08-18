@@ -100,54 +100,54 @@ export const RealTimeOccupancy: React.FC<RealTimeOccupancyProps> = ({
   };
 
   return (
-    <Card className={`${className} border-l-4 ${
-      occupancyData.urgencyLevel === 'high' ? 'border-l-red-500' :
-      occupancyData.urgencyLevel === 'medium' ? 'border-l-yellow-500' :
-      'border-l-blue-500'
+    <Card className={`${className} border-l-4 max-h-64 ${
+      occupancyData.urgencyLevel === 'high' ? 'border-l-red-500 bg-red-50/50' :
+      occupancyData.urgencyLevel === 'medium' ? 'border-l-yellow-500 bg-yellow-50/50' :
+      'border-l-blue-500 bg-blue-50/50'
     }`}>
-      <CardContent className="p-3">
-        <div className="space-y-2">
-          {/* Current Viewers */}
-          <div className="flex items-center justify-between">
+      <CardContent className="p-3 space-y-2">
+        {/* Header with urgency badge */}
+        <div className="flex items-center justify-between">
+          <Badge 
+            variant="outline" 
+            className={`text-xs font-medium ${getUrgencyColor(occupancyData.urgencyLevel)}`}
+          >
+            <Users className="h-3 w-3 mr-1" />
+            {getUrgencyMessage()}
+          </Badge>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs text-muted-foreground font-medium">LIVE</span>
+          </div>
+        </div>
+
+        {/* Main stats grid */}
+        <div className="grid grid-cols-1 gap-2">
+          {/* Current Viewers - prominent display */}
+          <div className="flex items-center justify-between p-2 bg-background/80 rounded-lg border">
             <div className="flex items-center space-x-2">
-              <Eye className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
-                {occupancyData.currentViewers} {occupancyData.currentViewers === 1 ? 'person is' : 'people are'} viewing
+              <Eye className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">
+                {occupancyData.currentViewers} viewing now
               </span>
             </div>
+          </div>
+
+          {/* Compact stats row */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            {/* Recent Bookings */}
+            {occupancyData.recentBookings > 0 && (
+              <div className="flex items-center space-x-1">
+                <TrendingUp className="h-3 w-3 text-green-600" />
+                <span>{occupancyData.recentBookings} booked/hr</span>
+              </div>
+            )}
+            
+            {/* Last Booking */}
             <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-muted-foreground">live</span>
+              <Clock className="h-3 w-3" />
+              <span>{occupancyData.lastBooking}</span>
             </div>
-          </div>
-
-          {/* Recent Bookings */}
-          {occupancyData.recentBookings > 0 && (
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4 text-green-600" />
-              <span className="text-sm">
-                {occupancyData.recentBookings} booking{occupancyData.recentBookings > 1 ? 's' : ''} in {occupancyData.timeframe}
-              </span>
-            </div>
-          )}
-
-          {/* Last Booking */}
-          <div className="flex items-center space-x-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              Last booked {occupancyData.lastBooking}
-            </span>
-          </div>
-
-          {/* Urgency Badge */}
-          <div className="pt-1">
-            <Badge 
-              variant="outline" 
-              className={`text-xs ${getUrgencyColor(occupancyData.urgencyLevel)}`}
-            >
-              <Users className="h-3 w-3 mr-1" />
-              {getUrgencyMessage()}
-            </Badge>
           </div>
         </div>
       </CardContent>
