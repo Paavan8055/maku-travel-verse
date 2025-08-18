@@ -134,7 +134,7 @@ serve(async (req) => {
     const realBookingData = {
       amadeus_booking_id: booking.id,
       confirmation_number: booking.bookingReference,
-      pnr_code: booking.providerConfirmationId || booking.bookingReference,
+      hotel_confirmation_number: booking.providerConfirmationId || booking.bookingReference,
       status: booking.status === 'CONFIRMED' ? 'confirmed' : 'pending',
       total_amount: parseFloat(booking.associatedRecords?.[0]?.amountDue?.amount || booking.quote?.total?.amount || '0'),
       currency: booking.associatedRecords?.[0]?.amountDue?.currency || booking.quote?.total?.currency || 'USD',
@@ -157,7 +157,7 @@ serve(async (req) => {
         booking: {
           id: booking.id,
           reference: booking.bookingReference,
-          pnr: booking.providerConfirmationId || booking.bookingReference,
+          confirmationNumber: booking.providerConfirmationId || booking.bookingReference,
           status: booking.status === 'CONFIRMED' ? 'confirmed' : 'pending',
           totalPrice: parseFloat(booking.associatedRecords?.[0]?.amountDue?.amount || booking.quote?.total?.amount || '0'),
           currency: booking.associatedRecords?.[0]?.amountDue?.currency || booking.quote?.total?.currency || 'USD',
