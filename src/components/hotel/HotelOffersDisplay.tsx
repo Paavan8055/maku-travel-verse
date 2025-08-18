@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,16 @@ export const HotelOffersDisplay = ({
     return '';
   };
 
+  // Group offers by room type to show variety
+  const groupedOffers = offers.reduce((acc, offer) => {
+    const roomType = offer.room.type || offer.room.typeEstimated?.category || 'STANDARD_ROOM';
+    if (!acc[roomType]) {
+      acc[roomType] = [];
+    }
+    acc[roomType].push(offer);
+    return acc;
+  }, {} as Record<string, typeof offers>);
+
   if (loading) {
     return (
       <Card className="w-full">
@@ -210,123 +221,149 @@ export const HotelOffersDisplay = ({
         </Card>
       )}
 
-      {/* Room Offers */}
+      {/* Room Offers - Enhanced Display */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Available Rooms ({offers.length})</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Available Rooms ({offers.length})</h3>
+          <div className="text-sm text-muted-foreground">
+            {Object.keys(groupedOffers).length} room type{Object.keys(groupedOffers).length !== 1 ? 's' : ''}
+          </div>
+        </div>
         
-        {offers.map((offer) => {
-          const descriptionText = getDescriptionText(offer.room.description);
-          
-          return (
-            <Card key={offer.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex gap-6">
-                  {/* Room Image */}
-                  <div className="flex-shrink-0 w-48 h-32">
-                    {photos.length > 0 ? (
-                      <img 
-                        src={photos[0].url} 
-                        alt={photos[0].title || 'Hotel room'}
-                        className="w-full h-full object-cover rounded-lg"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    
-                    {/* Enhanced fallback placeholder */}
-                    <div className={`w-full h-full bg-gradient-to-br from-muted/50 to-muted rounded-lg flex flex-col items-center justify-center ${photos.length > 0 ? 'hidden' : ''}`}>
-                      {photosLoading ? (
-                        <div className="text-center text-muted-foreground">
-                          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                          <p className="text-xs">Loading photo...</p>
+        {Object.entries(groupedOffers).map(([roomType, roomOffers]) => (
+          <div key={roomType} className="space-y-3">
+            {/* Room Type Header */}
+            {Object.keys(groupedOffers).length > 1 && (
+              <div className="border-l-4 border-primary pl-4">
+                <h4 className="font-medium text-base">
+                  {roomType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {roomOffers.length} rate{roomOffers.length !== 1 ? 's' : ''} available
+                </p>
+              </div>
+            )}
+            
+            {roomOffers.map((offer, index) => {
+              const descriptionText = getDescriptionText(offer.room.description);
+              
+              return (
+                <Card key={offer.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex gap-6">
+                      {/* Room Image */}
+                      <div className="flex-shrink-0 w-48 h-32">
+                        {photos.length > 0 ? (
+                          <img 
+                            src={photos[Math.min(index, photos.length - 1)]?.url || photos[0].url} 
+                            alt={photos[Math.min(index, photos.length - 1)]?.title || 'Hotel room'}
+                            className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        
+                        {/* Enhanced fallback placeholder */}
+                        <div className={`w-full h-full bg-gradient-to-br from-muted/50 to-muted rounded-lg flex flex-col items-center justify-center ${photos.length > 0 ? 'hidden' : ''}`}>
+                          {photosLoading ? (
+                            <div className="text-center text-muted-foreground">
+                              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                              <p className="text-xs">Loading photo...</p>
+                            </div>
+                          ) : (
+                            <div className="text-center text-muted-foreground">
+                              <Building className="h-8 w-8 mx-auto mb-2" />
+                              <p className="text-xs font-medium">{hotel?.name || hotelName}</p>
+                              <p className="text-xs opacity-75">Photo not available</p>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="text-center text-muted-foreground">
-                          <Building className="h-8 w-8 mx-auto mb-2" />
-                          <p className="text-xs font-medium">{hotel?.name || hotelName}</p>
-                          <p className="text-xs opacity-75">Photo not available</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Room Details */}
-                  <div className="flex-1 flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Bed className="h-5 w-5 text-primary" />
-                        <h4 className="text-lg font-semibold">
-                          {offer.room.type || offer.room.typeEstimated?.category || 'Standard Room'}
-                        </h4>
-                        {offer.rateFamilyEstimated && (
-                          <Badge variant="secondary">
-                            {offer.rateFamilyEstimated.code}
-                          </Badge>
-                        )}
                       </div>
 
-                      {descriptionText && (
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {descriptionText}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          Capacity: {offer.room.capacity || offer.guests?.adults || 2}
-                        </div>
-                        {offer.policies?.cancellation && (
-                          <div className="flex items-center gap-1">
-                            <CreditCard className="h-4 w-4" />
-                            {offer.policies.cancellation.type === 'FULL_STAY' ? 'Free cancellation' : 'Non-refundable'}
+                      {/* Room Details */}
+                      <div className="flex-1 flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <Bed className="h-5 w-5 text-primary" />
+                            <h4 className="text-lg font-semibold">
+                              {offer.room.type || offer.room.typeEstimated?.category || 'Standard Room'}
+                            </h4>
+                            {offer.rateFamilyEstimated && (
+                              <Badge variant="secondary">
+                                {offer.rateFamilyEstimated.code}
+                              </Badge>
+                            )}
+                            {index === 0 && roomOffers.length > 1 && (
+                              <Badge variant="outline" className="text-xs">
+                                Best Rate
+                              </Badge>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {offer.policies?.paymentType && (
-                        <Badge variant="outline" className="text-xs">
-                          Payment: {offer.policies.paymentType}
-                        </Badge>
-                      )}
-                    </div>
+                          {descriptionText && (
+                            <p className="text-sm text-muted-foreground mb-3">
+                              {descriptionText}
+                            </p>
+                          )}
 
-                    <div className="text-right space-y-2 ml-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total price</p>
-                        <p className="text-2xl font-bold text-primary">
-                          {offer.price.currency} {offer.price.total}
-                        </p>
-                        {offer.price.base !== offer.price.total && (
-                          <p className="text-sm text-muted-foreground">
-                            Base: {offer.price.currency} {offer.price.base}
-                          </p>
-                        )}
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              Capacity: {offer.room.capacity || offer.guests?.adults || 2}
+                            </div>
+                            {offer.policies?.cancellation && (
+                              <div className="flex items-center gap-1">
+                                <CreditCard className="h-4 w-4" />
+                                {offer.policies.cancellation.type === 'FULL_STAY' ? 'Free cancellation' : 'Non-refundable'}
+                              </div>
+                            )}
+                          </div>
+
+                          {offer.policies?.paymentType && (
+                            <Badge variant="outline" className="text-xs">
+                              Payment: {offer.policies.paymentType}
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="text-right space-y-2 ml-6">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Total price</p>
+                            <p className="text-2xl font-bold text-primary">
+                              {offer.price.currency} {offer.price.total}
+                            </p>
+                            {offer.price.base !== offer.price.total && (
+                              <p className="text-sm text-muted-foreground">
+                                Base: {offer.price.currency} {offer.price.base}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <Button 
+                            className="w-full"
+                            onClick={() => handleBookOffer(offer.id, offer.price.total)}
+                            disabled={bookingLoading}
+                          >
+                            {bookingLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Booking...
+                              </>
+                            ) : (
+                              'Book now'
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                      
-                      <Button 
-                        className="w-full"
-                        onClick={() => handleBookOffer(offer.id, offer.price.total)}
-                        disabled={bookingLoading}
-                      >
-                        {bookingLoading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            Booking...
-                          </>
-                        ) : (
-                          'Book now'
-                        )}
-                      </Button>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
