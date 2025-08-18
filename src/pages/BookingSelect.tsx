@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Star, MapPin, Wifi, Car, Utensils, Heart, ChevronLeft, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { OffersWidget, LocalTipsPanel } from "@/features/bookingEnhancements/components";
 
 const BookingSelectPage = () => {
+  const navigate = useNavigate();
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [addFundContribution, setAddFundContribution] = useState(false);
   const [fundContribution, setFundContribution] = useState(50);
@@ -200,16 +202,26 @@ const BookingSelectPage = () => {
       console.error('Failed to save booking selections:', error);
     }
 
-    // Pass search parameters to checkout
-    const checkoutParams = new URLSearchParams();
-    if (checkIn) checkoutParams.set('checkin', checkIn);
-    if (checkOut) checkoutParams.set('checkout', checkOut);
-    if (adults) checkoutParams.set('adults', adults.toString());
-    if (children) checkoutParams.set('children', children.toString());
+    // Navigate to extras page with all parameters
+    const extrasParams = new URLSearchParams();
     
-    const checkoutUrl = `/booking/hotel${checkoutParams.toString() ? '?' + checkoutParams.toString() : ''}`;
-    console.log('Navigating to hotel checkout:', checkoutUrl);
-    window.location.href = checkoutUrl;
+    // Add hotel data
+    if (hotelParam) extrasParams.set('hotel', hotelParam);
+    
+    // Add search parameters  
+    if (checkInParam) extrasParams.set('checkIn', checkInParam);
+    if (checkOutParam) extrasParams.set('checkOut', checkOutParam);
+    if (adultsParam) extrasParams.set('adults', adultsParam);
+    if (childrenParam) extrasParams.set('children', childrenParam);
+    if (roomsParam) extrasParams.set('rooms', roomsParam);
+    
+    // Add selected room data
+    const roomData = rooms.find(r => r.id === selectedRoom);
+    if (roomData) {
+      extrasParams.set('selectedRoom', encodeURIComponent(JSON.stringify(roomData)));
+    }
+    
+    navigate(`/booking/extras?${extrasParams.toString()}`);
   };
 
   // Extract destination from hotel data for offers and tips
@@ -512,7 +524,7 @@ const BookingSelectPage = () => {
                disabled={!selectedRoom}
                className="w-full btn-primary h-12"
              >
-               Continue to Details
+               Continue to Extras
              </Button>
           </div>
         </div>

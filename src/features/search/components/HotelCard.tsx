@@ -84,9 +84,9 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
     
     console.log('Hotel checkout params:', Object.fromEntries(searchParams.entries()));
     
-    // Navigate directly to hotel checkout (skip the intermediate select page)
-    const finalUrl = `/booking/hotel?${searchParams.toString()}`;
-    console.log('Navigating directly to hotel checkout:', finalUrl);
+    // Navigate to room selection page first (proper booking flow)
+    const finalUrl = `/booking/select?${searchParams.toString()}`;
+    console.log('Navigating to room selection:', finalUrl);
     navigate(finalUrl);
   };
 

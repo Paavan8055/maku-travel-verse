@@ -39,8 +39,11 @@ async function getAmadeusAccessToken(): Promise<string> {
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
   
   if (!clientId || !clientSecret) {
+    console.error('Missing Amadeus credentials - clientId:', !!clientId, 'clientSecret:', !!clientSecret);
     throw new Error('Missing Amadeus credentials');
   }
+
+  console.log('Attempting Amadeus authentication with clientId:', clientId.substring(0, 8) + '...');
 
   const response = await fetch('https://api.amadeus.com/v1/security/oauth2/token', {
     method: 'POST',
