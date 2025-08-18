@@ -40,9 +40,9 @@ async function getAmadeusAccessToken(): Promise<string> {
 }
 
 async function getHotelAutocomplete(query: string, accessToken: string) {
-  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels?keyword=${encodeURIComponent(query)}&subType=HOTEL_LEISURE,HOTEL_GDS`;
+  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels/by-keyword?keyword=${encodeURIComponent(query)}`;
   
-  console.log('Getting hotel autocomplete for:', query);
+  console.log('Getting hotel autocomplete for:', query, 'using URL:', url);
   
   const response = await fetch(url, {
     headers: {
@@ -52,7 +52,14 @@ async function getHotelAutocomplete(query: string, accessToken: string) {
   });
 
   if (!response.ok) {
-    console.error('Hotel autocomplete API error:', response.status, response.statusText);
+    const errorText = await response.text();
+    console.error('Hotel autocomplete API error:', response.status, response.statusText, errorText);
+    
+    // Handle rate limiting with exponential backoff
+    if (response.status === 429) {
+      throw new Error('Rate limit exceeded. Please try again in a moment.');
+    }
+    
     throw new Error(`Hotel autocomplete API error: ${response.statusText}`);
   }
 
