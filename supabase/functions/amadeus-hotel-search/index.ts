@@ -282,10 +282,13 @@ serve(async (req) => {
       );
     }
 
-    // Validate date format and logic
+    // Validate date format and logic - FIXED: Compare dates only, not time
     const checkInValidation = new Date(normalizedCheckIn);
     const checkOutValidation = new Date(normalizedCheckOut);
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to midnight for proper date comparison
+    checkInValidation.setHours(0, 0, 0, 0);
+    checkOutValidation.setHours(0, 0, 0, 0);
     
     if (checkInValidation < today) {
       console.error(`❌ [${requestId}] Check-in date is in the past`);

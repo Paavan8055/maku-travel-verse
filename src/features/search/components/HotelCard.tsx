@@ -219,7 +219,7 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                   </p>
                 </div>
                 <Button className="w-full" onClick={handleSelectHotel}>
-                  Select room
+                  View offers
                 </Button>
               </div>
             </div>
