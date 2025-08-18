@@ -177,12 +177,15 @@ const BookingSelectPage = () => {
 
     // Persist selections for downstream steps
     try {
+      const totalPrice = (selectedRoomData?.price || 0) * nights;
+      
       const selections = {
         hotelId: hotel.id,
         hotelName: hotel.name,
         roomId: selectedRoom,
         roomName: selectedRoomData?.name,
         nightlyPrice: selectedRoomData?.price || 0,
+        totalPrice: totalPrice,
         bedType,
         extraBeds,
         rollaway,
@@ -196,8 +199,12 @@ const BookingSelectPage = () => {
         children,
         totalGuests
       };
+      
+      // Also store the total price separately for easy access
+      sessionStorage.setItem('selectedHotelPrice', totalPrice.toString());
       sessionStorage.setItem('hotelBookingSelections', JSON.stringify(selections));
       console.log('Saved booking selections:', selections);
+      console.log('Total price stored:', totalPrice);
     } catch (error) {
       console.error('Failed to save booking selections:', error);
     }

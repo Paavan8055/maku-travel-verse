@@ -38,81 +38,50 @@ export const useHotelBooking = () => {
     setIsLoading(true);
 
     try {
-      // Create the hotel booking with Amadeus
-      const { data: bookingData, error: bookingError } = await supabase.functions.invoke('amadeus-hotel-booking', {
+      console.log('Creating hotel booking payment for offer:', params.hotelOfferId);
+
+      // Get the selected hotel price from session storage
+      const selectedPrice = parseFloat(sessionStorage.getItem('selectedHotelPrice') || '200');
+      const selectedHotelData = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || '{}');
+
+      // Create the booking using the unified booking system
+      const { data: bookingResponse, error: bookingError } = await supabase.functions.invoke('create-booking-payment', {
         body: {
-          hotelOfferId: params.hotelOfferId,
-          guestDetails: params.guestDetails,
-          roomDetails: params.roomDetails,
-          specialRequests: params.specialRequests
-        }
-      });
-
-      if (bookingError || !bookingData?.success) {
-        throw new Error(bookingData?.error || 'Failed to create hotel booking');
-      }
-
-      // Store booking in Supabase
-      const bookingDetails = {
-        booking_type: 'hotel',
-        booking_reference: bookingData.booking?.reference || `HT${Date.now()}`,
-        status: bookingData.booking?.status || 'confirmed',
-        total_amount: parseFloat(bookingData.booking?.totalPrice || '0'),
-        currency: bookingData.booking?.currency || 'USD',
-        booking_data: {
-          hotelOfferId: params.hotelOfferId,
-          amadeus_booking_id: bookingData.booking?.id,
-          confirmation_number: bookingData.booking?.reference,
-          guest_details: params.guestDetails,
-          room_details: params.roomDetails,
-          special_requests: params.specialRequests,
-          hotel_details: bookingData.booking?.hotel,
-          check_in_time: bookingData.booking?.checkInTime,
-          check_out_time: bookingData.booking?.checkOutTime
-        } as any,
-        user_id: user?.id
-      };
-
-      const { data: supabaseBooking, error: supabaseError } = await supabase
-        .from('bookings')
-        .insert(bookingDetails)
-        .select()
-        .single();
-
-      if (supabaseError) {
-        console.error('Supabase booking error:', supabaseError);
-        toast.error('Booking saved to external system but may not appear in dashboard immediately');
-      }
-
-      // Create payment intent for the booking
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-booking-payment', {
-        body: {
-          bookingId: supabaseBooking?.id || 'external-' + bookingData.booking?.id,
-          amount: parseFloat(bookingData.booking?.totalPrice || '0'),
-          currency: bookingData.booking?.currency || 'USD',
-          customerInfo: {
-            email: params.guestDetails.email,
-            firstName: params.guestDetails.firstName,
-            lastName: params.guestDetails.lastName
+          bookingType: 'hotel',
+          bookingData: {
+            hotelOfferId: params.hotelOfferId,
+            hotel: {
+              name: selectedHotelData.hotelName || 'Selected Hotel',
+              checkIn: params.roomDetails.checkIn,
+              checkOut: params.roomDetails.checkOut,
+              roomType: params.roomDetails.roomType,
+              guests: params.roomDetails.guests,
+              boardType: params.roomDetails.boardType
+            },
+            specialRequests: params.specialRequests,
+            amadeus: {
+              hotelOfferId: params.hotelOfferId,
+              hotelId: selectedHotelData.hotelId
+            }
           },
-          bookingData: bookingDetails.booking_data,
-          successUrl: `${window.location.origin}/booking/confirmation?booking_id=${supabaseBooking?.id}`,
-          cancelUrl: `${window.location.origin}/booking/payment?retry=true`
+          amount: selectedPrice,
+          currency: 'USD',
+          customerInfo: params.guestDetails,
+          paymentMethod: params.paymentMethod || 'card'
         }
       });
 
-      if (paymentError) {
-        console.error('Payment creation error:', paymentError);
-        toast.error('Booking created but payment setup failed. Please contact support.');
+      if (bookingError || !bookingResponse?.success) {
+        throw new Error(bookingResponse?.error || 'Failed to create hotel booking payment');
       }
 
-      toast.success('Hotel booking created successfully!');
+      toast.success('Hotel booking payment created successfully!');
 
       return {
         success: true,
-        bookingId: supabaseBooking?.id || bookingData.booking?.id,
-        confirmationNumber: bookingData.booking?.reference,
-        redirectUrl: paymentData?.url
+        bookingId: bookingResponse.booking?.id,
+        confirmationNumber: bookingResponse.booking?.reference,
+        redirectUrl: bookingResponse.payment?.checkoutUrl
       };
 
     } catch (error) {

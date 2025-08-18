@@ -82,20 +82,130 @@ serve(async (req) => {
           throw new Error(`Failed to update payment: ${paymentError.message}`);
         }
 
-        // Update booking status to confirmed
+        // Update booking status and create real Amadeus booking
         const bookingId = paymentIntent.metadata.booking_id;
         if (bookingId) {
-          const { error: bookingError } = await supabaseClient
+          // Get booking details
+          const { data: booking, error: fetchError } = await supabaseClient
             .from("bookings")
-            .update({ 
-              status: "confirmed",
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", bookingId);
+            .select("*")
+            .eq("id", bookingId)
+            .single();
 
-          if (bookingError) {
-            logStep("Failed to update booking", { error: bookingError.message });
-            throw new Error(`Failed to update booking: ${bookingError.message}`);
+          if (fetchError || !booking) {
+            logStep("Failed to fetch booking", { error: fetchError?.message });
+            throw new Error(`Failed to fetch booking: ${fetchError?.message}`);
+          }
+
+          // If this is a hotel booking, create real Amadeus reservation
+          if (booking.booking_type === 'hotel' && booking.booking_data?.amadeus?.hotelOfferId) {
+            try {
+              logStep("Creating real Amadeus hotel booking", { bookingId });
+              
+              const { data: amadeusBooking, error: amadeusError } = await supabaseClient.functions.invoke('amadeus-hotel-booking', {
+                body: {
+                  hotelOfferId: booking.booking_data.amadeus.hotelOfferId,
+                  guestDetails: booking.booking_data.customerInfo,
+                  roomDetails: {
+                    roomType: booking.booking_data.hotel?.roomType || 'Standard Room',
+                    boardType: booking.booking_data.hotel?.boardType || 'ROOM_ONLY',
+                    checkIn: booking.booking_data.hotel?.checkIn,
+                    checkOut: booking.booking_data.hotel?.checkOut,
+                    guests: booking.booking_data.hotel?.guests || 1
+                  },
+                  specialRequests: booking.booking_data.specialRequests
+                }
+              });
+
+              if (amadeusError || !amadeusBooking?.success) {
+                logStep("Amadeus booking failed", { error: amadeusError || amadeusBooking?.error });
+                // Still confirm the booking but note the Amadeus failure
+                await supabaseClient
+                  .from("bookings")
+                  .update({ 
+                    status: "confirmed",
+                    booking_data: {
+                      ...booking.booking_data,
+                      amadeus_booking_failed: true,
+                      amadeus_error: amadeusError || amadeusBooking?.error
+                    },
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq("id", bookingId);
+              } else {
+                // Update booking with real Amadeus booking data
+                await supabaseClient
+                  .from("bookings")
+                  .update({ 
+                    status: "confirmed",
+                    booking_data: {
+                      ...booking.booking_data,
+                      amadeus_booking: amadeusBooking.booking,
+                      pnr_code: amadeusBooking.booking?.pnr,
+                      confirmation_number: amadeusBooking.booking?.reference,
+                      amadeus_booking_id: amadeusBooking.booking?.id
+                    },
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq("id", bookingId);
+
+                logStep("Real Amadeus booking created", { 
+                  bookingId, 
+                  amadeusId: amadeusBooking.booking?.id,
+                  pnr: amadeusBooking.booking?.pnr 
+                });
+
+                // Send confirmation email
+                try {
+                  await supabaseClient.functions.invoke('send-booking-confirmation', {
+                    body: { bookingId }
+                  });
+                  logStep("Confirmation email sent", { bookingId });
+                } catch (emailError) {
+                  logStep("Failed to send confirmation email", { error: emailError });
+                  // Don't fail the booking if email fails
+                }
+              }
+            } catch (amadeusError) {
+              logStep("Amadeus booking creation failed", { error: amadeusError });
+              // Still confirm the booking but note the failure
+              await supabaseClient
+                .from("bookings")
+                .update({ 
+                  status: "confirmed",
+                  booking_data: {
+                    ...booking.booking_data,
+                    amadeus_booking_failed: true,
+                    amadeus_error: amadeusError.message
+                  },
+                  updated_at: new Date().toISOString()
+                })
+                .eq("id", bookingId);
+
+              // Still send confirmation email for the booking
+              try {
+                await supabaseClient.functions.invoke('send-booking-confirmation', {
+                  body: { bookingId }
+                });
+                logStep("Confirmation email sent despite Amadeus failure", { bookingId });
+              } catch (emailError) {
+                logStep("Failed to send confirmation email", { error: emailError });
+              }
+            }
+          } else {
+            // For non-hotel bookings, just confirm
+            const { error: bookingError } = await supabaseClient
+              .from("bookings")
+              .update({ 
+                status: "confirmed",
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", bookingId);
+
+            if (bookingError) {
+              logStep("Failed to update booking", { error: bookingError.message });
+              throw new Error(`Failed to update booking: ${bookingError.message}`);
+            }
           }
           
           logStep("Booking confirmed", { bookingId });
