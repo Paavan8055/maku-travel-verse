@@ -7,18 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import { OffersWidget, LocalTipsPanel } from "@/features/bookingEnhancements/components";
+import { HotelOffersDisplay } from "@/components/hotel/HotelOffersDisplay";
 
 const BookingSelectPage = () => {
   const navigate = useNavigate();
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [addFundContribution, setAddFundContribution] = useState(false);
   const [fundContribution, setFundContribution] = useState(50);
   const [fundBalance] = useState(1250);
-  // Sleeping options
-  const [bedType, setBedType] = useState<'King' | 'Queen' | 'Twin'>('King');
-  const [extraBeds, setExtraBeds] = useState<number>(0);
-  const [rollaway, setRollaway] = useState<boolean>(false);
-  const [sofaBed, setSofaBed] = useState<boolean>(false);
 
   // Get hotel data and search parameters from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -110,7 +105,7 @@ const BookingSelectPage = () => {
   let hotel: any = {
     id: "1",
     name: "Ocean Breeze Resort",
-    location: "Seminyak, Bali",
+    location: "Seminyak, Bali", 
     rating: 4.8,
     reviews: 1234,
     images: [
@@ -138,98 +133,6 @@ const BookingSelectPage = () => {
       console.error('Failed to parse hotel data from URL:', error);
     }
   }
-
-  const rooms = [
-    {
-      id: "deluxe",
-      name: "Deluxe Ocean View",
-      size: "35 sqm",
-      guests: 2,
-      price: hotel.pricePerNight || 450,
-      originalPrice: Math.round((hotel.pricePerNight || 450) * 1.3),
-      savings: Math.round((hotel.pricePerNight || 450) * 0.3),
-      amenities: ["King Bed", "Ocean View", "Balcony", "Free WiFi"],
-      availability: "Last 3 rooms",
-      image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&h=300&fit=crop"
-    },
-    {
-      id: "suite",
-      name: "Presidential Suite",
-      size: "75 sqm",
-      guests: 4,
-      price: Math.round((hotel.pricePerNight || 450) * 1.9),
-      originalPrice: Math.round((hotel.pricePerNight || 450) * 2.7),
-      savings: Math.round((hotel.pricePerNight || 450) * 0.8),
-      amenities: ["Master Bedroom", "Living Room", "Kitchen", "Ocean View", "Private Balcony"],
-      availability: "2 rooms left",
-      image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop"
-    }
-  ];
-
-  const handleRoomSelect = (roomId: string) => {
-    setSelectedRoom(roomId);
-  };
-
-  const handleContinue = () => {
-    if (!selectedRoom) return;
-
-    const selectedRoomData = rooms.find(room => room.id === selectedRoom);
-
-    // Persist selections for downstream steps
-    try {
-      const totalPrice = (selectedRoomData?.price || 0) * nights;
-      
-      const selections = {
-        hotelId: hotel.id,
-        hotelName: hotel.name,
-        roomId: selectedRoom,
-        roomName: selectedRoomData?.name,
-        nightlyPrice: selectedRoomData?.price || 0,
-        totalPrice: totalPrice,
-        bedType,
-        extraBeds,
-        rollaway,
-        sofaBed,
-        fundContribution: addFundContribution ? fundContribution : 0,
-        // Preserve search criteria
-        checkIn,
-        checkOut,
-        nights,
-        adults,
-        children,
-        totalGuests
-      };
-      
-      // Also store the total price separately for easy access
-      sessionStorage.setItem('selectedHotelPrice', totalPrice.toString());
-      sessionStorage.setItem('hotelBookingSelections', JSON.stringify(selections));
-      console.log('Saved booking selections:', selections);
-      console.log('Total price stored:', totalPrice);
-    } catch (error) {
-      console.error('Failed to save booking selections:', error);
-    }
-
-    // Navigate to extras page with all parameters
-    const extrasParams = new URLSearchParams();
-    
-    // Add hotel data
-    if (hotelParam) extrasParams.set('hotel', hotelParam);
-    
-    // Add search parameters  
-    if (checkInParam) extrasParams.set('checkIn', checkInParam);
-    if (checkOutParam) extrasParams.set('checkOut', checkOutParam);
-    if (adultsParam) extrasParams.set('adults', adultsParam);
-    if (childrenParam) extrasParams.set('children', childrenParam);
-    if (roomsParam) extrasParams.set('rooms', roomsParam);
-    
-    // Add selected room data
-    const roomData = rooms.find(r => r.id === selectedRoom);
-    if (roomData) {
-      extrasParams.set('selectedRoom', encodeURIComponent(JSON.stringify(roomData)));
-    }
-    
-    navigate(`/booking/extras?${extrasParams.toString()}`);
-  };
 
   // Extract destination from hotel data for offers and tips
   const destination = hotel.location.split(',')[1]?.trim() || 'BALI';
@@ -311,63 +214,19 @@ const BookingSelectPage = () => {
               </CardContent>
             </Card>
 
-            {/* Room Selection */}
+            {/* Real Amadeus Hotel Offers */}
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Choose Your Room</h2>
-              
-              {rooms.map((room) => (
-                <Card 
-                  key={room.id} 
-                  className={`travel-card cursor-pointer transition-all ${
-                    selectedRoom === room.id ? 'ring-2 ring-primary' : ''
-                  }`}
-                  onClick={() => handleRoomSelect(room.id)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <img
-                        src={room.image}
-                        alt={room.name}
-                        className="w-32 h-24 object-cover rounded-lg"
-                      />
-                      
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-bold">{room.name}</h3>
-                          <div className="text-right">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-2xl font-bold">${room.price}</span>
-                              <span className="text-sm text-muted-foreground line-through">
-                                ${room.originalPrice}
-                              </span>
-                            </div>
-                            <div className="text-xs text-green-600">Save ${room.savings}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
-                          <span>{room.size}</span>
-                          <span className="flex items-center">
-                            <Users className="h-4 w-4 mr-1" />
-                            Up to {room.guests} guests
-                          </span>
-                          <Badge variant="destructive" className="text-xs">
-                            {room.availability}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {room.amenities.map((amenity) => (
-                            <Badge key={amenity} variant="secondary" className="text-xs">
-                              {amenity}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <h2 className="text-xl font-bold">Available Rooms</h2>
+              <HotelOffersDisplay
+                hotelId={hotel.id}  
+                hotelName={hotel.name}
+                checkIn={checkIn || '2025-08-20'}
+                checkOut={checkOut || '2025-08-21'}
+                adults={adults}
+                children={children}
+                rooms={parseInt(roomsParam || '1')}
+                currency="USD"
+              />
             </div>
           </div>
 
@@ -394,67 +253,6 @@ const BookingSelectPage = () => {
                   <div className="flex justify-between">
                     <span>Guests:</span>
                     <span>{totalGuests} {totalGuests === 1 ? 'guest' : 'guests'}</span>
-                  </div>
-                </div>
-
-                {selectedRoom && (
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium">Selected Room:</span>
-                    </div>
-                    <p className="text-sm">{rooms.find(r => r.id === selectedRoom)?.name}</p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span>{nights} {nights === 1 ? 'night' : 'nights'} × ${rooms.find(r => r.id === selectedRoom)?.price}</span>
-                      <span className="font-bold">${(rooms.find(r => r.id === selectedRoom)?.price || 0) * nights}</span>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Bed & Sleeping Options */}
-            <Card className="travel-card">
-              <CardContent className="p-6 space-y-4">
-                <h3 className="text-lg font-bold">Bed & Sleeping Options</h3>
-
-                {/* Bed type selector */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Bed type</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['King','Queen','Twin'] as const).map(bt => (
-                      <Button
-                        key={bt}
-                        type="button"
-                        variant={bedType === bt ? 'default' : 'outline'}
-                        onClick={() => setBedType(bt)}
-                        className="w-full"
-                      >
-                        {bt}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Additional beds counter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Additional beds</label>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setExtraBeds(Math.max(0, extraBeds - 1))}>-</Button>
-                    <span className="w-10 text-center">{extraBeds}</span>
-                    <Button variant="outline" size="sm" onClick={() => setExtraBeds(extraBeds + 1)}>+</Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Request extra single beds (subject to availability, fees may apply).</p>
-                </div>
-
-                {/* Special bed requests */}
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="rollaway" checked={rollaway} onCheckedChange={(c) => setRollaway(c === true)} />
-                    <label htmlFor="rollaway" className="text-sm">Rollaway bed</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="sofaBed" checked={sofaBed} onCheckedChange={(c) => setSofaBed(c === true)} />
-                    <label htmlFor="sofaBed" className="text-sm">Sofa bed</label>
                   </div>
                 </div>
               </CardContent>
@@ -524,15 +322,6 @@ const BookingSelectPage = () => {
                <OffersWidget route={`${hotel.location}-DESTINATION`} limit={2} />
                <LocalTipsPanel locationId={destination.toUpperCase()} />
              </div>
-
-             {/* Continue Button */}
-             <Button 
-               onClick={handleContinue}
-               disabled={!selectedRoom}
-               className="w-full btn-primary h-12"
-             >
-               Continue to Extras
-             </Button>
           </div>
         </div>
       </div>
