@@ -57,7 +57,7 @@ async function getAmadeusAccessToken(): Promise<string> {
   try {
     const startTime = Date.now();
     
-    const response = await fetch('https://api.amadeus.com/v1/security/oauth2/token', {
+    const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -115,7 +115,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 
 // Enhanced hotel search using correct Amadeus endpoints
 async function searchHotels(accessToken: string, context: SearchContext): Promise<any> {
-  const url = `https://api.amadeus.com/v3/shopping/hotel-offers`;
+  const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers`;
   
   console.log('Searching hotels with params:', {
     cityCode: context.cityCode,
@@ -207,7 +207,7 @@ async function resolveCity(destination: string, accessToken: string): Promise<{ 
   // Try Amadeus location search
   try {
     const response = await fetch(
-      `https://api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(destination)}&subType=CITY`,
+      `https://test.api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(destination)}&subType=CITY`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
