@@ -95,7 +95,9 @@ export const useHotelBooking = () => {
             firstName: params.guestDetails.firstName,
             lastName: params.guestDetails.lastName
           },
-          bookingData: bookingDetails.booking_data
+          bookingData: bookingDetails.booking_data,
+          successUrl: `${window.location.origin}/booking/confirmation?booking_id=${supabaseBooking?.id}`,
+          cancelUrl: `${window.location.origin}/booking/payment?retry=true`
         }
       });
 
