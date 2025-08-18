@@ -10,11 +10,11 @@ import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
-import Dashboard from "./pages/Dashboard";
+import { Dashboard } from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Search from "./pages/Search";
 import Hotels from "./pages/Hotels";
-import HotelDetails from "./pages/HotelDetails";
+import { HotelDetails } from "./pages/HotelDetails";
 import BookingSelect from "./pages/BookingSelect";
 import BookingBaggage from "./pages/BookingBaggage";
 import BookingExtras from "./pages/BookingExtras";
@@ -26,7 +26,7 @@ import ActivitySelect from "./pages/ActivitySelect";
 import BookingPayment from "./pages/BookingPayment";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingCancelled from "./pages/BookingCancelled";
-import BookingDetails from "./pages/BookingDetails";
+import { BookingDetails } from "./pages/BookingDetails";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import PaymentSetup from "./pages/PaymentSetup";
@@ -61,12 +61,12 @@ function App() {
                     <Route path="/search/*" element={<Search />} />
                     <Route path="/hotels" element={<Hotels />} />
                     <Route path="/hotel/:hotelId" element={<HotelDetails />} />
+                    <Route path="/hotel-checkout" element={<HotelCheckout />} />
                     <Route path="/booking/select" element={<BookingSelect />} />
                     <Route path="/booking/baggage" element={<BookingBaggage />} />
                     <Route path="/booking/extras" element={<BookingExtras />} />
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/flight-checkout" element={<FlightCheckout />} />
-                    <Route path="/hotel-checkout" element={<HotelCheckout />} />
                     <Route path="/activity-checkout" element={<ActivityCheckout />} />
                     <Route path="/activity-select" element={<ActivitySelect />} />
                     <Route path="/booking/payment" element={<BookingPayment />} />
