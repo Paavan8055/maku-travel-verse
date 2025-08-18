@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,27 +7,29 @@ const corsHeaders = {
 
 interface AmadeusAuthResponse {
   access_token: string;
-  token_type: string;
   expires_in: number;
+  token_type: string;
 }
 
 interface FlightPriceParams {
   flightOfferId: string;
   pricingOptions?: {
-    fareType?: string[];
     includedCheckedBagsOnly?: boolean;
+    refundableFare?: boolean;
+    noRestrictionFare?: boolean;
+    noPenaltyFare?: boolean;
   };
 }
 
-const getAmadeusAccessToken = async (): Promise<string> => {
+async function getAmadeusAccessToken(): Promise<string> {
   const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
   
   if (!clientId || !clientSecret) {
-    throw new Error('Amadeus credentials not configured');
+    throw new Error('Missing Amadeus credentials');
   }
 
-  const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+  const response = await fetch('https://api.amadeus.com/v1/security/oauth2/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -40,41 +42,55 @@ const getAmadeusAccessToken = async (): Promise<string> => {
   });
 
   if (!response.ok) {
-    throw new Error(`Amadeus auth failed: ${response.statusText}`);
+    throw new Error(`Failed to get access token: ${response.statusText}`);
   }
 
   const data: AmadeusAuthResponse = await response.json();
   return data.access_token;
-};
+}
 
-const confirmFlightPrice = async (params: FlightPriceParams, accessToken: string) => {
-  const requestBody = {
+async function confirmFlightPrice(params: FlightPriceParams, accessToken: string) {
+  const url = 'https://api.amadeus.com/v1/shopping/flight-offers/pricing';
+  
+  console.log('Confirming flight price for offer ID:', params.flightOfferId);
+  
+  const body = {
     data: {
       type: "flight-offers-pricing",
-      flightOffers: [{ id: params.flightOfferId }],
-      pricingOptions: params.pricingOptions || {}
+      flightOffers: [
+        {
+          type: "flight-offer",
+          id: params.flightOfferId
+        }
+      ]
     }
   };
 
-  const response = await fetch('https://test.api.amadeus.com/v1/shopping/flight-offers/pricing', {
+  if (params.pricingOptions) {
+    body.data.pricingOptions = params.pricingOptions;
+  }
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Amadeus flight price confirmation error:', errorText);
-    throw new Error(`Flight price confirmation failed: ${response.statusText} - ${errorText}`);
+    console.error('Flight price confirmation API error:', response.status, response.statusText);
+    throw new Error(`Flight price confirmation API error: ${response.statusText}`);
   }
 
-  return await response.json();
-};
+  const data = await response.json();
+  console.log('Flight price confirmation response:', data);
+  return data;
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -82,63 +98,56 @@ serve(async (req) => {
   try {
     const { flightOfferId, pricingOptions } = await req.json();
     
-    console.log('Confirming flight price for offer:', flightOfferId);
-
-    // Get Amadeus access token
-    const accessToken = await getAmadeusAccessToken();
-    
-    // Confirm flight price
-    const priceConfirmation = await confirmFlightPrice({
-      flightOfferId,
-      pricingOptions
-    }, accessToken);
-    
-    console.log('Flight price confirmation successful:', priceConfirmation.data?.[0]?.id);
-
-    // Transform the response to our format
-    const confirmedOffer = priceConfirmation.data?.[0];
-    
-    if (!confirmedOffer) {
-      throw new Error('No price confirmation data received');
+    if (!flightOfferId) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing flightOfferId parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const response = {
+    console.log('Flight price confirmation request for offer:', flightOfferId);
+
+    // Get access token
+    const accessToken = await getAmadeusAccessToken();
+    console.log('Got Amadeus access token for flight price confirmation');
+
+    // Confirm flight price
+    const priceData = await confirmFlightPrice({ flightOfferId, pricingOptions }, accessToken);
+
+    // Transform the response
+    const confirmedOffer = priceData.data?.flightOffers?.[0];
+    const result = {
       success: true,
-      confirmed: true,
-      offerId: confirmedOffer.id,
-      price: {
-        total: confirmedOffer.price.total,
-        currency: confirmedOffer.price.currency,
-        grandTotal: confirmedOffer.price.grandTotal
-      },
-      pricingOptions: confirmedOffer.pricingOptions,
-      travelerPricings: confirmedOffer.travelerPricings,
-      validatingAirlineCodes: confirmedOffer.validatingAirlineCodes,
-      lastTicketingDate: confirmedOffer.lastTicketingDate,
-      itineraries: confirmedOffer.itineraries,
-      type: confirmedOffer.type,
-      source: confirmedOffer.source,
-      instantTicketingRequired: confirmedOffer.instantTicketingRequired,
-      nonHomogeneous: confirmedOffer.nonHomogeneous,
-      oneWay: confirmedOffer.oneWay,
-      paymentCardRequired: confirmedOffer.paymentCardRequired
+      confirmedOffer,
+      priceChanged: priceData.data?.priceChanged || false,
+      warnings: priceData.warnings || [],
+      originalPrice: confirmedOffer?.price?.total,
+      currency: confirmedOffer?.price?.currency,
+      lastTicketingDate: confirmedOffer?.lastTicketingDate,
+      travelerPricings: confirmedOffer?.travelerPricings || []
     };
 
-    return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify(result),
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
 
   } catch (error) {
-    console.error('Flight price confirmation error:', error);
+    console.error('Flight price confirmation function error:', error);
     
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message || 'Flight price confirmation failed',
-      confirmed: false
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Failed to confirm flight price',
+        details: error.message
+      }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
 });

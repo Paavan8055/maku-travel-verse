@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,19 +7,19 @@ const corsHeaders = {
 
 interface AmadeusAuthResponse {
   access_token: string;
-  token_type: string;
   expires_in: number;
+  token_type: string;
 }
 
-const getAmadeusAccessToken = async (): Promise<string> => {
+async function getAmadeusAccessToken(): Promise<string> {
   const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
   
   if (!clientId || !clientSecret) {
-    throw new Error('Amadeus credentials not configured');
+    throw new Error('Missing Amadeus credentials');
   }
 
-  const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+  const response = await fetch('https://api.amadeus.com/v1/security/oauth2/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -32,133 +32,112 @@ const getAmadeusAccessToken = async (): Promise<string> => {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Amadeus auth failed:', errorText);
-    throw new Error(`Amadeus auth failed: ${response.statusText}`);
+    throw new Error(`Failed to get access token: ${response.statusText}`);
   }
 
   const data: AmadeusAuthResponse = await response.json();
   return data.access_token;
-};
+}
 
-const getHotelRatings = async (hotelIds: string[], accessToken: string) => {
-  const searchParams = new URLSearchParams({
-    hotelIds: hotelIds.join(',')
+async function getHotelRatings(hotelIds: string[], accessToken: string) {
+  const url = 'https://api.amadeus.com/v2/e-reputation/hotel-sentiments';
+  
+  console.log('Getting hotel ratings for hotels:', hotelIds);
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: "hotel-sentiment-analysis",
+        hotelIds: hotelIds
+      }
+    }),
   });
-
-  console.log('Amadeus Hotel Ratings API call:', `https://test.api.amadeus.com/v2/e-reputation/hotel-sentiments?${searchParams}`);
-
-  const response = await fetch(
-    `https://test.api.amadeus.com/v2/e-reputation/hotel-sentiments?${searchParams}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Amadeus hotel ratings error:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText,
-      hotelIds: hotelIds
-    });
-    throw new Error(`Hotel ratings failed: ${response.statusText} - ${errorText}`);
+    console.error('Hotel ratings API error:', response.status, response.statusText);
+    throw new Error(`Hotel ratings API error: ${response.statusText}`);
   }
 
-  const result = await response.json();
-  console.log('Amadeus Hotel Ratings API response:', {
-    dataCount: result.data?.length || 0,
-    meta: result.meta
-  });
-
-  return result;
-};
+  const data = await response.json();
+  console.log('Hotel ratings response:', data);
+  return data;
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { hotelIds } = await req.json();
-
-    console.log('=== Amadeus Hotel Ratings Request ===', {
-      hotelIds,
-      count: hotelIds?.length
-    });
-
+    
     if (!hotelIds || !Array.isArray(hotelIds) || hotelIds.length === 0) {
-      throw new Error('Hotel IDs array is required');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing or invalid hotelIds parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (hotelIds.length > 100) {
-      throw new Error('Maximum 100 hotel IDs allowed per request');
-    }
+    console.log('Hotel ratings request for hotels:', hotelIds);
 
+    // Get access token
     const accessToken = await getAmadeusAccessToken();
+    console.log('Got Amadeus access token for hotel ratings');
 
+    // Get hotel ratings
     const ratingsData = await getHotelRatings(hotelIds, accessToken);
 
-    const transformedRatings = ratingsData.data?.map((rating: any) => ({
+    // Transform the response
+    const ratings = ratingsData.data?.map((rating: any) => ({
       hotelId: rating.hotelId,
       overallRating: rating.overallRating,
-      numberOfRatings: rating.numberOfRatings,
       numberOfReviews: rating.numberOfReviews,
+      numberOfRatings: rating.numberOfRatings,
       sentiments: {
         sleepQuality: rating.sentiments?.sleepQuality,
         service: rating.sentiments?.service,
         facilities: rating.sentiments?.facilities,
-        restaurantsAndBars: rating.sentiments?.restaurantsAndBars,
+        roomComforts: rating.sentiments?.roomComforts,
         valueForMoney: rating.sentiments?.valueForMoney,
-        location: rating.sentiments?.location,
-        roomComfort: rating.sentiments?.roomComfort,
-        cleanliness: rating.sentiments?.cleanliness,
-        pointsOfInterest: rating.sentiments?.pointsOfInterest,
+        catering: rating.sentiments?.catering,
+        pointOfInterest: rating.sentiments?.pointOfInterest,
         staff: rating.sentiments?.staff,
-        swimmingPool: rating.sentiments?.swimmingPool
+        swimmingPool: rating.sentiments?.swimmingPool,
+        location: rating.sentiments?.location
       }
     })) || [];
 
-    console.log(`=== Hotel Ratings Complete ===`, {
-      ratingsFound: transformedRatings.length,
-      searchSuccess: true
-    });
-
-    return new Response(JSON.stringify({
-      success: true,
-      source: 'amadeus',
-      ratings: transformedRatings,
-      meta: {
-        totalResults: transformedRatings.length,
-        apiProvider: 'Amadeus Hotel Ratings',
-        searchId: crypto.randomUUID()
+    return new Response(
+      JSON.stringify({
+        success: true,
+        ratings,
+        count: ratings.length
+      }),
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    );
 
   } catch (error) {
-    console.error('=== Amadeus Hotel Ratings Error ===', {
-      error: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
-    });
-
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message,
-      source: 'amadeus',
-      details: {
-        errorType: error.name,
-        timestamp: new Date().toISOString()
+    console.error('Hotel ratings function error:', error);
+    
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Failed to fetch hotel ratings',
+        details: error.message
+      }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    );
   }
 });
