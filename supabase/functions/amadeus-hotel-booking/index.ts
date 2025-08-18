@@ -66,32 +66,49 @@ async function bookHotel(params: HotelBookingParams, accessToken: string): Promi
     checkOut: params.roomDetails.checkOut
   });
 
+  const bookingData = {
+    data: {
+      type: "hotel-booking",
+      hotelOfferId: params.hotelOfferId,
+      guests: [{
+        id: 1,
+        name: {
+          title: "MR", // Simplified for now
+          firstName: params.guestDetails.firstName,
+          lastName: params.guestDetails.lastName
+        },
+        contact: {
+          phone: params.guestDetails.phone,
+          email: params.guestDetails.email
+        }
+      }],
+      payments: [{
+        id: 1,
+        method: "creditCard",
+        card: {
+          // Production: Replace with tokenized card data
+          vendorCode: "VI",
+          cardNumber: "4111111111111111",
+          expiryDate: "2025-08"
+        }
+      }],
+      rooms: [{
+        guestIds: [1],
+        paymentId: 1,
+        specialRequests: params.specialRequests ? [params.specialRequests] : undefined
+      }]
+    }
+  };
+
+  console.log('Amadeus booking request:', JSON.stringify(bookingData, null, 2));
+
   const response = await fetch('https://api.amadeus.com/v1/booking/hotel-bookings', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      data: {
-        offerId: params.hotelOfferId,
-        guests: [{
-          name: {
-            title: params.guestDetails.firstName.toLowerCase().includes('ms') || 
-                   params.guestDetails.firstName.toLowerCase().includes('mrs') ? 'MS' : 'MR',
-            firstName: params.guestDetails.firstName,
-            lastName: params.guestDetails.lastName
-          },
-          contact: {
-            phone: params.guestDetails.phone,
-            email: params.guestDetails.email
-          }
-        }],
-        payments: [{
-          method: 'creditCard'
-        }]
-      }
-    }),
+    body: JSON.stringify(bookingData),
   });
 
   if (!response.ok) {
