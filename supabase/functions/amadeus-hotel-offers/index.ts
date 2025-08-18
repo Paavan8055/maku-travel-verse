@@ -51,9 +51,9 @@ const getHotelOffers = async (
   rooms: number, 
   currency: string
 ): Promise<any> => {
-  console.log('Amadeus Hotel Offers API call:', `https://test.api.amadeus.com/v3/shopping/hotel-offers/${hotelId}`);
-
+  // Build URL with query parameters for hotel shopping API
   const params = new URLSearchParams({
+    hotelIds: hotelId,
     checkInDate: checkIn,
     checkOutDate: checkOut,
     adults: adults.toString(),
@@ -65,15 +65,15 @@ const getHotelOffers = async (
     params.append('children', children.toString());
   }
 
-  const response = await fetch(
-    `https://test.api.amadeus.com/v3/shopping/hotel-offers/${hotelId}?${params}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers?${params.toString()}`;
+  console.log('Amadeus Hotel Offers API call:', url);
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
 
   if (!response.ok) {
     const errorText = await response.text();

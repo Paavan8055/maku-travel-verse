@@ -77,7 +77,7 @@ const HotelCheckout = () => {
   const fundContribution = Number(selection?.fundContribution || 50);
   
   const bookingDetails = {
-    hotel: hotelData?.name || selection?.hotelName || "Ocean Breeze Resort",
+    hotel: hotelData?.name || selection?.hotelName || "Unknown Hotel",
     room: selection?.roomName || "Deluxe Ocean View",
     bedType: selection?.bedType as string | undefined,
     extraBeds: Number(selection?.extraBeds || 0),
