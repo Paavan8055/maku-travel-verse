@@ -168,20 +168,48 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
       // Check if request was aborted
       if (signal.aborted) return;
 
-      // PHASE 1 & 2: Enhanced error handling with user-friendly messages
+      // Enhanced error handling with specific user-friendly messages
       if (functionError) {
         console.error("❌ Hotel search function error:", functionError);
         
-        // Provide specific error messages based on error type
+        // Provide specific error messages based on error type with actionable guidance
         let userMessage = "Hotel search failed. Please try again.";
+        let isSystemError = false;
+        
         if (functionError.message?.includes('AMADEUS_AUTH_INVALID_CREDENTIALS')) {
-          userMessage = "Hotel search temporarily unavailable. Please try again later.";
+          userMessage = "Hotel search is temporarily unavailable while we update our systems. Please try again in a few minutes.";
+          isSystemError = true;
+        } else if (functionError.message?.includes('CIRCUIT_BREAKER_OPEN')) {
+          userMessage = "Hotel search is temporarily overloaded. Please try again in 1-2 minutes.";
+          isSystemError = true;
+        } else if (functionError.message?.includes('Missing required parameters')) {
+          userMessage = "Please fill in all search fields (destination, check-in, and check-out dates).";
+        } else if (functionError.message?.includes('Check-in date cannot be in the past')) {
+          userMessage = "Please select a check-in date that is today or in the future.";
+        } else if (functionError.message?.includes('Check-out date must be after check-in')) {
+          userMessage = "Please ensure your check-out date is after your check-in date.";
         } else if (functionError.message?.includes('network') || functionError.message?.includes('timeout')) {
-          userMessage = "Connection issue. Please check your internet and try again.";
+          userMessage = "Connection issue. Please check your internet connection and try again.";
         }
         
-        dispatch({ type: 'SEARCH_ERROR', payload: "Unable to search hotels at this time" });
-        toast.error(userMessage);
+        dispatch({ 
+          type: 'SEARCH_ERROR', 
+          payload: isSystemError ? "Service temporarily unavailable" : "Unable to search hotels at this time" 
+        });
+        
+        toast.error(userMessage, { 
+          duration: isSystemError ? 8000 : 5000,
+          action: isSystemError ? {
+            label: "Retry in 1 min",
+            onClick: () => {
+              setTimeout(() => {
+                if (searchCriteria) {
+                  searchHotels(searchCriteria, signal);
+                }
+              }, 60000);
+            }
+          } : undefined
+        });
         return;
       }
 
