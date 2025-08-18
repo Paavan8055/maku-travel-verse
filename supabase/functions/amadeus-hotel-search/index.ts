@@ -328,16 +328,21 @@ serve(async (req) => {
   }
 
   try {
-    const { destination, checkIn, checkOut, guests = 2, children = 0, rooms = 1, currency = 'AUD', hotelName } = await req.json();
+    // Handle both checkIn/checkOut and checkInDate/checkOutDate parameter formats
+    const { destination, checkIn, checkOut, checkInDate, checkOutDate, guests = 2, children = 0, rooms = 1, currency = 'AUD', hotelName } = await req.json();
     
-    if (!destination || !checkIn || !checkOut) {
+    // Normalize check-in and check-out dates
+    const normalizedCheckIn = checkInDate || checkIn;
+    const normalizedCheckOut = checkOutDate || checkOut;
+    
+    if (!destination || !normalizedCheckIn || !normalizedCheckOut) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing required parameters' }),
+        JSON.stringify({ success: false, error: 'Missing required parameters: destination, check-in date, and check-out date are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Hotel search request:', { destination, checkIn, checkOut, guests, children, rooms, currency, hotelName });
+    console.log('Hotel search request:', { destination, checkIn: normalizedCheckIn, checkOut: normalizedCheckOut, guests, children, rooms, currency, hotelName });
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
@@ -346,8 +351,8 @@ serve(async (req) => {
     // Initialize search context
     const context: SearchContext = {
       destination,
-      checkInDate: checkIn,
-      checkOutDate: checkOut,
+      checkInDate: normalizedCheckIn,
+      checkOutDate: normalizedCheckOut,
       adults: guests,
       children: children || 0,
       roomQuantity: rooms,
