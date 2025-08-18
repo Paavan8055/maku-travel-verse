@@ -169,37 +169,7 @@ export const DestinationAutocomplete = ({
               }
             }
 
-            // Try HotelBeds as supplementary for non-airport searches
-            if (searchType !== "airport") {
-              try {
-                const { data: hotelbedsData } = await supabase.functions.invoke('hotelbeds-autocomplete', {
-                  body: { query: q, limit: 6 }
-                });
-
-                if (hotelbedsData?.results && Array.isArray(hotelbedsData.results)) {
-                  const hotelbedsResults = hotelbedsData.results.map((d: any) => ({
-                    ...d,
-                    displayName: d.displayName || d.name
-                  }));
-                  
-                  // Merge results, avoiding duplicates
-                  const combinedResults = [...results];
-                  hotelbedsResults.forEach((hb: Destination) => {
-                    const isDuplicate = combinedResults.some(existing => 
-                      existing.name.toLowerCase() === hb.name.toLowerCase() ||
-                      (existing.displayName?.toLowerCase() === hb.displayName?.toLowerCase())
-                    );
-                    if (!isDuplicate) {
-                      combinedResults.push(hb);
-                    }
-                  });
-                  results = combinedResults.slice(0, 12);
-                  console.log("Combined results with HotelBeds:", results.length);
-                }
-              } catch (hbError) {
-                console.warn("HotelBeds failed, using Amadeus only:", hbError);
-              }
-            }
+            // HotelBeds integration removed - using Amadeus only for cleaner results
           }
 
           // If still no results, try popular destinations that match the query
