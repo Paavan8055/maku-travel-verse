@@ -40,7 +40,8 @@ async function getAmadeusAccessToken(): Promise<string> {
 }
 
 async function getHotelAutocomplete(query: string, accessToken: string) {
-  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels/by-keyword?keyword=${encodeURIComponent(query)}`;
+  // Use correct Amadeus Hotel List API endpoint - no "by-keyword" suffix
+  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels?keyword=${encodeURIComponent(query)}&subType=HOTEL_LEISURE,HOTEL_GDS`;
   
   console.log('Getting hotel autocomplete for:', query, 'using URL:', url);
   

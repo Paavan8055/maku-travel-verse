@@ -154,11 +154,11 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
     try {
       dispatch({ type: 'SEARCH_START' });
 
-      const { data, error: functionError } = await supabase.functions.invoke('amadeus-hotel-search', {
+        const { data, error: functionError } = await supabase.functions.invoke('amadeus-hotel-search', {
         body: {
           destination: searchCriteria.destination,
-          checkInDate: searchCriteria.checkIn,
-          checkOutDate: searchCriteria.checkOut,
+          checkIn: searchCriteria.checkIn, // FIXED: Use checkIn not checkInDate
+          checkOut: searchCriteria.checkOut, // FIXED: Use checkOut not checkOutDate
           guests: searchCriteria.guests,
           rooms: 1,
           hotelName: searchCriteria.hotelName
