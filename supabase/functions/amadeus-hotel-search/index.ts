@@ -152,9 +152,9 @@ async function searchFallbackV2(accessToken: string, context: SearchContext): Pr
   return data;
 }
 
-// Get hotel IDs by city
+// Get hotel IDs by city - CORRECTED ENDPOINT
 async function listHotelsByCity(accessToken: string, cityCode: string): Promise<string[]> {
-  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels/by-city`;
+  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels`;
   
   console.log('Listing hotels by city:', cityCode);
 
@@ -170,17 +170,18 @@ async function listHotelsByCity(accessToken: string, cityCode: string): Promise<
   });
 
   if (!response.ok) {
-    console.error('Hotels by city failed:', response.status, response.statusText);
+    const errorText = await response.text();
+    console.error('Hotels by city failed:', response.status, response.statusText, errorText);
     return [];
   }
 
   const data = await response.json();
-  return data.data?.map((hotel: any) => hotel.hotelId) || [];
+  return data.data?.map((hotel: any) => hotel.hotelId || hotel.id) || [];
 }
 
-// Get hotel IDs by coordinates
+// Get hotel IDs by coordinates - CORRECTED ENDPOINT
 async function listHotelsByGeocode(accessToken: string, latitude: number, longitude: number, radius = 5): Promise<string[]> {
-  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels/by-geocode`;
+  const url = `https://api.amadeus.com/v1/reference-data/locations/hotels`;
   
   console.log('Listing hotels by geocode:', { latitude, longitude, radius });
 
@@ -198,12 +199,13 @@ async function listHotelsByGeocode(accessToken: string, latitude: number, longit
   });
 
   if (!response.ok) {
-    console.error('Hotels by geocode failed:', response.status, response.statusText);
+    const errorText = await response.text();
+    console.error('Hotels by geocode failed:', response.status, response.statusText, errorText);
     return [];
   }
 
   const data = await response.json();
-  return data.data?.map((hotel: any) => hotel.hotelId) || [];
+  return data.data?.map((hotel: any) => hotel.hotelId || hotel.id) || [];
 }
 
 // Get offers for specific hotel IDs
@@ -328,12 +330,12 @@ serve(async (req) => {
   }
 
   try {
-    // Handle both checkIn/checkOut and checkInDate/checkOutDate parameter formats
+    // Standardized parameter names - accept both formats for backwards compatibility
     const { destination, checkIn, checkOut, checkInDate, checkOutDate, guests = 2, children = 0, rooms = 1, currency = 'AUD', hotelName } = await req.json();
     
-    // Normalize check-in and check-out dates
-    const normalizedCheckIn = checkInDate || checkIn;
-    const normalizedCheckOut = checkOutDate || checkOut;
+    // Normalize to checkIn/checkOut format (preferred)
+    const normalizedCheckIn = checkIn || checkInDate;
+    const normalizedCheckOut = checkOut || checkOutDate;
     
     if (!destination || !normalizedCheckIn || !normalizedCheckOut) {
       return new Response(
