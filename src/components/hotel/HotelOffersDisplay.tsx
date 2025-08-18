@@ -33,6 +33,7 @@ export const HotelOffersDisplay = ({
 
   useEffect(() => {
     if (hotelId && checkIn && checkOut) {
+      console.log('Fetching offers for hotel ID:', hotelId);
       fetchOffers({
         hotelId,
         checkIn,
@@ -69,7 +70,7 @@ export const HotelOffersDisplay = ({
         hotelOfferId: offerId,
         guestDetails,
         roomDetails,
-        useRealAmadeusBooking: true // Use real Amadeus booking
+        useRealAmadeusBooking: true
       });
 
       if (result.success) {
@@ -82,7 +83,6 @@ export const HotelOffersDisplay = ({
       console.error('Booking failed:', error);
     }
   };
-
 
   if (loading) {
     return (
@@ -100,8 +100,12 @@ export const HotelOffersDisplay = ({
       <Card className="w-full">
         <CardContent className="p-8">
           <div className="text-center text-destructive">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
             <p className="text-lg font-semibold mb-2">Unable to load offers</p>
-            <p className="text-sm">{error}</p>
+            <p className="text-sm mb-4">{error}</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              This may be due to invalid hotel data or API connectivity issues.
+            </p>
             <Button 
               variant="outline" 
               className="mt-4"
@@ -122,7 +126,7 @@ export const HotelOffersDisplay = ({
           <div className="text-center">
             <p className="text-lg font-semibold mb-2">No rooms available</p>
             <p className="text-sm text-muted-foreground">
-              No rooms are available for your selected dates. Please try different dates.
+              No rooms are available for your selected dates. Please try different dates or search for other hotels.
             </p>
           </div>
         </CardContent>

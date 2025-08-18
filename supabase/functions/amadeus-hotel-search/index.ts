@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -25,38 +26,19 @@ interface SearchContext {
   coordinates?: { lat: number; lng: number };
 }
 
-interface SearchMeta {
-  path: string[];
-  adjustments: string[];
-  errors: string[];
-  finalStrategy?: string;
-  totalOffersFound?: number;
-}
-
-// PHASE 1: IMMEDIATE STABILIZATION - Fix Amadeus Authentication with Circuit Breaker
+// Enhanced Amadeus authentication
 async function getAmadeusAccessToken(): Promise<string> {
   const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
   
-  // Enhanced credential validation
   if (!clientId || !clientSecret) {
     console.error('❌ CRITICAL: Missing Amadeus credentials');
-    console.error('Available env vars:', Object.keys(Deno.env.toObject()).filter(k => k.includes('AMADEUS')));
     throw new Error('Missing Amadeus credentials - check environment configuration');
   }
 
-  if (clientId.length < 10 || clientSecret.length < 10) {
-    console.error('❌ CRITICAL: Amadeus credentials appear invalid (too short)');
-    throw new Error('Invalid Amadeus credentials format');
-  }
-
   console.log('🔐 Attempting Amadeus authentication...');
-  console.log('Client ID prefix:', clientId.substring(0, 8) + '...');
-  console.log('Secret prefix:', clientSecret.substring(0, 4) + '...');
 
   try {
-    const startTime = Date.now();
-    
     const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
       method: 'POST',
       headers: {
@@ -69,46 +51,18 @@ async function getAmadeusAccessToken(): Promise<string> {
       }),
     });
 
-    const responseTime = Date.now() - startTime;
-    console.log(`⏱️ Amadeus auth response time: ${responseTime}ms`);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Amadeus authentication failed:');
-      console.error('Status:', response.status, response.statusText);
-      console.error('Response:', errorText);
-      
-      // Specific error handling for common issues
-      if (response.status === 401) {
-        throw new Error('AMADEUS_AUTH_INVALID_CREDENTIALS: Check your client ID and secret');
-      } else if (response.status === 429) {
-        throw new Error('AMADEUS_AUTH_RATE_LIMITED: Too many authentication attempts');
-      } else {
-        throw new Error(`AMADEUS_AUTH_FAILED: ${response.status} - ${errorText}`);
-      }
+      console.error('❌ Amadeus authentication failed:', errorText);
+      throw new Error(`Amadeus auth failed: ${response.statusText}`);
     }
 
     const data: AmadeusAuthResponse = await response.json();
-    
-    if (!data.access_token) {
-      console.error('❌ No access token in response:', data);
-      throw new Error('AMADEUS_AUTH_NO_TOKEN: Invalid response format');
-    }
-
     console.log('✅ Successfully authenticated with Amadeus');
-    console.log('Token expires in:', data.expires_in, 'seconds');
     return data.access_token;
     
   } catch (error) {
     console.error('❌ Amadeus authentication error:', error);
-    
-    // Log detailed error information for debugging
-    if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    
     throw error;
   }
 }
@@ -118,45 +72,39 @@ async function getHotelList(accessToken: string, cityCode: string, latitude?: nu
   let url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city`;
   const params = new URLSearchParams({ cityCode });
   
-  // Use coordinates if available for more precise results
   if (latitude && longitude) {
     url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode`;
     params.set('latitude', latitude.toString());
     params.set('longitude', longitude.toString());
-    params.set('radius', '20'); // 20km radius
+    params.set('radius', '20');
     params.delete('cityCode');
   }
 
   console.log('Getting hotel list from:', `${url}?${params}`);
 
-  try {
-    const response = await fetch(`${url}?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+  const response = await fetch(`${url}?${params}`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Hotel list API failed:', response.status, response.statusText, errorText);
-      throw new Error(`Hotel list failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('Hotel list successful, found', data.data?.length || 0, 'hotels');
-    return data;
-  } catch (error) {
-    console.error('Hotel list error:', error);
-    throw error;
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Hotel list API failed:', response.status, response.statusText, errorText);
+    throw new Error(`Hotel list failed: ${response.statusText}`);
   }
+
+  const data = await response.json();
+  console.log('Hotel list successful, found', data.data?.length || 0, 'hotels');
+  return data;
 }
 
 // Step 2: Get offers for specific hotels
 async function getHotelOffers(accessToken: string, hotelIds: string[], context: SearchContext): Promise<any> {
   const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers`;
   
-  console.log('Getting hotel offers for hotels:', hotelIds.slice(0, 5)); // Log first 5 hotel IDs
+  console.log('Getting hotel offers for hotels:', hotelIds.slice(0, 5));
 
   const params = new URLSearchParams({
     hotelIds: hotelIds.join(','),
@@ -171,30 +119,25 @@ async function getHotelOffers(accessToken: string, hotelIds: string[], context: 
     params.append('children', context.children.toString());
   }
 
-  try {
-    const response = await fetch(`${url}?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+  const response = await fetch(`${url}?${params}`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Hotel offers failed:', response.status, response.statusText, errorText);
-      throw new Error(`Hotel offers failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('Hotel offers successful, found', data.data?.length || 0, 'hotel offers');
-    return data;
-  } catch (error) {
-    console.error('Hotel offers error:', error);
-    throw error;
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Hotel offers failed:', response.status, response.statusText, errorText);
+    throw new Error(`Hotel offers failed: ${response.statusText}`);
   }
+
+  const data = await response.json();
+  console.log('Hotel offers successful, found', data.data?.length || 0, 'hotel offers');
+  return data;
 }
 
-// Enhanced hotel search using correct Amadeus API flow
+// Complete hotel search using real Amadeus data
 async function searchHotels(accessToken: string, context: SearchContext): Promise<any> {
   console.log('Starting hotel search with context:', {
     cityCode: context.cityCode,
@@ -275,10 +218,7 @@ function getCityMapping() {
     'bangkok': 'BKK',
     'dubai': 'DXB',
     'los angeles': 'LAX',
-    'las vegas': 'LAS',
-    'hilton': 'SYD', // Default Hilton search to Sydney
-    'marriott': 'SYD',
-    'hyatt': 'SYD'
+    'las vegas': 'LAS'
   };
 }
 
@@ -332,17 +272,17 @@ function transformAmadeusHotels(hotelsData: any[]): any[] {
   return hotelsData.map((hotelOffer: any) => {
     const hotel = hotelOffer.hotel;
     const offers = hotelOffer.offers || [];
-    const bestOffer = offers[0]; // Use first/best offer for display
+    const bestOffer = offers[0];
     
     return {
-      id: hotel.hotelId,
+      id: hotel.hotelId, // Use REAL Amadeus hotel ID
       name: hotel.name,
       description: hotel.description || `${hotel.name} - Premium accommodation`,
       address: hotel.address?.lines?.join(', ') || `${hotel.cityCode} City Center`,
       images: ['/assets/hotel-budget.jpg'], // Default image for now
       starRating: hotel.rating ? Math.round(parseFloat(hotel.rating)) : 3,
       rating: hotel.rating ? parseFloat(hotel.rating) : 0,
-      reviewCount: 0, // Not available in Amadeus response
+      reviewCount: 0,
       pricePerNight: bestOffer?.price?.total || 0,
       currency: bestOffer?.price?.currency || 'USD',
       totalPrice: bestOffer?.price?.total || 0,
@@ -352,7 +292,7 @@ function transformAmadeusHotels(hotelsData: any[]): any[] {
       cancellationPolicy: bestOffer?.policies?.cancellation?.description || 'Contact hotel for cancellation policy',
       breakfast: false,
       amadeus: {
-        hotelId: hotel.hotelId,
+        hotelId: hotel.hotelId, // REAL Amadeus ID
         chainCode: hotel.chainCode,
         dupeId: hotel.dupeId,
         offers: offers
@@ -361,23 +301,7 @@ function transformAmadeusHotels(hotelsData: any[]): any[] {
   });
 }
 
-// PHASE 1: CIRCUIT BREAKER PATTERN - Prevent cascading failures
-let amadeusHealthy = true;
-let lastFailureTime = 0;
-const CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
-
-function isCircuitBreakerOpen(): boolean {
-  if (!amadeusHealthy && (Date.now() - lastFailureTime) < CIRCUIT_BREAKER_TIMEOUT) {
-    return true;
-  }
-  if (!amadeusHealthy && (Date.now() - lastFailureTime) >= CIRCUIT_BREAKER_TIMEOUT) {
-    amadeusHealthy = true; // Reset circuit breaker
-  }
-  return false;
-}
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -388,11 +312,9 @@ serve(async (req) => {
   try {
     const { destination, checkIn, checkOut, checkInDate, checkOutDate, guests = 2, children = 0, rooms = 1, currency = 'AUD', hotelName } = await req.json();
     
-    // Normalize to checkIn/checkOut format
     const normalizedCheckIn = checkIn || checkInDate;
     const normalizedCheckOut = checkOut || checkOutDate;
     
-    // PHASE 2: Enhanced input validation
     if (!destination || !normalizedCheckIn || !normalizedCheckOut) {
       console.error(`❌ [${requestId}] Missing required parameters`);
       return new Response(
@@ -405,16 +327,15 @@ serve(async (req) => {
       );
     }
 
-    // Validate date format and logic - FIXED: Compare dates only, not time
+    // Validate dates
     const checkInValidation = new Date(normalizedCheckIn);
     const checkOutValidation = new Date(normalizedCheckOut);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to midnight for proper date comparison
+    today.setHours(0, 0, 0, 0);
     checkInValidation.setHours(0, 0, 0, 0);
     checkOutValidation.setHours(0, 0, 0, 0);
     
     if (checkInValidation < today) {
-      console.error(`❌ [${requestId}] Check-in date is in the past`);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -426,7 +347,6 @@ serve(async (req) => {
     }
     
     if (checkOutValidation <= checkInValidation) {
-      console.error(`❌ [${requestId}] Invalid date range`);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -448,50 +368,9 @@ serve(async (req) => {
       hotelName 
     });
 
-    // PHASE 1: Circuit breaker check with fallback
-    if (isCircuitBreakerOpen()) {
-      console.warn(`⚠️ [${requestId}] Circuit breaker is OPEN - Amadeus API is unhealthy`);
-      
-      // Return mock data as fallback when Amadeus is down
-      const fallbackHotels = generateFallbackHotels(destination, normalizedCheckIn, normalizedCheckOut, guests, currency);
-      
-      return new Response(
-        JSON.stringify({
-          success: true,
-          hotels: fallbackHotels,
-          meta: {
-            dataSource: 'fallback',
-            circuitBreakerActive: true,
-            message: 'Showing sample hotels while our booking system recovers. Live prices and availability will be restored shortly.',
-            retryAfter: Math.ceil((CIRCUIT_BREAKER_TIMEOUT - (Date.now() - lastFailureTime)) / 1000)
-          },
-          requestId
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // PHASE 1: Amadeus authentication with improved error handling
-    let accessToken: string;
-    try {
-      accessToken = await getAmadeusAccessToken();
-      console.log(`✅ [${requestId}] Amadeus authentication successful`);
-    } catch (authError) {
-      console.error(`❌ [${requestId}] Amadeus authentication failed:`, authError);
-      amadeusHealthy = false;
-      lastFailureTime = Date.now();
-      
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Unable to connect to hotel search service. Please try again later.',
-          systemError: true,
-          technicalError: authError instanceof Error ? authError.message : 'Authentication failed',
-          requestId
-        }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Get Amadeus access token
+    const accessToken = await getAmadeusAccessToken();
+    console.log(`✅ [${requestId}] Amadeus authentication successful`);
 
     // Initialize search context
     const context: SearchContext = {
@@ -504,92 +383,35 @@ serve(async (req) => {
       currency
     };
 
-    const meta: SearchMeta = {
-      path: ['hotel_search_start'],
-      adjustments: [],
-      errors: []
-    };
-
     // Resolve destination to city code
     const { cityCode, coordinates } = await resolveCity(destination, accessToken);
     context.cityCode = cityCode;
     context.coordinates = coordinates;
-    
-    if (cityCode) {
-      meta.path.push(`resolved_city:${cityCode}`);
-    } else {
-      meta.errors.push('Could not resolve destination to city code');
-      context.cityCode = 'SYD'; // Fallback to Sydney
+
+    if (!cityCode) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Could not resolve destination to a valid city code',
+          requestId
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // PHASE 1: Hotel search with circuit breaker protection
-    let searchResult: any = null;
-    try {
-      meta.path.push('hotel_search_api');
-      console.log(`🔍 [${requestId}] Starting hotel search...`);
-      
-      searchResult = await searchHotels(accessToken, context);
-      
-        if (searchResult?.data && searchResult.data.length > 0) {
-        console.log(`✅ [${requestId}] Hotel search successful - found ${searchResult.data.length} hotels`);
-        meta.finalStrategy = 'amadeus_hotel_list_with_offers';
-        meta.totalOffersFound = searchResult.data.length;
-        
-        // Transform Amadeus data to frontend format
-        const transformedHotels = transformAmadeusHotels(searchResult.data);
-        
-        // Reset circuit breaker on success
-        amadeusHealthy = true;
-        
-        return new Response(
-          JSON.stringify({
-            success: true,
-            hotels: transformedHotels,
-            meta: {
-              dataSource: 'amadeus',
-              strategy: meta.finalStrategy,
-              totalFound: transformedHotels.length,
-              path: meta.path,
-              adjustments: meta.adjustments
-            },
-            requestId
-          }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      } else {
-        console.warn(`⚠️ [${requestId}] Hotel search returned no data`);
-        meta.totalOffersFound = 0;
-      }
-      
-    } catch (error) {
-      console.error(`❌ [${requestId}] Hotel search failed:`, error);
-      meta.errors.push(`Hotel search failed: ${error.message}`);
-      
-      // Trip circuit breaker on repeated failures
-      amadeusHealthy = false;
-      lastFailureTime = Date.now();
-      
-      // Log detailed error for debugging
-      console.error(`❌ [${requestId}] Hotel search error details:`, {
-        error: error.message,
-        stack: error.stack,
-        context: {
-          destination,
-          cityCode: context.cityCode,
-          checkIn: normalizedCheckIn,
-          checkOut: normalizedCheckOut
-        }
-      });
-      
+    // Perform hotel search
+    console.log(`🔍 [${requestId}] Starting hotel search...`);
+    const searchResult = await searchHotels(accessToken, context);
+    
+    if (!searchResult?.data || searchResult.data.length === 0) {
+      console.log(`📭 [${requestId}] No hotels found for search criteria`);
       return new Response(
         JSON.stringify({
           success: true,
-          hotels: fallbackHotels,
+          hotels: [],
           meta: {
-            dataSource: 'fallback',
-            searchFailed: true,
-            message: 'Showing sample hotels while our booking system experiences issues. Live prices will be restored shortly.',
-            originalError: error instanceof Error ? error.message : 'Search failed'
+            isEmpty: true,
+            message: 'No hotels available for the selected dates and location. Please try different search criteria.'
           },
           requestId
         }),
@@ -597,91 +419,17 @@ serve(async (req) => {
       );
     }
 
-    // PHASE 2: Enhanced empty results handling
-    if (!searchResult?.data || searchResult.data.length === 0) {
-      console.log(`📭 [${requestId}] No hotels found for search criteria`);
-      
-      return new Response(
-        JSON.stringify({
-          success: true, // Changed to true since it's a valid response, just empty
-          error: 'No hotels found for your search criteria',
-          hotels: [],
-          meta: {
-            ...meta,
-            isEmpty: true,
-            suggestions: [
-              'Try adjusting your dates',
-              'Search for a nearby destination',
-              'Increase your search radius',
-              'Consider different accommodation types'
-            ]
-          },
-          requestId,
-          message: 'No hotels available for the selected dates and location. Please try different search criteria.'
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log(`✅ [${requestId}] Hotel search successful - found ${searchResult.data.length} hotels`);
 
-    // Transform results to match frontend interface
-    const hotels = searchResult.data.map((offer: any) => {
-      const hotel = offer.hotel;
-      const firstOffer = offer.offers?.[0];
-      const price = firstOffer?.price;
-      
-      return {
-        id: hotel.hotelId,
-        name: hotel.name,
-        description: hotel.description || `${hotel.name} offers comfortable accommodation in ${destination}.`,
-        images: [
-          `/assets/hotel-${Math.floor(Math.random() * 4) + 1}.jpg` // Use existing hotel images
-        ],
-        address: {
-          street: hotel.address?.lines?.join(', ') || '',
-          city: hotel.address?.cityName || destination,
-          country: hotel.address?.countryCode || 'AU',
-          postalCode: hotel.address?.postalCode || ''
-        },
-        coordinates: hotel.latitude && hotel.longitude ? {
-          lat: parseFloat(hotel.latitude),
-          lng: parseFloat(hotel.longitude)
-        } : coordinates,
-        amenities: hotel.amenities?.map((a: any) => a.description || a.name || a) || ['WiFi', 'Parking'],
-        starRating: parseInt(hotel.rating) || 4,
-        rating: 4.2 + Math.random() * 0.6, // Mock guest rating
-        reviewCount: Math.floor(Math.random() * 1000) + 100,
-        pricePerNight: parseFloat(price?.total || (150 + Math.random() * 300)),
-        currency: price?.currency || currency,
-        propertyType: hotel.type || 'Hotel',
-        distanceFromCenter: Math.random() * 10, // Mock distance
-        checkIn: normalizedCheckIn,
-        checkOut: normalizedCheckOut,
-        cancellation: {
-          freeCancellation: firstOffer?.policies?.cancellation?.type === 'FULL_STAY',
-          deadline: firstOffer?.policies?.cancellation?.deadline || normalizedCheckIn
-        },
-        availability: {
-          rooms: rooms,
-          guests: guests
-        },
-        offers: offer.offers || [],
-        // Add booking data for room selection
-        hotelOfferId: firstOffer?.id,
-        amadeus: {
-          hotelId: hotel.hotelId,
-          chainCode: hotel.chainCode,
-          offers: offer.offers
-        }
-      };
-    });
+    // Transform Amadeus data to frontend format
+    const transformedHotels = transformAmadeusHotels(searchResult.data);
 
     // Filter by hotel name if specified
-    let filteredHotels = hotels;
+    let filteredHotels = transformedHotels;
     if (hotelName) {
-      filteredHotels = hotels.filter((hotel: any) => 
+      filteredHotels = transformedHotels.filter((hotel: any) => 
         hotel.name.toLowerCase().includes(hotelName.toLowerCase())
       );
-      meta.adjustments.push(`Filtered by hotel name: ${hotelName}`);
     }
 
     // Sort by price
@@ -689,50 +437,30 @@ serve(async (req) => {
 
     console.log(`✅ [${requestId}] Successfully found ${filteredHotels.length} hotels for ${destination}`);
 
-    // PHASE 2: Enhanced response with data quality indicators
-    const response = {
-      success: true,
-      hotels: filteredHotels,
-      meta: {
-        ...meta,
-        dataSource: 'amadeus_live',
-        dataQuality: 'verified',
-        requestId,
-        responseTime: Date.now() - Date.parse(new Date().toISOString())
-      },
-      searchContext: context,
-      systemStatus: {
-        amadeusHealthy,
-        lastChecked: new Date().toISOString()
-      }
-    };
-
     return new Response(
-      JSON.stringify(response),
+      JSON.stringify({
+        success: true,
+        hotels: filteredHotels,
+        meta: {
+          dataSource: 'amadeus_live',
+          dataQuality: 'verified',
+          totalFound: filteredHotels.length,
+          requestId
+        },
+        searchContext: context
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error(`❌ [${requestId}] Hotel search function error:`, error);
     
-    // Trip circuit breaker on system errors
-    amadeusHealthy = false;
-    lastFailureTime = Date.now();
-    
     return new Response(
       JSON.stringify({
         success: false,
         error: 'Hotel search service is temporarily unavailable',
-        systemError: true,
         technicalError: error instanceof Error ? error.message : 'Unknown error',
-        requestId,
-        hotels: [],
-        meta: {
-          path: ['system_error'],
-          errors: [error instanceof Error ? error.message : 'Unknown error'],
-          adjustments: [],
-          requestId
-        }
+        requestId
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
