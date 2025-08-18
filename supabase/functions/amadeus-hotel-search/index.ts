@@ -283,11 +283,11 @@ serve(async (req) => {
     }
 
     // Validate date format and logic
-    const checkInDate = new Date(normalizedCheckIn);
-    const checkOutDate = new Date(normalizedCheckOut);
+    const checkInValidation = new Date(normalizedCheckIn);
+    const checkOutValidation = new Date(normalizedCheckOut);
     const today = new Date();
     
-    if (checkInDate < today) {
+    if (checkInValidation < today) {
       console.error(`❌ [${requestId}] Check-in date is in the past`);
       return new Response(
         JSON.stringify({ 
@@ -299,7 +299,7 @@ serve(async (req) => {
       );
     }
     
-    if (checkOutDate <= checkInDate) {
+    if (checkOutValidation <= checkInValidation) {
       console.error(`❌ [${requestId}] Invalid date range`);
       return new Response(
         JSON.stringify({ 

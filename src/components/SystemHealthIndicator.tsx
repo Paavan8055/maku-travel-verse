@@ -12,20 +12,35 @@ export const SystemHealthIndicator = ({ className }: SystemHealthIndicatorProps)
   const [healthStatus, setHealthStatus] = useState<'healthy' | 'degraded' | 'unavailable'>('healthy');
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
 
-  // This would be connected to real health monitoring in production
+  // Real health monitoring connected to Amadeus API
   useEffect(() => {
-    // Mock health check - in production this would ping actual services
-    const checkHealth = () => {
-      // Simulate periodic health checks
-      setLastCheck(new Date());
-      
-      // In production, this would check actual service endpoints
-      const isHealthy = Math.random() > 0.1; // 90% uptime simulation
-      
-      if (isHealthy) {
-        setHealthStatus('healthy');
-      } else {
-        setHealthStatus('degraded');
+    const checkHealth = async () => {
+      try {
+        const response = await fetch('https://iomeddeasarntjhqzndu.supabase.co/functions/v1/amadeus-health', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvbWVkZGVhc2FybnRqaHF6bmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzODk0NjksImV4cCI6MjA2OTk2NTQ2OX0.tZ50J9PPa6ZqDdPF0-WPYwoLO-aGBIf6Qtjr7dgYrDI'
+          },
+          body: JSON.stringify({ healthCheck: true })
+        });
+        
+        setLastCheck(new Date());
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.healthy) {
+            setHealthStatus('healthy');
+          } else {
+            setHealthStatus('degraded');
+          }
+        } else {
+          setHealthStatus('unavailable');
+        }
+      } catch (error) {
+        console.error('Health check failed:', error);
+        setHealthStatus('unavailable');
+        setLastCheck(new Date());
       }
     };
 
