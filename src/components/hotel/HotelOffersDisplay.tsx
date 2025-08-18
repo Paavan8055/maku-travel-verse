@@ -1,8 +1,9 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Bed, Users, CreditCard, Calendar, MapPin } from 'lucide-react';
+import { Loader2, Bed, Users, CreditCard, Calendar, MapPin, AlertCircle } from 'lucide-react';
 import { useHotelOffers } from '@/hooks/useHotelOffers';
 import { useHotelBooking } from '@/features/booking/hooks/useHotelBooking';
 
@@ -30,8 +31,11 @@ export const HotelOffersDisplay = ({
   const { offers, hotel, loading, error, fetchOffers } = useHotelOffers();
   const { createHotelBooking, isLoading: bookingLoading } = useHotelBooking();
 
+  // Check if this is a fallback/demo hotel ID
+  const isFallbackHotel = hotelId.startsWith('fallback-');
+
   useEffect(() => {
-    if (hotelId && checkIn && checkOut) {
+    if (hotelId && checkIn && checkOut && !isFallbackHotel) {
       fetchOffers({
         hotelId,
         checkIn,
@@ -42,7 +46,7 @@ export const HotelOffersDisplay = ({
         currency
       });
     }
-  }, [hotelId, checkIn, checkOut, adults, children, rooms, currency, fetchOffers]);
+  }, [hotelId, checkIn, checkOut, adults, children, rooms, currency, fetchOffers, isFallbackHotel]);
 
   const handleBookOffer = async (offerId: string, price: string) => {
     console.log('Booking offer:', offerId);
@@ -81,6 +85,136 @@ export const HotelOffersDisplay = ({
       console.error('Booking failed:', error);
     }
   };
+
+  // Show fallback demo rooms for demo hotels
+  if (isFallbackHotel) {
+    const demoRooms = [
+      {
+        id: 'demo-standard',
+        type: 'Standard Room',
+        description: 'Comfortable room with city view, perfect for business or leisure travelers.',
+        capacity: adults,
+        price: 120,
+        amenities: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'TV']
+      },
+      {
+        id: 'demo-deluxe',
+        type: 'Deluxe Room',
+        description: 'Spacious room with premium amenities and enhanced comfort features.',
+        capacity: adults,
+        price: 180,
+        amenities: ['Free WiFi', 'Air Conditioning', 'Private Bathroom', 'TV', 'Mini Bar', 'Balcony']
+      }
+    ];
+
+    return (
+      <div className="space-y-6">
+        {/* Hotel Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              {hotelName}
+            </CardTitle>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {checkIn} - {checkOut}
+              </div>
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                {adults} adults {children > 0 && `, ${children} children`}
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Demo Notice */}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-blue-800">
+              <AlertCircle className="h-4 w-4" />
+              <p className="text-sm font-medium">Demo Mode</p>
+            </div>
+            <p className="text-sm text-blue-700 mt-1">
+              This is a demonstration hotel. Real-time availability and booking would be integrated with live hotel APIs.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Demo Rooms */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Available Rooms ({demoRooms.length})</h3>
+          
+          {demoRooms.map((room) => (
+            <Card key={room.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Bed className="h-5 w-5 text-primary" />
+                      <h4 className="text-lg font-semibold">{room.type}</h4>
+                      <Badge variant="secondary">Demo</Badge>
+                    </div>
+
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {room.description}
+                    </p>
+
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        Capacity: {room.capacity}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CreditCard className="h-4 w-4" />
+                        Free cancellation
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {room.amenities.map((amenity) => (
+                        <Badge key={amenity} variant="outline" className="text-xs">
+                          {amenity}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-right space-y-2 ml-6">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total price</p>
+                      <p className="text-2xl font-bold text-primary">
+                        AUD ${room.price}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        per night
+                      </p>
+                    </div>
+                    
+                    <Button 
+                      className="w-full"
+                      onClick={() => handleBookOffer(room.id, room.price.toString())}
+                      disabled={bookingLoading}
+                    >
+                      {bookingLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Booking...
+                        </>
+                      ) : (
+                        'Book now (Demo)'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
