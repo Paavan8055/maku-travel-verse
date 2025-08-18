@@ -92,7 +92,7 @@ interface SearchState {
 type SearchAction = 
   | { type: 'SEARCH_START' }
   | { type: 'SEARCH_SUCCESS'; payload: { hotels: Hotel[]; meta: SearchMeta | null } }
-  | { type: 'SEARCH_ERROR'; payload: string }
+  | { type: 'SEARCH_ERROR'; payload: string | { message: string; systemError: boolean; originalError: any } }
   | { type: 'SEARCH_EMPTY'; payload: { error?: string; meta?: SearchMeta | null } };
 
 const searchReducer = (state: SearchState, action: SearchAction): SearchState => {
@@ -112,7 +112,7 @@ const searchReducer = (state: SearchState, action: SearchAction): SearchState =>
       return { 
         ...state, 
         loading: false, 
-        error: action.payload, 
+        error: typeof action.payload === 'string' ? action.payload : action.payload.message, 
         hotels: [], 
         isEmpty: true,
         meta: null 
@@ -249,15 +249,41 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
         });
         toast.error("Hotel search failed. Please try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       if (signal.aborted) return;
       
       console.error("Hotel search error:", err);
+      
+      let errorMessage = "Failed to search hotels. Please try again.";
+      let systemError = false;
+      
+      // Enhanced error handling for different failure types
+      if (err?.message) {
+        if (err.message.includes('AMADEUS_AUTH_INVALID_CREDENTIALS')) {
+          errorMessage = 'Hotel search is temporarily unavailable. Our team has been notified.';
+          systemError = true;
+        } else if (err.message.includes('Circuit breaker')) {
+          errorMessage = 'Hotel search service is temporarily overloaded. Please try again in a few minutes.';
+          systemError = true;
+        } else if (err.message.includes('Failed to fetch')) {
+          errorMessage = 'Connection error. Please check your internet and try again.';
+        }
+      }
+      
       dispatch({ 
         type: 'SEARCH_ERROR', 
-        payload: err instanceof Error ? err.message : "Failed to search hotels" 
+        payload: { 
+          message: errorMessage,
+          systemError,
+          originalError: err?.message 
+        }
       });
-      toast.error("Failed to search hotels. Please try again.");
+      
+      if (systemError) {
+        toast.error(errorMessage, { duration: 8000 });
+      } else {
+        toast.error(errorMessage);
+      }
     }
   }, []);
 
