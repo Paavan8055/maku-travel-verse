@@ -141,7 +141,7 @@ serve(async (req) => {
                     booking_data: {
                       ...booking.booking_data,
                       amadeus_booking: amadeusBooking.booking,
-                      pnr_code: amadeusBooking.booking?.pnr,
+                      hotel_confirmation_number: amadeusBooking.booking?.confirmationNumber,
                       confirmation_number: amadeusBooking.booking?.reference,
                       amadeus_booking_id: amadeusBooking.booking?.id
                     },
@@ -152,7 +152,7 @@ serve(async (req) => {
                 logStep("Real Amadeus booking created", { 
                   bookingId, 
                   amadeusId: amadeusBooking.booking?.id,
-                  pnr: amadeusBooking.booking?.pnr 
+                  confirmationNumber: amadeusBooking.booking?.confirmationNumber 
                 });
 
                 // Send confirmation email

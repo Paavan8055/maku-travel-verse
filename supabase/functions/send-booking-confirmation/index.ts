@@ -47,8 +47,8 @@ function generateHotelConfirmationEmail(booking: any): { subject: string; html: 
           <div class="success">
             <h2>✅ Your reservation is confirmed</h2>
             <p><strong>Booking Reference: ${booking.booking_reference}</strong></p>
-            ${amadeusBooking?.pnr ? `<p><strong>PNR Code: ${amadeusBooking.pnr}</strong></p>` : ''}
-            ${amadeusBooking?.confirmation_number ? `<p><strong>Hotel Confirmation: ${amadeusBooking.confirmation_number}</strong></p>` : ''}
+            ${amadeusBooking?.confirmationNumber ? `<p><strong>Hotel Confirmation Number: ${amadeusBooking.confirmationNumber}</strong></p>` : ''}
+            ${amadeusBooking?.confirmation_number ? `<p><strong>Hotel Reference: ${amadeusBooking.confirmation_number}</strong></p>` : ''}
           </div>
 
           <div class="booking-details">
@@ -131,7 +131,7 @@ function generateHotelConfirmationEmail(booking: any): { subject: string; html: 
             <p><strong>Need Help?</strong></p>
             <p>Contact our support team: <a href="mailto:support@makutravel.com">support@makutravel.com</a></p>
             <p>Booking Reference: <strong>${booking.booking_reference}</strong></p>
-            ${amadeusBooking?.pnr ? `<p>PNR Code: <strong>${amadeusBooking.pnr}</strong></p>` : ''}
+            ${amadeusBooking?.confirmationNumber ? `<p>Hotel Confirmation Number: <strong>${amadeusBooking.confirmationNumber}</strong></p>` : ''}
           </div>
         </div>
       </div>
