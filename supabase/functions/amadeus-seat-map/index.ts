@@ -23,7 +23,7 @@ async function getAmadeusAccessToken(): Promise<string> {
     throw new Error('Missing Amadeus credentials');
   }
 
-  const response = await fetch('https://api.amadeus.com/v1/security/oauth2/token', {
+  const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -44,7 +44,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 }
 
 async function getSeatMap(params: SeatMapParams, accessToken: string) {
-  const url = 'https://api.amadeus.com/v1/shopping/seatmaps';
+  const url = 'https://test.api.amadeus.com/v1/shopping/seatmaps';
   
   console.log('Getting seat map for flight offer ID:', params.flightOfferId);
   
