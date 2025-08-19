@@ -89,21 +89,27 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
         if (data?.flights && Array.isArray(data.flights)) {
           const normalized = data.flights
             .map((f: any) => {
-              // Amadeus-like schema
+              // Amadeus-like schema with Air India style formatting
               if (f?.airline && f?.departure && f?.arrival && f?.price) {
                 return {
                   id: String(f.id ?? `${f.airline?.code}-${f.flightNumber}`),
                   airline: f.airline?.name ?? f.airline?.code ?? "Airline",
                   airlineCode: f.airline?.code ?? "XX",
                   airlineLogo: f.airline?.logo,
-                  flightNumber: f.flightNumber ?? `${f.airline?.code ?? "XX"}${Math.floor(Math.random()*900)+100}`,
+                  flightNumber: f.flightNumber ?? f.outboundFlightNumber ?? `${f.airline?.code ?? "XX"}${Math.floor(Math.random()*900)+100}`,
+                  outboundFlightNumber: f.outboundFlightNumber,
+                  returnFlightNumber: f.returnFlightNumber,
                   aircraft: f.aircraft ?? "Unknown",
                   origin: f.departure?.airport ?? criteria?.origin ?? "Unknown",
                   destination: f.arrival?.airport ?? criteria?.destination ?? "Unknown",
                   departureTime: f.departure?.time ?? "--:--",
                   arrivalTime: f.arrival?.time ?? "--:--",
-                  duration: parseISO8601DurationToMinutes(f.duration),
+                  departure: f.departure,
+                  arrival: f.arrival,
+                  duration: typeof f.duration === 'string' ? f.duration : parseISO8601DurationToMinutes(f.duration),
+                  durationMinutes: f.durationMinutes ?? parseISO8601DurationToMinutes(f.duration),
                   stops: String(typeof f.stops === 'number' ? f.stops : (f.stops ?? 0)),
+                  stopoverInfo: f.stopoverInfo,
                   price: Math.round(Number(f.price?.amount ?? 0)),
                   currency: f.price?.currency ?? "USD",
                   availableSeats: f.availableSeats ?? 9,
