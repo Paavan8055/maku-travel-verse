@@ -113,7 +113,9 @@ const BookingPaymentPage = () => {
   // Parse hotel data and pricing from URL params
   const hotelParam = params.get('hotel');
   const priceParam = params.get('price');
-  const currencyParam = params.get('currency') || 'INR';
+  // Clean currency parameter - remove trailing periods and normalize
+  const rawCurrency = params.get('currency') || 'INR';
+  const currencyParam = rawCurrency.replace(/[^A-Z]/g, '').toUpperCase() || 'INR';
   const hotelNameParam = params.get('hotelName');
   
   let hotelData: any = null;
@@ -163,7 +165,7 @@ const BookingPaymentPage = () => {
   } catch {}
 
   // Build booking details for hotel flow - use exact price from URL
-  const totalPrice = priceParam ? parseFloat(priceParam) : 35164.00;
+  const totalPrice = priceParam ? parseFloat(priceParam.replace(/[^0-9.]/g, '')) : 35164.00;
   const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
   const fundContribution = 0; // Fund contribution removed
   
@@ -243,6 +245,15 @@ const BookingPaymentPage = () => {
     setRedirectError(null);
 
     try {
+      // Validate currency and amount before proceeding
+      if (!currencyParam || currencyParam.length !== 3) {
+        throw new Error('Invalid currency format');
+      }
+      
+      const validatedAmount = Math.round(totalPrice * 100) / 100; // Round to 2 decimal places
+      if (!validatedAmount || validatedAmount <= 0) {
+        throw new Error('Invalid amount');
+      }
       let passenger: any = null;
       let guest: any = null;
       let activityGuest: any = null;
@@ -284,11 +295,11 @@ const BookingPaymentPage = () => {
 
       const bookingAmount = isFlightCheckout ? flightParams.amount : 
                            isActivityBooking ? activityDetails.total : 
-                           bookingDetails.total;
+                           validatedAmount;
       
       const bookingCurrency = isFlightCheckout ? flightParams.currency : 
                              isActivityBooking ? 'USD' : 
-                             bookingDetails.currency;
+                             currencyParam;
       
       const currentBookingType = isFlightCheckout ? 'flight' : isActivityBooking ? 'activity' : 'hotel';
       const currentBookingData = isFlightCheckout ? { 
@@ -306,6 +317,13 @@ const BookingPaymentPage = () => {
         hotel: bookingDetails,
         guests: guest ? [guest] : null
       };
+
+      console.log('Creating payment with:', {
+        bookingType: currentBookingType,
+        amount: bookingAmount,
+        currency: bookingCurrency,
+        customerEmail: customerInfo.email
+      });
 
       const { data, error } = await supabase.functions.invoke('create-booking-payment', {
         body: {
@@ -461,9 +479,9 @@ const BookingPaymentPage = () => {
                         You will be taken to Stripe's secure checkout page to complete your payment.
                       </p>
                     </div>
-                  ) : redirectError ? (
-                    <div className="p-6 border rounded-lg bg-destructive/10 border-destructive/20">
-                      <h3 className="font-medium text-destructive mb-2">Payment Error</h3>
+                   ) : redirectError ? (
+                     <div className="p-6 border rounded-lg bg-destructive/10 border-destructive/20">
+                       <h3 className="font-medium text-destructive mb-2">Payment Setup Failed</h3>
                       <p className="text-sm text-destructive mb-4">{redirectError}</p>
                       <Button 
                         variant="outline" 
