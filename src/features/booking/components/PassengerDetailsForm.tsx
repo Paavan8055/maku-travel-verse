@@ -95,18 +95,12 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
     });
   };
   const handleDemoFill = () => {
-    setIsAutofilling(true);
-    const mockData = autofillService.generateMockPersonalData();
-    
-    // Reset form with mock data
-    reset(mockData);
-    
+    // Production app - remove demo data functionality
     toast({
-      title: "Demo data filled",
-      description: "Form has been filled with sample passenger information",
+      title: "Demo data not available",
+      description: "Please enter passenger information manually",
+      variant: "destructive"
     });
-    
-    setTimeout(() => setIsAutofilling(false), 500);
   };
 
   const handleUserDataFill = async () => {

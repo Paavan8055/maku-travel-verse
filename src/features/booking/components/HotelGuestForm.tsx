@@ -105,18 +105,12 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
   const handleUpper = (value: string) => value.toUpperCase();
 
   const handleDemoFill = () => {
-    setIsAutofilling(true);
-    const mockData = autofillService.generateMockHotelGuest();
-    
-    // Reset form with mock data
-    form.reset(mockData);
-    
+    // Production app - remove demo data functionality
     toast({
-      title: "Demo data filled",
-      description: "Form has been filled with sample guest information",
+      title: "Demo data not available",
+      description: "Please enter guest information manually",
+      variant: "destructive"
     });
-    
-    setTimeout(() => setIsAutofilling(false), 500);
   };
 
   const handleUserDataFill = async () => {

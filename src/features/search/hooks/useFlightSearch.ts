@@ -121,50 +121,76 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
             const firstSegment = segments[0];
             const lastSegment = segments[segments.length - 1];
 
-            // Get traveler pricings for different fare classes
+            // Get real traveler pricing data
             const travelerPricings = offer.travelerPricings || [];
             const basePrice = parseFloat(offer.price.total);
+            const baseCurrency = offer.price.currency;
 
-            // Generate fare options based on available booking classes and realistic pricing
+            // Create fare options based on REAL Amadeus data only
             const fareOptions: FareOption[] = [];
             
-            // Economy fare
+            // Economy fare - use actual Amadeus pricing
+            const economyFareDetail = travelerPricings[0]?.fareDetailsBySegment?.[0];
             fareOptions.push({
               type: 'economy',
               price: basePrice,
-              currency: offer.price.currency,
+              currency: baseCurrency,
               features: [
                 'Standard seat selection',
                 'Carry-on bag included',
-                travelerPricings[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity > 0 ? 'Checked bag included' : 'Checked bag extra',
+                economyFareDetail?.includedCheckedBags?.quantity > 0 ? 'Checked bag included' : 'Checked bag extra',
                 'Standard meal service'
               ],
-              seatsAvailable: Math.floor(Math.random() * 15) + 5,
-              bookingClass: travelerPricings[0]?.fareDetailsBySegment?.[0]?.class || 'M'
+              seatsAvailable: economyFareDetail?.seatsAvailable || 9, // Use real availability
+              bookingClass: economyFareDetail?.class || 'M'
             });
 
-            // Business fare (typically 2.5-4x economy price)
-            const businessMultiplier = 2.5 + Math.random() * 1.5;
-            fareOptions.push({
-              type: 'business',
-              price: Math.round(basePrice * businessMultiplier),
-              currency: offer.price.currency,
-              features: [
-                'Priority check-in & boarding',
-                'Extra legroom & comfort',
-                'Premium meal service',
-                'Checked bags included',
-                'Lounge access',
-                'Priority baggage handling'
-              ],
-              seatsAvailable: Math.floor(Math.random() * 8) + 2,
-              bookingClass: 'C'
-            });
+            // Business fare - only if available in response
+            const businessPricing = travelerPricings.find((tp: any) => 
+              tp.fareDetailsBySegment?.[0]?.class === 'C' || 
+              tp.fareDetailsBySegment?.[0]?.class === 'J'
+            );
+            
+            if (businessPricing) {
+              const businessFareDetail = businessPricing.fareDetailsBySegment[0];
+              fareOptions.push({
+                type: 'business',
+                price: parseFloat(businessPricing.price?.total || basePrice),
+                currency: businessPricing.price?.currency || baseCurrency,
+                features: [
+                  'Priority check-in & boarding',
+                  'Extra legroom & comfort',
+                  'Premium meal service',
+                  'Checked bags included',
+                  'Lounge access',
+                  'Priority baggage handling'
+                ],
+                seatsAvailable: businessFareDetail?.seatsAvailable || 4,
+                bookingClass: businessFareDetail?.class || 'C'
+              });
+            }
+
+            // Get airline name from Amadeus data
+            const getAirlineName = (code: string) => {
+              const airlines: { [key: string]: string } = {
+                'QF': 'Qantas',
+                'JQ': 'Jetstar',
+                'VA': 'Virgin Australia',
+                'TT': 'Tigerair',
+                'AI': 'Air India',
+                'SQ': 'Singapore Airlines',
+                'EK': 'Emirates',
+                'TG': 'Thai Airways',
+                'CX': 'Cathay Pacific',
+                'MH': 'Malaysia Airlines'
+              };
+              return airlines[code] || code;
+            };
 
             return {
               id: offer.id,
               amadeusOfferId: offer.id,
-              airline: firstSegment.carrierCode === 'AI' ? 'Air India' : firstSegment.carrierCode,
+              airline: getAirlineName(firstSegment.carrierCode),
               airlineCode: firstSegment.carrierCode,
               airlineLogo: `https://images.kiwi.com/airlines/64x64/${firstSegment.carrierCode}.png`,
               flightNumber: `${firstSegment.carrierCode} ${firstSegment.number}`,
@@ -203,12 +229,12 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
               stops: segments.length - 1,
               stopoverInfo: segments.length > 1 ? segments[0].arrival.iataCode : undefined,
               price: basePrice,
-              currency: offer.price.currency,
-              availableSeats: Math.floor(Math.random() * 20) + 5,
-              cabin: 'Economy',
+              currency: baseCurrency,
+              availableSeats: economyFareDetail?.seatsAvailable || 9, // Use real availability
+              cabin: economyFareDetail?.cabin || 'Economy',
               baggage: {
                 carry: true,
-                checked: travelerPricings[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity > 0
+                checked: economyFareDetail?.includedCheckedBags?.quantity > 0
               },
               segments: segments.map((segment: any) => ({
                 departure: {
@@ -240,18 +266,15 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           console.log("useFlightSearch: Setting", transformedFlights.length, "transformed flights");
           setFlights(transformedFlights);
         } else {
-          console.log("useFlightSearch: API returned no data, using mock flights");
-          // Fallback to enhanced mock data with realistic pricing variations
-          setFlights(generateRealisticMockFlights(criteria));
+          console.log("useFlightSearch: No data from Amadeus API");
+          setFlights([]);
+          setError("No flights found for your search criteria");
         }
       } catch (err) {
         console.error("Flight search error:", err);
         setError(err instanceof Error ? err.message : "Failed to search flights");
-        toast.error("Failed to search flights. Showing sample results.");
-        
-        console.log("useFlightSearch: Error occurred, generating mock flights");
-        // Show enhanced mock data on error
-        setFlights(generateRealisticMockFlights(criteria));
+        toast.error("Flight search failed. Please try different search criteria.");
+        setFlights([]);
       } finally {
         setLoading(false);
       }
@@ -263,82 +286,4 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
   return { flights, loading, error };
 };
 
-// Enhanced mock data generator with realistic pricing variations
-const generateRealisticMockFlights = (criteria: FlightSearchCriteria): Flight[] => {
-  console.log("generateRealisticMockFlights: Creating mock flights for", criteria);
-  const airlines = [
-    { name: "Qantas", code: "QF", logo: "https://logos-world.net/wp-content/uploads/2023/01/Qantas-Logo.png" },
-    { name: "Jetstar", code: "JQ", logo: "https://logos-world.net/wp-content/uploads/2023/01/Jetstar-Logo.png" },
-    { name: "Virgin Australia", code: "VA", logo: "https://logos-world.net/wp-content/uploads/2023/01/Virgin-Australia-Logo.png" },
-    { name: "Singapore Airlines", code: "SQ", logo: "https://logos-world.net/wp-content/uploads/2023/01/Singapore-Airlines-Logo.png" },
-    { name: "Emirates", code: "EK", logo: "https://logos-world.net/wp-content/uploads/2023/01/Emirates-Logo.png" }
-  ];
-
-  const flights: Flight[] = [];
-  
-  for (let i = 0; i < 8; i++) {
-    const airline = airlines[i % airlines.length];
-    const basePrice = 250 + Math.random() * 600 + (i * 50); // Varied base prices
-    const duration = 120 + Math.random() * 480;
-    const stops = Math.random() < 0.3 ? 0 : Math.random() < 0.7 ? 1 : 2;
-    
-    // Generate realistic fare options with varied pricing
-    const fareOptions: FareOption[] = [
-      {
-        type: 'economy',
-        price: Math.round(basePrice),
-        currency: 'USD',
-        features: [
-          'Standard seat selection',
-          'Carry-on bag included',
-          Math.random() > 0.5 ? 'Checked bag included' : 'Checked bag extra',
-          'Standard meal service'
-        ],
-        seatsAvailable: Math.floor(Math.random() * 15) + 5
-      },
-      {
-        type: 'business',
-        price: Math.round(basePrice * (2.5 + Math.random() * 1.5)),
-        currency: 'USD',
-        features: [
-          'Priority check-in & boarding',
-          'Extra legroom & comfort',
-          'Premium meal service',
-          'Checked bags included',
-          'Lounge access',
-          'Priority baggage handling'
-        ],
-        seatsAvailable: Math.floor(Math.random() * 8) + 2
-      }
-    ];
-    
-    flights.push({
-      id: `flight-${i + 1}`,
-      amadeusOfferId: `mock-offer-${i + 1}`,
-      airline: airline.name,
-      airlineCode: airline.code,
-      airlineLogo: airline.logo,
-      flightNumber: `${airline.code}${Math.floor(Math.random() * 900) + 100}`,
-      aircraft: "Boeing 737",
-      origin: criteria.origin,
-      destination: criteria.destination,
-      departureTime: `${Math.floor(Math.random() * 12) + 6}:${(Math.floor(Math.random() * 6) * 10).toString().padStart(2, '0')}`,
-      arrivalTime: `${Math.floor(Math.random() * 12) + 6}:${(Math.floor(Math.random() * 6) * 10).toString().padStart(2, '0')}`,
-      duration: Math.round(duration),
-      stops,
-      price: Math.round(basePrice),
-      currency: "USD",
-      availableSeats: Math.floor(Math.random() * 20) + 1,
-      cabin: "Economy",
-      baggage: {
-        carry: true,
-        checked: Math.random() < 0.8
-      },
-      fareOptions,
-      isRoundTrip: !!criteria.returnDate
-    });
-  }
-
-  console.log("generateRealisticMockFlights: Generated", flights.length, "mock flights");
-  return flights.sort((a, b) => a.price - b.price);
-};
+// Mock data generator removed - production app uses only real Amadeus data
