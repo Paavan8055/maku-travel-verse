@@ -29,7 +29,6 @@ import BookingPayment from "./pages/BookingPayment";
 import HotelCheckout from "./pages/HotelCheckout";
 import ActivityCheckout from "./pages/ActivityCheckout";
 import ActivitySelect from "./pages/ActivitySelect";
-import BookingPayment from "./pages/BookingPayment";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingCancelled from "./pages/BookingCancelled";
 import { BookingDetails } from "./pages/BookingDetails";
