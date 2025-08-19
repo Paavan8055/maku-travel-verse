@@ -13,6 +13,10 @@ import AdminAuth from "./pages/AdminAuth";
 import { Dashboard } from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Search from "./pages/Search";
+import SearchHub from "./pages/search/index";
+import HotelSearchPage from "./pages/search/hotels";
+import FlightSearchPage from "./pages/search/flights";
+import ActivitySearchPage from "./pages/search/activities";
 
 import { HotelDetails } from "./pages/HotelDetails";
 import BookingSelect from "./pages/BookingSelect";
@@ -57,8 +61,10 @@ function App() {
                     <Route path="/admin/auth" element={<AdminAuth />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/search" element={<Search />} />
-                    <Route path="/search/*" element={<Search />} />
+                    <Route path="/search" element={<SearchHub />} />
+                    <Route path="/search/hotels" element={<HotelSearchPage />} />
+                    <Route path="/search/flights" element={<FlightSearchPage />} />
+                    <Route path="/search/activities" element={<ActivitySearchPage />} />
                     
                     <Route path="/hotel/:hotelId" element={<HotelDetails />} />
                     <Route path="/hotel-checkout" element={<HotelCheckout />} />
