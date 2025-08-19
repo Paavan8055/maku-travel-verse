@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon, Search, Plane, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
+import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { cn } from "@/lib/utils";
 
 interface FlightSearchCriteria {

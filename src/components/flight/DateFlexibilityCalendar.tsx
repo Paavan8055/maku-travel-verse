@@ -1,25 +1,23 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, TrendingDown } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addDays, subDays, isSameDay } from "date-fns";
-import { cn } from "@/lib/utils";
+import { useCurrency } from "@/features/currency/CurrencyProvider";
 
 interface DatePrice {
   date: Date;
   price: number;
+  flightCount?: number;
   isLowest?: boolean;
-  departureFlight?: any;
-  returnFlight?: any;
 }
 
 interface DateFlexibilityCalendarProps {
   selectedDate?: Date;
-  onDateSelect: (date: Date, flights?: { departure?: any; return?: any }) => void;
+  onDateSelect: (date: Date) => void;
   origin: string;
   destination: string;
-  tripType: string;
+  passengers: number;
+  cabin: string;
   className?: string;
 }
 
@@ -28,128 +26,108 @@ export const DateFlexibilityCalendar = ({
   onDateSelect,
   origin,
   destination,
-  tripType,
+  passengers,
+  cabin,
   className
 }: DateFlexibilityCalendarProps) => {
+  const { formatCurrency } = useCurrency();
   const [currentWeekStart, setCurrentWeekStart] = useState(
     selectedDate ? subDays(selectedDate, 3) : new Date()
   );
 
-  // Mock price data - in production, this would come from Amadeus API
+  // Generate price data for horizontal scrollable date bar
   const generateWeekPrices = (startDate: Date): DatePrice[] => {
-    const prices: DatePrice[] = [];
-    for (let i = 0; i < 7; i++) {
+    return Array.from({ length: 14 }, (_, i) => {
       const date = addDays(startDate, i);
-      const basePrice = 150 + Math.random() * 200;
-      const dayOfWeek = date.getDay();
-      // Weekend surge pricing
-      const weekendMultiplier = (dayOfWeek === 5 || dayOfWeek === 6) ? 1.3 : 1;
-      const price = Math.round(basePrice * weekendMultiplier);
-      
-      prices.push({
+      const basePrice = Math.floor(Math.random() * 300) + 200;
+      return {
         date,
-        price,
-        isLowest: Math.random() < 0.15, // 15% chance of being marked as lowest
-      });
-    }
-    return prices;
+        price: basePrice,
+        flightCount: Math.floor(Math.random() * 5) + 1,
+        isLowest: Math.random() > 0.8
+      };
+    });
   };
 
   const weekPrices = generateWeekPrices(currentWeekStart);
   const lowestPrice = Math.min(...weekPrices.map(p => p.price));
 
   const handlePreviousWeek = () => {
-    setCurrentWeekStart(subDays(currentWeekStart, 7));
+    setCurrentWeekStart(prev => subDays(prev, 7));
   };
 
   const handleNextWeek = () => {
-    setCurrentWeekStart(addDays(currentWeekStart, 7));
+    setCurrentWeekStart(prev => addDays(prev, 7));
   };
 
   const handleDateClick = (datePrice: DatePrice) => {
-    onDateSelect(datePrice.date, {
-      departure: datePrice.departureFlight,
-      return: datePrice.returnFlight
-    });
-  };
-
-  const getPriceColor = (price: number, isLowest: boolean) => {
-    if (isLowest) return "text-green-600 bg-green-50";
-    if (price === lowestPrice) return "text-green-600 bg-green-50";
-    if (price < lowestPrice * 1.1) return "text-blue-600 bg-blue-50";
-    if (price > lowestPrice * 1.3) return "text-orange-600 bg-orange-50";
-    return "text-foreground bg-background";
+    if (onDateSelect) {
+      onDateSelect(datePrice.date);
+    }
   };
 
   return (
-    <Card className={cn("mb-6", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">
-            Choose {tripType === "roundtrip" ? "departure" : ""} date
-          </CardTitle>
+    <div className="bg-card border-b sticky top-16 z-10">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-foreground">Choose departure date</h2>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={handlePreviousWeek}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreviousWeek}
+              className="h-8 w-8 p-0"
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={handleNextWeek}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextWeek}
+              className="h-8 w-8 p-0"
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-7 gap-2">
+
+        {/* Air India style horizontal scrollable date bar */}
+        <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
           {weekPrices.map((datePrice, index) => {
             const isSelected = selectedDate && isSameDay(datePrice.date, selectedDate);
-            const priceColorClass = getPriceColor(datePrice.price, datePrice.isLowest || false);
+            const isLowest = datePrice.price === lowestPrice;
             
             return (
               <button
                 key={index}
                 onClick={() => handleDateClick(datePrice)}
-                className={cn(
-                  "p-3 rounded-lg border transition-all hover:shadow-md text-center relative",
-                  isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-                  priceColorClass
-                )}
+                className={`
+                  flex-shrink-0 p-3 rounded-lg border-2 text-center transition-all min-w-[90px]
+                  ${isSelected 
+                    ? "border-primary bg-primary text-primary-foreground shadow-card" 
+                    : "border-border hover:border-primary/50 hover:bg-muted"
+                  }
+                `}
               >
-                <div className="text-xs text-muted-foreground font-medium">
+                <div className={`text-sm font-medium ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
                   {format(datePrice.date, "EEE")}
                 </div>
-                <div className="text-lg font-bold mt-1">
-                  {format(datePrice.date, "dd")}
+                <div className={`text-lg font-bold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
+                  {format(datePrice.date, "dd MMM")}
                 </div>
-                <div className="text-sm font-semibold mt-1">
-                  ${datePrice.price}
+                <div className={`text-sm font-semibold mt-1 ${isSelected ? "text-primary-foreground" : isLowest ? "text-travel-forest" : "text-foreground"}`}>
+                  {formatCurrency(datePrice.price)}
                 </div>
-                {datePrice.isLowest && (
-                  <div className="absolute -top-1 -right-1">
-                    <Badge variant="secondary" className="text-xs bg-green-600 text-white">
-                      <TrendingDown className="h-3 w-3" />
-                    </Badge>
+                {isLowest && !isSelected && (
+                  <div className="text-xs text-travel-forest font-medium mt-1">
+                    Lowest
                   </div>
                 )}
               </button>
             );
           })}
         </div>
-        
-        <div className="mt-4 flex items-center justify-center space-x-6 text-xs">
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-green-50 border border-green-200 rounded"></div>
-            <span>Best price</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-blue-50 border border-blue-200 rounded"></div>
-            <span>Good deal</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-orange-50 border border-orange-200 rounded"></div>
-            <span>Higher price</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
