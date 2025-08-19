@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ interface EnhancedFlight {
   outboundFlightNumber?: string;
   returnFlightNumber?: string;
   aircraft?: string;
+  airlineLogo?: string;
   origin: string;
   destination: string;
   departureTime: string;
@@ -93,6 +95,15 @@ export const EnhancedFlightCard = ({
     return airline.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const imgElement = e.currentTarget;
+    const fallbackElement = imgElement.nextElementSibling as HTMLElement;
+    if (fallbackElement) {
+      imgElement.style.display = 'none';
+      fallbackElement.style.display = 'flex';
+    }
+  };
+
   // Use real fare options from flight data, fallback to default if none
   const availableFareOptions = flight.fareOptions && flight.fareOptions.length > 0 
     ? flight.fareOptions.filter(fare => 
@@ -141,18 +152,14 @@ export const EnhancedFlightCard = ({
               <div className="flex items-center space-x-3">
                 {/* Airline Logo */}
                 <div className="flex-shrink-0">
-                  {flight.airlineLogo ? (
+                  {flight.airlineLogo && (
                     <img 
                       src={flight.airlineLogo} 
                       alt={`${flight.airline} logo`}
                       className="w-8 h-8 object-contain"
-                      onError={(e) => {
-                        // Fallback to initials if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling.style.display = 'flex';
-                      }}
+                      onError={handleImageError}
                     />
-                  ) : null}
+                  )}
                   <div 
                     className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs font-bold"
                     style={{ display: flight.airlineLogo ? 'none' : 'flex' }}
