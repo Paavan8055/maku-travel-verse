@@ -140,11 +140,11 @@ export const EnhancedFlightCard = ({
             {/* Flight Number Badges and Airline Info */}
             <div className="flex items-center space-x-4 mb-6">
               <div className="flex space-x-2">
-                <div className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold">
+                <div className="bg-muted text-foreground px-2.5 py-1 rounded text-xs font-medium border">
                   {flight.outboundFlightNumber || flight.flightNumber}
                 </div>
                 {flight.isRoundTrip && flight.returnFlightNumber && (
-                  <div className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold">
+                  <div className="bg-muted text-foreground px-2.5 py-1 rounded text-xs font-medium border">
                     {flight.returnFlightNumber}
                   </div>
                 )}
