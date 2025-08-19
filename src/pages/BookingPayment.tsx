@@ -340,6 +340,15 @@ const BookingPaymentPage = () => {
         throw new Error(error?.message || data?.error || 'Failed to create payment');
       }
 
+      // Store guest email and booking ID for later lookup
+      if (customerInfo.email && customerInfo.email !== 'guest@example.com') {
+        sessionStorage.setItem("guestEmail", customerInfo.email);
+      }
+      
+      if (data.booking?.id) {
+        sessionStorage.setItem("currentBookingId", data.booking.id);
+      }
+
       if (data.payment?.checkoutUrl) {
         // Direct redirect to Stripe Checkout
         window.location.href = data.payment.checkoutUrl;
