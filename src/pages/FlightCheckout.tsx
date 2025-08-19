@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
 import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
 import { useToast } from "@/hooks/use-toast";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 
 const FlightCheckout = () => {
   const [passengerValid, setPassengerValid] = useState(false);
@@ -125,10 +126,15 @@ const FlightCheckout = () => {
             Back to Search
           </Button>
           
-          <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Flight Booking</span></h1>
-          <p className="text-muted-foreground">
-            Enter passenger details and confirm your reservation
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Flight Booking</span></h1>
+              <p className="text-muted-foreground">
+                Enter passenger details and confirm your reservation
+              </p>
+            </div>
+            <CurrencyDisplay variant="compact" />
+          </div>
         </div>
       </div>
 

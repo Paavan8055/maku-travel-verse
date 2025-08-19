@@ -71,7 +71,8 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
                 amount: String(amount),
                 currency
               });
-              navigate(`/booking/flight?${params.toString()}`);
+              console.log('Navigating to flight checkout with multi-city params:', params.toString());
+              navigate(`/flight-checkout?${params.toString()}`);
               return;
             }
 
@@ -87,7 +88,8 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
                 amount: String(amount),
                 currency
               });
-              navigate(`/booking/flight?${params.toString()}`);
+              console.log('Navigating to flight checkout with roundtrip params:', params.toString());
+              navigate(`/flight-checkout?${params.toString()}`);
               return;
             }
 
@@ -99,7 +101,8 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
               amount: String(amount),
               currency
             });
-            navigate(`/booking/flight?${params.toString()}`);
+            console.log('Navigating to flight checkout with one-way params:', params.toString());
+            navigate(`/flight-checkout?${params.toString()}`);
           } else if (bookingType === 'hotel') {
             // For hotel bookings, always redirect to hotel-checkout first
             const params = new URLSearchParams({
