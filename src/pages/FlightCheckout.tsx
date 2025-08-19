@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import { FlightBookingProgress } from "@/components/flight/FlightBookingProgress";
 import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
 import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
 import { useToast } from "@/hooks/use-toast";
@@ -118,12 +119,14 @@ const FlightCheckout = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
+      <FlightBookingProgress currentStep={3} steps={["SELECT FLIGHTS", "REVIEW & DETAILS", "PAYMENT & CONFIRMATION"]} />
+      
       {/* Header */}
-      <div className="pt-24 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
+      <div className="pt-6 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/flight-booking-review')} className="mb-4">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Search
+            Back to Review
           </Button>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
