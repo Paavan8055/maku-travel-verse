@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Shield } from "lucide-react";
@@ -33,6 +32,9 @@ const HotelCheckout = () => {
   const checkOutParam = urlParams.get('checkOut') || urlParams.get('checkout');
   const adultsParam = urlParams.get('adults') || '2';
   const childrenParam = urlParams.get('children') || '0';
+  const priceParam = urlParams.get('price');
+  const currencyParam = urlParams.get('currency') || '$';
+  const hotelNameParam = urlParams.get('hotelName');
   
   // Parse dates
   let checkInDate = "Mar 15, 2025";
@@ -71,13 +73,15 @@ const HotelCheckout = () => {
     selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); 
   } catch {}
 
-  const baseNightly = hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
+  // Use actual price from URL if available, otherwise fall back to other sources
+  const actualPrice = priceParam ? parseFloat(priceParam) : null;
+  const baseNightly = actualPrice || hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
   const basePrice = baseNightly * nights;
   const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
   const fundContribution = 0; // Fund contribution removed
   
   const bookingDetails = {
-    hotel: hotelData?.name || selection?.hotelName || "Unknown Hotel",
+    hotel: hotelNameParam || hotelData?.name || selection?.hotelName || "Unknown Hotel",
     room: selection?.roomName || "Deluxe Ocean View",
     bedType: selection?.bedType as string | undefined,
     extraBeds: Number(selection?.extraBeds || 0),
@@ -91,7 +95,7 @@ const HotelCheckout = () => {
     extrasPrice,
     fundContribution,
     total: basePrice + extrasPrice,
-    currency: hotelData?.currency || '$'
+    currency: currencyParam
   };
 
   const goToPayment = () => {
