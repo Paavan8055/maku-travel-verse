@@ -135,7 +135,7 @@ export const EnhancedFlightCard = ({
             <div className="flex items-center justify-between max-w-3xl">
               <div className="text-left">
                 <div className="text-xs text-muted-foreground mb-1">{formatDate(flight.departure?.date)}</div>
-                <div className="text-3xl font-bold text-foreground mb-1">{flight.departure?.time || flight.departureTime}</div>
+                <div className="text-lg font-semibold text-foreground mb-1">{flight.departure?.time || flight.departureTime}</div>
                 <div className="text-base font-medium text-muted-foreground">{flight.origin}</div>
               </div>
               
@@ -151,7 +151,7 @@ export const EnhancedFlightCard = ({
               
               <div className="text-right">
                 <div className="text-xs text-muted-foreground mb-1">{formatDate(flight.arrival?.date)}</div>
-                <div className="text-3xl font-bold text-foreground mb-1">{flight.arrival?.time || flight.arrivalTime}</div>
+                <div className="text-lg font-semibold text-foreground mb-1">{flight.arrival?.time || flight.arrivalTime}</div>
                 <div className="text-base font-medium text-muted-foreground">{flight.destination}</div>
               </div>
             </div>
