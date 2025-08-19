@@ -131,60 +131,68 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
             return;
           }
           
-          const transformedFlights = data.data.data.map((offer: any) => {
+          console.log("Raw Amadeus offers:", data.data.data.length);
+          
+          const transformedFlights = data.data.data.map((offer: any, index: number) => {
+            console.log(`Processing offer ${index + 1}:`, {
+              offerId: offer.id,
+              price: offer.price,
+              travelerPricings: offer.travelerPricings?.length || 0
+            });
+
             const outbound = offer.itineraries[0];
             const segments = outbound.segments;
             const firstSegment = segments[0];
             const lastSegment = segments[segments.length - 1];
 
-            // Get real traveler pricing data
-            const travelerPricings = offer.travelerPricings || [];
-            const basePrice = parseFloat(offer.price.total);
-            const baseCurrency = offer.price.currency;
-
-            // Create fare options based on REAL Amadeus data only
-            const fareOptions: FareOption[] = [];
+            // Get unique pricing from this specific offer
+            const offerPrice = parseFloat(offer.price.total);
+            const offerCurrency = offer.price.currency;
             
-            // Economy fare - use actual Amadeus pricing
-            const economyFareDetail = travelerPricings[0]?.fareDetailsBySegment?.[0];
-            fareOptions.push({
-              type: 'economy',
-              price: basePrice,
-              currency: baseCurrency,
-              features: [
+            console.log(`Offer ${index + 1} price: ${offerPrice} ${offerCurrency}`);
+
+            // Get traveler pricing details
+            const travelerPricings = offer.travelerPricings || [];
+            const firstTravelerPricing = travelerPricings[0];
+            const fareDetail = firstTravelerPricing?.fareDetailsBySegment?.[0];
+            
+            // Determine fare class from actual booking class
+            const bookingClass = fareDetail?.class || 'M';
+            const cabin = fareDetail?.cabin || 'ECONOMY';
+            
+            let fareType = 'economy';
+            if (['C', 'J', 'D', 'I'].includes(bookingClass)) {
+              fareType = 'business';
+            } else if (['F', 'A'].includes(bookingClass)) {
+              fareType = 'first';
+            }
+
+            // Create single fare option for this offer's actual class/price
+            const fareOptions: FareOption[] = [{
+              type: fareType,
+              price: offerPrice, // Use the offer's unique price
+              currency: offerCurrency,
+              features: fareType === 'business' ? [
+                'Priority check-in & boarding',
+                'Extra legroom & comfort', 
+                'Premium meal service',
+                'Checked bags included',
+                'Lounge access'
+              ] : fareType === 'first' ? [
+                'First class luxury',
+                'Flat-bed seats',
+                'Premium dining',
+                'Priority everything',
+                'Chauffeur service'
+              ] : [
                 'Standard seat selection',
                 'Carry-on bag included',
-                economyFareDetail?.includedCheckedBags?.quantity > 0 ? 'Checked bag included' : 'Checked bag extra',
+                fareDetail?.includedCheckedBags?.quantity > 0 ? 'Checked bag included' : 'Checked bag extra',
                 'Standard meal service'
               ],
-              seatsAvailable: economyFareDetail?.seatsAvailable || 9, // Use real availability
-              bookingClass: economyFareDetail?.class || 'M'
-            });
-
-            // Business fare - only if available in response
-            const businessPricing = travelerPricings.find((tp: any) => 
-              tp.fareDetailsBySegment?.[0]?.class === 'C' || 
-              tp.fareDetailsBySegment?.[0]?.class === 'J'
-            );
-            
-            if (businessPricing) {
-              const businessFareDetail = businessPricing.fareDetailsBySegment[0];
-              fareOptions.push({
-                type: 'business',
-                price: parseFloat(businessPricing.price?.total || basePrice),
-                currency: businessPricing.price?.currency || baseCurrency,
-                features: [
-                  'Priority check-in & boarding',
-                  'Extra legroom & comfort',
-                  'Premium meal service',
-                  'Checked bags included',
-                  'Lounge access',
-                  'Priority baggage handling'
-                ],
-                seatsAvailable: businessFareDetail?.seatsAvailable || 4,
-                bookingClass: businessFareDetail?.class || 'C'
-              });
-            }
+              seatsAvailable: fareDetail?.seatsAvailable || 9,
+              bookingClass: bookingClass
+            }];
 
             // Get airline name from Amadeus data
             const getAirlineName = (code: string) => {
@@ -244,13 +252,13 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
               duration: parseISO8601DurationToMinutes(outbound.duration),
               stops: segments.length - 1,
               stopoverInfo: segments.length > 1 ? segments[0].arrival.iataCode : undefined,
-              price: basePrice,
-              currency: baseCurrency,
-              availableSeats: economyFareDetail?.seatsAvailable || 9, // Use real availability
-              cabin: economyFareDetail?.cabin || 'Economy',
+              price: offerPrice, // Use unique offer price
+              currency: offerCurrency,
+              availableSeats: fareDetail?.seatsAvailable || 9,
+              cabin: cabin,
               baggage: {
                 carry: true,
-                checked: economyFareDetail?.includedCheckedBags?.quantity > 0
+                checked: fareDetail?.includedCheckedBags?.quantity > 0
               },
               segments: segments.map((segment: any) => ({
                 departure: {
