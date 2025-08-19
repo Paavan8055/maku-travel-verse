@@ -142,11 +142,16 @@ const FlightBookingReview = () => {
         </div>
 
         <div className="space-y-4">
-          {/* Flight Number Badge */}
+          {/* Flight Number Badges - TWO red badges like Air India */}
           <div className="flex items-center space-x-3">
-            <Badge className="bg-destructive text-destructive-foreground">
-              {flight.flightNumber}
-            </Badge>
+            <div className="flex space-x-2">
+              <Badge className="bg-red-600 text-white">
+                {flight.flightNumber}
+              </Badge>
+              <Badge className="bg-red-600 text-white">
+                {flight.flightNumber}
+              </Badge>
+            </div>
             <span className="font-medium">{flight.airline}</span>
           </div>
 
@@ -201,7 +206,7 @@ const FlightBookingReview = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <FlightBookingProgress currentStep={2} steps={["SELECT FLIGHTS", "REVIEW & DETAILS", "PAYMENT & CONFIRMATION"]} />
+      <FlightBookingProgress currentStep={2} steps={["1 FLIGHTS", "2 JOURNEY DETAILS", "3 REVIEW & PAYMENT"]} />
       
       {/* Header */}
       <div className="pt-6 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
