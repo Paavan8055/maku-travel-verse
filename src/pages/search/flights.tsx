@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { CalendarIcon, Search, Plane, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { AIRPORTS } from "@/data/airports";
 
 interface FlightSearchCriteria {
   origin: string;
@@ -237,12 +238,12 @@ const FlightSearchPage = () => {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SYD">Sydney (SYD)</SelectItem>
-                    <SelectItem value="MEL">Melbourne (MEL)</SelectItem>
-                    <SelectItem value="BNE">Brisbane (BNE)</SelectItem>
-                    <SelectItem value="PER">Perth (PER)</SelectItem>
-                    <SelectItem value="ADL">Adelaide (ADL)</SelectItem>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {AIRPORTS.map((airport) => (
+                      <SelectItem key={airport.iata} value={airport.iata}>
+                        {airport.city} ({airport.iata})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -253,12 +254,12 @@ const FlightSearchPage = () => {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MEL">Melbourne (MEL)</SelectItem>
-                    <SelectItem value="SYD">Sydney (SYD)</SelectItem>
-                    <SelectItem value="BNE">Brisbane (BNE)</SelectItem>
-                    <SelectItem value="PER">Perth (PER)</SelectItem>
-                    <SelectItem value="ADL">Adelaide (ADL)</SelectItem>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {AIRPORTS.map((airport) => (
+                      <SelectItem key={airport.iata} value={airport.iata}>
+                        {airport.city} ({airport.iata})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
