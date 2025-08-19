@@ -238,6 +238,11 @@ const FlightSearchPage = () => {
   const transformFlightForEnhanced = (flight: any) => {
     return {
       ...flight,
+      outboundFlightNumber: flight.outboundFlightNumber,
+      returnFlightNumber: flight.returnFlightNumber,
+      departure: flight.departure,
+      arrival: flight.arrival,
+      stopoverInfo: flight.stopoverInfo,
       fareOptions: [
         {
           type: "economy" as const,
@@ -256,7 +261,7 @@ const FlightSearchPage = () => {
       ],
       amenities: ["WiFi", "Meal", "Entertainment"],
       duration: flight.duration || 120,
-      stops: flight.stops || 0
+      stops: parseInt(flight.stops) || 0
     };
   };
 

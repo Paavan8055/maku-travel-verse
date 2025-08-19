@@ -130,7 +130,7 @@ serve(async (req) => {
     }, accessToken);
 
     // Transform Amadeus response to our format
-    const transformedFlights = flightOffers.data?.map((offer: any) => {
+    const transformedFlights = flightOffers.data?.map((offer: any, index: number) => {
       const outbound = offer.itineraries[0];
       const segments = outbound.segments;
       const firstSegment = segments[0];
@@ -141,27 +141,76 @@ serve(async (req) => {
       const inboundFirst = inboundSegments[0];
       const inboundLast = inboundSegments[inboundSegments.length - 1];
 
+      // Format times to HH:MM
+      const formatTime = (isoString: string) => {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        });
+      };
+
+      // Format duration from ISO8601 to minutes
+      const parseDuration = (isoDuration: string) => {
+        const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+        if (!match) return 0;
+        const hours = parseInt(match[1] || "0", 10);
+        const minutes = parseInt(match[2] || "0", 10);
+        return hours * 60 + minutes;
+      };
+
+      // Format duration for display (18H 0Min)
+      const formatDurationDisplay = (minutes: number) => {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours}H ${mins}Min`;
+      };
+
+      // Get stopover info
+      const getStopoverInfo = (segments: any[]) => {
+        if (segments.length <= 1) return null;
+        
+        const stopoverAirport = segments[0].arrival.iataCode;
+        const layoverStart = new Date(segments[0].arrival.at);
+        const layoverEnd = new Date(segments[1].departure.at);
+        const layoverMinutes = Math.floor((layoverEnd.getTime() - layoverStart.getTime()) / (1000 * 60));
+        const layoverHours = Math.floor(layoverMinutes / 60);
+        const layoverMins = layoverMinutes % 60;
+        
+        return `${stopoverAirport} - ${layoverHours}H ${layoverMins}Min`;
+      };
+
+      const durationMinutes = parseDuration(outbound.duration);
+      const stopoverInfo = getStopoverInfo(segments);
+
       return {
         id: offer.id,
         source: 'amadeus',
         airline: {
           code: firstSegment.carrierCode,
-          name: firstSegment.carrierCode, // In real implementation, map to airline names
+          name: firstSegment.carrierCode === 'AI' ? 'Air India' : firstSegment.carrierCode,
           logo: `https://images.kiwi.com/airlines/64x64/${firstSegment.carrierCode}.png`
         },
-        flightNumber: `${firstSegment.carrierCode}${firstSegment.number}`,
+        flightNumber: `${firstSegment.carrierCode} ${firstSegment.number}`,
+        outboundFlightNumber: `${firstSegment.carrierCode} ${firstSegment.number}`,
+        returnFlightNumber: inboundFirst ? `${inboundFirst.carrierCode} ${inboundFirst.number}` : null,
         departure: {
           airport: firstSegment.departure.iataCode,
-          time: firstSegment.departure.at,
+          time: formatTime(firstSegment.departure.at),
+          date: firstSegment.departure.at,
           terminal: firstSegment.departure.terminal
         },
         arrival: {
           airport: lastSegment.arrival.iataCode,
-          time: lastSegment.arrival.at,
+          time: formatTime(lastSegment.arrival.at),
+          date: lastSegment.arrival.at,
           terminal: lastSegment.arrival.terminal
         },
-        duration: outbound.duration,
+        duration: formatDurationDisplay(durationMinutes),
+        durationMinutes: durationMinutes,
         stops: segments.length - 1,
+        stopoverInfo: stopoverInfo,
         aircraft: firstSegment.aircraft?.code || 'Unknown',
         cabinClass: travelClass,
         price: {
@@ -173,7 +222,7 @@ serve(async (req) => {
           carry_on: true
         },
         amenities: {
-          wifi: Math.random() > 0.5, // Placeholder - get from actual data
+          wifi: Math.random() > 0.5,
           meal: travelClass !== 'ECONOMY',
           entertainment: Math.random() > 0.3
         },
@@ -181,44 +230,51 @@ serve(async (req) => {
         segments: segments.map((segment: any) => ({
           departure: {
             airport: segment.departure.iataCode,
-            time: segment.departure.at,
+            time: formatTime(segment.departure.at),
+            date: segment.departure.at,
             terminal: segment.departure.terminal
           },
           arrival: {
             airport: segment.arrival.iataCode,
-            time: segment.arrival.at,
+            time: formatTime(segment.arrival.at),
+            date: segment.arrival.at,
             terminal: segment.arrival.terminal
           },
           duration: segment.duration,
           aircraft: segment.aircraft?.code,
-          flightNumber: `${segment.carrierCode}${segment.number}`
+          flightNumber: `${segment.carrierCode} ${segment.number}`
         })),
         returnItinerary: inbound ? {
-          duration: inbound.duration,
+          duration: formatDurationDisplay(parseDuration(inbound.duration)),
+          durationMinutes: parseDuration(inbound.duration),
           departure: {
             airport: inboundFirst?.departure?.iataCode,
-            time: inboundFirst?.departure?.at,
+            time: formatTime(inboundFirst?.departure?.at),
+            date: inboundFirst?.departure?.at,
             terminal: inboundFirst?.departure?.terminal
           },
           arrival: {
             airport: inboundLast?.arrival?.iataCode,
-            time: inboundLast?.arrival?.at,
+            time: formatTime(inboundLast?.arrival?.at),
+            date: inboundLast?.arrival?.at,
             terminal: inboundLast?.arrival?.terminal
           },
           segments: inboundSegments.map((segment: any) => ({
             departure: {
               airport: segment.departure.iataCode,
-              time: segment.departure.at,
+              time: formatTime(segment.departure.at),
+              date: segment.departure.at,
               terminal: segment.departure.terminal
             },
             arrival: {
               airport: segment.arrival.iataCode,
-              time: segment.arrival.at,
+              time: formatTime(segment.arrival.at),
+              date: segment.arrival.at,
               terminal: segment.arrival.terminal
             },
             duration: segment.duration,
             aircraft: segment.aircraft?.code,
-            flightNumber: `${segment.carrierCode}${segment.number}`
+            flightNumber: `${segment.carrierCode} ${segment.number}`
           }))
         } : undefined
       };

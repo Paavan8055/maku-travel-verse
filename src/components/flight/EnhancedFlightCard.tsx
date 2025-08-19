@@ -21,13 +21,24 @@ interface EnhancedFlight {
   id?: string;
   airline: string;
   flightNumber: string;
+  outboundFlightNumber?: string;
+  returnFlightNumber?: string;
   aircraft?: string;
   origin: string;
   destination: string;
   departureTime: string;
   arrivalTime: string;
-  duration: number;
+  duration: number | string;
   stops: number;
+  stopoverInfo?: string;
+  departure?: {
+    date?: string;
+    time?: string;
+  };
+  arrival?: {
+    date?: string;
+    time?: string;
+  };
   amenities?: string[];
   fareOptions?: FareOption[];
 }
@@ -46,14 +57,16 @@ export const EnhancedFlightCard = ({
   const { formatCurrency } = useCurrency();
   const [selectedFare, setSelectedFare] = useState<string>("economy");
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+  const formatDuration = (duration: number | string) => {
+    if (typeof duration === 'string') return duration;
+    const hours = Math.floor(duration / 60);
+    const mins = duration % 60;
+    return `${hours}H ${mins}Min`;
   };
 
-  const getStopsText = (stops: number) => {
+  const getStopsText = (stops: number, stopoverInfo?: string) => {
     if (stops === 0) return "Direct";
+    if (stopoverInfo) return `${stops} Stop ${stopoverInfo}`;
     return `${stops} stop${stops > 1 ? 's' : ''}`;
   };
 
@@ -79,12 +92,13 @@ export const EnhancedFlightCard = ({
     fare.type.toLowerCase() === 'economy' || fare.type.toLowerCase() === 'business'
   ) || [];
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateStr?: string) => {
     const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     
+    const date = dateStr ? new Date(dateStr) : new Date();
     const day = dayNames[date.getDay()];
-    const dayNum = date.getDate().toString().padStart(2, '0');
+    const dayNum = date.getDate();
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear().toString().slice(-2);
     
@@ -103,11 +117,13 @@ export const EnhancedFlightCard = ({
             <div className="flex items-center space-x-4 mb-6">
               <div className="flex space-x-2">
                 <div className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold">
-                  AI 2940
+                  {flight.outboundFlightNumber || flight.flightNumber}
                 </div>
-                <div className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold">
-                  AI 302
-                </div>
+                {flight.returnFlightNumber && (
+                  <div className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold">
+                    {flight.returnFlightNumber}
+                  </div>
+                )}
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold text-sm">{flight.airline}</span>
@@ -118,8 +134,8 @@ export const EnhancedFlightCard = ({
             {/* Flight Route */}
             <div className="flex items-center justify-between max-w-3xl">
               <div className="text-left">
-                <div className="text-xs text-muted-foreground mb-1">{formatDate(new Date())}</div>
-                <div className="text-3xl font-bold text-foreground mb-1">{flight.departureTime}</div>
+                <div className="text-xs text-muted-foreground mb-1">{formatDate(flight.departure?.date)}</div>
+                <div className="text-3xl font-bold text-foreground mb-1">{flight.departure?.time || flight.departureTime}</div>
                 <div className="text-base font-medium text-muted-foreground">{flight.origin}</div>
               </div>
               
@@ -129,13 +145,13 @@ export const EnhancedFlightCard = ({
                   <Plane className="h-4 w-4 text-muted-foreground absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-1/2 bg-background px-1 rotate-90" />
                 </div>
                 <div className="text-xs text-muted-foreground mt-2 font-medium">
-                  {flight.stops > 0 ? `${flight.stops} Stop DEL - 2H 30Min` : 'Direct'}
+                  {getStopsText(flight.stops, flight.stopoverInfo)}
                 </div>
               </div>
               
               <div className="text-right">
-                <div className="text-xs text-muted-foreground mb-1">{formatDate(new Date(Date.now() + 86400000))}</div>
-                <div className="text-3xl font-bold text-foreground mb-1">{flight.arrivalTime}</div>
+                <div className="text-xs text-muted-foreground mb-1">{formatDate(flight.arrival?.date)}</div>
+                <div className="text-3xl font-bold text-foreground mb-1">{flight.arrival?.time || flight.arrivalTime}</div>
                 <div className="text-base font-medium text-muted-foreground">{flight.destination}</div>
               </div>
             </div>
