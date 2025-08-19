@@ -123,8 +123,12 @@ const BookingPaymentPage = () => {
   const adultsParam = params.get('adults');
   const childrenParam = params.get('children');
   
-  // Parse hotel data from URL params
+  // Parse hotel data and pricing from URL params
   const hotelParam = params.get('hotel');
+  const priceParam = params.get('price');
+  const currencyParam = params.get('currency') || 'USD';
+  const hotelNameParam = params.get('hotelName');
+  
   let hotelData: any = null;
   if (hotelParam) {
     try {
@@ -171,14 +175,15 @@ const BookingPaymentPage = () => {
     selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); 
   } catch {}
 
-  // Build booking details for hotel flow
-  const baseNightly = hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
-  const basePrice = baseNightly * nights;
+  // Build booking details for hotel flow - use actual price from URL
+  const actualPrice = priceParam ? parseFloat(priceParam) : null;
+  const baseNightly = actualPrice || hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
+  const basePrice = actualPrice || (baseNightly * nights);
   const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
   const fundContribution = 0; // Fund contribution removed
   
   const bookingDetails = {
-    hotel: hotelData?.name || selection?.hotelName || "Unknown Hotel",
+    hotel: hotelNameParam || hotelData?.name || selection?.hotelName || "Unknown Hotel",
     room: selection?.roomName || "Deluxe Ocean View",
     bedType: selection?.bedType as string | undefined,
     extraBeds: Number(selection?.extraBeds || 0),
@@ -191,7 +196,8 @@ const BookingPaymentPage = () => {
     basePrice,
     extrasPrice,
     fundContribution,
-    total: basePrice + extrasPrice,
+    total: actualPrice || (basePrice + extrasPrice),
+    currency: currencyParam
   };
 
   // Activity booking details
@@ -308,6 +314,10 @@ const BookingPaymentPage = () => {
                            isActivityBooking ? activityDetails.total : 
                            bookingDetails.total;
       
+      const bookingCurrency = isFlightCheckout ? flightParams.currency : 
+                             isActivityBooking ? 'USD' : 
+                             bookingDetails.currency;
+      
       const currentBookingType = isFlightCheckout ? 'flight' : isActivityBooking ? 'activity' : 'hotel';
       const currentBookingData = isFlightCheckout ? { 
         flight: {
@@ -338,7 +348,7 @@ const BookingPaymentPage = () => {
           bookingType: currentBookingType,
           bookingData: currentBookingData,
           amount: bookingAmount,
-          currency: isFlightCheckout ? flightParams.currency : 'USD',
+          currency: bookingCurrency,
           customerInfo,
           paymentMethod: 'card'
         },
@@ -356,14 +366,14 @@ const BookingPaymentPage = () => {
 
       console.log('Booking payment created successfully:', data);
       
-      // If payment URL returned, use embedded Elements instead of redirecting
+      // If payment URL returned, redirect directly for faster checkout
       if (data.payment?.checkoutUrl) {
-        console.log('Stripe checkout URL received, but using embedded Elements flow');
-        // Open in new tab as fallback option
-        console.log('Checkout URL available as fallback:', data.payment.checkoutUrl);
+        console.log('Redirecting to Stripe checkout for fast payment flow');
+        window.location.href = data.payment.checkoutUrl;
+        return;
       }
       
-      // Otherwise, continue with elements flow
+      // Otherwise, continue with elements flow (backup)
       setClientSecret(data.payment?.clientSecret);
       setBookingId(data.booking?.id);
       
