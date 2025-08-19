@@ -28,7 +28,7 @@ interface FlightSortingToolbarProps {
 const SORT_OPTIONS: SortOption[] = [
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
-  { value: "duration_asc", label: "Duration: Shortest" },
+  { value: "duration_asc", label: "Duration" },
   { value: "departure_asc", label: "Departure: Earliest" },
   { value: "departure_desc", label: "Departure: Latest" },
   { value: "stops_asc", label: "Stops: Fewest" },
@@ -44,17 +44,18 @@ export const FlightSortingToolbar = ({
   className
 }: FlightSortingToolbarProps) => {
   return (
-    <div className={cn("space-y-4 mb-6", className)}>
-      {/* Sort and Results Count */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <p className="text-sm text-muted-foreground">
+    <div className={cn("bg-background sticky top-0 z-10 border-b border-border pb-4 mb-6", className)}>
+      {/* Main toolbar */}
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center space-x-6">
+          <h2 className="text-xl font-semibold text-foreground">
             {resultsCount} flight{resultsCount !== 1 ? 's' : ''} found
-          </p>
-          <div className="flex items-center space-x-2">
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+          </h2>
+          
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-muted-foreground">Sort by:</span>
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[160px] border-border">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -68,7 +69,7 @@ export const FlightSortingToolbar = ({
           </div>
         </div>
         
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="border-border hover:border-primary">
           <Filter className="h-4 w-4 mr-2" />
           Filters
         </Button>
@@ -76,7 +77,7 @@ export const FlightSortingToolbar = ({
 
       {/* Active Filters */}
       {activeFilters.length > 0 && (
-        <div className="flex items-center space-x-2 flex-wrap gap-2">
+        <div className="flex items-center space-x-2 flex-wrap gap-2 pt-2">
           <span className="text-sm text-muted-foreground">Active filters:</span>
           {activeFilters.map((filter) => (
             <Badge

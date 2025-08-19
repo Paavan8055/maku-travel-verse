@@ -192,9 +192,9 @@ const FlightSearchPage = () => {
     }
   };
 
-  // Transform flights data for enhanced cards
-  const transformFlightsForEnhanced = (flights: any[]) => {
-    return flights.map(flight => ({
+  // Transform a single flight for enhanced card
+  const transformFlightForEnhanced = (flight: any) => {
+    return {
       ...flight,
       fareOptions: [
         {
@@ -202,32 +202,23 @@ const FlightSearchPage = () => {
           price: flight.price,
           currency: flight.currency,
           features: ["Standard seat", "Carry-on bag", "In-flight entertainment"],
-          available: true,
-          seatsLeft: flight.availableSeats
+          seatsAvailable: flight.availableSeats
         },
         {
           type: "business" as const,
           price: flight.price * 2.5,
           currency: flight.currency,
           features: ["Premium seat", "Priority boarding", "Meal included", "Extra baggage"],
-          available: Math.random() > 0.3,
-          seatsLeft: Math.max(0, Math.floor(flight.availableSeats / 4))
-        },
-        {
-          type: "first" as const,
-          price: flight.price * 4,
-          currency: flight.currency,
-          features: ["Luxury suite", "Premium dining", "Lounge access", "Concierge service"],
-          available: Math.random() > 0.6,
-          seatsLeft: Math.max(0, Math.floor(flight.availableSeats / 8))
+          seatsAvailable: Math.max(0, Math.floor(flight.availableSeats / 4))
         }
       ],
       amenities: ["WiFi", "Meal", "Entertainment"],
-      onTimePerformance: Math.floor(Math.random() * 20) + 80
-    }));
+      duration: flight.duration || 120,
+      stops: flight.stops || 0
+    };
   };
 
-  const enhancedFlights = transformFlightsForEnhanced(flights);
+  const enhancedFlights = flights.map(transformFlightForEnhanced);
 
   // Filter flights based on user preferences
   const filteredFlights = enhancedFlights.filter(flight => {
@@ -639,12 +630,12 @@ const FlightSearchPage = () => {
               </Card>
             </div>
 
-            {/* Results Section */}
+            {/* Results Section - Full width clean layout */}
             <div className="lg:col-span-3">
               {loading ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {[...Array(5)].map((_, i) => (
-                    <Card key={i} className="h-32 animate-pulse bg-muted" />
+                    <Card key={i} className="h-48 animate-pulse bg-muted/50" />
                   ))}
                 </div>
               ) : (
@@ -658,8 +649,9 @@ const FlightSearchPage = () => {
                     />
                   ))}
                   {filteredFlights.length === 0 && !loading && (
-                    <Card className="p-8 text-center">
-                      <p className="text-muted-foreground">No flights found matching your criteria.</p>
+                    <Card className="p-12 text-center">
+                      <h3 className="text-xl font-semibold mb-2">No flights found</h3>
+                      <p className="text-muted-foreground">Try adjusting your search criteria or dates.</p>
                     </Card>
                   )}
                 </div>
