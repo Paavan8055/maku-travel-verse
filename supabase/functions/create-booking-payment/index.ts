@@ -231,8 +231,22 @@ serve(async (req) => {
     console.log('Creating booking payment:', { 
       type: params.bookingType, 
       amount: params.amount,
+      currency: params.currency,
       paymentMethod: params.paymentMethod 
     });
+
+    // Validate currency
+    const validCurrencies = ['USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'SGD'];
+    const currency = (params.currency || 'USD').toUpperCase();
+    
+    if (!validCurrencies.includes(currency)) {
+      throw new Error(`Unsupported currency: ${currency}`);
+    }
+
+    // Validate amount
+    if (!params.amount || params.amount <= 0) {
+      throw new Error('Invalid amount');
+    }
 
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -266,7 +280,7 @@ serve(async (req) => {
         booking_type: params.bookingType,
         status: 'pending',
         total_amount: params.amount,
-        currency: params.currency || 'USD',
+        currency: currency,
         booking_data: {
           ...params.bookingData,
           customerInfo: params.customerInfo,
@@ -410,17 +424,29 @@ serve(async (req) => {
         apiVersion: "2023-10-16",
       });
 
+      // Calculate Stripe amount based on currency
+      let stripeAmount;
+      if (currency === 'INR') {
+        // For INR, Stripe expects amount in paise (1 INR = 100 paise)
+        stripeAmount = Math.round(params.amount * 100);
+      } else {
+        // For other currencies, Stripe expects amount in smallest unit
+        stripeAmount = Math.round(params.amount * 100);
+      }
+
+      console.log(`Stripe amount calculation: ${params.amount} ${currency} = ${stripeAmount} ${currency === 'INR' ? 'paise' : 'cents'}`);
+
       const session = await stripe.checkout.sessions.create({
         customer_email: params.customerInfo.email,
         line_items: [
           {
             price_data: {
-              currency: params.currency || "usd",
+              currency: currency.toLowerCase(),
               product_data: {
                 name: `${params.bookingType.charAt(0).toUpperCase() + params.bookingType.slice(1)} Booking - ${bookingReference}`,
                 description: `Travel booking payment`
               },
-              unit_amount: Math.round(params.amount * 100),
+              unit_amount: stripeAmount,
             },
             quantity: 1,
           },
@@ -453,7 +479,7 @@ serve(async (req) => {
         reference: bookingReference,
         status: paymentStatus === 'paid' ? 'confirmed' : 'pending',
         amount: params.amount,
-        currency: params.currency || 'USD',
+        currency: currency,
         guestAccessToken: guestAccessToken // For guest bookings
       },
       payment: {
