@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
@@ -7,6 +6,11 @@ import { FlightCard } from "@/features/search/components/FlightCard";
 import { PopularRoutesSection } from "@/components/search/PopularRoutesSection";
 import { FeaturedDealsCarousel } from "@/components/search/FeaturedDealsCarousel";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
+import { FlightBookingProgress } from "@/components/flight/FlightBookingProgress";
+import { FlightRouteHeader } from "@/components/flight/FlightRouteHeader";
+import { DateFlexibilityCalendar } from "@/components/flight/DateFlexibilityCalendar";
+import { EnhancedFlightCard } from "@/components/flight/EnhancedFlightCard";
+import { FlightSortingToolbar } from "@/components/flight/FlightSortingToolbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -60,6 +64,11 @@ const FlightSearchPage = () => {
   ]);
   const [multiCitySelections, setMultiCitySelections] = useState<MultiCitySelection[]>([]);
 
+  // Enhanced UI state
+  const [showModifySearch, setShowModifySearch] = useState(false);
+  const [sortBy, setSortBy] = useState("price_asc");
+  const [activeFilters, setActiveFilters] = useState<Array<{key: string, label: string}>>([]);
+
   // Filter states
   const [priceRange, setPriceRange] = useState([0, 2000]);
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
@@ -84,6 +93,7 @@ const FlightSearchPage = () => {
 
   const handleSearch = () => {
     setHasSearched(true);
+    setShowModifySearch(false);
   };
 
   const handleRouteSelect = (route: any) => {
@@ -130,6 +140,41 @@ const FlightSearchPage = () => {
     }
   };
 
+  const handleSelectFare = (flight: any, fareType: string) => {
+    console.log("Selected fare:", fareType, "for flight:", flight.id);
+    setFareFlight({ ...flight, selectedFare: fareType });
+    setFareOpen(true);
+  };
+
+  const handleDateChange = (date: Date, flights?: { departure?: any; return?: any }) => {
+    setDepartureDate(date);
+    if (flights?.departure) {
+      setSelectedOutbound(flights.departure);
+    }
+  };
+
+  const handleModifySearch = () => {
+    setShowModifySearch(!showModifySearch);
+  };
+
+  const handleRemoveFilter = (filterKey: string) => {
+    setActiveFilters(activeFilters.filter(f => f.key !== filterKey));
+    if (filterKey.startsWith('airline-')) {
+      const airline = filterKey.replace('airline-', '');
+      setSelectedAirlines(selectedAirlines.filter(a => a !== airline));
+    } else if (filterKey === 'stops') {
+      setSelectedStops([]);
+    }
+  };
+
+  const handleClearAllFilters = () => {
+    setActiveFilters([]);
+    setSelectedAirlines([]);
+    setSelectedStops([]);
+    setSelectedCabins([]);
+    setPriceRange([0, 2000]);
+  };
+
   const handleMultiCitySelect = (segmentIndex: number, flight: any) => {
     const newSelections = [...multiCitySelections];
     const existingIndex = newSelections.findIndex(s => s.segmentIndex === segmentIndex);
@@ -147,8 +192,45 @@ const FlightSearchPage = () => {
     }
   };
 
-  // Filter flights
-  const filteredFlights = flights.filter(flight => {
+  // Transform flights data for enhanced cards
+  const transformFlightsForEnhanced = (flights: any[]) => {
+    return flights.map(flight => ({
+      ...flight,
+      fareOptions: [
+        {
+          type: "economy" as const,
+          price: flight.price,
+          currency: flight.currency,
+          features: ["Standard seat", "Carry-on bag", "In-flight entertainment"],
+          available: true,
+          seatsLeft: flight.availableSeats
+        },
+        {
+          type: "business" as const,
+          price: flight.price * 2.5,
+          currency: flight.currency,
+          features: ["Premium seat", "Priority boarding", "Meal included", "Extra baggage"],
+          available: Math.random() > 0.3,
+          seatsLeft: Math.max(0, Math.floor(flight.availableSeats / 4))
+        },
+        {
+          type: "first" as const,
+          price: flight.price * 4,
+          currency: flight.currency,
+          features: ["Luxury suite", "Premium dining", "Lounge access", "Concierge service"],
+          available: Math.random() > 0.6,
+          seatsLeft: Math.max(0, Math.floor(flight.availableSeats / 8))
+        }
+      ],
+      amenities: ["WiFi", "Meal", "Entertainment"],
+      onTimePerformance: Math.floor(Math.random() * 20) + 80
+    }));
+  };
+
+  const enhancedFlights = transformFlightsForEnhanced(flights);
+
+  // Filter flights based on user preferences
+  const filteredFlights = enhancedFlights.filter(flight => {
     const priceStr = typeof flight.price === 'string' ? flight.price : flight.price.toString();
     const price = parseInt(priceStr.replace(/[^0-9]/g, ''));
     if (price < priceRange[0] || price > priceRange[1]) return false;
@@ -171,7 +253,11 @@ const FlightSearchPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-6">
+      {hasSearched && (
+        <FlightBookingProgress currentStep={1} />
+      )}
+      
+      <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Search Controls */}
         <div className="bg-card border border-border rounded-lg p-4 mb-6 space-y-4">
           {/* Trip Type and Passenger Selection */}
@@ -286,6 +372,7 @@ const FlightSearchPage = () => {
                       selected={departureDate}
                       onSelect={setDepartureDate}
                       initialFocus
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -307,6 +394,7 @@ const FlightSearchPage = () => {
                         selected={returnDate}
                         onSelect={setReturnDate}
                         initialFocus
+                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -352,6 +440,123 @@ const FlightSearchPage = () => {
             />
           </div>
         ) : (
+          <div className="space-y-6">
+            <FlightRouteHeader 
+              origin={origin}
+              destination={destination}
+              departureDate={departureDate}
+              returnDate={isRoundtrip ? returnDate : undefined}
+              passengers={adults + children + infants}
+              tripType={tripType}
+              onModify={handleModifySearch}
+            />
+            
+            {!showModifySearch && (
+              <>
+                <DateFlexibilityCalendar 
+                  selectedDate={departureDate}
+                  onDateSelect={handleDateChange}
+                  origin={origin}
+                  destination={destination}
+                  tripType={tripType}
+                />
+                
+                <FlightSortingToolbar 
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  activeFilters={activeFilters}
+                  onRemoveFilter={handleRemoveFilter}
+                  onClearAllFilters={handleClearAllFilters}
+                  resultsCount={filteredFlights.length}
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {hasSearched && showModifySearch && (
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Modify your search</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">From</label>
+                <DestinationAutocomplete
+                  value={originInput}
+                  onChange={setOriginInput}
+                  onDestinationSelect={handleOriginSelect}
+                  placeholder="From where?"
+                  searchType="airport"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">To</label>
+                <DestinationAutocomplete
+                  value={destinationInput}
+                  onChange={setDestinationInput}
+                  onDestinationSelect={handleDestinationSelect}
+                  placeholder="Where to?"
+                  searchType="airport"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Departure</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {departureDate ? format(departureDate, "MMM dd") : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={departureDate}
+                      onSelect={setDepartureDate}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {isRoundtrip && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Return</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {returnDate ? format(returnDate, "MMM dd") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={returnDate}
+                        onSelect={setReturnDate}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-2 mt-4">
+              <Button onClick={handleSearch}>
+                Update Search
+              </Button>
+              <Button variant="outline" onClick={() => setShowModifySearch(false)}>
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {hasSearched && !showModifySearch && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Filters Sidebar */}
             <div className="lg:col-span-1">
@@ -433,32 +638,29 @@ const FlightSearchPage = () => {
               </Card>
             </div>
 
-            {/* Flight Results */}
+            {/* Results Section */}
             <div className="lg:col-span-3">
               {loading ? (
-                <div className="text-center py-8">Loading flights...</div>
-              ) : error ? (
-                <div className="text-center py-8 text-red-500">Error loading flights</div>
-              ) : filteredFlights.length === 0 ? (
-                <div className="text-center py-8">No flights found</div>
-              ) : (
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold">
-                    {filteredFlights.length} flights found
-                  </h2>
-                  
+                  {[...Array(5)].map((_, i) => (
+                    <Card key={i} className="h-32 animate-pulse bg-muted" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6">
                   {filteredFlights.map((flight, index) => (
-                    <FlightCard
-                      key={index}
+                    <EnhancedFlightCard
+                      key={`${flight.id}-${index}`}
                       flight={flight}
-                      tripType={tripType}
-                      isRoundtrip={isRoundtrip}
-                      onMultiCitySelect={isMultiCity ? (flight, segmentIndex) => handleMultiCitySelect(segmentIndex, flight) : undefined}
-                      currentSegmentIndex={0}
-                      totalSegments={isMultiCity ? multiCitySegments.length : 1}
-                      isMultiCitySelected={false}
+                      onSelectFare={handleSelectFare}
+                      showFareOptions={true}
                     />
                   ))}
+                  {filteredFlights.length === 0 && !loading && (
+                    <Card className="p-8 text-center">
+                      <p className="text-muted-foreground">No flights found matching your criteria.</p>
+                    </Card>
+                  )}
                 </div>
               )}
             </div>
