@@ -73,40 +73,27 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
 };
 
 const BookingPaymentPage = () => {
-  const [paymentMethod, setPaymentMethod] = useState("stripe");
-  const [paymentGateway, setPaymentGateway] = useState<"stripe" | "card" | "afterpay" | "crypto">("stripe");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const { createBookingPayment, isLoading } = useBookingPayment();
-
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [bookingId, setBookingId] = useState<string | null>(null);
-  const [stripePromise, setStripePromise] = useState<any>(null);
-  const [confirmFn, setConfirmFn] = useState<null | (() => Promise<any>)>(null);
   const { toast } = useToast();
-  const [isInitializingPI, setIsInitializingPI] = useState(false);
-  const [initError, setInitError] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectError, setRedirectError] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState(false);
-  const initRef = useRef(false);
 
   useEffect(() => {
     document.title = "Payment | Maku Travel";
   }, []);
 
-  // Initialize Stripe immediately
+  // Check test mode only
   useEffect(() => {
-    const init = async () => {
+    const checkTestMode = async () => {
       try {
         const { data } = await supabase.functions.invoke('get-stripe-publishable-key');
-        if (data?.publishableKey) {
-          const { loadStripe } = await import('@stripe/stripe-js');
-          setIsTestMode(data.isTestMode || false);
-          setStripePromise(loadStripe(data.publishableKey));
-        }
+        setIsTestMode(data?.isTestMode || false);
       } catch (e) {
-        console.error('Stripe init error', e);
+        console.error('Test mode check error', e);
       }
     };
-    init();
+    checkTestMode();
   }, []);
 
   // Parse URL parameters to determine booking type and data
@@ -259,18 +246,16 @@ const BookingPaymentPage = () => {
     urlParams: Object.fromEntries(params.entries())
   });
 
-  // Optimized payment intent creation - only create when needed
-  const ensurePaymentIntent = async () => {
-    if (clientSecret && bookingId || initRef.current) return;
-    
-    initRef.current = true;
-    setIsInitializingPI(true);
-    setInitError(null);
+  // Simplified checkout flow - direct Stripe redirect only
+  const handleStripeCheckout = async () => {
+    setIsRedirecting(true);
+    setRedirectError(null);
 
     try {
       let passenger: any = null;
       let guest: any = null;
       let activityGuest: any = null;
+      
       try {
         passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
         guest = JSON.parse(sessionStorage.getItem('guestInfo') || 'null');
@@ -282,22 +267,13 @@ const BookingPaymentPage = () => {
       // Redirect to appropriate checkout page if guest data is missing
       if (!person) {
         if (isFlightCheckout) {
-          // Redirect to flight checkout if missing passenger info
-          const redirectUrl = `/flight-checkout${window.location.search}`;
-          console.log('Missing passenger info, redirecting to:', redirectUrl);
-          window.location.href = redirectUrl;
+          window.location.href = `/flight-checkout${window.location.search}`;
           return;
         } else if (isActivityBooking) {
-          // Redirect to activity checkout if missing activity guest info
-          const redirectUrl = `/activity-checkout${window.location.search}`;
-          console.log('Missing activity guest info, redirecting to:', redirectUrl);
-          window.location.href = redirectUrl;
+          window.location.href = `/activity-checkout${window.location.search}`;
           return;
         } else {
-          // Redirect to hotel checkout if missing guest info
-          const redirectUrl = `/hotel-checkout${window.location.search}`;
-          console.log('Missing guest info, redirecting to:', redirectUrl);
-          window.location.href = redirectUrl;
+          window.location.href = `/hotel-checkout${window.location.search}`;
           return;
         }
       }
@@ -309,7 +285,6 @@ const BookingPaymentPage = () => {
         phone: person?.phone,
       };
 
-      // Fix amount calculation - ensure we're using the correct value
       const bookingAmount = isFlightCheckout ? flightParams.amount : 
                            isActivityBooking ? activityDetails.total : 
                            bookingDetails.total;
@@ -334,14 +309,6 @@ const BookingPaymentPage = () => {
         hotel: bookingDetails,
         guests: guest ? [guest] : null
       };
-      
-      console.log('Payment intent data (before API call):', {
-        bookingType: currentBookingType,
-        bookingAmount,
-        bookingData: currentBookingData,
-        currency: isFlightCheckout ? flightParams.currency : 'USD',
-        customerInfo
-      });
 
       const { data, error } = await supabase.functions.invoke('create-booking-payment', {
         body: {
@@ -354,172 +321,33 @@ const BookingPaymentPage = () => {
         },
       });
 
-      console.log('Payment intent response:', { data, error });
-
       if (error || !data?.success) {
-        const message = error?.message || data?.error || 'Failed to create payment';
-        console.error('Payment intent error:', message);
-        setInitError(message);
-        toast({ title: 'Payment setup failed', description: message, variant: 'destructive' });
-        return;
+        throw new Error(error?.message || data?.error || 'Failed to create payment');
       }
 
-      console.log('Booking payment created successfully:', data);
-      
-      // If payment URL returned, redirect directly for faster checkout
       if (data.payment?.checkoutUrl) {
-        console.log('Redirecting to Stripe checkout for fast payment flow');
+        // Direct redirect to Stripe Checkout
         window.location.href = data.payment.checkoutUrl;
-        return;
+      } else {
+        throw new Error('No checkout URL received from payment service');
       }
       
-      // Otherwise, continue with elements flow (backup)
-      setClientSecret(data.payment?.clientSecret);
-      setBookingId(data.booking?.id);
-      
-      toast({ 
-        title: 'Payment ready', 
-        description: 'You can now complete your payment', 
-        variant: 'default' 
-      });
     } catch (e: any) {
-      console.error('ensurePaymentIntent error', e);
-      const message = e?.message || 'Unexpected error while preparing payment';
-      setInitError(message);
-      toast({ title: 'Payment setup failed', description: message, variant: 'destructive' });
+      const message = e?.message || 'Payment setup failed';
+      setRedirectError(message);
+      toast({ title: 'Payment Error', description: message, variant: 'destructive' });
     } finally {
-      setIsInitializingPI(false);
-      initRef.current = false;
+      setIsRedirecting(false);
     }
   };
 
-  // Create payment intent as soon as Stripe is ready
-  useEffect(() => {
-    if (paymentGateway === 'stripe' && stripePromise && !clientSecret) {
-      ensurePaymentIntent();
-    }
-  }, [paymentGateway, stripePromise]);
-
-  // Reset confirm function when payment context changes
-  useEffect(() => {
-    setConfirmFn(null);
-  }, [clientSecret, paymentGateway]);
-
   const handleCheckout = async () => {
-    console.log('handleCheckout called');
-    
     if (!agreeToTerms) {
       toast({ title: 'Terms required', description: 'Please agree to the terms and conditions', variant: 'destructive' });
       return;
     }
 
-    let passenger: any = null;
-    let guest: any = null;
-    let activityGuest: any = null;
-    try {
-      passenger = JSON.parse(sessionStorage.getItem('passengerInfo') || 'null');
-      guest = JSON.parse(sessionStorage.getItem('guestInfo') || 'null');
-      activityGuest = JSON.parse(params.get('guest_data') || 'null');
-    } catch {}
-
-    const person = passenger || guest || activityGuest;
-    const customerInfo = {
-      email: person?.email || 'guest@example.com',
-      firstName: person?.firstName || 'GUEST',
-      lastName: person?.lastName || 'USER',
-      phone: person?.phone,
-    };
-
-    console.log('Payment gateway:', paymentGateway, 'Customer info:', customerInfo);
-
-    // If using Stripe Elements payment
-    if (paymentGateway === 'stripe') {
-      try {
-        console.log('Using Stripe payment, clientSecret:', !!clientSecret, 'bookingId:', !!bookingId, 'confirmFn:', !!confirmFn);
-        
-        if (!clientSecret || !bookingId) {
-          console.log('Missing payment intent, creating...');
-          await ensurePaymentIntent();
-          toast({ title: 'Payment initialized', description: 'Please click Continue to Payment again to proceed', variant: 'default' });
-          return;
-        }
-
-        if (!confirmFn) {
-          console.log('Card form not ready, confirmFn is null');
-          toast({ title: 'Card form not ready', description: 'Please wait for the card form to load completely', variant: 'destructive' });
-          return;
-        }
-
-        console.log('Confirming payment...');
-        const result: any = await confirmFn();
-        console.log('Payment confirmation result:', result);
-        
-        if (result.error) {
-          throw new Error(result.error.message || 'Payment confirmation failed');
-        }
-        
-        const piId = result?.paymentIntent?.id;
-        if (!piId || result?.paymentIntent?.status !== 'succeeded') {
-          throw new Error('Payment was not completed successfully');
-        }
-        
-        console.log('Verifying payment with booking...');
-        const verifyOptions: any = {
-          body: { bookingId, paymentIntentId: piId },
-        };
-        
-        const verifyResult = await supabase.functions.invoke('verify-booking-payment', verifyOptions);
-        
-        console.log('Verification result:', verifyResult);
-        
-        if (verifyResult.error || !verifyResult.data?.success) {
-          throw new Error(verifyResult.error?.message || 'Payment verification failed');
-        }
-        
-        toast({ title: 'Payment successful!', description: 'Redirecting to confirmation...', variant: 'default' });
-        window.location.href = `/booking/confirmation?booking_id=${bookingId}`;
-        return;
-      } catch (err: any) {
-        console.error('Stripe payment failed', err);
-        const message = err?.message || 'Payment failed';
-        toast({ title: 'Payment failed', description: message, variant: 'destructive' });
-        return;
-      }
-    }
-
-    // Fallback to booking payment flow
-    const currentBookingType = isFlightCheckout ? 'flight' : isActivityBooking ? 'activity' : 'hotel';
-    const currentBookingData = isFlightCheckout ? { 
-      flight: {
-        ...flightParams,
-        isRoundtrip: flightParams.isRoundtrip
-      },
-      passengers: passenger ? [passenger] : null
-    } : 
-    isActivityBooking ? { 
-      activity: activityDetails,
-      participants: activityGuest ? [activityGuest] : activityDetails.participants
-    } :
-    { 
-      hotel: bookingDetails,
-      guests: guest ? [guest] : null
-    };
-    const currentAmount = isFlightCheckout ? flightParams.amount :
-                         isActivityBooking ? activityDetails.total : 
-                         bookingDetails.total;
-    
-    const result = await createBookingPayment({
-      bookingType: currentBookingType,
-      bookingData: currentBookingData,
-      amount: currentAmount,
-      currency: isFlightCheckout ? flightParams.currency : 'USD',
-      customerInfo,
-      paymentMethod: paymentMethod as 'card' | 'fund' | 'split',
-    });
-
-    if (result.success && result.booking?.status === 'confirmed') {
-      window.location.href = `/booking/confirmation?booking_id=${result.booking.id}`;
-    }
+    await handleStripeCheckout();
   };
 
   return (
@@ -628,92 +456,45 @@ const BookingPaymentPage = () => {
                 <h2 className="text-xl font-bold mb-4">Payment Method</h2>
 
                 <div className="space-y-4">
-                  {/* Payment Options */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    {/* Credit/Debit Card */}
-                    <div
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentGateway === 'stripe' ? 'border-primary bg-primary/5' : 'border-border'}`}
-                      onClick={() => { setPaymentGateway('stripe'); setPaymentMethod('stripe'); }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <CreditCard className="h-5 w-5" />
-                        <span className="font-medium">Credit/Debit Card</span>
-                      </div>
+                  {isRedirecting ? (
+                    <div className="p-8 text-center">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                      <h3 className="text-lg font-medium mb-2">Redirecting to payment...</h3>
+                      <p className="text-muted-foreground">
+                        You will be taken to Stripe's secure checkout page to complete your payment.
+                      </p>
                     </div>
-
-                    {/* Afterpay - Coming soon */}
-                    <div className="p-4 border-2 rounded-xl relative transition-all opacity-60 cursor-not-allowed border-border">
-                      <div className="flex items-center space-x-3">
-                        <BadgeDollarSign className="h-5 w-5" />
-                        <span className="font-medium">Afterpay</span>
-                      </div>
-                      <span className="absolute top-2 right-2 text-xs text-muted-foreground">Coming soon</span>
+                  ) : redirectError ? (
+                    <div className="p-6 border rounded-lg bg-destructive/10 border-destructive/20">
+                      <h3 className="font-medium text-destructive mb-2">Payment Error</h3>
+                      <p className="text-sm text-destructive mb-4">{redirectError}</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setRedirectError(null);
+                          handleStripeCheckout();
+                        }}
+                      >
+                        Try Again
+                      </Button>
                     </div>
-
-                    {/* Crypto.com - Coming soon */}
-                    <div className="p-4 border-2 rounded-xl relative transition-all opacity-60 cursor-not-allowed border-border">
-                      <div className="flex items-center space-x-3">
-                        <Coins className="h-5 w-5" />
-                        <span className="font-medium">Crypto.com</span>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-4 border rounded-lg bg-green-50 border-green-200">
+                        <Shield className="h-5 w-5 text-green-600" />
+                        <div>
+                          <div className="font-medium text-green-900">Secure Stripe Checkout</div>
+                          <div className="text-sm text-green-700">
+                            Your payment will be processed securely by Stripe
+                          </div>
+                        </div>
                       </div>
-                      <span className="absolute top-2 right-2 text-xs text-muted-foreground">Coming soon</span>
-                    </div>
-                  </div>
-
-                  {/* Card Details via Stripe Elements */}
-                  {paymentGateway === "stripe" && (
-                    <div className="space-y-4 mt-6">
-                      {isInitializingPI ? (
-                        <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/30 rounded-lg">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Setting up secure payment...
-                        </div>
-                      ) : initError ? (
-                        <div className="space-y-2 p-4 bg-destructive/10 rounded-lg">
-                          <p className="text-destructive font-medium">{initError}</p>
-                          <Button variant="outline" size="sm" onClick={ensurePaymentIntent}>
-                            Retry
-                          </Button>
-                        </div>
-                      ) : clientSecret && stripePromise ? (
-                        <div className="p-4 bg-muted/20 rounded-lg">
-                          <Elements 
-                            stripe={stripePromise} 
-                            options={{ 
-                              clientSecret,
-                              appearance: {
-                                theme: 'stripe',
-                                variables: {
-                                  colorPrimary: 'hsl(var(--primary))',
-                                }
-                              }
-                            }}
-                          >
-                            <StripeCardForm setConfirm={setConfirmFn} />
-                          </Elements>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/30 rounded-lg">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Initializing payment...
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Fund Balance Info */}
-                  {(paymentMethod === "fund" || paymentMethod === "split") && (
-                    <div className="bg-muted p-4 rounded-xl">
-                      <div className="flex justify-between items-center mb-2">
-                        <span>Available Fund Balance:</span>
-                        <span className="font-bold text-primary">$1,250</span>
+                      
+                      <div className="text-sm text-muted-foreground">
+                        <p>• SSL encrypted and PCI compliant</p>
+                        <p>• Your card details are never stored on our servers</p>
+                        <p>• Accepted: Visa, Mastercard, American Express</p>
                       </div>
-                      {paymentMethod === "fund" && bookingDetails.total > 1250 && (
-                        <p className="text-sm text-destructive">
-                          Insufficient funds. Please add more to your travel fund or
-                          choose split payment.
-                        </p>
-                      )}
                     </div>
                   )}
                 </div>
@@ -844,22 +625,20 @@ const BookingPaymentPage = () => {
 
                 <Button
                   onClick={handleCheckout}
-                  disabled={!agreeToTerms || isLoading || paymentGateway === "afterpay" || paymentGateway === "crypto" || (paymentGateway === 'stripe' && (!confirmFn || !clientSecret))}
+                  disabled={!agreeToTerms || isRedirecting}
                   className="w-full mt-6 btn-primary h-12"
                 >
-                  {isLoading ? (
-                    <>Processing...</>
-                  ) : (paymentGateway === 'stripe' && (!confirmFn || !clientSecret) ? (
+                  {isRedirecting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Setting up payment...
+                      Redirecting to Payment...
                     </>
                   ) : (
                     <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Confirm & Pay ${isFlightCheckout ? flightParams.amount.toFixed(2) : bookingDetails.total}
+                      <Shield className="mr-2 h-4 w-4" />
+                      Pay ${isFlightCheckout ? flightParams.amount.toFixed(2) : bookingDetails.total} {bookingDetails.currency || 'USD'}
                     </>
-                  ))}
+                  )}
                 </Button>
               </CardContent>
             </Card>
