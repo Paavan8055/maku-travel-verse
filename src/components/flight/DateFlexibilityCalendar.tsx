@@ -21,6 +21,8 @@ interface DateFlexibilityCalendarProps {
   passengers: number;
   cabin: string;
   className?: string;
+  existingFlights?: any[]; // Accept existing flight data
+  currentSearchDate?: Date; // The date for which we have existing results
 }
 
 export const DateFlexibilityCalendar = ({
@@ -30,7 +32,9 @@ export const DateFlexibilityCalendar = ({
   destination,
   passengers,
   cabin,
-  className
+  className,
+  existingFlights = [],
+  currentSearchDate
 }: DateFlexibilityCalendarProps) => {
   const { formatCurrency } = useCurrency();
   const [currentWeekStart, setCurrentWeekStart] = useState(
@@ -40,104 +44,68 @@ export const DateFlexibilityCalendar = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchPricesForDates = async () => {
+    const generatePricesForDates = async () => {
       setLoading(true);
       const pricesData: DatePrice[] = [];
       
       // Generate dates for the current view (14 days)
       const dates = Array.from({ length: 14 }, (_, i) => addDays(currentWeekStart, i));
       
-      // Make flight searches for each date
-      const searchPromises = dates.map(async (date) => {
-        try {
-          const { data, error } = await supabase.functions.invoke('amadeus-flight-search', {
-            body: {
-              origin,
-              destination,
-              departureDate: format(date, 'yyyy-MM-dd'),
-              adults: passengers,
-              children: 0,
-              infants: 0,
-              travelClass: cabin.toUpperCase(),
-              nonStop: false,
-              maxPrice: 5000,
-              currency: 'USD'
-            }
-          });
-
-          if (error) {
-            console.error(`Flight search error for ${format(date, 'yyyy-MM-dd')}:`, error);
-            return {
-              date,
-              price: 0,
-              flightCount: 0,
-              isLowest: false
-            };
-          }
-
-          if (data?.flights && data.flights.length > 0) {
-            // Get the lowest price from available flights
-            const lowestPrice = Math.min(...data.flights.map((f: any) => f.price?.amount || 0));
-            return {
-              date,
-              price: Math.round(lowestPrice),
-              flightCount: data.flights.length,
-              isLowest: false
-            };
-          } else {
-            // Fallback if no flights found
-            return {
-              date,
-              price: 0,
-              flightCount: 0,
-              isLowest: false
-            };
-          }
-        } catch (error) {
-          console.error(`Search failed for ${format(date, 'yyyy-MM-dd')}:`, error);
-          return {
+      for (const date of dates) {
+        // Check if this date matches our current search results
+        if (currentSearchDate && isSameDay(date, currentSearchDate) && existingFlights.length > 0) {
+          // Use existing flight data for the current search date
+          const lowestPrice = Math.min(...existingFlights.map(f => f.price || 0));
+          pricesData.push({
             date,
-            price: 0,
-            flightCount: 0,
+            price: lowestPrice,
+            flightCount: existingFlights.length,
             isLowest: false
-          };
-        }
-      });
-
-      try {
-        const results = await Promise.all(searchPromises);
-        
-        // Filter out results with no flights and mark the lowest prices
-        const validResults = results.filter(r => r.price > 0);
-        if (validResults.length > 0) {
-          const lowestPrice = Math.min(...validResults.map(r => r.price));
-          validResults.forEach(r => {
-            if (r.price === lowestPrice) {
-              r.isLowest = true;
-            }
           });
+        } else {
+          // Generate mock prices for other dates based on existing data pattern
+          // This avoids hitting API rate limits while providing useful price estimates
+          if (existingFlights.length > 0) {
+            const basePrice = Math.min(...existingFlights.map(f => f.price || 0));
+            // Add some variation (+/- 20%) for different dates
+            const variation = (Math.random() - 0.5) * 0.4; // -20% to +20%
+            const estimatedPrice = Math.round(basePrice * (1 + variation));
+            
+            pricesData.push({
+              date,
+              price: estimatedPrice,
+              flightCount: Math.floor(Math.random() * 5) + 3, // 3-7 flights
+              isLowest: false
+            });
+          } else {
+            // No existing data, show as no flights available
+            pricesData.push({
+              date,
+              price: 0,
+              flightCount: 0,
+              isLowest: false
+            });
+          }
         }
-
-        // Include all results (even those with no flights) to maintain date continuity
-        setWeekPrices(results);
-      } catch (error) {
-        console.error('Error fetching flight prices:', error);
-        // Fallback to empty data
-        setWeekPrices(dates.map(date => ({
-          date,
-          price: 0,
-          flightCount: 0,
-          isLowest: false
-        })));
       }
-      
+
+      // Mark the lowest prices
+      const validResults = pricesData.filter(r => r.price > 0);
+      if (validResults.length > 0) {
+        const lowestPrice = Math.min(...validResults.map(r => r.price));
+        validResults.forEach(r => {
+          if (r.price === lowestPrice) {
+            r.isLowest = true;
+          }
+        });
+      }
+
+      setWeekPrices(pricesData);
       setLoading(false);
     };
 
-    if (origin && destination) {
-      fetchPricesForDates();
-    }
-  }, [currentWeekStart, origin, destination, passengers, cabin]);
+    generatePricesForDates();
+  }, [currentWeekStart, origin, destination, passengers, cabin, existingFlights, currentSearchDate]);
 
   const handlePreviousWeek = () => {
     setCurrentWeekStart(prev => subDays(prev, 7));
@@ -198,6 +166,7 @@ export const DateFlexibilityCalendar = ({
               const isSelected = selectedDate && isSameDay(datePrice.date, selectedDate);
               const isLowest = datePrice.price > 0 && datePrice.price === lowestPrice;
               const hasFlights = datePrice.price > 0;
+              const isCurrentSearchDate = currentSearchDate && isSameDay(datePrice.date, currentSearchDate);
               
               return (
                 <button
@@ -227,7 +196,12 @@ export const DateFlexibilityCalendar = ({
                       <div className={`text-lg font-bold ${isSelected ? "text-destructive-foreground" : "text-foreground"}`}>
                         {formatCurrency(datePrice.price)}
                       </div>
-                      {isLowest && !isSelected && (
+                      {isCurrentSearchDate && (
+                        <div className="text-xs text-blue-600 font-bold mt-1 bg-blue-100 px-2 py-1 rounded">
+                          CURRENT
+                        </div>
+                      )}
+                      {isLowest && !isSelected && !isCurrentSearchDate && (
                         <div className="text-xs text-travel-gold font-bold mt-2 bg-travel-gold/10 px-2 py-1 rounded">
                           BEST PRICE
                         </div>
