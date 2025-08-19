@@ -67,16 +67,25 @@ export const DateFlexibilityCalendar = ({
   };
 
   return (
-    <div className="bg-card border-b sticky top-16 z-10">
-      <div className="container mx-auto px-4 py-4">
+    <div className="bg-background sticky top-0 z-20 border-b border-border py-4">
+      <div className="container mx-auto px-4">
+        {/* Header with navigation */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">Choose departure date</h2>
+          <div className="flex items-center space-x-4">
+            <h3 className="text-lg font-semibold text-foreground">
+              {origin} → {destination}
+            </h3>
+            <span className="text-sm text-muted-foreground">
+              {passengers} passenger{passengers !== 1 ? 's' : ''} • {cabin}
+            </span>
+          </div>
+          
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handlePreviousWeek}
-              className="h-8 w-8 p-0"
+              className="p-2"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -84,48 +93,51 @@ export const DateFlexibilityCalendar = ({
               variant="outline"
               size="sm"
               onClick={handleNextWeek}
-              className="h-8 w-8 p-0"
+              className="p-2"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Air India style horizontal scrollable date bar */}
-        <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
-          {weekPrices.map((datePrice, index) => {
-            const isSelected = selectedDate && isSameDay(datePrice.date, selectedDate);
-            const isLowest = datePrice.price === lowestPrice;
-            
-            return (
-              <button
-                key={index}
-                onClick={() => handleDateClick(datePrice)}
-                className={`
-                  flex-shrink-0 p-3 rounded-lg border-2 text-center transition-all min-w-[90px]
-                  ${isSelected 
-                    ? "border-primary bg-primary text-primary-foreground shadow-card" 
-                    : "border-border hover:border-primary/50 hover:bg-muted"
-                  }
-                `}
-              >
-                <div className={`text-sm font-medium ${isSelected ? "text-primary-foreground" : "text-muted-foreground"}`}>
-                  {format(datePrice.date, "EEE")}
-                </div>
-                <div className={`text-lg font-bold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
-                  {format(datePrice.date, "dd MMM")}
-                </div>
-                <div className={`text-sm font-semibold mt-1 ${isSelected ? "text-primary-foreground" : isLowest ? "text-travel-forest" : "text-foreground"}`}>
-                  {formatCurrency(datePrice.price)}
-                </div>
-                {isLowest && !isSelected && (
-                  <div className="text-xs text-travel-forest font-medium mt-1">
-                    Lowest
+        {/* Horizontal scrollable date picker - Air India style */}
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex space-x-3 min-w-max pb-2">
+            {weekPrices.map((datePrice, index) => {
+              const isSelected = selectedDate && isSameDay(datePrice.date, selectedDate);
+              const isLowest = datePrice.price === lowestPrice;
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleDateClick(datePrice)}
+                  className={`
+                    flex-shrink-0 p-4 rounded-xl border-2 text-center transition-all min-w-[140px]
+                    ${isSelected 
+                      ? "border-destructive bg-destructive text-destructive-foreground shadow-card" 
+                      : "border-border bg-card hover:border-destructive/30 hover:shadow-soft"
+                    }
+                    ${isLowest && !isSelected && "ring-2 ring-travel-gold/30 border-travel-gold/50"}
+                  `}
+                >
+                  <div className={`text-sm font-medium mb-2 ${isSelected ? "text-destructive-foreground" : "text-muted-foreground"}`}>
+                    {format(datePrice.date, "EEE")}
                   </div>
-                )}
-              </button>
-            );
-          })}
+                  <div className={`text-lg font-semibold mb-2 ${isSelected ? "text-destructive-foreground" : "text-foreground"}`}>
+                    {format(datePrice.date, "d MMM")}
+                  </div>
+                  <div className={`text-lg font-bold ${isSelected ? "text-destructive-foreground" : "text-foreground"}`}>
+                    {formatCurrency(datePrice.price)}
+                  </div>
+                  {isLowest && !isSelected && (
+                    <div className="text-xs text-travel-gold font-bold mt-2 bg-travel-gold/10 px-2 py-1 rounded">
+                      BEST PRICE
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
