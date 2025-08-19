@@ -79,8 +79,11 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!criteria || !criteria.destination || !criteria.departureDate) {
+    if (!criteria || !criteria.origin || !criteria.destination || !criteria.departureDate) {
       console.log("useFlightSearch: Missing criteria", criteria);
+      setFlights([]);
+      setError(null);
+      setLoading(false);
       return;
     }
 
@@ -115,6 +118,14 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
 
         if (data?.success && data?.data?.data && Array.isArray(data.data.data)) {
           console.log("useFlightSearch: API success, transforming", data.data.data.length, "offers");
+          
+          if (data.data.data.length === 0) {
+            console.log("useFlightSearch: No flights found in API response");
+            setFlights([]);
+            setError("No flights found for your search criteria. Try different dates or destinations.");
+            return;
+          }
+          
           const transformedFlights = data.data.data.map((offer: any) => {
             const outbound = offer.itineraries[0];
             const segments = outbound.segments;
@@ -266,9 +277,13 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           console.log("useFlightSearch: Setting", transformedFlights.length, "transformed flights");
           setFlights(transformedFlights);
         } else {
-          console.log("useFlightSearch: No data from Amadeus API");
+          console.log("useFlightSearch: No data from Amadeus API", data);
           setFlights([]);
-          setError("No flights found for your search criteria");
+          if (data?.error) {
+            setError(`API Error: ${data.error}`);
+          } else {
+            setError("No flights found for your search criteria. Please try different search parameters.");
+          }
         }
       } catch (err) {
         console.error("Flight search error:", err);
