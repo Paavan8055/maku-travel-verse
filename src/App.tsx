@@ -13,7 +13,7 @@ import AdminAuth from "./pages/AdminAuth";
 import { Dashboard } from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Search from "./pages/Search";
-import Hotels from "./pages/Hotels";
+
 import { HotelDetails } from "./pages/HotelDetails";
 import BookingSelect from "./pages/BookingSelect";
 import BookingBaggage from "./pages/BookingBaggage";
@@ -59,7 +59,7 @@ function App() {
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/search" element={<Search />} />
                     <Route path="/search/*" element={<Search />} />
-                    <Route path="/hotels" element={<Hotels />} />
+                    
                     <Route path="/hotel/:hotelId" element={<HotelDetails />} />
                     <Route path="/hotel-checkout" element={<HotelCheckout />} />
                     <Route path="/booking/select" element={<BookingSelect />} />
