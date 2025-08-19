@@ -22,6 +22,8 @@ interface FlightDetails {
   fareType: string;
   price: number;
   date: string;
+  currency?: string;
+  amadeusOfferId?: string;
 }
 
 const FlightBookingReview = () => {
@@ -40,6 +42,7 @@ const FlightBookingReview = () => {
     const params = new URLSearchParams(window.location.search);
     const storedOutbound = sessionStorage.getItem('selectedOutboundFlight');
     const storedInbound = sessionStorage.getItem('selectedInboundFlight');
+    const storedMultiCity = sessionStorage.getItem('multiCityFlights');
     const storedTripType = sessionStorage.getItem('tripType') || params.get('tripType') || 'oneway';
     
     setTripType(storedTripType);
@@ -62,10 +65,25 @@ const FlightBookingReview = () => {
       }
     }
 
-    // Calculate total amount
-    const outboundPrice = outboundFlight?.price || 0;
-    const inboundPrice = inboundFlight?.price || 0;
-    setTotalAmount(outboundPrice + inboundPrice);
+    // Calculate total amount for all trip types
+    let calculatedTotal = 0;
+    
+    if (storedTripType === 'multicity' && storedMultiCity) {
+      try {
+        const multiCityFlights = JSON.parse(storedMultiCity);
+        calculatedTotal = multiCityFlights.reduce((total: number, flight: any) => {
+          return total + (flight.fare?.price || 0);
+        }, 0);
+      } catch (error) {
+        console.error('Error parsing multi-city flights:', error);
+      }
+    } else {
+      const outboundPrice = outboundFlight?.price || 0;
+      const inboundPrice = inboundFlight?.price || 0;
+      calculatedTotal = outboundPrice + inboundPrice;
+    }
+    
+    setTotalAmount(calculatedTotal);
   }, [outboundFlight?.price, inboundFlight?.price]);
 
   const formatDuration = (minutes: number) => {
@@ -89,23 +107,32 @@ const FlightBookingReview = () => {
       return;
     }
 
-    // Prepare query parameters for checkout
+    // Prepare query parameters for checkout with real Amadeus flight offer data
     const queryParams = new URLSearchParams();
     queryParams.set('tripType', tripType);
     
     if (tripType === 'roundtrip' && outboundFlight && inboundFlight) {
-      queryParams.set('outboundId', outboundFlight.id);
+      // Store real Amadeus offer IDs for booking
+      queryParams.set('outboundOfferId', outboundFlight.amadeusOfferId || outboundFlight.id);
       queryParams.set('outboundFare', outboundFlight.fareType);
-      queryParams.set('inboundId', inboundFlight.id);
+      queryParams.set('inboundOfferId', inboundFlight.amadeusOfferId || inboundFlight.id);
       queryParams.set('inboundFare', inboundFlight.fareType);
       queryParams.set('amount', totalAmount.toString());
+    } else if (tripType === 'multicity') {
+      // Handle multi-city checkout
+      const multiCityFlights = sessionStorage.getItem('multiCityFlights');
+      if (multiCityFlights) {
+        queryParams.set('multiCityData', multiCityFlights);
+        queryParams.set('amount', totalAmount.toString());
+      }
     } else if (outboundFlight) {
-      queryParams.set('flightId', outboundFlight.id);
+      // One-way flight
+      queryParams.set('flightOfferId', outboundFlight.amadeusOfferId || outboundFlight.id);
       queryParams.set('fareType', outboundFlight.fareType);
       queryParams.set('amount', outboundFlight.price.toString());
     }
 
-    queryParams.set('currency', 'AUD');
+    queryParams.set('currency', outboundFlight?.currency || 'AUD');
     queryParams.set('passengers', '1');
 
     navigate(`/flight-checkout?${queryParams.toString()}`);
