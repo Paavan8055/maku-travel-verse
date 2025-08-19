@@ -141,17 +141,16 @@ const FlightSearchPage = () => {
     }
   };
 
-  const handleSelectFare = (flight: any, fareType: string) => {
-    console.log("Selected fare:", fareType, "for flight:", flight.id);
-    setFareFlight({ ...flight, selectedFare: fareType });
+  const handleSelectFare = (flight: any, fare: any) => {
+    console.log("Selected fare:", fare, "for flight:", flight.id);
+    setFareFlight({ ...flight, selectedFare: fare });
     setFareOpen(true);
   };
 
-  const handleDateChange = (date: Date, flights?: { departure?: any; return?: any }) => {
+  const handleDateChange = (date: Date) => {
     setDepartureDate(date);
-    if (flights?.departure) {
-      setSelectedOutbound(flights.departure);
-    }
+    // Trigger new search with updated date
+    setHasSearched(true);
   };
 
   const handleModifySearch = () => {
@@ -459,7 +458,8 @@ const FlightSearchPage = () => {
                   onDateSelect={handleDateChange}
                   origin={origin}
                   destination={destination}
-                  tripType={tripType}
+                  passengers={adults + children + infants}
+                  cabin={cabinClass}
                 />
                 
                 <FlightSortingToolbar 
