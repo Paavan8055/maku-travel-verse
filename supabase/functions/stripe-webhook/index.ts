@@ -63,6 +63,84 @@ serve(async (req) => {
 
     // Handle the event
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        logStep("Checkout session completed", { sessionId: session.id });
+
+        const bookingId = session.metadata?.booking_id;
+        if (!bookingId) {
+          logStep("No booking_id in session metadata");
+          break;
+        }
+
+        // Get booking details
+        const { data: booking, error: fetchError } = await supabaseClient
+          .from("bookings")
+          .select("*")
+          .eq("id", bookingId)
+          .single();
+
+        if (fetchError || !booking) {
+          logStep("Failed to fetch booking", { error: fetchError?.message });
+          throw new Error(`Failed to fetch booking: ${fetchError?.message}`);
+        }
+
+        // Update booking status immediately
+        await supabaseClient
+          .from("bookings")
+          .update({ 
+            status: "confirmed",
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", bookingId);
+
+        // Create payment record
+        const paymentIntentId = typeof session.payment_intent === 'string' 
+          ? session.payment_intent 
+          : session.payment_intent?.id;
+
+        if (paymentIntentId) {
+          await supabaseClient
+            .from("payments")
+            .insert({
+              booking_id: bookingId,
+              stripe_payment_intent_id: paymentIntentId,
+              amount: (session.amount_total || 0) / 100,
+              currency: session.currency?.toUpperCase() || 'USD',
+              status: "succeeded"
+            });
+        }
+
+        // Generate guest access token if this is a guest booking
+        if (!booking.user_id && booking.booking_data?.customerInfo?.email) {
+          try {
+            const { data: tokenData } = await supabaseClient.rpc('generate_guest_booking_token', {
+              _booking_id: bookingId,
+              _email: booking.booking_data.customerInfo.email
+            });
+            
+            if (tokenData) {
+              logStep("Guest access token generated", { bookingId });
+            }
+          } catch (tokenError) {
+            logStep("Failed to generate guest token", { error: tokenError });
+          }
+        }
+
+        // Send confirmation email
+        try {
+          await supabaseClient.functions.invoke('send-booking-confirmation', {
+            body: { bookingId }
+          });
+          logStep("Confirmation email sent", { bookingId });
+        } catch (emailError) {
+          logStep("Failed to send confirmation email", { error: emailError });
+        }
+
+        logStep("Checkout session processed successfully", { bookingId, sessionId: session.id });
+        break;
+      }
+
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         logStep("Payment succeeded", { paymentIntentId: paymentIntent.id });

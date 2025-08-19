@@ -4,174 +4,120 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self';",
-  "X-Content-Type-Options": "nosniff",
-  "X-Frame-Options": "DENY",
-  "X-XSS-Protection": "1; mode=block",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
 };
 
-interface GuestBookingLookupParams {
-  bookingReference: string;
-  email: string;
-  accessToken?: string;
-}
-
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const params: GuestBookingLookupParams = await req.json();
-    
-    if (!params.bookingReference || !params.email) {
-      throw new Error('Booking reference and email are required');
+    const { bookingReference, email, accessToken } = await req.json();
+
+    if (!bookingReference || !email) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing bookingReference or email" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
     }
 
-    console.log('Guest booking lookup:', { 
-      reference: params.bookingReference,
-      hasToken: !!params.accessToken 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    // Use service role to bypass RLS for guest bookings
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceRole, {
+      auth: { persistSession: false }
     });
 
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
-    // Extract IP address for audit logging
-    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
-    const userAgent = req.headers.get('user-agent') || 'unknown';
-
-    // First, find the booking by reference
-    const { data: booking, error: bookingError } = await supabaseClient
-      .from('bookings')
-      .select('*')
-      .eq('booking_reference', params.bookingReference)
-      .eq('user_id', null) // Only guest bookings
+    // First try to find booking by reference
+    let { data: booking, error: bookingError } = await supabaseClient
+      .from("bookings")
+      .select("*")
+      .or(`booking_reference.eq.${bookingReference},id.eq.${bookingReference}`)
       .single();
 
     if (bookingError || !booking) {
-      // Log failed access attempt
-      await supabaseClient.rpc('log_booking_access', {
-        _booking_id: null,
-        _access_type: 'guest_token',
-        _access_method: 'lookup_failed',
-        _ip_address: ipAddress,
-        _user_agent: userAgent,
-        _accessed_data: {
-          booking_reference: params.bookingReference,
-          reason: 'booking_not_found'
-        },
-        _success: false,
-        _failure_reason: 'Booking not found or not a guest booking'
-      });
-
-      throw new Error('Booking not found');
+      console.log("Booking not found by reference:", bookingError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: "Booking not found" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+      );
     }
 
-    // Verify guest access using the secure function
-    const { data: accessGranted, error: accessError } = await supabaseClient
+    // Verify guest access using the database function
+    const { data: hasAccess, error: accessError } = await supabaseClient
       .rpc('verify_guest_booking_access', {
         _booking_id: booking.id,
-        _email: params.email,
-        _token: params.accessToken || null
+        _email: email,
+        _token: accessToken || null
       });
 
-    if (accessError || !accessGranted) {
-      // Log failed access attempt
+    if (accessError || !hasAccess) {
+      console.log("Access verification failed:", accessError?.message);
+      
+      // Log the access attempt
       await supabaseClient.rpc('log_booking_access', {
         _booking_id: booking.id,
-        _access_type: 'guest_token',
-        _access_method: params.accessToken ? 'token_verification' : 'email_verification',
-        _ip_address: ipAddress,
-        _user_agent: userAgent,
-        _accessed_data: {
-          booking_reference: params.bookingReference,
-          email_provided: !!params.email,
-          token_provided: !!params.accessToken
-        },
+        _access_type: 'guest_lookup',
+        _access_method: accessToken ? 'token' : 'email',
         _success: false,
-        _failure_reason: 'Access verification failed'
+        _failure_reason: 'Email verification failed'
       });
 
-      throw new Error('Access denied. Please check your email and booking reference.');
+      return new Response(
+        JSON.stringify({ success: false, error: "Access denied. Email does not match booking." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
     }
-
-    // Get booking items
-    const { data: bookingItems } = await supabaseClient
-      .from('booking_items')
-      .select('*')
-      .eq('booking_id', booking.id);
-
-    // Get payment information
-    const { data: payment } = await supabaseClient
-      .from('payments')
-      .select('*')
-      .eq('booking_id', booking.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    // Remove sensitive customer info for security
-    const sanitizedBooking = {
-      ...booking,
-      booking_data: {
-        ...booking.booking_data,
-        customerInfo: {
-          firstName: booking.booking_data.customerInfo?.firstName,
-          lastName: booking.booking_data.customerInfo?.lastName,
-          email: booking.booking_data.customerInfo?.email
-          // Remove phone and other sensitive data
-        }
-      }
-    };
 
     // Log successful access
     await supabaseClient.rpc('log_booking_access', {
       _booking_id: booking.id,
-      _access_type: 'guest_token',
-      _access_method: params.accessToken ? 'token_verification' : 'email_verification',
-      _ip_address: ipAddress,
-      _user_agent: userAgent,
-      _accessed_data: {
-        booking_reference: params.bookingReference,
-        access_level: params.accessToken ? 'full' : 'basic'
-      },
+      _access_type: 'guest_lookup',
+      _access_method: accessToken ? 'token' : 'email',
       _success: true
     });
 
-    return new Response(JSON.stringify({
-      success: true,
-      booking: sanitizedBooking,
-      items: bookingItems || [],
-      payment: payment ? {
-        status: payment.status,
-        amount: payment.amount,
-        currency: payment.currency,
-        created_at: payment.created_at
-      } : null,
-      accessInfo: {
-        hasToken: !!params.accessToken,
-        accessLevel: params.accessToken ? 'full' : 'basic',
-        securityNote: 'This booking information is provided securely for the verified email address.'
-      }
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    // Get booking items for complete details
+    const { data: bookingItems } = await supabaseClient
+      .from("booking_items")
+      .select("*")
+      .eq("booking_id", booking.id);
+
+    // Get payment information
+    const { data: payments } = await supabaseClient
+      .from("payments")
+      .select("*")
+      .eq("booking_id", booking.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        booking: {
+          id: booking.id,
+          booking_reference: booking.booking_reference,
+          status: booking.status,
+          booking_type: booking.booking_type,
+          total_amount: booking.total_amount,
+          currency: booking.currency,
+          booking_data: booking.booking_data,
+          created_at: booking.created_at,
+          updated_at: booking.updated_at,
+          items: bookingItems || [],
+          latest_payment: payments?.[0] || null
+        }
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
 
   } catch (error) {
-    console.error('Guest booking lookup error:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    console.error("Guest booking lookup error:", error);
+    return new Response(
+      JSON.stringify({ success: false, error: (error as Error).message || "Unknown error" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
   }
 });
