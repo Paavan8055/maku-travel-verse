@@ -138,7 +138,30 @@ export const EnhancedFlightCard = ({
             
             {/* Flight Number Badges and Airline Info */}
             <div className="flex items-center space-x-4 mb-6">
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-3">
+                {/* Airline Logo */}
+                <div className="flex-shrink-0">
+                  {flight.airlineLogo ? (
+                    <img 
+                      src={flight.airlineLogo} 
+                      alt={`${flight.airline} logo`}
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => {
+                        // Fallback to initials if image fails to load
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{ display: flight.airlineLogo ? 'none' : 'flex' }}
+                  >
+                    {getAirlineLogo(flight.airline)}
+                  </div>
+                </div>
+                
+                {/* Flight Number Badge */}
                 <div className="bg-muted text-foreground px-2.5 py-1 rounded text-xs font-medium border">
                   {flight.outboundFlightNumber || flight.flightNumber}
                 </div>
