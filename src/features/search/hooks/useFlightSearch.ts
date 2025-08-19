@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { detectFlightCurrency } from "@/lib/currencyDetection";
 
 interface FlightSearchCriteria {
   origin: string;
@@ -94,6 +95,10 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
       setError(null);
 
       try {
+        // Detect appropriate currency based on flight route
+        const currencyCode = detectFlightCurrency(criteria.origin, criteria.destination);
+        console.log(`useFlightSearch: Using currency ${currencyCode} for route ${criteria.origin}-${criteria.destination}`);
+
         // Use Amadeus Flight Offers API for real-time results with multiple fare classes
         const { data, error: functionError } = await supabase.functions.invoke('amadeus-flight-offers', {
           body: {
@@ -107,7 +112,7 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
             travelClass: 'ECONOMY',
             nonStop: false,
             maxPrice: 5000,
-            currencyCode: 'USD',
+            currencyCode,
             max: 20
           }
         });

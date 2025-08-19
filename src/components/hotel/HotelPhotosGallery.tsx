@@ -45,24 +45,13 @@ export const HotelPhotosGallery = ({
           setPhotos(data.photos);
           setUseRealPhotos(true);
         } else {
-          // Use fallback images
-          const fallbackPhotos = fallbackImages.map((url, index) => ({
-            url,
-            title: `${hotelName} - Image ${index + 1}`,
-            category: "hotel"
-          }));
-          setPhotos(fallbackPhotos);
+          console.log('No hotel photos available from API');
+          setPhotos([]);
           setUseRealPhotos(false);
         }
       } catch (err) {
         console.error("Failed to fetch hotel photos:", err);
-        // Use fallback images
-        const fallbackPhotos = fallbackImages.map((url, index) => ({
-          url,
-          title: `${hotelName} - Image ${index + 1}`,
-          category: "hotel"
-        }));
-        setPhotos(fallbackPhotos);
+        setPhotos([]);
         setUseRealPhotos(false);
       } finally {
         setLoading(false);
@@ -95,7 +84,10 @@ export const HotelPhotosGallery = ({
     return (
       <Card className={className}>
         <CardContent className="flex items-center justify-center h-64 text-muted-foreground">
-          No photos available
+          <div className="text-center">
+            <p>No photos available</p>
+            <p className="text-sm mt-1">Photos will be available once connected to hotel API</p>
+          </div>
         </CardContent>
       </Card>
     );

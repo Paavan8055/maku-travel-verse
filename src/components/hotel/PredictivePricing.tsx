@@ -161,11 +161,12 @@ export const PredictivePricing: React.FC<PredictivePricingProps> = ({
 
   useEffect(() => {
     setIsLoading(true);
-    // Simulate API call delay
+    // In production, this would call a real AI pricing API
+    // For now, showing data unavailable message
     setTimeout(() => {
-      setPrediction(generatePrediction());
+      setPrediction(null);
       setIsLoading(false);
-    }, 1500);
+    }, 500);
   }, [hotelId, currentPrice, checkInDate]);
 
   if (isLoading) {
@@ -181,7 +182,16 @@ export const PredictivePricing: React.FC<PredictivePricingProps> = ({
     );
   }
 
-  if (!prediction) return null;
+  if (!prediction) {
+    return (
+      <Card className={`travel-card ${className}`}>
+        <CardContent className="p-6 text-center">
+          <p className="text-muted-foreground">AI price predictions unavailable</p>
+          <p className="text-sm text-muted-foreground mt-1">Connect to live pricing API for predictions</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getActionColor = (action: string) => {
     switch (action) {
