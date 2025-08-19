@@ -1,55 +1,53 @@
-import { useState } from "react";
-import { Clock, Plane, Users, WifiOff, Utensils, Info } from "lucide-react";
+import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
+import { 
+  Plane, 
+  Clock, 
+  Wifi, 
+  Tv, 
+  Utensils, 
+  Luggage,
+  AlertTriangle
+} from "lucide-react";
 
 interface FareOption {
-  type: "economy" | "business" | "first";
+  type: string;
   price: number;
-  currency: string;
-  features: string[];
-  available: boolean;
-  seatsLeft?: number;
+  features?: string[];
+  seatsAvailable?: number;
 }
 
 interface EnhancedFlight {
-  id: string;
+  id?: string;
   airline: string;
-  airlineCode: string;
-  airlineLogo?: string;
   flightNumber: string;
-  aircraft: string;
+  aircraft?: string;
   origin: string;
   destination: string;
   departureTime: string;
   arrivalTime: string;
   duration: number;
-  stops: string;
-  fareOptions: FareOption[];
-  availableSeats: number;
-  amenities: string[];
-  onTimePerformance?: number;
+  stops: number;
+  amenities?: string[];
+  fareOptions?: FareOption[];
 }
 
 interface EnhancedFlightCardProps {
   flight: EnhancedFlight;
-  onSelectFare: (flight: EnhancedFlight, fareType: string) => void;
-  className?: string;
+  onSelectFare?: (flight: EnhancedFlight, fare: FareOption) => void;
   showFareOptions?: boolean;
 }
 
 export const EnhancedFlightCard = ({ 
   flight, 
-  onSelectFare, 
-  className,
+  onSelectFare,
   showFareOptions = true 
 }: EnhancedFlightCardProps) => {
+  const { formatCurrency } = useCurrency();
   const [selectedFare, setSelectedFare] = useState<string>("economy");
-  const { convert, formatCurrency } = useCurrency();
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -57,191 +55,156 @@ export const EnhancedFlightCard = ({
     return `${hours}h ${mins}m`;
   };
 
-  const getStopsText = (stops: string) => {
-    switch (stops) {
-      case "0":
-        return "Direct";
-      case "1":
-        return "1 stop";
-      default:
-        return `${stops} stops`;
-    }
+  const getStopsText = (stops: number) => {
+    if (stops === 0) return "Direct";
+    return `${stops} stop${stops > 1 ? 's' : ''}`;
   };
 
-  const getSeatAvailabilityColor = (seatsLeft?: number) => {
-    if (!seatsLeft) return "text-muted-foreground";
-    if (seatsLeft <= 3) return "text-orange-600";
-    if (seatsLeft <= 9) return "text-yellow-600";
-    return "text-green-600";
+  const getSeatAvailabilityColor = (seats: number) => {
+    if (seats <= 3) return "text-destructive";
+    if (seats <= 9) return "text-secondary";
+    return "text-travel-forest";
   };
 
-  const getSeatAvailabilityText = (seatsLeft?: number) => {
-    if (!seatsLeft) return "Check availability";
-    if (seatsLeft <= 3) return `Only ${seatsLeft} left`;
-    if (seatsLeft <= 9) return `${seatsLeft} seats left`;
-    return "Available";
+  const getSeatAvailabilityText = (seats: number) => {
+    if (seats <= 3) return `Only ${seats} left`;
+    if (seats <= 9) return `${seats} seats left`;
+    return `${seats}+ available`;
   };
 
-  const getAmenityIcon = (amenity: string) => {
-    switch (amenity.toLowerCase()) {
-      case "wifi":
-        return <WifiOff className="h-4 w-4" />;
-      case "meal":
-        return <Utensils className="h-4 w-4" />;
-      default:
-        return <Info className="h-4 w-4" />;
-    }
+  const getAirlineLogo = (airline: string) => {
+    // Return airline code initials as fallback for logo
+    return airline.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
-    <Card className={cn("hover:shadow-lg transition-all duration-200", className)}>
-      <CardContent className="p-0">
-        {/* Main Flight Info */}
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6 flex-1">
-              {/* Airline Info */}
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
-                  {flight.airlineLogo ? (
-                    <img 
-                      src={flight.airlineLogo} 
-                      alt={`${flight.airline} logo`}
-                      className="w-10 h-10 object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (nextElement) nextElement.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div className={`w-full h-full flex items-center justify-center ${flight.airlineLogo ? 'hidden' : ''}`}>
-                    <span className="text-primary font-bold text-sm">{flight.airlineCode}</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground">{flight.airline}</p>
-                  <p className="text-sm text-muted-foreground">{flight.flightNumber} • {flight.aircraft}</p>
-                  {flight.onTimePerformance && (
-                    <p className="text-xs text-green-600">
-                      {flight.onTimePerformance}% on time
-                    </p>
-                  )}
+    <Card className="mb-4 hover:shadow-card transition-all hover:-translate-y-1">
+      <div className="p-6">
+        {/* Air India style layout - Flight details on left, Fare options on right */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column - Flight Details */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Airline Header */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm">
+                {getAirlineLogo(flight.airline)}
+              </div>
+              <div>
+                <div className="font-semibold text-lg">{flight.airline}</div>
+                <div className="text-sm text-muted-foreground">
+                  {flight.flightNumber} • {flight.aircraft || 'Aircraft'}
                 </div>
               </div>
+            </div>
 
-              {/* Flight Times */}
-              <div className="flex items-center space-x-6 flex-1">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground">{flight.departureTime}</p>
-                  <p className="text-sm text-muted-foreground font-medium">{flight.origin}</p>
-                </div>
-                
-                <div className="flex-1 relative">
-                  <div className="border-t border-border"></div>
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background px-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="text-center mt-2">
-                    <p className="text-sm font-medium text-foreground">{formatDuration(flight.duration)}</p>
-                    <p className="text-xs text-muted-foreground">{getStopsText(flight.stops)}</p>
-                  </div>
-                </div>
-                
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground">{flight.arrivalTime}</p>
-                  <p className="text-sm text-muted-foreground font-medium">{flight.destination}</p>
-                </div>
+            {/* Flight Route */}
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-foreground">{flight.departureTime}</div>
+                <div className="text-sm text-muted-foreground font-medium">{flight.origin}</div>
               </div>
+              
+              <div className="flex-1 flex flex-col items-center px-4">
+                <div className="text-sm text-muted-foreground mb-1">{formatDuration(flight.duration)}</div>
+                <div className="w-full h-px bg-border relative">
+                  <Plane className="h-4 w-4 text-primary absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background rotate-90" />
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">{getStopsText(flight.stops)}</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-foreground">{flight.arrivalTime}</div>
+                <div className="text-sm text-muted-foreground font-medium">{flight.destination}</div>
+              </div>
+            </div>
 
-              {/* Amenities */}
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  {flight.amenities.slice(0, 3).map((amenity, index) => (
-                    <div key={index} className="flex items-center space-x-1 text-muted-foreground">
-                      {getAmenityIcon(amenity)}
-                      <span className="text-xs">{amenity}</span>
+            {/* Additional Info */}
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center space-x-4">
+                {flight.amenities && flight.amenities.length > 0 && (
+                  <>
+                    <span className="text-muted-foreground">Amenities:</span>
+                    <div className="flex items-center space-x-2">
+                      {flight.amenities.slice(0, 3).map((amenity, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {amenity}
+                        </Badge>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
               </div>
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                View flight details
+              </Button>
             </div>
           </div>
-        </div>
 
-        {/* Fare Options */}
-        {showFareOptions && (
-          <>
-            <Separator />
-            <div className="p-4 bg-muted/30">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {flight.fareOptions.map((fare) => {
-                  const displayPrice = convert(fare.price, fare.currency);
-                  const formattedPrice = formatCurrency(displayPrice);
-                  const seatsLeftColor = getSeatAvailabilityColor(fare.seatsLeft);
-                  const seatsLeftText = getSeatAvailabilityText(fare.seatsLeft);
-                  
-                  return (
-                    <div
-                      key={fare.type}
-                      className={cn(
-                        "p-4 rounded-lg border transition-all cursor-pointer",
-                        selectedFare === fare.type 
-                          ? "border-primary bg-primary/5" 
-                          : "border-border hover:border-primary/50",
-                        !fare.available && "opacity-50 cursor-not-allowed"
-                      )}
-                      onClick={() => fare.available && setSelectedFare(fare.type)}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-semibold capitalize">{fare.type}</h4>
-                          <Badge 
-                            variant="outline" 
-                            className={cn("text-xs", seatsLeftColor)}
-                          >
-                            {seatsLeftText}
-                          </Badge>
+          {/* Right Column - Fare Selection */}
+          <div className="lg:col-span-1">
+            {showFareOptions && flight.fareOptions && (
+              <div className="space-y-3">
+                {flight.fareOptions.map((fare, index) => (
+                  <div
+                    key={index}
+                    className={`
+                      p-4 border-2 rounded-xl cursor-pointer transition-all
+                      ${selectedFare === fare.type 
+                        ? "border-primary bg-primary/5 shadow-soft" 
+                        : "border-border hover:border-primary/50 hover:shadow-soft"
+                      }
+                    `}
+                    onClick={() => setSelectedFare(fare.type)}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-semibold text-lg capitalize">{fare.type}</div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-foreground">
+                          {formatCurrency(fare.price)}
                         </div>
-                        
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-foreground">
-                            {formattedPrice}
-                          </p>
-                          <p className="text-xs text-muted-foreground">per person</p>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          {fare.features.slice(0, 3).map((feature, index) => (
-                            <p key={index} className="text-xs text-muted-foreground">
-                              • {feature}
-                            </p>
-                          ))}
-                        </div>
-                        
-                        <Button 
-                          size="sm" 
-                          className="w-full mt-3"
-                          disabled={!fare.available}
-                          variant={selectedFare === fare.type ? "default" : "outline"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (fare.available) {
-                              onSelectFare(flight, fare.type);
-                            }
-                          }}
-                        >
-                          {!fare.available ? "Sold out" : "Select"}
-                        </Button>
+                        <div className="text-xs text-muted-foreground">per person</div>
                       </div>
                     </div>
-                  );
-                })}
+                    
+                    {fare.seatsAvailable !== undefined && fare.seatsAvailable <= 9 && (
+                      <div className={`flex items-center space-x-1 mb-2 ${getSeatAvailabilityColor(fare.seatsAvailable)}`}>
+                        <AlertTriangle className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          {getSeatAvailabilityText(fare.seatsAvailable)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <ul className="text-sm text-muted-foreground space-y-1 mb-3">
+                      {fare.features?.slice(0, 3).map((feature, i) => (
+                        <li key={i} className="flex items-start space-x-2">
+                          <span className="w-1.5 h-1.5 bg-travel-forest rounded-full mt-2 flex-shrink-0"></span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    {onSelectFare && (
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        variant={selectedFare === fare.type ? "default" : "outline"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectFare(flight, fare);
+                        }}
+                      >
+                        SELECT
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
-          </>
-        )}
-      </CardContent>
+            )}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 };
