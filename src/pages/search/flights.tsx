@@ -591,114 +591,32 @@ const FlightSearchPage = () => {
         )}
 
         {hasSearched && !showModifySearch && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Filters Sidebar */}
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Filters</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Price Filter */}
-                  <div>
-                    <label className="text-sm font-medium mb-3 block">Price Range</label>
-                    <Slider
-                      value={priceRange}
-                      onValueChange={setPriceRange}
-                      max={2000}
-                      step={50}
-                      className="mb-2"
-                    />
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>${priceRange[0]}</span>
-                      <span>${priceRange[1]}</span>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Airlines Filter */}
-                  <div>
-                    <label className="text-sm font-medium mb-3 block">Airlines</label>
-                    <div className="space-y-2">
-                      {["Qantas", "Virgin Australia", "Jetstar"].map((airline) => (
-                        <div key={airline} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={airline}
-                            checked={selectedAirlines.includes(airline)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedAirlines([...selectedAirlines, airline]);
-                              } else {
-                                setSelectedAirlines(selectedAirlines.filter(a => a !== airline));
-                              }
-                            }}
-                          />
-                          <label htmlFor={airline} className="text-sm">{airline}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Stops Filter */}
-                  <div>
-                    <label className="text-sm font-medium mb-3 block">Stops</label>
-                    <div className="space-y-2">
-                      {[
-                        { value: "nonstop", label: "Nonstop" },
-                        { value: "1stop", label: "1 stop" },
-                        { value: "2+stops", label: "2+ stops" }
-                      ].map((stop) => (
-                        <div key={stop.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={stop.value}
-                            checked={selectedStops.includes(stop.value)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedStops([...selectedStops, stop.value]);
-                              } else {
-                                setSelectedStops(selectedStops.filter(s => s !== stop.value));
-                              }
-                            }}
-                          />
-                          <label htmlFor={stop.value} className="text-sm">{stop.label}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
+          <div className="w-full">
             {/* Results Section - Full width clean layout */}
-            <div className="lg:col-span-3">
-              {loading ? (
-                <div className="space-y-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Card key={i} className="h-48 animate-pulse bg-muted/50" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {filteredFlights.map((flight, index) => (
-                    <EnhancedFlightCard
-                      key={`${flight.id}-${index}`}
-                      flight={flight}
-                      onSelectFare={handleSelectFare}
-                      showFareOptions={true}
-                    />
-                  ))}
-                  {filteredFlights.length === 0 && !loading && (
-                    <Card className="p-12 text-center">
-                      <h3 className="text-xl font-semibold mb-2">No flights found</h3>
-                      <p className="text-muted-foreground">Try adjusting your search criteria or dates.</p>
-                    </Card>
-                  )}
-                </div>
-              )}
-            </div>
+            {loading ? (
+              <div className="space-y-6">
+                {[...Array(5)].map((_, i) => (
+                  <Card key={i} className="h-48 animate-pulse bg-muted/50" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {filteredFlights.map((flight, index) => (
+                  <EnhancedFlightCard
+                    key={`${flight.id}-${index}`}
+                    flight={flight}
+                    onSelectFare={handleSelectFare}
+                    showFareOptions={true}
+                  />
+                ))}
+                {filteredFlights.length === 0 && !loading && (
+                  <Card className="p-12 text-center">
+                    <h3 className="text-xl font-semibold mb-2">No flights found</h3>
+                    <p className="text-muted-foreground">Try adjusting your search criteria or dates.</p>
+                  </Card>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
