@@ -106,9 +106,18 @@ const FlightSearchPage = () => {
       }
     : searchCriteria;
 
-  const { flights, loading, error } = useFlightSearch(hasSearched ? currentSearchCriteria : null);
+  const { flights, loading, error } = useFlightSearch(currentSearchCriteria);
+
+  // Auto-trigger search on page load
+  useEffect(() => {
+    if (!hasSearched && origin && destination && departureDate) {
+      console.log("Auto-triggering search with:", { origin, destination, departureDate });
+      setHasSearched(true);
+    }
+  }, [origin, destination, departureDate, hasSearched]);
 
   const handleSearch = () => {
+    console.log("Manual search triggered with:", currentSearchCriteria);
     setHasSearched(true);
     setShowModifySearch(false);
   };
