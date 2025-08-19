@@ -12,6 +12,8 @@ import { FlightRouteHeader } from "@/components/flight/FlightRouteHeader";
 import { DateFlexibilityCalendar } from "@/components/flight/DateFlexibilityCalendar";
 import { EnhancedFlightCard } from "@/components/flight/EnhancedFlightCard";
 import { FlightSortingToolbar } from "@/components/flight/FlightSortingToolbar";
+import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
+import MultiCityFlightManager from "@/components/flight/MultiCityFlightManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -94,7 +96,17 @@ const FlightSearchPage = () => {
     passengers: adults + children + infants,
   };
 
-  const { flights, loading, error } = useFlightSearch(hasSearched ? searchCriteria : null);
+  // Search criteria for current search (outbound or return)
+  const currentSearchCriteria = showReturnFlights && selectedOutbound 
+    ? {
+        origin: destination,
+        destination: origin,
+        departureDate: returnDate ? formatDate(returnDate, "yyyy-MM-dd") : "",
+        passengers: adults + children + infants,
+      }
+    : searchCriteria;
+
+  const { flights, loading, error } = useFlightSearch(hasSearched ? currentSearchCriteria : null);
 
   const handleSearch = () => {
     setHasSearched(true);
@@ -148,11 +160,13 @@ const FlightSearchPage = () => {
   const handleSelectFare = (flight: any, fare: any) => {
     console.log('Flight selected:', flight, fare);
     
-    // Store flight data for review page
+    // Store flight data for review page with real pricing and flight details
     const flightData = {
       id: flight.id,
       airline: flight.airline,
       flightNumber: flight.flightNumber,
+      outboundFlightNumber: flight.outboundFlightNumber,
+      returnFlightNumber: flight.returnFlightNumber,
       origin: flight.origin,
       destination: flight.destination,
       departureTime: flight.departureTime,
@@ -161,7 +175,13 @@ const FlightSearchPage = () => {
       stops: flight.stops,
       fareType: fare.type,
       price: fare.price,
-      date: formatDate(departureDate || new Date(), 'EEE, MMM dd')
+      currency: fare.currency || 'AUD',
+      date: formatDate(departureDate || new Date(), 'EEE, MMM dd'),
+      segments: flight.segments,
+      amenities: flight.amenities,
+      // Store the real Amadeus flight offer data
+      amadeusOfferId: flight.id,
+      offerData: flight
     };
 
     if (tripType === 'roundtrip') {
@@ -170,19 +190,40 @@ const FlightSearchPage = () => {
         setSelectedOutbound({ flight, fare });
         sessionStorage.setItem('selectedOutboundFlight', JSON.stringify(flightData));
         sessionStorage.setItem('tripType', 'roundtrip');
+        sessionStorage.setItem('searchCriteria', JSON.stringify(searchCriteria));
         
-        // Show return flights
+        // Trigger return flight search
         setShowReturnFlights(true);
+        // Set up reverse search criteria for return flights
+        const returnCriteria = {
+          origin: destination,
+          destination: origin,
+          departureDate: returnDate ? formatDate(returnDate, "yyyy-MM-dd") : "",
+          passengers: adults + children + infants,
+        };
+        sessionStorage.setItem('returnSearchCriteria', JSON.stringify(returnCriteria));
       } else {
         // Second selection - return flight  
+        const returnFlightData = {
+          ...flightData,
+          date: formatDate(returnDate || new Date(), 'EEE, MMM dd')
+        };
         setSelectedInbound({ flight, fare });
-        sessionStorage.setItem('selectedInboundFlight', JSON.stringify(flightData));
+        sessionStorage.setItem('selectedInboundFlight', JSON.stringify(returnFlightData));
         
         // Navigate to review page
         navigate('/flight-booking-review');
       }
+    } else if (tripType === 'multicity') {
+      // Handle multi-city selections
+      handleMultiCitySelect(0, { flight, fare }); // For now, treating as first segment
+      if (multiCitySelections.length >= multiCitySegments.length - 1) {
+        sessionStorage.setItem('multiCityFlights', JSON.stringify([...multiCitySelections, { segmentIndex: 0, flight: { flight, fare } }]));
+        sessionStorage.setItem('tripType', 'multicity');
+        navigate('/flight-booking-review');
+      }
     } else {
-      // One-way or multi-city - go directly to review
+      // One-way - go directly to review
       sessionStorage.setItem('selectedOutboundFlight', JSON.stringify(flightData));
       sessionStorage.setItem('tripType', tripType);
       navigate('/flight-booking-review');
