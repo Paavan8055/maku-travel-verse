@@ -23,7 +23,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { CalendarIcon, Search, Plane, MapPin, Users } from "lucide-react";
+import { CalendarIcon, Search, Plane, MapPin, Users, AlertTriangle } from "lucide-react";
 import { format as formatDate } from "date-fns";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { cn } from "@/lib/utils";
@@ -75,8 +75,8 @@ const FlightSearchPage = () => {
   const [sortBy, setSortBy] = useState("price_asc");
   const [activeFilters, setActiveFilters] = useState<Array<{key: string, label: string}>>([]);
 
-  // Filter states
-  const [priceRange, setPriceRange] = useState([0, 2000]);
+  // Filter states - Set wide default range to not block results
+  const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [selectedStops, setSelectedStops] = useState<string[]>([]);
   const [selectedCabins, setSelectedCabins] = useState<string[]>([]);
@@ -108,13 +108,13 @@ const FlightSearchPage = () => {
 
   const { flights, loading, error } = useFlightSearch(currentSearchCriteria);
 
-  // Auto-trigger search on page load
+  // Auto-trigger search on page load - simplified logic
   useEffect(() => {
-    if (!hasSearched && origin && destination && departureDate) {
+    if (origin && destination && departureDate && !hasSearched) {
       console.log("Auto-triggering search with:", { origin, destination, departureDate });
       setHasSearched(true);
     }
-  }, [origin, destination, departureDate, hasSearched]);
+  }, [origin, destination, departureDate]);
 
   const handleSearch = () => {
     console.log("Manual search triggered with:", currentSearchCriteria);
@@ -264,7 +264,7 @@ const FlightSearchPage = () => {
     setSelectedAirlines([]);
     setSelectedStops([]);
     setSelectedCabins([]);
-    setPriceRange([0, 2000]);
+    setPriceRange([0, 5000]);
   };
 
   const handleMultiCitySelect = (segmentIndex: number, flight: any) => {
@@ -317,11 +317,24 @@ const FlightSearchPage = () => {
 
   const enhancedFlights = flights.map(transformFlightForEnhanced);
 
-  // Filter flights based on user preferences
+  // Filter flights based on user preferences - Fixed price parsing
   const filteredFlights = enhancedFlights.filter(flight => {
-    const priceStr = typeof flight.price === 'string' ? flight.price : flight.price.toString();
-    const price = parseInt(priceStr.replace(/[^0-9]/g, ''));
-    if (price < priceRange[0] || price > priceRange[1]) return false;
+    // Fix price parsing - handle both numbers and strings correctly
+    let price = 0;
+    if (typeof flight.price === 'number') {
+      price = flight.price;
+    } else if (typeof flight.price === 'string') {
+      // Remove currency symbols and parse
+      price = parseFloat(flight.price.replace(/[^0-9.]/g, ''));
+    }
+    
+    console.log("Filtering flight with price:", price, "Range:", priceRange);
+    
+    // Skip price filter if price is 0 or invalid
+    if (price > 0 && (price < priceRange[0] || price > priceRange[1])) {
+      console.log("Flight filtered out by price:", price);
+      return false;
+    }
     
     if (selectedAirlines.length > 0 && !selectedAirlines.includes(flight.airline)) return false;
     if (selectedStops.length > 0) {
@@ -645,33 +658,63 @@ const FlightSearchPage = () => {
           </Card>
         )}
 
-        {hasSearched && !showModifySearch && (
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold mb-2">Searching flights...</h3>
+            <p className="text-muted-foreground">Finding the best options for your trip</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="text-center py-12">
+            <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Search Error</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={handleSearch} variant="outline">
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {hasSearched && !showModifySearch && !loading && !error && (
           <div className="w-full">
             {/* Results Section - Full width clean layout */}
-            {loading ? (
-              <div className="space-y-6">
-                {[...Array(5)].map((_, i) => (
-                  <Card key={i} className="h-48 animate-pulse bg-muted/50" />
-                ))}
+            <div className="space-y-6">
+              <div className="mb-4 text-sm text-muted-foreground">
+                Showing {filteredFlights.length} of {flights.length} flights
               </div>
-            ) : (
-              <div className="space-y-6">
-                {filteredFlights.map((flight, index) => (
-                  <EnhancedFlightCard
-                    key={`${flight.id}-${index}`}
-                    flight={flight}
-                    onSelectFare={handleSelectFare}
-                    showFareOptions={true}
-                  />
-                ))}
-                {filteredFlights.length === 0 && !loading && (
-                  <Card className="p-12 text-center">
-                    <h3 className="text-xl font-semibold mb-2">No flights found</h3>
-                    <p className="text-muted-foreground">Try adjusting your search criteria or dates.</p>
-                  </Card>
-                )}
-              </div>
-            )}
+              {filteredFlights.map((flight, index) => (
+                <EnhancedFlightCard
+                  key={`${flight.id}-${index}`}
+                  flight={flight}
+                  onSelectFare={handleSelectFare}
+                  showFareOptions={true}
+                />
+              ))}
+              {filteredFlights.length === 0 && flights.length > 0 && (
+                <Card className="p-12 text-center">
+                  <Plane className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No flights match your filters</h3>
+                  <p className="text-muted-foreground mb-4">Try adjusting your price range or filter criteria.</p>
+                  <Button onClick={handleClearAllFilters} variant="outline">
+                    Clear Filters
+                  </Button>
+                </Card>
+              )}
+              {flights.length === 0 && (
+                <Card className="p-12 text-center">
+                  <Plane className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No flights found</h3>
+                  <p className="text-muted-foreground mb-4">Try different dates or destinations.</p>
+                  <Button onClick={handleSearch} variant="outline">
+                    Search Again
+                  </Button>
+                </Card>
+              )}
+            </div>
           </div>
         )}
       </div>
