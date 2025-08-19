@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -143,11 +142,6 @@ export const EnhancedFlightCard = ({
                 <div className="bg-muted text-foreground px-2.5 py-1 rounded text-xs font-medium border">
                   {flight.outboundFlightNumber || flight.flightNumber}
                 </div>
-                {flight.isRoundTrip && flight.returnFlightNumber && (
-                  <div className="bg-muted text-foreground px-2.5 py-1 rounded text-xs font-medium border">
-                    {flight.returnFlightNumber}
-                  </div>
-                )}
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold text-sm">{flight.airline}</span>
