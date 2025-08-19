@@ -80,8 +80,11 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
 
   useEffect(() => {
     if (!criteria || !criteria.destination || !criteria.departureDate) {
+      console.log("useFlightSearch: Missing criteria", criteria);
       return;
     }
+
+    console.log("useFlightSearch: Starting search with criteria:", criteria);
 
     const searchFlights = async () => {
       setLoading(true);
@@ -111,6 +114,7 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
         }
 
         if (data?.success && data?.data?.data && Array.isArray(data.data.data)) {
+          console.log("useFlightSearch: API success, transforming", data.data.data.length, "offers");
           const transformedFlights = data.data.data.map((offer: any) => {
             const outbound = offer.itineraries[0];
             const segments = outbound.segments;
@@ -233,8 +237,10 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
             } as Flight;
           });
 
+          console.log("useFlightSearch: Setting", transformedFlights.length, "transformed flights");
           setFlights(transformedFlights);
         } else {
+          console.log("useFlightSearch: API returned no data, using mock flights");
           // Fallback to enhanced mock data with realistic pricing variations
           setFlights(generateRealisticMockFlights(criteria));
         }
@@ -243,6 +249,7 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
         setError(err instanceof Error ? err.message : "Failed to search flights");
         toast.error("Failed to search flights. Showing sample results.");
         
+        console.log("useFlightSearch: Error occurred, generating mock flights");
         // Show enhanced mock data on error
         setFlights(generateRealisticMockFlights(criteria));
       } finally {
@@ -258,6 +265,7 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
 
 // Enhanced mock data generator with realistic pricing variations
 const generateRealisticMockFlights = (criteria: FlightSearchCriteria): Flight[] => {
+  console.log("generateRealisticMockFlights: Creating mock flights for", criteria);
   const airlines = [
     { name: "Qantas", code: "QF", logo: "https://logos-world.net/wp-content/uploads/2023/01/Qantas-Logo.png" },
     { name: "Jetstar", code: "JQ", logo: "https://logos-world.net/wp-content/uploads/2023/01/Jetstar-Logo.png" },
@@ -331,5 +339,6 @@ const generateRealisticMockFlights = (criteria: FlightSearchCriteria): Flight[] 
     });
   }
 
+  console.log("generateRealisticMockFlights: Generated", flights.length, "mock flights");
   return flights.sort((a, b) => a.price - b.price);
 };

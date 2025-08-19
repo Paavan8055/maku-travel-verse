@@ -44,7 +44,7 @@ export const DateFlexibilityCalendar = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const generatePricesForDates = async () => {
+    const generatePricesForDates = () => {
       setLoading(true);
       const pricesData: DatePrice[] = [];
       
@@ -105,7 +105,7 @@ export const DateFlexibilityCalendar = ({
     };
 
     generatePricesForDates();
-  }, [currentWeekStart, origin, destination, passengers, cabin, existingFlights, currentSearchDate]);
+  }, [currentWeekStart, origin, destination, passengers, cabin, existingFlights?.length, currentSearchDate?.getTime()]);
 
   const handlePreviousWeek = () => {
     setCurrentWeekStart(prev => subDays(prev, 7));
