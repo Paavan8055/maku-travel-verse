@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
 import { FareSelectionDialog } from "@/features/search/components/FareSelectionDialog";
@@ -21,7 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon, Search, Plane, MapPin, Users } from "lucide-react";
-import { format } from "date-fns";
+import { format as formatDate } from "date-fns";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { cn } from "@/lib/utils";
 
@@ -58,10 +59,12 @@ const FlightSearchPage = () => {
   const [cabinClass, setCabinClass] = useState("economy");
   const [hasSearched, setHasSearched] = useState(false);
   
+  const navigate = useNavigate();
+  
   // Multi-city specific state
   const [multiCitySegments, setMultiCitySegments] = useState<MultiCitySegment[]>([
-    { origin: "SYD", destination: "MEL", date: format(new Date(), "yyyy-MM-dd") },
-    { origin: "MEL", destination: "BNE", date: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), "yyyy-MM-dd") },
+    { origin: "SYD", destination: "MEL", date: formatDate(new Date(), "yyyy-MM-dd") },
+    { origin: "MEL", destination: "BNE", date: formatDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), "yyyy-MM-dd") },
   ]);
   const [multiCitySelections, setMultiCitySelections] = useState<MultiCitySelection[]>([]);
 
@@ -78,15 +81,16 @@ const FlightSearchPage = () => {
 
   // Flight selection states
   const [selectedOutbound, setSelectedOutbound] = useState<any>(null);
-  const [selectedReturn, setSelectedReturn] = useState<any>(null);
+  const [selectedInbound, setSelectedInbound] = useState<any>(null);
+  const [showReturnFlights, setShowReturnFlights] = useState(false);
   const [fareOpen, setFareOpen] = useState(false);
   const [fareFlight, setFareFlight] = useState<any>(null);
 
   const searchCriteria: FlightSearchCriteria = {
     origin,
     destination,
-    departureDate: departureDate ? format(departureDate, "yyyy-MM-dd") : "",
-    returnDate: returnDate ? format(returnDate, "yyyy-MM-dd") : undefined,
+    departureDate: departureDate ? formatDate(departureDate, "yyyy-MM-dd") : "",
+    returnDate: returnDate ? formatDate(returnDate, "yyyy-MM-dd") : undefined,
     passengers: adults + children + infants,
   };
 
@@ -130,8 +134,8 @@ const FlightSearchPage = () => {
     if (tripType === "roundtrip") {
       if (!selectedOutbound) {
         setSelectedOutbound(flight);
-      } else if (!selectedReturn) {
-        setSelectedReturn(flight);
+      } else if (!selectedInbound) {
+        setSelectedInbound(flight);
         setFareFlight(flight);
         setFareOpen(true);
       }
@@ -142,9 +146,47 @@ const FlightSearchPage = () => {
   };
 
   const handleSelectFare = (flight: any, fare: any) => {
-    console.log("Selected fare:", fare, "for flight:", flight.id);
-    setFareFlight({ ...flight, selectedFare: fare });
-    setFareOpen(true);
+    console.log('Flight selected:', flight, fare);
+    
+    // Store flight data for review page
+    const flightData = {
+      id: flight.id,
+      airline: flight.airline,
+      flightNumber: flight.flightNumber,
+      origin: flight.origin,
+      destination: flight.destination,
+      departureTime: flight.departureTime,
+      arrivalTime: flight.arrivalTime,
+      duration: flight.duration,
+      stops: flight.stops,
+      fareType: fare.type,
+      price: fare.price,
+      date: formatDate(departureDate || new Date(), 'EEE, MMM dd')
+    };
+
+    if (tripType === 'roundtrip') {
+      if (!selectedOutbound) {
+        // First selection - outbound flight
+        setSelectedOutbound({ flight, fare });
+        sessionStorage.setItem('selectedOutboundFlight', JSON.stringify(flightData));
+        sessionStorage.setItem('tripType', 'roundtrip');
+        
+        // Show return flights
+        setShowReturnFlights(true);
+      } else {
+        // Second selection - return flight  
+        setSelectedInbound({ flight, fare });
+        sessionStorage.setItem('selectedInboundFlight', JSON.stringify(flightData));
+        
+        // Navigate to review page
+        navigate('/flight-booking-review');
+      }
+    } else {
+      // One-way or multi-city - go directly to review
+      sessionStorage.setItem('selectedOutboundFlight', JSON.stringify(flightData));
+      sessionStorage.setItem('tripType', tripType);
+      navigate('/flight-booking-review');
+    }
   };
 
   const handleDateChange = (date: Date) => {
@@ -354,7 +396,7 @@ const FlightSearchPage = () => {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {departureDate ? format(departureDate, "MMM dd") : "Select date"}
+                      {departureDate ? formatDate(departureDate, "MMM dd") : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -376,7 +418,7 @@ const FlightSearchPage = () => {
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start">
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {returnDate ? format(returnDate, "MMM dd") : "Select date"}
+                        {returnDate ? formatDate(returnDate, "MMM dd") : "Select date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -498,7 +540,7 @@ const FlightSearchPage = () => {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {departureDate ? format(departureDate, "MMM dd") : "Select date"}
+                      {departureDate ? formatDate(departureDate, "MMM dd") : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -520,7 +562,7 @@ const FlightSearchPage = () => {
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start">
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {returnDate ? format(returnDate, "MMM dd") : "Select date"}
+                        {returnDate ? formatDate(returnDate, "MMM dd") : "Select date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">

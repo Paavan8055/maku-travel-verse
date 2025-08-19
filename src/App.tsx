@@ -24,6 +24,7 @@ import BookingBaggage from "./pages/BookingBaggage";
 import BookingExtras from "./pages/BookingExtras";
 import Checkout from "./pages/Checkout";
 import FlightCheckout from "./pages/FlightCheckout";
+import FlightBookingReview from "./pages/FlightBookingReview";
 import HotelCheckout from "./pages/HotelCheckout";
 import ActivityCheckout from "./pages/ActivityCheckout";
 import ActivitySelect from "./pages/ActivitySelect";
@@ -72,6 +73,7 @@ function App() {
                     <Route path="/booking/baggage" element={<BookingBaggage />} />
                     <Route path="/booking/extras" element={<BookingExtras />} />
                     <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/flight-booking-review" element={<FlightBookingReview />} />
                     <Route path="/flight-checkout" element={<FlightCheckout />} />
                     <Route path="/activity-checkout" element={<ActivityCheckout />} />
                     <Route path="/activity-select" element={<ActivitySelect />} />
