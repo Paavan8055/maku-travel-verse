@@ -46,7 +46,7 @@ const BookingExtrasPage = () => {
   }
 
   const basePrice = selectedRoom.price || hotel.totalPrice || 399;
-  const fundContribution = 50; // From session storage in real implementation
+  const fundContribution = 0; // Fund contribution removed
 
   const extras: Extra[] = [
     {
@@ -153,7 +153,7 @@ const BookingExtrasPage = () => {
   };
 
   const getTotalPrice = () => {
-    return basePrice + getTotalExtrasPrice() + fundContribution;
+    return basePrice + getTotalExtrasPrice();
   };
 
   const handleContinue = () => {
@@ -383,13 +383,6 @@ const BookingExtrasPage = () => {
                     <span>AUD{getExtraPrice(extra)}</span>
                   </div>
                 ))}
-                
-                {fundContribution > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>Fund Contribution</span>
-                    <span>AUD{fundContribution}</span>
-                  </div>
-                )}
                 
                 <div className="border-t pt-4">
                   <div className="flex justify-between font-semibold text-lg">

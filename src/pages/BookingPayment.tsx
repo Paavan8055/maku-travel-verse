@@ -175,7 +175,7 @@ const BookingPaymentPage = () => {
   const baseNightly = hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
   const basePrice = baseNightly * nights;
   const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
-  const fundContribution = Number(selection?.fundContribution || 50);
+  const fundContribution = 0; // Fund contribution removed
   
   const bookingDetails = {
     hotel: hotelData?.name || selection?.hotelName || "Unknown Hotel",
@@ -191,7 +191,7 @@ const BookingPaymentPage = () => {
     basePrice,
     extrasPrice,
     fundContribution,
-    total: basePrice + extrasPrice + fundContribution,
+    total: basePrice + extrasPrice,
   };
 
   // Activity booking details
@@ -809,12 +809,6 @@ const BookingPaymentPage = () => {
                         <div className="flex justify-between text-sm">
                           <span>Extras & Services</span>
                           <span>${bookingDetails.extrasPrice}</span>
-                        </div>
-                      )}
-                      {bookingDetails.fundContribution > 0 && (
-                        <div className="flex justify-between text-sm text-primary">
-                          <span>Fund Contribution</span>
-                          <span>+${bookingDetails.fundContribution}</span>
                         </div>
                       )}
                       <div className="flex justify-between font-bold text-lg pt-2 border-t">
