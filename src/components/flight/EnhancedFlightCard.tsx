@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ interface EnhancedFlight {
   };
   amenities?: string[];
   fareOptions?: FareOption[];
+  isRoundTrip?: boolean;
 }
 
 interface EnhancedFlightCardProps {
@@ -119,7 +121,7 @@ export const EnhancedFlightCard = ({
                 <div className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold">
                   {flight.outboundFlightNumber || flight.flightNumber}
                 </div>
-                {flight.returnFlightNumber && (
+                {flight.isRoundTrip && flight.returnFlightNumber && (
                   <div className="bg-red-600 text-white px-2.5 py-1 rounded text-xs font-bold">
                     {flight.returnFlightNumber}
                   </div>
