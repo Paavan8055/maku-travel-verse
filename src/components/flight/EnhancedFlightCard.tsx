@@ -42,6 +42,7 @@ interface EnhancedFlight {
     date?: string;
     time?: string;
   };
+  price: number;
   amenities?: string[];
   fareOptions?: FareOption[];
   isRoundTrip?: boolean;
