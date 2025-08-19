@@ -87,10 +87,13 @@ export const EnhancedFlightCard = ({
           {/* Left Section - Flight Details (2/3 width) */}
           <div className="flex-1 lg:flex-[2] space-y-6">
             
-            {/* Flight Number Badges - Red like Air India */}
-            <div className="flex items-center space-x-3">
+            {/* TWO Flight Number Badges - Exactly like Air India */}
+            <div className="flex items-center space-x-3 mb-6">
               <div className="flex space-x-2">
-                <div className="bg-destructive text-destructive-foreground px-3 py-1.5 rounded text-sm font-bold">
+                <div className="bg-red-600 text-white px-3 py-1.5 rounded text-sm font-bold">
+                  {flight.flightNumber}
+                </div>
+                <div className="bg-red-600 text-white px-3 py-1.5 rounded text-sm font-bold">
                   {flight.flightNumber}
                 </div>
               </div>
@@ -130,41 +133,40 @@ export const EnhancedFlightCard = ({
             </div>
           </div>
 
-          {/* Right Section - Fare Options (1/3 width) */}
+          {/* Right Section - Fare Options Side by Side (1/3 width) */}
           <div className="lg:flex-[1] min-w-0">
             {showFareOptions && filteredFareOptions.length > 0 && (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {filteredFareOptions.map((fare, index) => (
                   <div
                     key={index}
                     className="border border-border rounded-lg p-4 hover:border-primary/50 transition-all cursor-pointer"
                     onClick={() => setSelectedFare(fare.type)}
                   >
-                    {/* Seat Availability Warning - Orange box like Air India */}
-                    {fare.seatsAvailable !== undefined && fare.seatsAvailable <= 9 && (
-                      <div className="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-md text-sm font-medium mb-3 flex items-center">
-                        <AlertTriangle className="h-4 w-4 mr-2" />
-                        {getSeatAvailabilityText(fare.seatsAvailable)}
-                      </div>
-                    )}
-                    
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-lg capitalize">{fare.type}</h4>
+                      <div className="text-center">
+                        <h4 className="font-semibold text-base uppercase">{fare.type}</h4>
                       </div>
                       
-                      <div className="text-right">
-                        <div className="text-3xl font-bold text-foreground">
+                      {/* Seat Availability Warning - Orange box ABOVE price */}
+                      {fare.seatsAvailable !== undefined && fare.seatsAvailable <= 9 && (
+                        <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-medium text-center">
+                          {getSeatAvailabilityText(fare.seatsAvailable)}
+                        </div>
+                      )}
+                      
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-foreground">
                           {formatCurrency(fare.price)}
                         </div>
-                        <div className="text-sm text-muted-foreground">per person</div>
+                        <div className="text-xs text-muted-foreground">per person</div>
                       </div>
                       
                       {fare.features && fare.features.length > 0 && (
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {fare.features.slice(0, 3).map((feature, i) => (
-                            <li key={i} className="flex items-start space-x-2">
-                              <span className="w-1 h-1 bg-travel-forest rounded-full mt-2 flex-shrink-0"></span>
+                        <ul className="text-xs text-muted-foreground space-y-1">
+                          {fare.features.slice(0, 2).map((feature, i) => (
+                            <li key={i} className="flex items-start space-x-1">
+                              <span className="w-1 h-1 bg-travel-forest rounded-full mt-1.5 flex-shrink-0"></span>
                               <span>{feature}</span>
                             </li>
                           ))}
@@ -173,7 +175,7 @@ export const EnhancedFlightCard = ({
                       
                       {onSelectFare && (
                         <Button
-                          className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold"
+                          className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             onSelectFare(flight, fare);

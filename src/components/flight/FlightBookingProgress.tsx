@@ -8,7 +8,7 @@ interface FlightBookingProgressProps {
 
 export const FlightBookingProgress = ({ 
   currentStep = 1, 
-  steps = ["SELECT FLIGHTS", "REVIEW & DETAILS", "PAYMENT & CONFIRMATION"] 
+  steps = ["1 FLIGHTS", "2 JOURNEY DETAILS", "3 REVIEW & PAYMENT"] 
 }: FlightBookingProgressProps) => {
   return (
     <div className="w-full bg-card border-b">
