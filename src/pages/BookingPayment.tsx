@@ -19,12 +19,8 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    console.log('StripeCardForm effect - stripe:', !!stripe, 'elements:', !!elements);
-    
     if (stripe && elements) {
-      // Provide a stable function value to React state setter
       const confirmFunction = async () => {
-        console.log('Confirming payment with Stripe...');
         if (!stripe || !elements) throw new Error('Stripe not ready');
         
         const result = await stripe.confirmPayment({ 
@@ -35,10 +31,7 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
           }
         });
         
-        console.log('Stripe confirmation result:', result);
-        
         if ((result as any).error) {
-          console.error('Stripe error:', (result as any).error);
           throw new Error((result as any).error.message || 'Payment failed');
         }
         return result;
@@ -46,13 +39,11 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
       
       setConfirm(() => confirmFunction);
       setIsReady(true);
-      console.log('Stripe card form is ready');
     } else {
       setConfirm(null);
       setIsReady(false);
     }
 
-    // Cleanup: unset confirm function on unmount or when deps change
     return () => {
       setConfirm(null);
       setIsReady(false);
@@ -64,24 +55,17 @@ const StripeCardForm: React.FC<{ setConfirm: Dispatch<SetStateAction<(() => Prom
       <PaymentElement 
         options={{ 
           layout: 'tabs',
-          paymentMethodOrder: ['card', 'link', 'us_bank_account'],
+          paymentMethodOrder: ['card'],
           fields: {
-            billingDetails: 'auto'
-          },
-          wallets: {
-            applePay: 'auto',
-            googlePay: 'auto'
+            billingDetails: 'never'
           }
         }} 
-        onReady={() => {
-          console.log('PaymentElement is ready');
-          setIsReady(true);
-        }}
+        onReady={() => setIsReady(true)}
       />
       {!isReady && (
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading secure payment form...
+          Loading payment form...
         </div>
       )}
     </div>
@@ -102,11 +86,13 @@ const BookingPaymentPage = () => {
   const [isInitializingPI, setIsInitializingPI] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState(false);
+  const initRef = useRef(false);
 
   useEffect(() => {
     document.title = "Payment | Maku Travel";
   }, []);
 
+  // Initialize Stripe immediately
   useEffect(() => {
     const init = async () => {
       try {
@@ -267,17 +253,15 @@ const BookingPaymentPage = () => {
     urlParams: Object.fromEntries(params.entries())
   });
 
+  // Optimized payment intent creation - only create when needed
   const ensurePaymentIntent = async () => {
-    try {
-      if (clientSecret && bookingId) {
-        console.log('Payment intent already exists, skipping creation');
-        return;
-      }
-      
-      setIsInitializingPI(true);
-      setInitError(null);
-      console.log('Creating payment intent...');
+    if (clientSecret && bookingId || initRef.current) return;
+    
+    initRef.current = true;
+    setIsInitializingPI(true);
+    setInitError(null);
 
+    try {
       let passenger: any = null;
       let guest: any = null;
       let activityGuest: any = null;
@@ -395,14 +379,15 @@ const BookingPaymentPage = () => {
       toast({ title: 'Payment setup failed', description: message, variant: 'destructive' });
     } finally {
       setIsInitializingPI(false);
+      initRef.current = false;
     }
   };
 
+  // Create payment intent as soon as Stripe is ready
   useEffect(() => {
-    if (paymentGateway === 'stripe' && !clientSecret && stripePromise) {
+    if (paymentGateway === 'stripe' && stripePromise && !clientSecret) {
       ensurePaymentIntent();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentGateway, stripePromise]);
 
   // Reset confirm function when payment context changes
@@ -669,19 +654,19 @@ const BookingPaymentPage = () => {
                   {paymentGateway === "stripe" && (
                     <div className="space-y-4 mt-6">
                       {isInitializingPI ? (
-                        <div className="flex items-center gap-2 text-muted-foreground p-6 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/30 rounded-lg">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Preparing secure payment form...
+                          Setting up secure payment...
                         </div>
                       ) : initError ? (
-                        <div className="space-y-2 p-6 bg-destructive/10 rounded-lg">
+                        <div className="space-y-2 p-4 bg-destructive/10 rounded-lg">
                           <p className="text-destructive font-medium">{initError}</p>
                           <Button variant="outline" size="sm" onClick={ensurePaymentIntent}>
-                            Retry Payment Setup
+                            Retry
                           </Button>
                         </div>
                       ) : clientSecret && stripePromise ? (
-                        <div className="p-6 bg-muted/30 rounded-lg">
+                        <div className="p-4 bg-muted/20 rounded-lg">
                           <Elements 
                             stripe={stripePromise} 
                             options={{ 
@@ -698,9 +683,9 @@ const BookingPaymentPage = () => {
                           </Elements>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-muted-foreground p-6 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/30 rounded-lg">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Initializing payment system...
+                          Initializing payment...
                         </div>
                       )}
                     </div>
@@ -863,7 +848,7 @@ const BookingPaymentPage = () => {
                   ) : (paymentGateway === 'stripe' && (!confirmFn || !clientSecret) ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Preparing payment...
+                      Setting up payment...
                     </>
                   ) : (
                     <>
