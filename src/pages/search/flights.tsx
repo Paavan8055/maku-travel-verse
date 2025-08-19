@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
@@ -5,6 +6,7 @@ import { FareSelectionDialog } from "@/features/search/components/FareSelectionD
 import { FlightCard } from "@/features/search/components/FlightCard";
 import { PopularRoutesSection } from "@/components/search/PopularRoutesSection";
 import { FeaturedDealsCarousel } from "@/components/search/FeaturedDealsCarousel";
+import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { CalendarIcon, Search, Plane, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { AIRPORTS } from "@/data/airports";
 
 interface FlightSearchCriteria {
   origin: string;
@@ -42,6 +43,8 @@ const FlightSearchPage = () => {
   const [tripType, setTripType] = useState("roundtrip");
   const [origin, setOrigin] = useState("SYD");
   const [destination, setDestination] = useState("MEL");
+  const [originInput, setOriginInput] = useState("Sydney (SYD)");
+  const [destinationInput, setDestinationInput] = useState("Melbourne (MEL)");
   const [departureDate, setDepartureDate] = useState<Date | undefined>(new Date());
   const [returnDate, setReturnDate] = useState<Date | undefined>(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
   const [adults, setAdults] = useState(1);
@@ -86,16 +89,30 @@ const FlightSearchPage = () => {
   const handleRouteSelect = (route: any) => {
     setOrigin(route.departure);
     setDestination(route.destination);
+    setOriginInput(`${route.departureCity} (${route.departure})`);
+    setDestinationInput(`${route.destinationCity} (${route.destination})`);
     setHasSearched(true);
   };
 
   const handleDealSelect = (deal: any) => {
     setOrigin("SYD");
     setDestination(deal.destination);
+    setOriginInput("Sydney (SYD)");
+    setDestinationInput(`${deal.destinationCity} (${deal.destination})`);
     if (deal.departureDate) {
       setDepartureDate(new Date(deal.departureDate));
     }
     setHasSearched(true);
+  };
+
+  const handleOriginSelect = (destination: any) => {
+    setOrigin(destination.code || destination.id);
+    setOriginInput(destination.code ? `${destination.city} (${destination.code})` : destination.name);
+  };
+
+  const handleDestinationSelect = (destination: any) => {
+    setDestination(destination.code || destination.id);
+    setDestinationInput(destination.code ? `${destination.city} (${destination.code})` : destination.name);
   };
 
   const handleSelectFlight = (flight: any) => {
@@ -234,34 +251,24 @@ const FlightSearchPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">From</label>
-                <Select value={origin} onValueChange={setOrigin}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    {AIRPORTS.map((airport) => (
-                      <SelectItem key={airport.iata} value={airport.iata}>
-                        {airport.city} ({airport.iata})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DestinationAutocomplete
+                  value={originInput}
+                  onChange={setOriginInput}
+                  onDestinationSelect={handleOriginSelect}
+                  placeholder="From where?"
+                  searchType="airport"
+                />
               </div>
 
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">To</label>
-                <Select value={destination} onValueChange={setDestination}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    {AIRPORTS.map((airport) => (
-                      <SelectItem key={airport.iata} value={airport.iata}>
-                        {airport.city} ({airport.iata})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DestinationAutocomplete
+                  value={destinationInput}
+                  onChange={setDestinationInput}
+                  onDestinationSelect={handleDestinationSelect}
+                  placeholder="Where to?"
+                  searchType="airport"
+                />
               </div>
 
               <div>
