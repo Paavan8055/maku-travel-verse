@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addDays, subDays, isSameDay } from "date-fns";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
-import { useFlightSearch } from "@/features/search/hooks/useFlightSearch";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DatePrice {
   date: Date;
@@ -37,73 +37,107 @@ export const DateFlexibilityCalendar = ({
     selectedDate ? subDays(selectedDate, 3) : new Date()
   );
   const [weekPrices, setWeekPrices] = useState<DatePrice[]>([]);
-
-  // Generate search criteria for each date in the week
-  const generateDateSearches = (startDate: Date) => {
-    return Array.from({ length: 14 }, (_, i) => {
-      const date = addDays(startDate, i);
-      return {
-        origin,
-        destination,
-        departureDate: format(date, 'yyyy-MM-dd'),
-        passengers,
-      };
-    });
-  };
-
-  const dateSearches = generateDateSearches(currentWeekStart);
-
-  // Use flight search hook for the first date to get real data structure
-  const { flights: sampleFlights } = useFlightSearch(dateSearches[0]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchPricesForDates = async () => {
+      setLoading(true);
       const pricesData: DatePrice[] = [];
       
-      for (let i = 0; i < 14; i++) {
-        const date = addDays(currentWeekStart, i);
-        
-        // For now, we'll use a simplified approach to get prices
-        // In a real implementation, you'd want to make multiple API calls
-        // or use a batch search endpoint
-        
-        let price = 0;
-        let flightCount = 0;
-        
-        if (sampleFlights && sampleFlights.length > 0) {
-          // Use the lowest price from sample flights as base
-          const basePrice = Math.min(...sampleFlights.map(f => f.price));
-          // Add some variation based on date offset (+/- 20%)
-          const variation = (Math.random() - 0.5) * 0.4;
-          price = Math.round(basePrice * (1 + variation));
-          flightCount = sampleFlights.length;
-        } else {
-          // Fallback to reasonable prices if no real data
-          price = Math.floor(Math.random() * 300) + 400;
-          flightCount = Math.floor(Math.random() * 5) + 1;
-        }
+      // Generate dates for the current view (14 days)
+      const dates = Array.from({ length: 14 }, (_, i) => addDays(currentWeekStart, i));
+      
+      // Make flight searches for each date
+      const searchPromises = dates.map(async (date) => {
+        try {
+          const { data, error } = await supabase.functions.invoke('amadeus-flight-search', {
+            body: {
+              origin,
+              destination,
+              departureDate: format(date, 'yyyy-MM-dd'),
+              adults: passengers,
+              children: 0,
+              infants: 0,
+              travelClass: cabin.toUpperCase(),
+              nonStop: false,
+              maxPrice: 5000,
+              currency: 'USD'
+            }
+          });
 
-        pricesData.push({
-          date,
-          price,
-          flightCount,
-          isLowest: false
-        });
-      }
+          if (error) {
+            console.error(`Flight search error for ${format(date, 'yyyy-MM-dd')}:`, error);
+            return {
+              date,
+              price: 0,
+              flightCount: 0,
+              isLowest: false
+            };
+          }
 
-      // Mark the lowest price
-      const lowestPrice = Math.min(...pricesData.map(p => p.price));
-      pricesData.forEach(p => {
-        if (p.price === lowestPrice) {
-          p.isLowest = true;
+          if (data?.flights && data.flights.length > 0) {
+            // Get the lowest price from available flights
+            const lowestPrice = Math.min(...data.flights.map((f: any) => f.price?.amount || 0));
+            return {
+              date,
+              price: Math.round(lowestPrice),
+              flightCount: data.flights.length,
+              isLowest: false
+            };
+          } else {
+            // Fallback if no flights found
+            return {
+              date,
+              price: 0,
+              flightCount: 0,
+              isLowest: false
+            };
+          }
+        } catch (error) {
+          console.error(`Search failed for ${format(date, 'yyyy-MM-dd')}:`, error);
+          return {
+            date,
+            price: 0,
+            flightCount: 0,
+            isLowest: false
+          };
         }
       });
 
-      setWeekPrices(pricesData);
+      try {
+        const results = await Promise.all(searchPromises);
+        
+        // Filter out results with no flights and mark the lowest prices
+        const validResults = results.filter(r => r.price > 0);
+        if (validResults.length > 0) {
+          const lowestPrice = Math.min(...validResults.map(r => r.price));
+          validResults.forEach(r => {
+            if (r.price === lowestPrice) {
+              r.isLowest = true;
+            }
+          });
+        }
+
+        // Include all results (even those with no flights) to maintain date continuity
+        setWeekPrices(results);
+      } catch (error) {
+        console.error('Error fetching flight prices:', error);
+        // Fallback to empty data
+        setWeekPrices(dates.map(date => ({
+          date,
+          price: 0,
+          flightCount: 0,
+          isLowest: false
+        })));
+      }
+      
+      setLoading(false);
     };
 
-    fetchPricesForDates();
-  }, [currentWeekStart, origin, destination, passengers, sampleFlights]);
+    if (origin && destination) {
+      fetchPricesForDates();
+    }
+  }, [currentWeekStart, origin, destination, passengers, cabin]);
 
   const handlePreviousWeek = () => {
     setCurrentWeekStart(prev => subDays(prev, 7));
@@ -114,12 +148,12 @@ export const DateFlexibilityCalendar = ({
   };
 
   const handleDateClick = (datePrice: DatePrice) => {
-    if (onDateSelect) {
+    if (onDateSelect && datePrice.price > 0) {
       onDateSelect(datePrice.date);
     }
   };
 
-  const lowestPrice = weekPrices.length > 0 ? Math.min(...weekPrices.map(p => p.price)) : 0;
+  const lowestPrice = weekPrices.length > 0 ? Math.min(...weekPrices.filter(p => p.price > 0).map(p => p.price)) : 0;
 
   return (
     <div className="bg-background sticky top-0 z-20 border-b border-border py-4">
@@ -141,6 +175,7 @@ export const DateFlexibilityCalendar = ({
               size="sm"
               onClick={handlePreviousWeek}
               className="p-2"
+              disabled={loading}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -149,6 +184,7 @@ export const DateFlexibilityCalendar = ({
               size="sm"
               onClick={handleNextWeek}
               className="p-2"
+              disabled={loading}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -160,33 +196,46 @@ export const DateFlexibilityCalendar = ({
           <div className="flex space-x-3 min-w-max pb-2">
             {weekPrices.map((datePrice, index) => {
               const isSelected = selectedDate && isSameDay(datePrice.date, selectedDate);
-              const isLowest = datePrice.price === lowestPrice;
+              const isLowest = datePrice.price > 0 && datePrice.price === lowestPrice;
+              const hasFlights = datePrice.price > 0;
               
               return (
                 <button
                   key={index}
                   onClick={() => handleDateClick(datePrice)}
+                  disabled={!hasFlights || loading}
                   className={`
                     flex-shrink-0 p-4 rounded-xl border-2 text-center transition-all min-w-[140px]
                     ${isSelected 
                       ? "border-destructive bg-destructive text-destructive-foreground shadow-card" 
-                      : "border-border bg-card hover:border-destructive/30 hover:shadow-soft"
+                      : hasFlights 
+                        ? "border-border bg-card hover:border-destructive/30 hover:shadow-soft cursor-pointer"
+                        : "border-border bg-muted text-muted-foreground cursor-not-allowed opacity-50"
                     }
-                    ${isLowest && !isSelected && "ring-2 ring-travel-gold/30 border-travel-gold/50"}
+                    ${isLowest && !isSelected && hasFlights && "ring-2 ring-travel-gold/30 border-travel-gold/50"}
+                    ${loading && "animate-pulse"}
                   `}
                 >
-                  <div className={`text-sm font-medium mb-2 ${isSelected ? "text-destructive-foreground" : "text-muted-foreground"}`}>
+                  <div className={`text-sm font-medium mb-2 ${isSelected ? "text-destructive-foreground" : hasFlights ? "text-muted-foreground" : "text-muted-foreground"}`}>
                     {format(datePrice.date, "EEE")}
                   </div>
-                  <div className={`text-lg font-semibold mb-2 ${isSelected ? "text-destructive-foreground" : "text-foreground"}`}>
+                  <div className={`text-lg font-semibold mb-2 ${isSelected ? "text-destructive-foreground" : hasFlights ? "text-foreground" : "text-muted-foreground"}`}>
                     {format(datePrice.date, "d MMM")}
                   </div>
-                  <div className={`text-lg font-bold ${isSelected ? "text-destructive-foreground" : "text-foreground"}`}>
-                    {formatCurrency(datePrice.price)}
-                  </div>
-                  {isLowest && !isSelected && (
-                    <div className="text-xs text-travel-gold font-bold mt-2 bg-travel-gold/10 px-2 py-1 rounded">
-                      BEST PRICE
+                  {hasFlights ? (
+                    <>
+                      <div className={`text-lg font-bold ${isSelected ? "text-destructive-foreground" : "text-foreground"}`}>
+                        {formatCurrency(datePrice.price)}
+                      </div>
+                      {isLowest && !isSelected && (
+                        <div className="text-xs text-travel-gold font-bold mt-2 bg-travel-gold/10 px-2 py-1 rounded">
+                          BEST PRICE
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      {loading ? "Loading..." : "No flights"}
                     </div>
                   )}
                 </button>
