@@ -313,7 +313,7 @@ export const HotelDetails = () => {
                               children: children.toString(),
                               rooms: rooms.toString()
                             });
-                            navigate(`/BookingSelect?${params.toString()}`);
+                            navigate(`/booking/select?${params.toString()}`);
                           }}
                         >
                           Select Room

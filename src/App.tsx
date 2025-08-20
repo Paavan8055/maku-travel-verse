@@ -68,14 +68,14 @@ function App() {
                     <Route path="/search/activities" element={<ActivitySearchPage />} />
                     
                     <Route path="/hotel/:hotelId" element={<HotelDetails />} />
-                    <Route path="/hotel-checkout" element={<HotelCheckout />} />
                     <Route path="/booking/select" element={<BookingSelect />} />
                     <Route path="/booking/baggage" element={<BookingBaggage />} />
                     <Route path="/booking/extras" element={<BookingExtras />} />
+                    <Route path="/booking/checkout" element={<HotelCheckout />} />
+                    <Route path="/booking/payment" element={<BookingPayment />} />
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/flight-booking-review" element={<FlightBookingReview />} />
                     <Route path="/flight-checkout" element={<FlightCheckout />} />
-                    <Route path="/booking-payment" element={<BookingPayment />} />
                     <Route path="/activity-checkout" element={<ActivityCheckout />} />
                     <Route path="/activity-select" element={<ActivitySelect />} />
                     <Route path="/booking-confirmation" element={<BookingConfirmation />} />
