@@ -105,7 +105,7 @@ export default function BookingExtras() {
       addons: selectedAddons.join(',')
     });
     
-    navigate(`/HotelCheckout?${params.toString()}`);
+    navigate(`/booking/checkout?${params.toString()}`);
   };
 
   const totalExtras = getTotalExtrasPrice();
