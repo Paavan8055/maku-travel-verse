@@ -17,7 +17,7 @@ interface Addon {
   description: string | null;
   price_cents: number;
   currency: string;
-  category: "transport" | "dining" | "wellness" | "protection" | "convenience";
+  category: string;
   per_person: boolean;
   active: boolean;
   created_at: string;
