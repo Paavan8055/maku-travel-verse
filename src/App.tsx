@@ -69,6 +69,9 @@ function App() {
                     
                     <Route path="/hotel/:hotelId" element={<HotelDetails />} />
                     <Route path="/hotel-details" element={<HotelDetails />} />
+                    <Route path="/BookingSelect" element={<BookingSelect />} />
+                    <Route path="/BookingExtras" element={<BookingExtras />} />
+                    <Route path="/HotelCheckout" element={<HotelCheckout />} />
                     <Route path="/booking/select" element={<BookingSelect />} />
                     <Route path="/booking/extras" element={<BookingExtras />} />
                     <Route path="/booking/checkout" element={<HotelCheckout />} />
