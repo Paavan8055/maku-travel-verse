@@ -1,5 +1,5 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,9 +11,12 @@ interface CreateHotelBookingParams {
   offerId: string;
   checkIn: string;
   checkOut: string;
-  guests: number;
+  adults: number;
+  children?: number;
+  rooms?: number;
   addons?: string[];
-  currency?: string;
+  bedPref?: string;
+  note?: string;
 }
 
 Deno.serve(async (req) => {
@@ -25,181 +28,200 @@ Deno.serve(async (req) => {
   try {
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
-      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+      throw new Error('Missing STRIPE_SECRET_KEY');
     }
 
-    // Create Supabase client with service role key
-    const supabase = createClient(
+    // Create Supabase client
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Get user from request
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !userData?.user) {
-      throw new Error('Invalid authentication token');
-    }
+    const { data } = await supabaseClient.auth.getUser(token);
+    const user = data.user;
 
-    const user = userData.user;
-    const body: CreateHotelBookingParams = await req.json();
-    const { hotelId, offerId, checkIn, checkOut, guests, addons = [], currency = 'AUD' } = body;
+    const {
+      hotelId,
+      offerId,
+      checkIn,
+      checkOut,
+      adults,
+      children = 0,
+      rooms = 1,
+      addons = [],
+      bedPref,
+      note
+    }: CreateHotelBookingParams = await req.json();
 
-    // Validate required parameters
     if (!hotelId || !offerId || !checkIn || !checkOut) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing required parameters' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Missing required parameters' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
-    console.log('Creating hotel booking for user:', user.id);
-    console.log('Booking details:', { hotelId, offerId, checkIn, checkOut, guests, addons });
+    console.log('Creating hotel booking:', { hotelId, offerId, checkIn, checkOut, adults, children, rooms });
 
-    // Calculate room price (in a real implementation, re-fetch from Amadeus to prevent tampering)
-    // For demo purposes, using a fixed price calculation
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
-    const baseRoomPrice = 200; // Base price per night in AUD
-    const roomTotalCents = Math.round(baseRoomPrice * nights * 100);
+    // Re-fetch the offer from Amadeus to get accurate pricing
+    const { data: hotelData, error: hotelError } = await supabaseClient.functions.invoke(
+      'amadeus-hotel-details',
+      {
+        body: { hotelId, checkIn, checkOut, adults, children, rooms }
+      }
+    );
 
-    // Fetch addon prices from database
-    let addonsTotalCents = 0;
+    if (hotelError || !hotelData?.success) {
+      throw new Error('Failed to fetch current hotel pricing');
+    }
+
+    // Find the selected offer
+    const selectedOffer = hotelData.offers?.find((offer: any) => offer.id === offerId);
+    if (!selectedOffer) {
+      throw new Error('Selected room offer no longer available');
+    }
+
+    const roomPrice = parseFloat(selectedOffer.price?.total || '0');
+    const currency = selectedOffer.price?.currency || 'AUD';
+
+    // Calculate addon costs
+    let addonsPrice = 0;
     if (addons.length > 0) {
-      const { data: addonData, error: addonError } = await supabase
+      const { data: addonData, error: addonError } = await supabaseClient
         .from('hotel_addons')
         .select('*')
         .in('id', addons)
         .eq('active', true);
 
-      if (addonError) {
-        console.error('Error fetching addons:', addonError);
-      } else {
-        addonsTotalCents = addonData?.reduce((total, addon) => {
-          const multiplier = addon.per_person ? guests : 1;
-          return total + (addon.price_cents * multiplier);
-        }, 0) || 0;
+      if (!addonError && addonData) {
+        addonsPrice = addonData.reduce((total: number, addon: any) => {
+          const basePrice = addon.price_cents / 100;
+          const multiplier = addon.per_person ? (adults + children) : 1;
+          return total + (basePrice * multiplier);
+        }, 0);
       }
     }
 
-    const totalAmountCents = roomTotalCents + addonsTotalCents;
-    console.log('Calculated pricing:', { roomTotalCents, addonsTotalCents, totalAmountCents });
-
-    // Generate booking reference
-    const bookingReference = 'BK' + Math.random().toString(36).substr(2, 8).toUpperCase();
+    const totalAmount = roomPrice + addonsPrice;
+    const amountCents = Math.round(totalAmount * 100);
 
     // Create booking record
-    const { data: booking, error: bookingError } = await supabase
+    const bookingData = {
+      user_id: user?.id || null,
+      booking_reference: `BK${Date.now()}`,
+      status: 'pending',
+      booking_type: 'hotel',
+      total_amount: totalAmount,
+      currency,
+      booking_data: {
+        hotelId,
+        offerId,
+        checkIn,
+        checkOut,
+        adults,
+        children,
+        rooms,
+        bedPref,
+        note,
+        addons,
+        selectedOffer,
+        roomPrice,
+        addonsPrice,
+        customerInfo: user ? {
+          email: user.email,
+          userId: user.id
+        } : null
+      }
+    };
+
+    const { data: booking, error: bookingError } = await supabaseClient
       .from('bookings')
-      .insert({
-        user_id: user.id,
-        booking_reference: bookingReference,
-        booking_type: 'hotel',
-        status: 'pending',
-        supplier: 'amadeus',
-        total_amount: totalAmountCents / 100,
-        currency,
-        booking_data: {
-          hotelId,
-          offerId,
-          checkIn,
-          checkOut,
-          guests,
-          nights,
-          basePrice: roomTotalCents / 100,
-          addonsPrice: addonsTotalCents / 100,
-          customerInfo: {
-            email: user.email,
-            userId: user.id
-          }
-        }
-      })
-      .select('*')
+      .insert(bookingData)
+      .select()
       .single();
 
     if (bookingError) {
-      console.error('Error creating booking:', bookingError);
+      console.error('Booking creation error:', bookingError);
       throw new Error('Failed to create booking record');
     }
 
-    console.log('Created booking:', booking.id);
-
     // Create Stripe Payment Intent
-    const paymentIntentResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
+    const paymentIntentData = new URLSearchParams({
+      amount: amountCents.toString(),
+      currency: currency.toLowerCase(),
+      'automatic_payment_methods[enabled]': 'true',
+      'metadata[booking_id]': booking.id,
+      'metadata[hotel_id]': hotelId,
+      'metadata[user_id]': user?.id || 'guest'
+    });
+
+    if (user?.email) {
+      paymentIntentData.append('receipt_email', user.email);
+    }
+
+    const stripeResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${stripeSecretKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        amount: totalAmountCents.toString(),
-        currency: currency.toLowerCase(),
-        automatic_payment_methods: JSON.stringify({ enabled: true }),
-        metadata: JSON.stringify({
-          booking_id: booking.id,
-          booking_reference: bookingReference,
-          user_id: user.id,
-          booking_type: 'hotel'
-        })
-      }),
+      body: paymentIntentData,
     });
 
-    if (!paymentIntentResponse.ok) {
-      const errorData = await paymentIntentResponse.text();
-      console.error('Stripe Payment Intent creation failed:', errorData);
+    const paymentIntent = await stripeResponse.json();
+
+    if (!stripeResponse.ok) {
+      console.error('Stripe error:', paymentIntent);
       throw new Error('Failed to create payment intent');
     }
 
-    const paymentIntent = await paymentIntentResponse.json();
-    console.log('Created Stripe Payment Intent:', paymentIntent.id);
-
     // Store payment record
-    const { error: paymentError } = await supabase
+    const { error: paymentError } = await supabaseClient
       .from('payments')
       .insert({
         booking_id: booking.id,
         stripe_payment_intent_id: paymentIntent.id,
-        amount: totalAmountCents / 100,
+        amount: totalAmount,
         currency,
         status: paymentIntent.status
       });
 
     if (paymentError) {
-      console.error('Error storing payment record:', paymentError);
+      console.error('Payment record error:', paymentError);
     }
+
+    console.log(`✅ Created hotel booking ${booking.id} with payment intent ${paymentIntent.id}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         clientSecret: paymentIntent.client_secret,
-        bookingId: booking.id,
-        bookingReference,
-        amount_cents: totalAmountCents,
-        currency
+        booking_id: booking.id,
+        amount_cents: amountCents,
+        currency,
+        total_amount: totalAmount
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
 
   } catch (error) {
     console.error('Create hotel booking error:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to create hotel booking' 
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create hotel booking'
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
