@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -54,16 +55,34 @@ export const DestinationAutocomplete = ({
     { id: "tok", name: "Tokyo", country: "Japan", type: "city" }
   ];
 
-  // Airport data mapped to our format
-  const airports = AIRPORTS.map(airport => ({
-    id: airport.iata,
-    name: airport.name,
-    city: airport.city,
-    country: airport.country,
-    code: airport.iata,
-    type: "airport" as const,
-    coordinates: { lat: 0, lng: 0 }
-  }));
+  // Enhanced airport search function
+  const searchLocalAirports = (query: string): Destination[] => {
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    return AIRPORTS.filter(airport => {
+      // Match against airport name, city, IATA code, or combinations
+      const nameMatch = airport.name.toLowerCase().includes(normalizedQuery);
+      const cityMatch = airport.city.toLowerCase().includes(normalizedQuery);
+      const codeMatch = airport.iata.toLowerCase().includes(normalizedQuery);
+      
+      // Handle specific format searches like "Sydney (SYD)" or "Melbourne (MEL)"
+      const cityCodePattern = new RegExp(`${airport.city.toLowerCase()}.*\\(${airport.iata.toLowerCase()}\\)`);
+      const formatMatch = cityCodePattern.test(normalizedQuery);
+      
+      // Handle IATA code searches
+      const iataOnlyMatch = normalizedQuery === airport.iata.toLowerCase();
+      
+      return nameMatch || cityMatch || codeMatch || formatMatch || iataOnlyMatch;
+    }).slice(0, 8).map(airport => ({
+      id: airport.iata,
+      name: airport.name,
+      city: airport.city,
+      country: airport.country,
+      code: airport.iata,
+      type: 'airport' as const,
+      coordinates: { lat: 0, lng: 0 }
+    }));
+  };
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -112,46 +131,78 @@ export const DestinationAutocomplete = ({
             }
           }
 
-          // Priority 2: Airport search for airport searchType
+          // Priority 2: Local airport search for airport searchType (enhanced fallback)
           if (searchType === "airport") {
-            const airportMatches = airports.filter(airport =>
-              airport.name.toLowerCase().includes(q.toLowerCase()) ||
-              airport.city.toLowerCase().includes(q.toLowerCase()) ||
-              airport.code.toLowerCase().includes(q.toLowerCase())
-            ).slice(0, 8).map(airport => ({
-              id: airport.code,
-              name: `${airport.name} (${airport.code})`,
-              city: airport.city,
-              country: airport.country,
-              code: airport.code,
-              type: 'airport' as const,
-              coordinates: { lat: 0, lng: 0 }
-            }));
-            results = [...airportMatches];
+            const localAirports = searchLocalAirports(q);
+            if (localAirports.length > 0) {
+              console.log('Found local airports:', localAirports.length);
+              results = [...localAirports];
+            }
+
+            // If local search found results, still try Amadeus but don't overwrite good local results
+            if (results.length < 3) {
+              try {
+                const { data: amadeusData } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
+                  body: { 
+                    query: q, 
+                    types: ['AIRPORT'],
+                    limit: 8 
+                  }
+                });
+
+                if (amadeusData?.results && Array.isArray(amadeusData.results)) {
+                  const amadeusResults = amadeusData.results.map((d: any) => ({
+                    id: d.id || d.code,
+                    name: d.name,
+                    city: d.city,
+                    country: d.country,
+                    code: d.code,
+                    type: 'airport' as const,
+                    coordinates: d.coordinates ? { 
+                      lat: d.coordinates[1], 
+                      lng: d.coordinates[0] 
+                    } : { lat: 0, lng: 0 }
+                  }));
+                  
+                  // Merge with existing results, avoiding duplicates
+                  amadeusResults.forEach((amadeus: Destination) => {
+                    const isDuplicate = results.some(existing => 
+                      existing.code === amadeus.code || 
+                      (existing.name.toLowerCase() === amadeus.name.toLowerCase() && existing.city === amadeus.city)
+                    );
+                    if (!isDuplicate) {
+                      results.push(amadeus);
+                    }
+                  });
+                }
+              } catch (amadeusError) {
+                console.warn('Amadeus airport search failed, using local results:', amadeusError);
+              }
+            }
           }
 
           // Priority 3: City/destination search (fallback for hotels or primary for cities)
-          if (results.length < 3) {
+          if ((searchType === "city" || searchType === "both") && results.length < 3) {
             try {
               const { data: amadeusData } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
                 body: { 
                   query: q, 
-                  types: searchType === "airport" ? ['AIRPORT'] : ['CITY'],
+                  types: ['CITY'],
                   limit: 8 
                 }
               });
 
-              if (amadeusData?.suggestions && Array.isArray(amadeusData.suggestions)) {
-                const amadeusResults = amadeusData.suggestions.map((d: any) => ({
-                  id: d.id || d.iataCode,
+              if (amadeusData?.results && Array.isArray(amadeusData.results)) {
+                const amadeusResults = amadeusData.results.map((d: any) => ({
+                  id: d.id,
                   name: d.name,
-                  city: d.city || d.address?.cityName,
-                  country: d.country || d.address?.countryName,
-                  code: d.iataCode || d.id,
-                  type: d.type === 'AIRPORT' ? 'airport' : 'city' as const,
-                  coordinates: d.geoCode ? { 
-                    lat: parseFloat(d.geoCode.latitude), 
-                    lng: parseFloat(d.geoCode.longitude) 
+                  city: d.city,
+                  country: d.country,
+                  code: d.code,
+                  type: 'city' as const,
+                  coordinates: d.coordinates ? { 
+                    lat: d.coordinates[1], 
+                    lng: d.coordinates[0] 
                   } : { lat: 0, lng: 0 }
                 }));
                 
@@ -185,7 +236,14 @@ export const DestinationAutocomplete = ({
           setSuggestions(results.slice(0, 8));
         } catch (error) {
           console.error('Error fetching suggestions:', error);
-          setSuggestions([]);
+          
+          // Final fallback: if everything fails and it's an airport search, use local data
+          if (searchType === "airport") {
+            const localFallback = searchLocalAirports(q);
+            setSuggestions(localFallback);
+          } else {
+            setSuggestions([]);
+          }
         } finally {
           setIsLoading(false);
         }
