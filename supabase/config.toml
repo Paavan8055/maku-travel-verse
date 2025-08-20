@@ -120,6 +120,16 @@ verify_jwt = false
 [functions.rate-limiter]
 verify_jwt = false
 
+# Sabre API functions for alternative inventory
+[functions.sabre-flight-search]
+verify_jwt = false
+
+[functions.sabre-hotel-search]
+verify_jwt = false
+
+[functions.sabre-locations-autocomplete]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327
