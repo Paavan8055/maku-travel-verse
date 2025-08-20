@@ -310,6 +310,45 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_addons: {
+        Row: {
+          addon_id: string
+          booking_id: string
+          created_at: string
+          id: string
+          quantity: number
+        }
+        Insert: {
+          addon_id: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          quantity?: number
+        }
+        Update: {
+          addon_id?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_addons_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_items: {
         Row: {
           booking_id: string
@@ -1103,6 +1142,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hotel_addons: {
+        Row: {
+          active: boolean
+          category: string
+          code: string
+          created_at: string
+          currency: string
+          description: string | null
+          hotel_id: string
+          id: string
+          name: string
+          per_person: boolean
+          price_cents: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          code: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          hotel_id: string
+          id?: string
+          name: string
+          per_person?: boolean
+          price_cents: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          code?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          hotel_id?: string
+          id?: string
+          name?: string
+          per_person?: boolean
+          price_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       hotel_offers_cache: {
         Row: {
@@ -1920,6 +2004,44 @@ export type Database = {
           verified?: boolean | null
         }
         Relationships: []
+      }
+      payment_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          payment_id: string | null
+          processed: boolean
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload: Json
+          payment_id?: string | null
+          processed?: boolean
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          payment_id?: string | null
+          processed?: boolean
+          stripe_event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_methods: {
         Row: {
@@ -2788,6 +2910,10 @@ export type Database = {
           p_status: string
           p_total_price: number
         }
+        Returns: string
+      }
+      generate_booking_reference: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       generate_gift_card_code: {
