@@ -88,7 +88,7 @@ export const useActivityBooking = () => {
       });
 
       // Create payment intent for the booking
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-booking-payment', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-hotel-booking', {
         body: {
           bookingId: supabaseBooking.id,
           amount: params.activityDetails.price * params.participantDetails.participants,
