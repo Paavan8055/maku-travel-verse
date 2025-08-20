@@ -81,72 +81,7 @@ async function searchFlightOffers(params: FlightSearchParams, accessToken: strin
   return await response.json();
 }
 
-function addPriceVariation(amadeusData: any): any {
-  if (!amadeusData?.data || !Array.isArray(amadeusData.data)) {
-    return amadeusData;
-  }
-
-  // Add realistic price variation based on flight characteristics
-  amadeusData.data = amadeusData.data.map((offer: any, index: number) => {
-    const segments = offer.itineraries[0]?.segments || [];
-    const firstSegment = segments[0];
-    
-    if (!firstSegment) return offer;
-
-    const basePrice = parseFloat(offer.price.total);
-    const currency = offer.price.currency;
-    
-    // Calculate variation factors
-    const departureHour = new Date(firstSegment.departure.at).getHours();
-    const airlineCode = firstSegment.carrierCode;
-    const isDirectFlight = segments.length === 1;
-    
-    // Time-based pricing (peak hours cost more)
-    let timeMultiplier = 1.0;
-    if (departureHour >= 6 && departureHour <= 9) timeMultiplier = 1.15; // Morning peak
-    else if (departureHour >= 17 && departureHour <= 20) timeMultiplier = 1.1; // Evening peak
-    else if (departureHour >= 22 || departureHour <= 5) timeMultiplier = 0.85; // Red-eye discount
-    
-    // Airline-based pricing
-    let airlineMultiplier = 1.0;
-    switch (airlineCode) {
-      case 'QF': airlineMultiplier = 1.2; break; // Qantas premium
-      case 'VA': airlineMultiplier = 1.05; break; // Virgin slight premium
-      case 'JQ': airlineMultiplier = 0.8; break; // Jetstar budget
-      case 'TT': airlineMultiplier = 0.75; break; // Tigerair budget
-      default: airlineMultiplier = 0.9 + (index * 0.05); // Vary by index for others
-    }
-    
-    // Direct flight premium
-    const directMultiplier = isDirectFlight ? 1.1 : 0.95;
-    
-    // Random variation for diversity (±10%)
-    const randomMultiplier = 0.9 + (Math.random() * 0.2);
-    
-    // Apply all multipliers
-    const finalMultiplier = timeMultiplier * airlineMultiplier * directMultiplier * randomMultiplier;
-    const adjustedPrice = Math.round(basePrice * finalMultiplier * 100) / 100;
-    
-    console.log(`[PRICE-VARIATION] ${airlineCode}: ${basePrice} -> ${adjustedPrice} (${finalMultiplier.toFixed(3)}x)`);
-    
-    // Update the price
-    offer.price.total = adjustedPrice.toString();
-    
-    // Also update traveler pricing if present
-    if (offer.travelerPricings && offer.travelerPricings.length > 0) {
-      offer.travelerPricings.forEach((tp: any) => {
-        if (tp.price) {
-          const tpBase = parseFloat(tp.price.total);
-          tp.price.total = Math.round(tpBase * finalMultiplier * 100) / 100;
-        }
-      });
-    }
-    
-    return offer;
-  });
-
-  return amadeusData;
-}
+// Price manipulation function removed - now using authentic Amadeus pricing
 
 function generateSearchKey(params: FlightSearchParams): string {
   const keyData = {
@@ -202,10 +137,7 @@ serve(async (req) => {
     // Cache miss - call Amadeus
     console.log('[FLIGHT-OFFERS] Cache miss, calling Amadeus');
     const accessToken = await getAmadeusAccessToken();
-    const rawAmadeusData = await searchFlightOffers(params, accessToken);
-    
-    // Add price variation for realistic diversity
-    const amadeusData = addPriceVariation(rawAmadeusData);
+    const amadeusData = await searchFlightOffers(params, accessToken);
 
     // Save to cache via RPC
     const ttlExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
