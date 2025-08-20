@@ -1,133 +1,151 @@
-import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { ChevronLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import HotelGuestForm, { HotelGuestFormData } from "@/features/booking/components/HotelGuestForm";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-const HotelCheckout = () => {
+// Load Stripe
+const stripePromise = loadStripe('pk_test_51QXYwPILlBrPBZqYWJSr9jbQ2zLMlVHwBb7LQI8c7QJ8x9eLqShZ8N2C8p4lJaW1qZQrNxGO2YI9QwV3O8cM2YrM00lV2XFO6W');
+
+function CheckoutInner() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const stripe = useStripe();
+  const elements = useElements();
+  const { toast } = useToast();
+
   const [guestValid, setGuestValid] = useState(false);
   const [guest, setGuest] = useState<HotelGuestFormData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  // Parse hotel data from URL params
-  const urlParams = new URLSearchParams(window.location.search);
-  const hotelParam = urlParams.get('hotel');
-  
-  let hotelData: any = null;
-  if (hotelParam) {
-    try {
-      hotelData = JSON.parse(decodeURIComponent(hotelParam));
-    } catch (error) {
-      console.error('Failed to parse hotel data from URL:', error);
-    }
-  }
-  
-  // Extract search parameters for dates and guests (standardized to camelCase)
-  const checkInParam = urlParams.get('checkIn') || urlParams.get('checkin');
-  const checkOutParam = urlParams.get('checkOut') || urlParams.get('checkout');
-  const adultsParam = urlParams.get('adults') || '2';
-  const childrenParam = urlParams.get('children') || '0';
-  const priceParam = urlParams.get('price');
-  const currencyParam = urlParams.get('currency') || '$';
-  const hotelNameParam = urlParams.get('hotelName');
-  
-  // Parse dates
-  let checkInDate = "Mar 15, 2025";
-  let checkOutDate = "Mar 22, 2025";
-  let nights = 7;
-  let totalGuests = 2;
-  
-  if (checkInParam && checkOutParam) {
-    try {
-      checkInDate = new Date(checkInParam).toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-      checkOutDate = new Date(checkOutParam).toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-      
-      const checkIn = new Date(checkInParam);
-      const checkOut = new Date(checkOutParam);
-      nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-    } catch (error) {
-      console.error('Failed to parse dates:', error);
-    }
-  }
-  
-  if (adultsParam) {
-    totalGuests = parseInt(adultsParam) + (childrenParam ? parseInt(childrenParam) : 0);
-  }
-  
-  // Build booking details from URL hotel data and stored selections
-  let selection: any = null;
-  try { 
-    selection = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || 'null'); 
-  } catch {}
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [bookingData, setBookingData] = useState<any>(null);
 
-  // Use actual price from URL if available, otherwise fall back to other sources
-  const actualPrice = priceParam ? parseFloat(priceParam) : null;
-  const baseNightly = actualPrice || hotelData?.pricePerNight || Number(selection?.nightlyPrice || 450);
-  const basePrice = baseNightly * nights;
-  const extrasPrice = (Number(selection?.extraBeds || 0) * 25) + (selection?.rollaway ? 30 : 0) + (selection?.sofaBed ? 40 : 0);
-  const fundContribution = 0; // Fund contribution removed
-  
-  const bookingDetails = {
-    hotel: hotelNameParam || hotelData?.name || selection?.hotelName || "Unknown Hotel",
-    room: selection?.roomName || "Deluxe Ocean View",
-    bedType: selection?.bedType as string | undefined,
-    extraBeds: Number(selection?.extraBeds || 0),
-    rollaway: Boolean(selection?.rollaway),
-    sofaBed: Boolean(selection?.sofaBed),
-    checkIn: checkInDate,
-    checkOut: checkOutDate,
-    nights,
-    guests: totalGuests,
-    basePrice,
-    extrasPrice,
-    fundContribution,
-    total: basePrice + extrasPrice,
-    currency: currencyParam
-  };
+  // Extract parameters
+  const hotelId = searchParams.get("hotelId")!;
+  const offerId = searchParams.get("offerId")!;
+  const checkIn = searchParams.get("checkIn")!;
+  const checkOut = searchParams.get("checkOut")!;
+  const adults = parseInt(searchParams.get("adults") || "2");
+  const children = parseInt(searchParams.get("children") || "0");
+  const rooms = parseInt(searchParams.get("rooms") || "1");
+  const addons = (searchParams.get("addons") || "").split(",").filter(Boolean);
+  const bedPref = searchParams.get("bedPref") || "";
+  const note = searchParams.get("note") || "";
+  // Create booking and payment intent
+  useEffect(() => {
+    const createBooking = async () => {
+      if (!hotelId || !offerId || !checkIn || !checkOut) return;
 
-  const goToPayment = () => {
-    console.log('goToPayment called for hotel booking', { guest });
+      try {
+        console.log('Creating hotel booking:', { hotelId, offerId, checkIn, checkOut, adults, children, rooms, addons });
+
+        const { data, error } = await supabase.functions.invoke("create-hotel-booking", {
+          body: { 
+            hotelId, 
+            offerId, 
+            checkIn, 
+            checkOut, 
+            adults, 
+            children, 
+            rooms, 
+            addons,
+            bedPref,
+            note
+          }
+        });
+
+        if (error) {
+          console.error('Booking creation error:', error);
+          throw error;
+        }
+
+        if (data?.success) {
+          setClientSecret(data.clientSecret);
+          setBookingData({
+            booking_id: data.booking_id,
+            total_amount: data.total_amount,
+            currency: data.currency,
+            amount_cents: data.amount_cents
+          });
+          toast({
+            title: "Booking prepared",
+            description: "Ready for payment"
+          });
+        } else {
+          throw new Error(data?.error || 'Failed to create booking');
+        }
+      } catch (err: any) {
+        console.error('Error creating booking:', err);
+        toast({
+          title: "Booking error",
+          description: err.message || 'Failed to prepare booking',
+          variant: "destructive"
+        });
+      }
+    };
+
+    createBooking();
+  }, [hotelId, offerId, checkIn, checkOut, adults, children, rooms, addons, bedPref, note, toast]);
+
+  // Calculate display values
+  const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
+  const totalGuests = adults + children;
+  
+  const checkInDate = new Date(checkIn).toLocaleDateString('en-US', { 
+    month: 'short', day: 'numeric', year: 'numeric' 
+  });
+  const checkOutDate = new Date(checkOut).toLocaleDateString('en-US', { 
+    month: 'short', day: 'numeric', year: 'numeric' 
+  });
+
+  const handlePayment = async () => {
+    if (!stripe || !elements || !clientSecret) return;
     
+    setIsLoading(true);
+
     try {
+      // Save guest info
       if (guest) {
         sessionStorage.setItem('guestInfo', JSON.stringify(guest));
-        console.log('Saved guest info to session storage');
       }
-    } catch (e) {
-      console.error('Session storage error:', e);
+
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/payment/success?booking_id=${bookingData?.booking_id}`,
+        },
+      });
+
+      if (error) {
+        console.error('Payment error:', error);
+        toast({
+          title: "Payment failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      console.error('Payment processing error:', err);
+      toast({
+        title: "Payment error", 
+        description: "Failed to process payment",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Ensure we navigate to the payment page with all current URL parameters
-    const currentSearch = window.location.search;
-    console.log('Navigating to payment with search:', currentSearch);
-    
-    navigate(`/booking/payment${currentSearch}`);
   };
 
   const handleContinue = useCallback(() => {
-    if (isLoading) return;
+    if (isLoading || !stripe || !elements) return;
     
-    console.log('Continue button clicked for hotel', {
-      guestValid,
-      guest: !!guest,
-      bookingDetails
-    });
-
     if (!guest || !guestValid) {
-      console.log('Hotel validation failed - missing guest data');
       toast({
         title: 'Complete guest details',
         description: 'Please fill all required fields before continuing.',
@@ -141,24 +159,13 @@ const HotelCheckout = () => {
       return;
     }
     
-    setIsLoading(true);
-    console.log('Hotel booking - validation passed, proceeding to payment');
-    goToPayment();
-  }, [isLoading, guestValid, guest, bookingDetails, toast, goToPayment]);
+    handlePayment();
+  }, [isLoading, guestValid, guest, stripe, elements, handlePayment, toast]);
 
-  const isButtonDisabled = !guestValid || !guest || isLoading;
-  
-  console.log('Hotel checkout button state:', { 
-    guestValid, 
-    hasGuest: !!guest, 
-    isLoading, 
-    isButtonDisabled,
-    guest: guest ? Object.keys(guest) : null
-  });
+  const isButtonDisabled = !guestValid || !guest || isLoading || !clientSecret;
 
   // Memoize the form change handler to prevent infinite loops
   const handleGuestFormChange = useCallback((data: HotelGuestFormData, valid: boolean) => {
-    console.log('Guest form change:', { valid, data });
     setGuest(data);
     setGuestValid(valid);
   }, []);
@@ -190,18 +197,38 @@ const HotelCheckout = () => {
               <HotelGuestForm onChange={handleGuestFormChange} />
             </div>
 
-            {/* Payment CTA */}
+            {/* Payment Form */}
             <Card className="travel-card">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-bold mb-2">Next: Payment</h2>
-                <p className="text-muted-foreground mb-4">Continue to secure payment to complete your booking.</p>
+              <CardHeader>
+                <CardTitle>Payment Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {clientSecret ? (
+                  <PaymentElement />
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Preparing payment...</p>
+                  </div>
+                )}
+                
+                {bookingData && (
+                  <div className="bg-muted p-4 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Total Amount:</span>
+                      <span className="font-bold text-lg">
+                        {bookingData.currency} {bookingData.total_amount?.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <Button 
                   onClick={handleContinue} 
-                  className="btn-primary h-12" 
+                  className="btn-primary h-12 w-full" 
                   size="lg"
                   disabled={isButtonDisabled}
                 >
-                  {isLoading ? "Processing..." : "Continue to Payment"}
+                  {isLoading ? "Processing Payment..." : "Pay Now"}
                 </Button>
               </CardContent>
             </Card>
@@ -216,14 +243,16 @@ const HotelCheckout = () => {
                 <div className="space-y-4">
                   {/* Hotel Details */}
                   <div>
-                    <h4 className="font-medium">{bookingDetails.hotel}</h4>
-                    <p className="text-sm text-muted-foreground">{bookingDetails.room}</p>
-                    {bookingDetails.bedType && (
+                    <h4 className="font-medium">Hotel Booking</h4>
+                    <p className="text-sm text-muted-foreground">Offer ID: {offerId}</p>
+                    {bedPref && bedPref !== 'any' && (
                       <p className="text-xs text-muted-foreground">
-                        Bed: {bookingDetails.bedType}
-                        {bookingDetails.extraBeds ? ` + ${bookingDetails.extraBeds} extra` : ''}
-                        {bookingDetails.rollaway ? ' + rollaway' : ''}
-                        {bookingDetails.sofaBed ? ' + sofa bed' : ''}
+                        Bed preference: {bedPref}
+                      </p>
+                    )}
+                    {note && (
+                      <p className="text-xs text-muted-foreground">
+                        Special requests: {note}
                       </p>
                     )}
                   </div>
@@ -232,42 +261,34 @@ const HotelCheckout = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Check-in</p>
-                      <p className="font-medium">{bookingDetails.checkIn}</p>
+                      <p className="font-medium">{checkInDate}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Check-out</p>
-                      <p className="font-medium">{bookingDetails.checkOut}</p>
+                      <p className="font-medium">{checkOutDate}</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Duration</p>
-                      <p className="font-medium">{bookingDetails.nights} nights</p>
+                      <p className="font-medium">{nights} nights</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Guests</p>
-                      <p className="font-medium">{bookingDetails.guests} {bookingDetails.guests === 1 ? 'guest' : 'guests'}</p>
+                      <p className="font-medium">{totalGuests} {totalGuests === 1 ? 'guest' : 'guests'}</p>
                     </div>
                   </div>
                   
-                  {/* Price Breakdown */}
-                  <div className="border-t pt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Room ({bookingDetails.nights} nights)</span>
-                      <span>{bookingDetails.currency}{bookingDetails.basePrice}</span>
-                    </div>
-                    {bookingDetails.extrasPrice > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Extras & Services</span>
-                        <span>{bookingDetails.currency}{bookingDetails.extrasPrice}</span>
+                  {/* Price Display */}
+                  {bookingData && (
+                    <div className="border-t pt-4 space-y-2">
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span>{bookingData.currency} {bookingData.total_amount?.toFixed(2)}</span>
                       </div>
-                    )}
-                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                      <span>Total</span>
-                      <span>{bookingDetails.currency}{bookingDetails.total}</span>
                     </div>
-                  </div>
+                  )}
                   
                   {/* Security Badge */}
                   <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
@@ -284,7 +305,7 @@ const HotelCheckout = () => {
                   className="w-full mt-6 btn-primary h-12"
                   disabled={isButtonDisabled}
                 >
-                  {isLoading ? "Processing..." : "Continue to Payment"}
+                  {isLoading ? "Processing Payment..." : "Pay Now"}
                 </Button>
               </CardContent>
             </Card>
@@ -293,6 +314,16 @@ const HotelCheckout = () => {
       </div>
     </div>
   );
-};
+}
 
-export default HotelCheckout;
+export default function HotelCheckout() {
+  const options = useMemo(() => ({ 
+    appearance: { theme: 'stripe' as const } 
+  }), []);
+  
+  return (
+    <Elements stripe={stripePromise} options={options}>
+      <CheckoutInner />
+    </Elements>
+  );
+}
