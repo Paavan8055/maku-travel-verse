@@ -98,23 +98,6 @@ const HotelSearchPage = () => {
     }
   });
 
-  // Mock guest reviews for demonstration
-  const mockReviews = [{
-    author: "Sarah M.",
-    rating: 5,
-    text: "Absolutely stunning location with incredible service. The overwater villa was a dream come true!",
-    verified: true
-  }, {
-    author: "James K.",
-    rating: 4,
-    text: "Great hotel, beautiful beaches and excellent food. Would definitely come back.",
-    verified: true
-  }, {
-    author: "Emma L.",
-    rating: 5,
-    text: "Perfect honeymoon destination. Staff went above and beyond to make our stay special.",
-    verified: false
-  }];
   return <div className="min-h-screen bg-background">
       <Navbar />
       
