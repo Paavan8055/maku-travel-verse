@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +8,7 @@ import { AuthProvider } from "@/features/auth/context/AuthContext";
 import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
 import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
 import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
