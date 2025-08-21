@@ -10,32 +10,32 @@ const Press = () => {
   const pressReleases = [
     {
       id: 1,
-      title: "Maku.travel Launches Revolutionary Four-Way Travel Marketplace",
-      date: "2025-01-15",
-      category: "Product Launch",
-      excerpt: "Introducing specialized marketplaces for Family, Solo, Pet, and Spiritual travel experiences with AI-powered personalization.",
+      title: "Maku.travel Announces Soft Launch Date and Four-Way Travel Marketplace Vision",
+      date: "2025-07-15",
+      category: "Company News",
+      excerpt: "Australian travel tech startup announces September 9, 2025 soft launch of unique marketplace focused on Family, Solo, Pet-friendly, and Spiritual travel experiences.",
       featured: true
     },
     {
       id: 2,
-      title: "Maku.travel Secures Series A Funding to Expand Global Reach",
-      date: "2024-12-10",
-      category: "Funding",
-      excerpt: "Leading travel tech investors back Maku's vision for personalized travel experiences across four specialized verticals."
+      title: "Australian Travel Tech Startup Maku.travel Completes MVP Development",
+      date: "2025-06-20",
+      category: "Product Development",
+      excerpt: "Sydney-based startup successfully completes core platform development, introducing innovative approach to specialized travel verticals with plans for blockchain integration."
     },
     {
       id: 3,
-      title: "Partnership with Global Hotel Chains Announced",
-      date: "2024-11-22",
-      category: "Partnerships",
-      excerpt: "Strategic partnerships with major hotel chains to offer exclusive rates and experiences for pet-friendly and spiritual travel."
+      title: "Maku.travel Founder Announces Vision for Blockchain-Powered Travel Platform",
+      date: "2025-05-10",
+      category: "Innovation",
+      excerpt: "Startup reveals ambitious roadmap including crypto payments, AI-powered travel fund manager, and revolutionary hotel bidding platform using smart contracts."
     },
     {
       id: 4,
-      title: "Maku.travel Wins 'Best Travel Innovation' Award",
-      date: "2024-10-08",
-      category: "Awards",
-      excerpt: "Recognized for innovative approach to specialized travel marketplace and AI-powered travel recommendations."
+      title: "Sydney Startup Maku.travel Begins Beta Testing for Specialized Travel Marketplace",
+      date: "2025-04-08",
+      category: "Product Testing",
+      excerpt: "Early beta users provide positive feedback on unique four-way marketplace approach, validating demand for specialized travel experiences in Australian market."
     }
   ];
 
@@ -178,19 +178,31 @@ const Press = () => {
               <CardContent className="space-y-3">
                 <div>
                   <h4 className="font-semibold">Founded</h4>
-                  <p className="text-muted-foreground">2024</p>
+                  <p className="text-muted-foreground">2024 (Development Phase)</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Soft Launch</h4>
+                  <p className="text-muted-foreground">September 9, 2025</p>
                 </div>
                 <div>
                   <h4 className="font-semibold">Headquarters</h4>
                   <p className="text-muted-foreground">Sydney, Australia</p>
                 </div>
                 <div>
+                  <h4 className="font-semibold">Market Focus</h4>
+                  <p className="text-muted-foreground">Australia (2025), India expansion (2026)</p>
+                </div>
+                <div>
                   <h4 className="font-semibold">Specialization</h4>
                   <p className="text-muted-foreground">Four-way travel marketplace (Family, Solo, Pet, Spiritual)</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold">Technology</h4>
-                  <p className="text-muted-foreground">AI-powered travel recommendations</p>
+                  <h4 className="font-semibold">Stage</h4>
+                  <p className="text-muted-foreground">Pre-seed startup in beta testing</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Innovation Focus</h4>
+                  <p className="text-muted-foreground">Blockchain payments, AI assistant, DeFi travel savings</p>
                 </div>
               </CardContent>
             </Card>
