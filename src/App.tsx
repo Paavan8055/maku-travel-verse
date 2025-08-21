@@ -1,12 +1,13 @@
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
-import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
 import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
+import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
@@ -45,68 +46,69 @@ import Deals from "./pages/Deals";
 import GiftCards from "./pages/GiftCards";
 import Roadmap from "./pages/Roadmap";
 import NotFound from "./pages/NotFound";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+const App = () => (
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <AuthProvider>
           <CurrencyProvider>
-            <AgenticBotProvider>
-              <MakuBotProvider>
+            <MakuBotProvider>
+              <AgenticBotProvider>
                 <TooltipProvider>
                   <Toaster />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/admin/auth" element={<AdminAuth />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                      <Route path="/search" element={<SearchHub />} />
-                      <Route path="/search/hotels" element={<HotelSearchPage />} />
-                      <Route path="/search/flights" element={<FlightSearchPage />} />
-                      <Route path="/search/activities" element={<ActivitySearchPage />} />
-                      <Route path="/careers" element={<Careers />} />
-                      
-                      <Route path="/hotel/:hotelId" element={<HotelDetails />} />
-                      <Route path="/hotel-details" element={<HotelDetails />} />
-                      <Route path="/booking/select" element={<BookingSelect />} />
-                      <Route path="/booking/extras" element={<BookingExtras />} />
-                      <Route path="/booking/checkout" element={<HotelCheckout />} />
-                      <Route path="/booking/baggage" element={<BookingBaggage />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/flight-booking-review" element={<FlightBookingReview />} />
-                      <Route path="/flight-checkout" element={<FlightCheckout />} />
-                      <Route path="/activity-checkout" element={<ActivityCheckout />} />
-                      <Route path="/activity-select" element={<ActivitySelect />} />
-                      <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-                      <Route path="/booking-cancelled" element={<BookingCancelled />} />
-                      <Route path="/booking/:id" element={<BookingDetails />} />
-                      <Route path="/payment/success" element={<PaymentSuccess />} />
-                      <Route path="/payment/cancelled" element={<PaymentCancelled />} />
-                      <Route path="/payment-setup" element={<PaymentSetup />} />
-                      <Route path="/partners" element={<Partners />} />
-                      <Route path="/press" element={<Press />} />
-                      <Route path="/partner-auth" element={<PartnerAuth />} />
-                      <Route path="/partner-dashboard" element={<PartnerDashboard />} />
-                      <Route path="/partner-portal" element={<PartnerPortal />} />
-                      <Route path="/deals" element={<Deals />} />
-                      <Route path="/gift-cards" element={<GiftCards />} />
-                      <Route path="/roadmap" element={<Roadmap />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
+                  <Sonner />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/admin/auth" element={<AdminAuth />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/search" element={<SearchHub />} />
+                    <Route path="/search/hotels" element={<HotelSearchPage />} />
+                    <Route path="/search/flights" element={<FlightSearchPage />} />
+                    <Route path="/search/activities" element={<ActivitySearchPage />} />
+                    <Route path="/careers" element={<Careers />} />
+                    
+                    <Route path="/hotel/:hotelId" element={<HotelDetails />} />
+                    <Route path="/hotel-details" element={<HotelDetails />} />
+                    <Route path="/booking/select" element={<BookingSelect />} />
+                    <Route path="/booking/extras" element={<BookingExtras />} />
+                    <Route path="/booking/checkout" element={<HotelCheckout />} />
+                    <Route path="/booking/baggage" element={<BookingBaggage />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/flight-booking-review" element={<FlightBookingReview />} />
+                    <Route path="/flight-checkout" element={<FlightCheckout />} />
+                    <Route path="/activity-checkout" element={<ActivityCheckout />} />
+                    <Route path="/activity-select" element={<ActivitySelect />} />
+                    <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+                    <Route path="/booking-cancelled" element={<BookingCancelled />} />
+                    <Route path="/booking/:id" element={<BookingDetails />} />
+                    <Route path="/payment/success" element={<PaymentSuccess />} />
+                    <Route path="/payment/cancelled" element={<PaymentCancelled />} />
+                    <Route path="/payment-setup" element={<PaymentSetup />} />
+                    <Route path="/partners" element={<Partners />} />
+                    <Route path="/press" element={<Press />} />
+                    <Route path="/partner-auth" element={<PartnerAuth />} />
+                    <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+                    <Route path="/partner-portal" element={<PartnerPortal />} />
+                    <Route path="/deals" element={<Deals />} />
+                    <Route path="/gift-cards" element={<GiftCards />} />
+                    <Route path="/roadmap" element={<Roadmap />} />
+                    <Route path="/help" element={<Help />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
                 </TooltipProvider>
-              </MakuBotProvider>
-            </AgenticBotProvider>
+              </AgenticBotProvider>
+            </MakuBotProvider>
           </CurrencyProvider>
         </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-}
+      </BrowserRouter>
+    </QueryClientProvider>
+  </ErrorBoundary>
+);
 
 export default App;
