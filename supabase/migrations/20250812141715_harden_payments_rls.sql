@@ -1,4 +1,4 @@
--- Harden RLS for payments table by removing permissive service policy
+-- Migration: Harden RLS for payments table by removing permissive service policy
 BEGIN;
 
 -- Ensure RLS remains enabled on payments

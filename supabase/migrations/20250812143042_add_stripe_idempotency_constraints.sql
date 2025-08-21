@@ -1,4 +1,4 @@
--- Security hardening: idempotency constraints for Stripe-related records
+-- Migration: Enforce Stripe idempotency with unique constraints
 BEGIN;
 
 -- Ensure one payment record per Stripe Payment Intent

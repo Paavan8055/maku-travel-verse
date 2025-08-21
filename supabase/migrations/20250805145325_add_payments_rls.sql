@@ -1,3 +1,4 @@
+-- Migration: Add bookings and payments tables with RLS policies
 -- Create enums for booking and payment status
 CREATE TYPE public.booking_status AS ENUM ('pending', 'confirmed', 'cancelled');
 CREATE TYPE public.payment_status AS ENUM ('requires_payment', 'processing', 'succeeded', 'failed', 'refunded');

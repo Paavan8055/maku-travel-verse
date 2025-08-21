@@ -1,4 +1,4 @@
--- Harden RLS for financial tables by removing permissive service policies
+-- Migration: Harden RLS for financial tables by removing permissive service policies
 -- Service role bypasses RLS, so edge functions using SUPABASE_SERVICE_ROLE_KEY continue to work.
 
 -- Ensure RLS remains enabled
