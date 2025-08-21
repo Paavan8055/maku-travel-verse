@@ -37,7 +37,7 @@ export const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
       <div className="flex items-center gap-2">
         <Badge variant="outline" className="bg-background/50 text-foreground border-border/50">
           <Globe className="h-3 w-3 mr-1" />
-          Prices in {selectedCurrency}
+          {selectedCurrency}
         </Badge>
         
         {showSelector && (
