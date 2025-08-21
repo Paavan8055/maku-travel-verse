@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -62,7 +63,7 @@ const jobPositions: JobPosition[] = [
       'Travel allowance for industry events',
       'Unlimited vacation policy'
     ],
-    equityAllocation: '0.5% - 2% founding allocation'
+    equityAllocation: 'Up to 10%. T&C applies'
   },
   {
     id: 'marketing-growth',
@@ -85,7 +86,7 @@ const jobPositions: JobPosition[] = [
       'Travel content creation opportunities',
       'Access to industry events and conferences'
     ],
-    equityAllocation: '0.2% - 1% founding allocation'
+    equityAllocation: 'Up to 10%. T&C applies'
   }
 ];
 
