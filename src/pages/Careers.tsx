@@ -153,7 +153,7 @@ const Careers: React.FC = () => {
               </Badge>
               <Badge className="bg-white/20 text-white text-lg px-4 py-2">
                 <Rocket className="mr-2 h-5 w-5" />
-                Founding Team Equity (Future MAKU Tokens)
+                Founding Team Equity (MAKU Tokens)
               </Badge>
             </div>
           </div>
