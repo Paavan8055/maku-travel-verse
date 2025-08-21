@@ -1,19 +1,15 @@
-import { handler } from "./index.ts";
+import { test, expect, beforeEach } from 'vitest'
+import { handler } from './index'
 
-function assertEquals(actual: unknown, expected: unknown): void {
-  if (actual !== expected) {
-    throw new Error(`Assertion failed: ${actual} !== ${expected}`);
-  }
-}
+beforeEach(() => {
+  process.env.SUPABASE_URL = 'https://example.supabase.co'
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key'
+})
 
-
-Deno.test("guest booking lookup succeeds with valid data", async () => {
-  Deno.env.set("SUPABASE_URL", "https://example.supabase.co");
-  Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
-
+test('guest booking lookup succeeds with valid data', async () => {
   const mockClient = {
     from: (table: string) => {
-      if (table === "bookings") {
+      if (table === 'bookings') {
         return {
           select: () => ({
             eq: () => ({
@@ -21,31 +17,29 @@ Deno.test("guest booking lookup succeeds with valid data", async () => {
                 Promise.resolve({
                   data: {
                     id: 1,
-                    booking_reference: "ABC123",
-                    status: "confirmed",
-                    booking_type: "hotel",
+                    booking_reference: 'ABC123',
+                    status: 'confirmed',
+                    booking_type: 'hotel',
                     total_amount: 100,
-                    currency: "USD",
+                    currency: 'USD',
                     booking_data: {},
-                    created_at: "2024-01-01",
-                    updated_at: "2024-01-01",
+                    created_at: '2024-01-01',
+                    updated_at: '2024-01-01'
                   },
-                  error: null,
-                }),
-            }),
-          }),
-        };
+                  error: null
+                })
+            })
+          })
+        }
       }
-
-      if (table === "booking_items") {
+      if (table === 'booking_items') {
         return {
           select: () => ({
-            eq: () => Promise.resolve({ data: [], error: null }),
-          }),
-        };
+            eq: () => Promise.resolve({ data: [], error: null })
+          })
+        }
       }
-
-      if (table === "payments") {
+      if (table === 'payments') {
         return {
           select: () => ({
             eq: () => ({
@@ -54,36 +48,35 @@ Deno.test("guest booking lookup succeeds with valid data", async () => {
                   single: () =>
                     Promise.resolve({
                       data: null,
-                      error: { code: "PGRST116" },
-                    }),
-                }),
-              }),
-            }),
-          }),
-        };
+                      error: { code: 'PGRST116' }
+                    })
+                })
+              })
+            })
+          })
+        }
       }
-
-      throw new Error(`Unexpected table ${table}`);
+      throw new Error(`Unexpected table ${table}`)
     },
-    rpc: (fn: string, _args: any) => {
-      if (fn === "verify_guest_booking_access") {
-        return Promise.resolve({ data: true, error: null });
+    rpc: (fn: string) => {
+      if (fn === 'verify_guest_booking_access') {
+        return Promise.resolve({ data: true, error: null })
       }
-      if (fn === "log_booking_access") {
-        return Promise.resolve({ data: null, error: null });
+      if (fn === 'log_booking_access') {
+        return Promise.resolve({ data: null, error: null })
       }
-      throw new Error(`Unexpected rpc ${fn}`);
-    },
-  } as any;
+      throw new Error(`Unexpected rpc ${fn}`)
+    }
+  } as any
 
-  const req = new Request("http://localhost", {
-    method: "POST",
-    body: JSON.stringify({ bookingReference: "ABC123", email: "a@b.com" }),
-  });
+  const req = new Request('http://localhost', {
+    method: 'POST',
+    body: JSON.stringify({ bookingReference: 'ABC123', email: 'a@b.com' })
+  })
 
-  const res = await handler(req, mockClient);
-  const data = await res.json();
+  const res = await handler(req, mockClient)
+  const data = await res.json()
 
-  assertEquals(data.success, true);
-  assertEquals(data.booking.booking_reference, "ABC123");
-});
+  expect(data.success).toBe(true)
+  expect(data.booking.booking_reference).toBe('ABC123')
+})

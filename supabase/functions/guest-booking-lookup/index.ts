@@ -1,4 +1,9 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+let createClient: any
+if (typeof Deno === 'undefined') {
+  ;({ createClient } = await import('@supabase/supabase-js'))
+} else {
+  ;({ createClient } = await import('https://esm.sh/@supabase/supabase-js@2'))
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

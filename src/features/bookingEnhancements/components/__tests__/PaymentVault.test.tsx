@@ -1,22 +1,22 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import PaymentVault from '../PaymentVault';
-import { vi } from 'vitest';
-import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react'
+import React from 'react'
+import { vi } from 'vitest'
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'user1' } })
-}));
+}))
 
-const toast = vi.fn();
+const toast = vi.fn()
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast })
-}));
+}))
 
 vi.mock('@/lib/bookingDataClient', () => ({
   fetchPaymentMethods: vi.fn()
-}));
+}))
 
-import { fetchPaymentMethods } from '@/lib/bookingDataClient';
+import { fetchPaymentMethods } from '@/lib/bookingDataClient'
+import PaymentVault from '../PaymentVault'
 
 describe('PaymentVault', () => {
   beforeEach(() => {
