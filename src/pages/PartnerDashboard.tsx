@@ -57,9 +57,9 @@ const PartnerDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_partner_dashboard_data', {
-        partner_user_id: user?.id
-      });
+        const { data, error } = await supabase.rpc('get_partner_dashboard_data', {
+          p_partner_id: user?.id
+        });
 
       if (error) {
         logger.error('Error fetching dashboard data:', error);
@@ -84,7 +84,14 @@ const PartnerDashboard = () => {
       if (error) {
         logger.error('Error fetching partner profile:', error);
       } else {
-        setPartnerProfile(data);
+        setPartnerProfile({
+          company_name: (data?.business_name as string) || '',
+          contact_email: user?.email || '',
+          phone: (data?.phone as string) || '',
+          address: typeof data?.address === 'string' ? data.address : '',
+          partner_type: (data?.business_type as string) || '',
+          status: 'active'
+        });
       }
     } catch (error) {
       logger.error('Error in fetchPartnerProfile:', error);

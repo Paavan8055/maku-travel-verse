@@ -142,7 +142,7 @@ export const useFlightBooking = () => {
       }
 
       // Create payment intent for the booking
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-hotel-booking', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-booking-payment', {
         body: {
           bookingId: supabaseBooking?.id || 'external-' + bookingData.booking?.id,
           amount: parseFloat(priceData.price?.total || '0'),
