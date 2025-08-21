@@ -43,7 +43,7 @@ async function sendConfirmationEmail(
   try {
     // Get booking items
     const { data: bookingItems } = await supabaseClient
-      .from<BookingItem>('booking_items')
+      .from('booking_items')
       .select('*')
       .eq('booking_id', bookingId);
 
@@ -188,10 +188,10 @@ serve(async (req) => {
 
     // Get booking details
     const { data: booking, error: bookingError } = await supabaseClient
-      .from<Booking>('bookings')
+      .from('bookings')
       .select('*')
       .eq('id', bookingId)
-      .single();
+      .single<Booking>();
 
     if (bookingError || !booking) {
       throw new Error(`Booking not found: ${bookingError?.message}`);
