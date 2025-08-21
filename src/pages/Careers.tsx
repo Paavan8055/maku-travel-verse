@@ -67,7 +67,7 @@ const jobPositions: JobPosition[] = [
   },
   {
     id: 'marketing-growth',
-    title: 'Growth Marketing Manager',
+    title: 'Chief Marketing Officer - CMO',
     department: 'Marketing',
     location: 'Sydney, Australia / Remote',
     type: 'Full-time Founding Team',
