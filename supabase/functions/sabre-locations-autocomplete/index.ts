@@ -32,7 +32,7 @@ async function getSabreAccessToken(): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Sabre auth error:', errorText);
+    logger.error('Sabre auth error:', errorText);
     throw new Error('Failed to authenticate with Sabre API');
   }
 
@@ -67,10 +67,10 @@ async function searchLocations(query: string, limit: number, accessToken: string
         const data = await response.json();
         results.push(data);
       } else {
-        console.warn(`Sabre endpoint ${endpoint} returned ${response.status}`);
+        logger.warn(`Sabre endpoint ${endpoint} returned ${response.status}`);
       }
     } catch (error) {
-      console.warn(`Error calling Sabre endpoint ${endpoint}:`, error);
+      logger.warn(`Error calling Sabre endpoint ${endpoint}:`, error);
     }
   }
 
@@ -164,7 +164,7 @@ function transformSabreLocationResponse(sabreResults: any[]): any[] {
 
     return uniqueLocations.slice(0, 20); // Limit results
   } catch (error) {
-    console.error('Error transforming Sabre location response:', error);
+    logger.error('Error transforming Sabre location response:', error);
     return [];
   }
 }
@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('Sabre locations autocomplete request received');
+    logger.info('Sabre locations autocomplete request received');
     
     const body = await req.json();
     const { query, limit = 10 } = body;
@@ -195,13 +195,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Getting Sabre access token...');
+    logger.info('Getting Sabre access token...');
     const accessToken = await getSabreAccessToken();
     
-    console.log(`Searching locations for query: ${query}`);
+    logger.info(`Searching locations for query: ${query}`);
     const sabreResults = await searchLocations(query, limit, accessToken);
     
-    console.log('Sabre location data received, transforming...');
+    logger.info('Sabre location data received, transforming...');
     const transformedLocations = transformSabreLocationResponse(sabreResults);
     
     return new Response(
@@ -219,7 +219,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in sabre-locations-autocomplete:', error);
+    logger.error('Error in sabre-locations-autocomplete:', error);
     return new Response(
       JSON.stringify({
         success: false,

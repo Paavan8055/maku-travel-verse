@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +43,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 async function getSafetyRating(latitude: number, longitude: number, accessToken: string) {
   const url = `https://test.api.amadeus.com/v1/safety/safety-rated-locations?latitude=${latitude}&longitude=${longitude}`;
   
-  console.log('Getting safety rating for coordinates:', latitude, longitude);
+  logger.info('Getting safety rating for coordinates:', latitude, longitude);
   
   const response = await fetch(url, {
     headers: {
@@ -52,12 +53,12 @@ async function getSafetyRating(latitude: number, longitude: number, accessToken:
   });
 
   if (!response.ok) {
-    console.error('Safe Place API error:', response.status, response.statusText);
+    logger.error('Safe Place API error:', response.status, response.statusText);
     throw new Error(`Safe Place API error: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Safe Place response:', data);
+  logger.info('Safe Place response:', data);
   return data;
 }
 
@@ -77,11 +78,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Safety rating request for coordinates:', latitude, longitude);
+    logger.info('Safety rating request for coordinates:', latitude, longitude);
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
-    console.log('Got Amadeus access token for safety rating');
+    logger.info('Got Amadeus access token for safety rating');
 
     // Get safety rating
     const safetyData = await getSafetyRating(parseFloat(latitude), parseFloat(longitude), accessToken);
@@ -110,7 +111,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Safety rating function error:', error);
+    logger.error('Safety rating function error:', error);
     
     return new Response(
       JSON.stringify({

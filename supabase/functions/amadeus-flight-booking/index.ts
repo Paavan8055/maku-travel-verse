@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -122,7 +123,7 @@ const createFlightOrder = async (params: FlightBookingParams, accessToken: strin
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus booking error:', errorText);
+    logger.error('Amadeus booking error:', errorText);
     throw new Error(`Flight booking failed: ${response.statusText} - ${errorText}`);
   }
 
@@ -137,7 +138,7 @@ serve(async (req) => {
   try {
     const bookingParams: FlightBookingParams = await req.json();
     
-    console.log('Creating flight booking with Amadeus:', {
+    logger.info('Creating flight booking with Amadeus:', {
       flightOffersCount: bookingParams.flightOffers?.length,
       passengersCount: bookingParams.passengers?.length
     });
@@ -148,7 +149,7 @@ serve(async (req) => {
     // Create flight order
     const flightOrder = await createFlightOrder(bookingParams, accessToken);
     
-    console.log('Flight booking successful:', flightOrder.data?.id);
+    logger.info('Flight booking successful:', flightOrder.data?.id);
 
     // Transform the response to our format
     const booking = {
@@ -174,7 +175,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Flight booking error:', error);
+    logger.error('Flight booking error:', error);
     
     return new Response(JSON.stringify({
       success: false,

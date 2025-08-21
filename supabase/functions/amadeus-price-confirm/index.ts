@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,7 +34,7 @@ const getAmadeusAccessToken = async (): Promise<string> => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus auth failed:', errorText);
+    logger.error('Amadeus auth failed:', errorText);
     throw new Error(`Amadeus auth failed: ${response.statusText}`);
   }
 
@@ -42,7 +43,7 @@ const getAmadeusAccessToken = async (): Promise<string> => {
 };
 
 const confirmHotelPrice = async (offerId: string, accessToken: string) => {
-  console.log('Amadeus Price Confirmation API call:', `https://test.api.amadeus.com/v3/shopping/hotel-offers/${offerId}`);
+  logger.info('Amadeus Price Confirmation API call:', `https://test.api.amadeus.com/v3/shopping/hotel-offers/${offerId}`);
 
   const response = await fetch(
     `https://test.api.amadeus.com/v3/shopping/hotel-offers/${offerId}`,
@@ -56,7 +57,7 @@ const confirmHotelPrice = async (offerId: string, accessToken: string) => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus price confirmation error:', {
+    logger.error('Amadeus price confirmation error:', {
       status: response.status,
       statusText: response.statusText,
       error: errorText,
@@ -66,7 +67,7 @@ const confirmHotelPrice = async (offerId: string, accessToken: string) => {
   }
 
   const result = await response.json();
-  console.log('Amadeus Price Confirmation API response:', {
+  logger.info('Amadeus Price Confirmation API response:', {
     offerId: result.data?.id,
     available: result.data?.available,
     priceTotal: result.data?.offers?.[0]?.price?.total
@@ -83,7 +84,7 @@ serve(async (req) => {
   try {
     const { offerId } = await req.json();
 
-    console.log('=== Amadeus Price Confirmation Request ===', {
+    logger.info('=== Amadeus Price Confirmation Request ===', {
       offerId
     });
 
@@ -134,7 +135,7 @@ serve(async (req) => {
       lastUpdated: new Date().toISOString()
     };
 
-    console.log(`=== Price Confirmation Complete ===`, {
+    logger.info(`=== Price Confirmation Complete ===`, {
       offerId: offer?.id,
       available: offer?.available,
       confirmationSuccess: true
@@ -154,7 +155,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('=== Amadeus Price Confirmation Error ===', {
+    logger.error('=== Amadeus Price Confirmation Error ===', {
       error: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString()

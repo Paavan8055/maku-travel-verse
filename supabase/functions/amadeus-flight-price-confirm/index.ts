@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,7 +53,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 async function confirmFlightPrice(params: FlightPriceParams, accessToken: string) {
   const url = 'https://test.api.amadeus.com/v1/shopping/flight-offers/pricing';
   
-  console.log('Confirming flight price for offer ID:', params.flightOfferId);
+  logger.info('Confirming flight price for offer ID:', params.flightOfferId);
   
   const body = {
     data: {
@@ -80,12 +81,12 @@ async function confirmFlightPrice(params: FlightPriceParams, accessToken: string
   });
 
   if (!response.ok) {
-    console.error('Flight price confirmation API error:', response.status, response.statusText);
+    logger.error('Flight price confirmation API error:', response.status, response.statusText);
     throw new Error(`Flight price confirmation API error: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Flight price confirmation response:', data);
+  logger.info('Flight price confirmation response:', data);
   return data;
 }
 
@@ -105,11 +106,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Flight price confirmation request for offer:', flightOfferId);
+    logger.info('Flight price confirmation request for offer:', flightOfferId);
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
-    console.log('Got Amadeus access token for flight price confirmation');
+    logger.info('Got Amadeus access token for flight price confirmation');
 
     // Confirm flight price
     const priceData = await confirmFlightPrice({ flightOfferId, pricingOptions }, accessToken);
@@ -136,7 +137,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Flight price confirmation function error:', error);
+    logger.error('Flight price confirmation function error:', error);
     
     return new Response(
       JSON.stringify({

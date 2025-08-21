@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,7 +67,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Creating hotel booking:', { hotelId, offerId, checkIn, checkOut, adults, children, rooms });
+    logger.info('Creating hotel booking:', { hotelId, offerId, checkIn, checkOut, adults, children, rooms });
 
     // Re-fetch the offer from Amadeus to get accurate pricing
     const { data: hotelData, error: hotelError } = await supabaseClient.functions.invoke(
@@ -146,7 +147,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (bookingError) {
-      console.error('Booking creation error:', bookingError);
+      logger.error('Booking creation error:', bookingError);
       throw new Error('Failed to create booking record');
     }
 
@@ -176,7 +177,7 @@ Deno.serve(async (req) => {
     const paymentIntent = await stripeResponse.json();
 
     if (!stripeResponse.ok) {
-      console.error('Stripe error:', paymentIntent);
+      logger.error('Stripe error:', paymentIntent);
       throw new Error('Failed to create payment intent');
     }
 
@@ -192,10 +193,10 @@ Deno.serve(async (req) => {
       });
 
     if (paymentError) {
-      console.error('Payment record error:', paymentError);
+      logger.error('Payment record error:', paymentError);
     }
 
-    console.log(`✅ Created hotel booking ${booking.id} with payment intent ${paymentIntent.id}`);
+    logger.info(`✅ Created hotel booking ${booking.id} with payment intent ${paymentIntent.id}`);
 
     return new Response(
       JSON.stringify({
@@ -213,7 +214,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Create hotel booking error:', error);
+    logger.error('Create hotel booking error:', error);
     return new Response(
       JSON.stringify({
         success: false,

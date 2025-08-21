@@ -1,4 +1,5 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,7 +64,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Fetching hotel details for:', { hotelId, checkIn, checkOut, adults, children, rooms });
+    logger.info('Fetching hotel details for:', { hotelId, checkIn, checkOut, adults, children, rooms });
 
     // Get Amadeus access token
     const accessToken = await getAmadeusAccessToken();
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
     url.searchParams.set('includeClosed', 'false');
     url.searchParams.set('lang', 'en');
 
-    console.log('Making request to Amadeus:', url.toString());
+    logger.info('Making request to Amadeus:', url.toString());
 
     // Make request to Amadeus
     const response = await fetch(url.toString(), {
@@ -102,7 +103,7 @@ Deno.serve(async (req) => {
     const responseData = await response.json();
 
     if (!response.ok) {
-      console.error('Amadeus API error:', response.status, responseData);
+      logger.error('Amadeus API error:', response.status, responseData);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -116,8 +117,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`✅ Successfully fetched hotel details for hotel ${hotelId}`);
-    console.log(`Found ${responseData.data?.length || 0} hotel(s) with offers`);
+    logger.info(`✅ Successfully fetched hotel details for hotel ${hotelId}`);
+    logger.info(`Found ${responseData.data?.length || 0} hotel(s) with offers`);
 
     return new Response(
       JSON.stringify({ 
@@ -133,7 +134,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Hotel details error:', error);
+    logger.error('Hotel details error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 

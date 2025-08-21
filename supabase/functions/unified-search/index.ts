@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -41,7 +42,7 @@ const callEdgeFunction = async (functionName: string, payload: any) => {
   });
 
   if (error) {
-    console.warn(`${functionName} search failed:`, error);
+    logger.warn(`${functionName} search failed:`, error);
     return null;
   }
 
@@ -86,7 +87,7 @@ serve(async (req) => {
     const params: SearchParams = await req.json();
     const { type, providers = ['amadeus', 'hotelbeds', 'travelport'] } = params;
 
-    console.log('Unified search:', { type, providers, ...params });
+    logger.info('Unified search:', { type, providers, ...params });
 
     const searchPromises = [];
 
@@ -177,7 +178,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Unified search error:', error);
+    logger.error('Unified search error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,
