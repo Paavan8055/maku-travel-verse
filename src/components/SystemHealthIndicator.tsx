@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import logger from "@/utils/logger";
 
 interface SystemHealthIndicatorProps {
   className?: string;
@@ -38,7 +39,7 @@ export const SystemHealthIndicator = ({ className }: SystemHealthIndicatorProps)
           setHealthStatus('unavailable');
         }
       } catch (error) {
-        console.error('Health check failed:', error);
+        logger.error('Health check failed:', error);
         setHealthStatus('unavailable');
         setLastCheck(new Date());
       }

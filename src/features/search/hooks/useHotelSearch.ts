@@ -1,6 +1,7 @@
 import { useState, useEffect, useReducer, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 // Import hotel images
 import shangriLaImg from "@/assets/hotel-shangri-la.jpg";
@@ -170,7 +171,7 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
 
       // Enhanced error handling with specific user-friendly messages
       if (functionError) {
-        console.error("❌ Hotel search function error:", functionError);
+        logger.error("❌ Hotel search function error:", functionError);
         
         // Provide specific error messages based on error type with actionable guidance
         let userMessage = "Hotel search failed. Please try again.";
@@ -260,7 +261,7 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
         }
       } else if (data?.systemError) {
         // PHASE 1: Handle system-level errors (circuit breaker, service unavailable)
-        console.error("🚨 System error:", data.technicalError);
+        logger.error("🚨 System error:", data.technicalError);
         
         let userMessage = "Hotel search is temporarily unavailable. Please try again in a few minutes.";
         if (data.retryAfter) {
@@ -280,7 +281,7 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
     } catch (err: any) {
       if (signal.aborted) return;
       
-      console.error("Hotel search error:", err);
+      logger.error("Hotel search error:", err);
       
       let errorMessage = "Failed to search hotels. Please try again.";
       let systemError = false;

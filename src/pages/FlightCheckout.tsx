@@ -9,6 +9,7 @@ import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/comp
 import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
 import { useToast } from "@/hooks/use-toast";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
+import logger from "@/utils/logger";
 
 const FlightCheckout = () => {
   const [passengerValid, setPassengerValid] = useState(false);
@@ -71,7 +72,7 @@ const FlightCheckout = () => {
         console.log('Saved passenger info to session storage');
       }
     } catch (e) {
-      console.error('Session storage error:', e);
+      logger.error('Session storage error:', e);
     }
     
     const search = typeof window !== 'undefined' ? window.location.search : '';

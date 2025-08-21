@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type {
+import logger from "@/utils/logger";
   FlightSearchParams,
   HotelSearchParams,
   TransferSearchParams,
@@ -57,7 +58,7 @@ export const useFlightSearch = () => {
       }
 
     } catch (error) {
-      console.error('Flight search error:', error);
+      logger.error('Flight search error:', error);
       setState({
         data: null,
         loading: false,
@@ -114,7 +115,7 @@ export const useHotelSearch = () => {
       }
 
     } catch (error) {
-      console.error('Hotel search error:', error);
+      logger.error('Hotel search error:', error);
       setState({
         data: null,
         loading: false,
@@ -171,7 +172,7 @@ export const useTransferSearch = () => {
       }
 
     } catch (error) {
-      console.error('Transfer search error:', error);
+      logger.error('Transfer search error:', error);
       setState({
         data: null,
         loading: false,
@@ -228,7 +229,7 @@ export const useActivitySearch = () => {
       }
 
     } catch (error) {
-      console.error('Activity search error:', error);
+      logger.error('Activity search error:', error);
       setState({
         data: null,
         loading: false,

@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import logger from '@/utils/logger';
 
 // Import travel images
 import heroMaldives from "@/assets/hero-maldives.jpg";
@@ -134,7 +135,7 @@ const GiftCardsPage = () => {
         throw new Error(data.error || "Failed to create gift card");
       }
     } catch (error: any) {
-      console.error("Gift card purchase error:", error);
+      logger.error("Gift card purchase error:", error);
       toast({
         title: "Purchase Failed",
         description: error.message || "Something went wrong. Please try again.",

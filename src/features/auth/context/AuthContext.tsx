@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import logger from "@/utils/logger";
 
 interface AuthContextType {
   user: User | null;
@@ -52,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
       } catch (e) {
-        console.error('Auth init error:', e);
+        logger.error('Auth init error:', e);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -87,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { data, error };
     } catch (err) {
-      console.error('AuthContext: Signup error:', err);
+      logger.error('AuthContext: Signup error:', err);
       return { data: null, error: err as any };
     }
   };

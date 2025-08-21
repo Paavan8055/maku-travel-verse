@@ -12,6 +12,7 @@ import { Sparkles, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { autofillService } from "@/lib/autofillService";
+import logger from "@/utils/logger";
 
 // Schema for hotel guest details
 const GuestSchema = z.object({
@@ -64,7 +65,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
         return { ...parsed, ...initial }; // initial props take precedence
       }
     } catch (error) {
-      console.error('Error loading saved passenger data:', error);
+      logger.error('Error loading saved passenger data:', error);
     }
     return {
       title: "MR",

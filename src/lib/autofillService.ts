@@ -1,4 +1,5 @@
 import { fetchUserPreferences, fetchPassportInfo } from './bookingDataClient';
+import logger from "@/utils/logger";
 
 // Production app - mock data generators removed
 // All user input is now handled through real user data or empty forms
@@ -17,7 +18,7 @@ export const loadUserStoredData = async (userId: string) => {
       hasStoredData: !!(preferences || passport)
     };
   } catch (error) {
-    console.error('Error loading user stored data:', error);
+    logger.error('Error loading user stored data:', error);
     return {
       preferences: {},
       passport: {},

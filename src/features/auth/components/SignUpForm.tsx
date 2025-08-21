@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock, User, Github } from 'lucide-react';
+import logger from "@/utils/logger";
 
 interface SignUpFormProps {
   onSwitchToLogin: () => void;
@@ -85,7 +86,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin }) => {
         }
       }
     } catch (error) {
-      console.error('Signup error:', error);
+      logger.error('Signup error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",

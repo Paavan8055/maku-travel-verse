@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { favoritesAPI } from '@/lib/otaDataClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { toast } from 'sonner';
+import logger from "@/utils/logger";
 
 interface EnhancedFavoritesProps {
   itemType: string;
@@ -80,7 +81,7 @@ export const EnhancedFavorites: React.FC<EnhancedFavoritesProps> = ({
         });
       }
     } catch (error) {
-      console.error('Error checking favorites:', error);
+      logger.error('Error checking favorites:', error);
     }
   };
 

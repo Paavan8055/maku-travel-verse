@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import HotelGuestForm, { HotelGuestFormData } from "@/features/booking/components/HotelGuestForm";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import logger from "@/utils/logger";
 
 // Load Stripe
 const stripePromise = loadStripe('pk_test_51QXYwPILlBrPBZqYWJSr9jbQ2zLMlVHwBb7LQI8c7QJ8x9eLqShZ8N2C8p4lJaW1qZQrNxGO2YI9QwV3O8cM2YrM00lV2XFO6W');
@@ -61,7 +62,7 @@ function CheckoutInner() {
         });
 
         if (error) {
-          console.error('Booking creation error:', error);
+          logger.error('Booking creation error:', error);
           throw error;
         }
 
@@ -81,7 +82,7 @@ function CheckoutInner() {
           throw new Error(data?.error || 'Failed to create booking');
         }
       } catch (err: any) {
-        console.error('Error creating booking:', err);
+        logger.error('Error creating booking:', err);
         toast({
           title: "Booking error",
           description: err.message || 'Failed to prepare booking',
@@ -123,7 +124,7 @@ function CheckoutInner() {
       });
 
       if (error) {
-        console.error('Payment error:', error);
+        logger.error('Payment error:', error);
         toast({
           title: "Payment failed",
           description: error.message,
@@ -131,7 +132,7 @@ function CheckoutInner() {
         });
       }
     } catch (err) {
-      console.error('Payment processing error:', err);
+      logger.error('Payment processing error:', err);
       toast({
         title: "Payment error", 
         description: "Failed to process payment",

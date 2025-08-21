@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { AIRPORTS } from "@/data/airports";
+import logger from '@/utils/logger';
 
 interface Destination {
   id: string;
@@ -127,7 +128,7 @@ export const DestinationAutocomplete = ({
                 console.log('Found hotel results:', results.length);
               }
             } catch (hotelError) {
-              console.warn('Hotel search failed, falling back to cities:', hotelError);
+              logger.warn('Hotel search failed, falling back to cities:', hotelError);
             }
           }
 
@@ -176,7 +177,7 @@ export const DestinationAutocomplete = ({
                   });
                 }
               } catch (amadeusError) {
-                console.warn('Amadeus airport search failed, using local results:', amadeusError);
+                logger.warn('Amadeus airport search failed, using local results:', amadeusError);
               }
             }
           }
@@ -218,7 +219,7 @@ export const DestinationAutocomplete = ({
                 });
               }
             } catch (amadeusError) {
-              console.warn('Amadeus city search failed:', amadeusError);
+              logger.warn('Amadeus city search failed:', amadeusError);
             }
           }
 
@@ -235,7 +236,7 @@ export const DestinationAutocomplete = ({
 
           setSuggestions(results.slice(0, 8));
         } catch (error) {
-          console.error('Error fetching suggestions:', error);
+          logger.error('Error fetching suggestions:', error);
           
           // Final fallback: if everything fails and it's an airport search, use local data
           if (searchType === "airport") {
@@ -304,7 +305,7 @@ export const DestinationAutocomplete = ({
       onChange("Current Location");
       setShowSuggestions(false);
     } catch (error) {
-      console.error("Error getting location:", error);
+      logger.error("Error getting location:", error);
     } finally {
       setIsGettingLocation(false);
     }

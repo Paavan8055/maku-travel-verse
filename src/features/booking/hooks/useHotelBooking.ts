@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import logger from "@/utils/logger";
 
 interface HotelBookingParams {
   hotelOfferId: string;
@@ -120,7 +121,7 @@ export const useHotelBooking = () => {
       }
 
     } catch (error) {
-      console.error('Hotel booking error:', error);
+      logger.error('Hotel booking error:', error);
       toast.error(error instanceof Error ? error.message : 'Hotel booking failed');
       
       return {

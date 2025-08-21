@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { activityAPI } from '@/lib/otaDataClient';
 import { 
+import logger from "@/utils/logger";
   Activity, 
   MapPin, 
   Clock, 
@@ -45,7 +46,7 @@ export const RealTimeFeeds: React.FC<{ className?: string }> = ({ className }) =
         const data = await activityAPI.fetchRecentActivity(undefined, 10);
         setActivities(data || []);
       } catch (error) {
-        console.error('Error loading activities:', error);
+        logger.error('Error loading activities:', error);
       }
     };
 
