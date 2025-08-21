@@ -2419,45 +2419,6 @@ export type Database = {
         }
         Relationships: []
       }
-      price_predictions: {
-        Row: {
-          confidence_score: number | null
-          created_at: string | null
-          factors: Json | null
-          id: string
-          item_id: string
-          item_type: string
-          predicted_price: number
-          recommendation: string
-          route: string | null
-          valid_until: string
-        }
-        Insert: {
-          confidence_score?: number | null
-          created_at?: string | null
-          factors?: Json | null
-          id?: string
-          item_id: string
-          item_type: string
-          predicted_price: number
-          recommendation: string
-          route?: string | null
-          valid_until: string
-        }
-        Update: {
-          confidence_score?: number | null
-          created_at?: string | null
-          factors?: Json | null
-          id?: string
-          item_id?: string
-          item_type?: string
-          predicted_price?: number
-          recommendation?: string
-          route?: string | null
-          valid_until?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
