@@ -29,7 +29,7 @@ import FlightCheckout from "./pages/FlightCheckout";
 import ActivityCheckout from "./pages/ActivityCheckout";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingCancelled from "./pages/BookingCancelled";
-import { BookingDetails } from "./pages/BookingDetails";
+import BookingDetails from "./pages/BookingDetails";
 import BookingSelect from "./pages/BookingSelect";
 import BookingExtras from "./pages/BookingExtras";
 import BookingBaggage from "./pages/BookingBaggage";
