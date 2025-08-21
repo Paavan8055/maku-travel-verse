@@ -1,49 +1,65 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import logger from "@/utils/logger";
+import { useAdminMetrics } from '@/hooks/useAdminMetrics';
+import { UserManagement } from '@/components/admin/UserManagement';
+import { BookingManagement } from '@/components/admin/BookingManagement';
+import { SecurityMonitoring } from '@/components/admin/SecurityMonitoring';
+import { Button } from '@/components/ui/button';
 import { 
   Users, 
   Building, 
   CreditCard, 
-  TrendingUp
+  TrendingUp,
+  RefreshCw,
+  Shield
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalBookings: 0,
-    totalRevenue: 0,
-    activeProperties: 0
-  });
+  const { metrics, loading, error, refetch } = useAdminMetrics();
 
-  useEffect(() => {
-    // Fetch admin dashboard stats
-    const fetchStats = async () => {
-      try {
-        // This would connect to your admin API
-        console.log("Fetching admin dashboard stats");
-        
-        // Mock data for now
-        setStats({
-          totalUsers: 1234,
-          totalBookings: 567,
-          totalRevenue: 89012,
-          activeProperties: 45
-        });
-      } catch (error) {
-        logger.error("Error fetching admin stats:", error);
-      }
-    };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-96">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-    fetchStats();
-  }, []);
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-destructive mb-4">Error Loading Admin Dashboard</h1>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={refetch}>Try Again</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              Last updated: {metrics?.lastUpdated ? new Date(metrics.lastUpdated).toLocaleString() : 'Never'}
+            </div>
+            <Button variant="outline" size="sm" onClick={refetch} className="gap-2">
+              <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+              Refresh
+            </Button>
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -52,7 +68,7 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <div className="text-2xl font-bold">{metrics?.totalUsers || 0}</div>
             </CardContent>
           </Card>
           
@@ -62,7 +78,7 @@ const AdminDashboard = () => {
               <Building className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalBookings}</div>
+              <div className="text-2xl font-bold">{metrics?.totalBookings || 0}</div>
             </CardContent>
           </Card>
           
@@ -72,7 +88,9 @@ const AdminDashboard = () => {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                ${(metrics?.totalRevenue || 0).toLocaleString()}
+              </div>
             </CardContent>
           </Card>
           
@@ -82,7 +100,7 @@ const AdminDashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeProperties}</div>
+              <div className="text-2xl font-bold">{metrics?.activeProperties || 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -92,7 +110,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
@@ -100,43 +118,43 @@ const AdminDashboard = () => {
               <CardHeader>
                 <CardTitle>System Overview</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <p>Welcome to the Maku Travel admin dashboard. Monitor system health and key metrics here.</p>
+                
+                {metrics?.recentBookings && metrics.recentBookings.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Recent Bookings</h3>
+                    <div className="space-y-2">
+                      {metrics.recentBookings.slice(0, 5).map((booking: any) => (
+                        <div key={booking.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                          <div>
+                            <span className="font-mono text-sm">{booking.booking_reference}</span>
+                            <span className="ml-2 text-sm text-muted-foreground">
+                              {booking.booking_type}
+                            </span>
+                          </div>
+                          <div className="text-sm">
+                            {booking.currency} {booking.total_amount}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
           
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Manage user accounts, permissions, and view user analytics.</p>
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
           
           <TabsContent value="bookings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Booking Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>View and manage all bookings across the platform.</p>
-              </CardContent>
-            </Card>
+            <BookingManagement />
           </TabsContent>
           
-          <TabsContent value="properties">
-            <Card>
-              <CardHeader>
-                <CardTitle>Property Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Manage hotels, activities, and other properties on the platform.</p>
-              </CardContent>
-            </Card>
+          <TabsContent value="security">
+            <SecurityMonitoring />
           </TabsContent>
         </Tabs>
       </div>

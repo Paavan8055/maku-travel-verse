@@ -132,7 +132,7 @@ export class SabreClient extends BaseSupplierClient {
       infants?: number;
     };
     cabinPreference?: string;
-  }, correlationId?: string): Promise<SupplierResponse<any[]>> {
+  }, correlationId?: string): Promise<SupplierResponse<any>> {
     const requestBody = {
       OTA_AirLowFareSearchRQ: {
         POS: {
