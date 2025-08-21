@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -67,7 +66,7 @@ const jobPositions: JobPosition[] = [
   },
   {
     id: 'marketing-growth',
-    title: 'Growth Hacker',
+    title: 'Marketing Growth Hacker',
     department: 'Marketing',
     location: 'Sydney, Australia / Remote',
     type: 'Full-time Founding Team',
