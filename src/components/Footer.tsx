@@ -9,7 +9,7 @@ const Footer = () => {
       href: "/"
     }, {
       name: "Careers", 
-      href: "/partners?tab=careers"
+      href: "/careers"
     }, {
       name: "Press",
       href: "/press"
