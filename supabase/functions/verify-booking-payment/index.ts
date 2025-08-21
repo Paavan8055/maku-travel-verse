@@ -1,18 +1,49 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import Stripe from "https://esm.sh/stripe@14.21.0"
-import { Resend } from "npm:resend@2.0.0"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  createClient,
+  type SupabaseClient as SupabaseClientType,
+} from "https://esm.sh/@supabase/supabase-js@2";
+import type { Database } from "../../../src/integrations/supabase/types.ts";
+import Stripe from "https://esm.sh/stripe@14.21.0";
+import { Resend } from "npm:resend@2.0.0";
+
+interface CustomerInfo {
+  firstName?: string;
+  email?: string;
+}
+
+interface BookingData {
+  customerInfo?: CustomerInfo;
+  hotel?: string;
+  checkInDate?: string;
+  check_in_date?: string;
+  checkOutDate?: string;
+  check_out_date?: string;
+}
+
+interface Booking
+  extends Omit<Database["public"]["Tables"]["bookings"]["Row"], "booking_data"> {
+  booking_data?: BookingData;
+}
+
+type BookingItem = Database["public"]["Tables"]["booking_items"]["Row"];
+
+type SupabaseClient = SupabaseClientType<Database>;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-async function sendConfirmationEmail(booking: any, bookingId: string, supabaseClient: any) {
+async function sendConfirmationEmail(
+  booking: Booking,
+  bookingId: string,
+  supabaseClient: SupabaseClient,
+) {
   try {
     // Get booking items
     const { data: bookingItems } = await supabaseClient
-      .from('booking_items')
+      .from<BookingItem>('booking_items')
       .select('*')
       .eq('booking_id', bookingId);
 
@@ -34,7 +65,10 @@ async function sendConfirmationEmail(booking: any, bookingId: string, supabaseCl
   }
 }
 
-function generateEmailContent(booking: any, bookingItems: any[]) {
+function generateEmailContent(
+  booking: Booking,
+  bookingItems: BookingItem[],
+) {
   const customerInfo = booking.booking_data?.customerInfo || {};
   const bookingType = booking.booking_type;
   
@@ -143,9 +177,9 @@ serve(async (req) => {
     }
 
     // Initialize clients
-    const supabaseClient = createClient(
+    const supabaseClient: SupabaseClient = createClient<Database>(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -154,7 +188,7 @@ serve(async (req) => {
 
     // Get booking details
     const { data: booking, error: bookingError } = await supabaseClient
-      .from('bookings')
+      .from<Booking>('bookings')
       .select('*')
       .eq('id', bookingId)
       .single();
@@ -167,7 +201,7 @@ serve(async (req) => {
 
     // Verify payment with Stripe
     let paymentVerified = false;
-    let paymentDetails: any = {};
+    let paymentDetails: Record<string, unknown> = {};
 
     if (sessionId) {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
