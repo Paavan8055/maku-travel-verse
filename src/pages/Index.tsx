@@ -7,7 +7,6 @@ import FeaturedListings from "@/components/FeaturedListings";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/features/makuBot/components/ChatWidget";
 import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
-import { SocialProofIndicators } from "@/components/ota/SocialProofIndicators";
 import { PriceIntelligence } from "@/components/ota/PriceIntelligence";
 const Index = () => {
   return (
@@ -16,7 +15,6 @@ const Index = () => {
       <HeroSection />
       <MarketplacePills />
 
-      <SocialProofIndicators itemType="landing" itemId="index" />
       <PriceIntelligence itemType="landing" itemId="index" currentPrice={0} />
 
       <SearchSection />
