@@ -253,7 +253,13 @@ const AdminDashboard = () => {
                                 <p className="text-sm text-muted-foreground">{partner.contact_person}</p>
                               </div>
                             </div>
-                            <Badge variant={partner.verification_status === 'approved' ? 'default' : 'secondary'}>
+                            <Badge variant={
+                              partner.verification_status === 'verified'
+                                ? 'default'
+                                : partner.verification_status === 'pending'
+                                ? 'secondary'
+                                : 'destructive'
+                            }>
                               {partner.verification_status}
                             </Badge>
                           </div>
@@ -308,8 +314,9 @@ const AdminDashboard = () => {
                     <SelectContent>
                       <SelectItem value="all">All Partners</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="verified">Verified</SelectItem>
                       <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="suspended">Suspended</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -351,7 +358,15 @@ const AdminDashboard = () => {
                             </TableCell>
                             <TableCell>{partner.contact_person}</TableCell>
                             <TableCell>
-                              <Badge variant={partner.verification_status === 'approved' ? 'default' : partner.verification_status === 'pending' ? 'secondary' : 'destructive'}>
+                              <Badge
+                                variant={
+                                  partner.verification_status === 'verified'
+                                    ? 'default'
+                                    : partner.verification_status === 'pending'
+                                    ? 'secondary'
+                                    : 'destructive'
+                                }
+                              >
                                 {partner.verification_status}
                               </Badge>
                             </TableCell>
