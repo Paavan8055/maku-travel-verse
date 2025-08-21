@@ -106,8 +106,12 @@ const Navbar = () => {
             </Select>
 
             {/* Help Link */}
-            <Button variant="ghost" className="text-foreground hover:text-primary text-sm">
-              Help
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary text-sm flex items-center space-x-1"
+              onClick={() => navigate('/partners?tab=help')}
+            >
+              <span>Help</span>
             </Button>
 
             {/* User Authentication */}
