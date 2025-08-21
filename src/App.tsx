@@ -1,5 +1,4 @@
 
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,19 +17,19 @@ import PartnerAuth from "./pages/PartnerAuth";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import PartnerPortal from "./pages/PartnerPortal";
 import Partners from "./pages/Partners";
-import Dashboard from "./pages/Dashboard";
+import { Dashboard } from "./pages/Dashboard";
 import Search from "./pages/Search";
 import SearchHotels from "./pages/search/hotels";
 import SearchFlights from "./pages/search/flights";
 import SearchActivities from "./pages/search/activities";
 import SearchCars from "./pages/search/cars";
-import HotelDetails from "./pages/HotelDetails";
+import { HotelDetails } from "./pages/HotelDetails";
 import HotelCheckout from "./pages/HotelCheckout";
 import FlightCheckout from "./pages/FlightCheckout";
 import ActivityCheckout from "./pages/ActivityCheckout";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingCancelled from "./pages/BookingCancelled";
-import BookingDetails from "./pages/BookingDetails";
+import { BookingDetails } from "./pages/BookingDetails";
 import BookingSelect from "./pages/BookingSelect";
 import BookingExtras from "./pages/BookingExtras";
 import BookingBaggage from "./pages/BookingBaggage";
