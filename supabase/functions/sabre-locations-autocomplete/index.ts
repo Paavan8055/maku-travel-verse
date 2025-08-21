@@ -9,6 +9,79 @@ interface SabreAuthResponse {
   expires_in: number;
 }
 
+interface SabreGeoCoordinates {
+  Latitude?: string;
+  Longitude?: string;
+}
+
+interface SabreAirport {
+  AirportCode?: string;
+  Code?: string;
+  IcaoCode?: string;
+  AirportName?: string;
+  Name?: string;
+  CityName?: string;
+  City?: string;
+  CountryName?: string;
+  Country?: string;
+  CountryCode?: string;
+  GeoCoordinates?: SabreGeoCoordinates;
+  TimeZoneInfo?: string;
+}
+
+interface SabreCity {
+  CityCode?: string;
+  Code?: string;
+  CityName?: string;
+  Name?: string;
+  CountryName?: string;
+  Country?: string;
+  CountryCode?: string;
+  GeoCoordinates?: SabreGeoCoordinates;
+  TimeZoneInfo?: string;
+}
+
+interface SabreGenericLocation {
+  Type?: string;
+  Code?: string;
+  IcaoCode?: string;
+  Name?: string;
+  Description?: string;
+  CityName?: string;
+  City?: string;
+  CountryName?: string;
+  Country?: string;
+  CountryCode?: string;
+  Position?: SabreGeoCoordinates;
+  GeoCoordinates?: SabreGeoCoordinates;
+  TimeZone?: string;
+  TimeZoneInfo?: string;
+}
+
+interface SabreLocationResponse {
+  Airports?: SabreAirport | SabreAirport[];
+  Cities?: SabreCity | SabreCity[];
+  Locations?: SabreGenericLocation | SabreGenericLocation[];
+}
+
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+export interface LocationSearchResult {
+  type: string;
+  iataCode?: string;
+  icaoCode: string | null;
+  name?: string;
+  city?: string;
+  country?: string;
+  countryCode?: string;
+  coordinates: Coordinates | null;
+  timezone: string | null;
+  source: 'sabre';
+}
+
 // Get Sabre access token
 async function getSabreAccessToken(): Promise<string> {
   const clientId = Deno.env.get('SABRE_CLIENT_ID');
@@ -41,9 +114,9 @@ async function getSabreAccessToken(): Promise<string> {
 }
 
 // Search locations using Sabre API
-async function searchLocations(query: string, limit: number, accessToken: string): Promise<any> {
+async function searchLocations(query: string, limit: number, accessToken: string): Promise<LocationSearchResult[]> {
   const baseUrl = Deno.env.get('SABRE_BASE_URL') || 'https://api.sabre.com';
-  
+
   // Sabre uses different endpoints for airports vs cities
   // First try airports, then cities if needed
   const endpoints = [
@@ -51,8 +124,8 @@ async function searchLocations(query: string, limit: number, accessToken: string
     `/v1/lists/utilities/cities?query=${encodeURIComponent(query)}&limit=${limit}`
   ];
 
-  const results = [];
-  
+  const results: SabreLocationResponse[] = [];
+
   for (const endpoint of endpoints) {
     try {
       const response = await fetch(`${baseUrl}${endpoint}`, {
@@ -64,7 +137,7 @@ async function searchLocations(query: string, limit: number, accessToken: string
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data: SabreLocationResponse = await response.json();
         results.push(data);
       } else {
         console.warn(`Sabre endpoint ${endpoint} returned ${response.status}`);
@@ -74,19 +147,19 @@ async function searchLocations(query: string, limit: number, accessToken: string
     }
   }
 
-  return results;
+  return transformSabreLocationResponse(results);
 }
 
 // Transform Sabre location response to standardized format
-function transformSabreLocationResponse(sabreResults: any[]): any[] {
-  const locations: any[] = [];
+function transformSabreLocationResponse(sabreResults: SabreLocationResponse[]): LocationSearchResult[] {
+  const locations: LocationSearchResult[] = [];
   
   try {
     for (const result of sabreResults) {
       // Handle airport results
       if (result.Airports) {
-        const airports = Array.isArray(result.Airports) ? result.Airports : [result.Airports];
-        
+        const airports: SabreAirport[] = Array.isArray(result.Airports) ? result.Airports : [result.Airports];
+
         for (const airport of airports) {
           locations.push({
             type: 'airport',
@@ -108,8 +181,8 @@ function transformSabreLocationResponse(sabreResults: any[]): any[] {
 
       // Handle city results  
       if (result.Cities) {
-        const cities = Array.isArray(result.Cities) ? result.Cities : [result.Cities];
-        
+        const cities: SabreCity[] = Array.isArray(result.Cities) ? result.Cities : [result.Cities];
+
         for (const city of cities) {
           locations.push({
             type: 'city',
@@ -131,8 +204,8 @@ function transformSabreLocationResponse(sabreResults: any[]): any[] {
 
       // Handle generic location results (fallback)
       if (result.Locations) {
-        const locations_data = Array.isArray(result.Locations) ? result.Locations : [result.Locations];
-        
+        const locations_data: SabreGenericLocation[] = Array.isArray(result.Locations) ? result.Locations : [result.Locations];
+
         for (const location of locations_data) {
           locations.push({
             type: location.Type?.toLowerCase() || 'location',
@@ -154,7 +227,7 @@ function transformSabreLocationResponse(sabreResults: any[]): any[] {
     }
 
     // Remove duplicates based on IATA code
-    const uniqueLocations = locations.reduce((acc, current) => {
+    const uniqueLocations = locations.reduce<LocationSearchResult[]>((acc, current) => {
       const existing = acc.find(item => item.iataCode === current.iataCode);
       if (!existing && current.iataCode) {
         acc.push(current);
@@ -199,19 +272,15 @@ Deno.serve(async (req) => {
     const accessToken = await getSabreAccessToken();
     
     console.log(`Searching locations for query: ${query}`);
-    const sabreResults = await searchLocations(query, limit, accessToken);
-    
-    console.log('Sabre location data received, transforming...');
-    const transformedLocations = transformSabreLocationResponse(sabreResults);
-    
+    const locations = await searchLocations(query, limit, accessToken);
+
     return new Response(
       JSON.stringify({
         success: true,
-        suggestions: transformedLocations,
+        suggestions: locations,
         source: 'sabre',
         query: query,
-        count: transformedLocations.length,
-        rawData: sabreResults // Include for debugging
+        count: locations.length
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
