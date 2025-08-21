@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, Calendar, Users, MapPin, Plane, Building, Car, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import MultiCitySegments, { type Segment } from "@/components/search/MultiCitySe
 import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 
 const SearchSection = () => {
+  const { t } = useTranslation();
   const [destination, setDestination] = useState("");
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
@@ -43,10 +45,10 @@ const [activityAdults, setActivityAdults] = useState(2);
 const [activityChildren, setActivityChildren] = useState(0);
 
   const searchTabs = [
-    { id: "hotels", label: "Hotels", icon: Building },
-    { id: "flights", label: "Flights", icon: Plane },
-    { id: "cars", label: "Cars", icon: Car },
-    { id: "activities", label: "Activities", icon: Camera }
+    { id: "hotels", label: t('navigation.hotels'), icon: Building },
+    { id: "flights", label: t('navigation.flights'), icon: Plane },
+    { id: "cars", label: t('navigation.cars'), icon: Car },
+    { id: "activities", label: t('navigation.activities'), icon: Camera }
   ];
 
   const popularDestinations = [
@@ -94,7 +96,7 @@ const [activityChildren, setActivityChildren] = useState(0);
   value={destination}
   onChange={setDestination}
   onDestinationSelect={(d) => setDestination(d.code ? `${d.city ?? d.name} (${d.code})` : d.name)}
-  placeholder="Where are you going?"
+  placeholder={t('search.destination')}
   className="search-input"
 />
                 </div>
@@ -107,7 +109,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       className="search-input justify-start text-left font-normal"
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      {checkIn ? format(checkIn, "MMM dd") : "Check-in"}
+                      {checkIn ? format(checkIn, "MMM dd") : t('search.checkIn')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -129,7 +131,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       className="search-input justify-start text-left font-normal"
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      {checkOut ? format(checkOut, "MMM dd") : "Check-out"}
+                      {checkOut ? format(checkOut, "MMM dd") : t('search.checkOut')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -147,7 +149,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                 <Select value={guests} onValueChange={setGuests}>
                   <SelectTrigger className="search-input">
                     <Users className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Guests" />
+                    <SelectValue placeholder={t('search.guests')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">1 Guest</SelectItem>
@@ -165,7 +167,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                   onClick={handleHotelSearch}
                 >
                   <Search className="mr-2 h-5 w-5" />
-                  Search Hotels
+                  {t('search.searchHotels')}
                 </Button>
               </div>
             </TabsContent>
@@ -178,7 +180,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     value={flightFrom}
                     onChange={setFlightFrom}
                     onDestinationSelect={(d) => setFlightFrom(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
-                    placeholder="From"
+                    placeholder={t('search.departure')}
                     className="search-input"
                     searchType="airport"
                   />
@@ -188,7 +190,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     value={flightTo}
                     onChange={setFlightTo}
                     onDestinationSelect={(d) => setFlightTo(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
-                    placeholder="To"
+                    placeholder={t('search.destination')}
                     className="search-input"
                     searchType="airport"
                   />
@@ -198,7 +200,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="search-input justify-start text-left font-normal">
                         <Calendar className="mr-2 h-4 w-4" />
-                        {flightDepart ? format(flightDepart, "MMM dd") : "Departure"}
+                        {flightDepart ? format(flightDepart, "MMM dd") : t('search.departure')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -218,7 +220,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="search-input justify-start text-left font-normal">
                           <Calendar className="mr-2 h-4 w-4" />
-                          {flightReturn ? format(flightReturn, "MMM dd") : "Return"}
+                          {flightReturn ? format(flightReturn, "MMM dd") : t('search.return')}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -367,7 +369,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                   }}
                 >
                   <Search className="mr-2 h-5 w-5" />
-                  Search Flights
+                  {t('search.searchFlights')}
                 </Button>
               </div>
             </TabsContent>

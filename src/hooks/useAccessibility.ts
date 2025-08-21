@@ -19,7 +19,7 @@ interface UseAccessibilityOptions {
  * Hook for managing accessibility patterns
  */
 export const useAccessibility = (options: UseAccessibilityOptions = {}) => {
-  const elementRef = useRef<HTMLElement>(null);
+  const elementRef = useRef<HTMLDivElement>(null);
   const { autoFocus = false, skipFocus = false, announceChanges = false } = options;
 
   // Auto-focus management
