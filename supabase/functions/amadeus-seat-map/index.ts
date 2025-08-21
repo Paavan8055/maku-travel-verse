@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,7 +47,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 async function getSeatMap(params: SeatMapParams, accessToken: string) {
   const url = 'https://test.api.amadeus.com/v1/shopping/seatmaps';
   
-  console.log('Getting seat map for flight offer ID:', params.flightOfferId);
+  logger.info('Getting seat map for flight offer ID:', params.flightOfferId);
   
   const body = {
     data: [
@@ -67,12 +68,12 @@ async function getSeatMap(params: SeatMapParams, accessToken: string) {
   });
 
   if (!response.ok) {
-    console.error('Seat Map API error:', response.status, response.statusText);
+    logger.error('Seat Map API error:', response.status, response.statusText);
     throw new Error(`Seat Map API error: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Seat Map response:', data);
+  logger.info('Seat Map response:', data);
   return data;
 }
 
@@ -92,11 +93,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Seat map request for flight offer:', flightOfferId);
+    logger.info('Seat map request for flight offer:', flightOfferId);
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
-    console.log('Got Amadeus access token for seat map');
+    logger.info('Got Amadeus access token for seat map');
 
     // Get seat map
     const seatMapData = await getSeatMap({ flightOfferId }, accessToken);
@@ -152,7 +153,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Seat map function error:', error);
+    logger.error('Seat map function error:', error);
     
     return new Response(
       JSON.stringify({

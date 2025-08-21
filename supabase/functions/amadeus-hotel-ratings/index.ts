@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +43,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 async function getHotelRatings(hotelIds: string[], accessToken: string) {
   const url = 'https://test.api.amadeus.com/v2/e-reputation/hotel-sentiments';
   
-  console.log('Getting hotel ratings for hotels:', hotelIds);
+  logger.info('Getting hotel ratings for hotels:', hotelIds);
   
   const response = await fetch(url, {
     method: 'POST',
@@ -59,12 +60,12 @@ async function getHotelRatings(hotelIds: string[], accessToken: string) {
   });
 
   if (!response.ok) {
-    console.error('Hotel ratings API error:', response.status, response.statusText);
+    logger.error('Hotel ratings API error:', response.status, response.statusText);
     throw new Error(`Hotel ratings API error: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Hotel ratings response:', data);
+  logger.info('Hotel ratings response:', data);
   return data;
 }
 
@@ -84,11 +85,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Hotel ratings request for hotels:', hotelIds);
+    logger.info('Hotel ratings request for hotels:', hotelIds);
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
-    console.log('Got Amadeus access token for hotel ratings');
+    logger.info('Got Amadeus access token for hotel ratings');
 
     // Get hotel ratings
     const ratingsData = await getHotelRatings(hotelIds, accessToken);
@@ -126,7 +127,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Hotel ratings function error:', error);
+    logger.error('Hotel ratings function error:', error);
     
     return new Response(
       JSON.stringify({

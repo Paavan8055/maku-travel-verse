@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -131,13 +132,13 @@ async function callAmadeusWithRetry<T>(
       if (is429 && !isLastAttempt) {
         // Exponential backoff: 1s, 2s, 4s
         const delayMs = Math.pow(2, attempt) * 1000;
-        console.log(`Rate limited, retrying in ${delayMs}ms (attempt ${attempt + 1}/${maxRetries})`);
+        logger.info(`Rate limited, retrying in ${delayMs}ms (attempt ${attempt + 1}/${maxRetries})`);
         await delay(delayMs);
         continue;
       }
       
       if (isLastAttempt) {
-        console.error(`Final attempt failed:`, error.message);
+        logger.error(`Final attempt failed:`, error.message);
         return null;
       }
       
@@ -236,23 +237,23 @@ serve(async (req) => {
     if (requestedTypes.includes("AIRPORT")) {
       // 1) Direct IATA code search if detected
       if (iataCode) {
-        console.log("amadeus-locations step=iata-search code=%s", iataCode);
+        logger.info("amadeus-locations step=iata-search code=%s", iataCode);
         const iataResults = await tryLocations(iataCode, "AIRPORT");
-        console.log("amadeus-locations step=iata-search code=%s count=%d", iataCode, iataResults.length);
+        logger.info("amadeus-locations step=iata-search code=%s count=%d", iataCode, iataResults.length);
         data.push(...iataResults);
       }
 
       // 2) Dedicated airports endpoint
       if (data.length === 0) {
         const airportResults = await tryAirportsEndpoint(query);
-        console.log("amadeus-locations step=airports-endpoint q=%s count=%d", query, airportResults.length);
+        logger.info("amadeus-locations step=airports-endpoint q=%s count=%d", query, airportResults.length);
         data.push(...airportResults);
       }
 
       // 3) General locations search for airports
       if (data.length === 0) {
         const locationResults = await tryLocations(query, "AIRPORT");
-        console.log("amadeus-locations step=locations subtype=AIRPORT q=%s count=%d", query, locationResults.length);
+        logger.info("amadeus-locations step=locations subtype=AIRPORT q=%s count=%d", query, locationResults.length);
         data.push(...locationResults);
       }
 
@@ -267,7 +268,7 @@ serve(async (req) => {
         for (const variation of variations) {
           if (data.length > 0) break;
           const prefixResults = await tryLocations(variation, "AIRPORT");
-          console.log("amadeus-locations step=prefix-airport q=%s prefix=%s count=%d", query, variation, prefixResults.length);
+          logger.info("amadeus-locations step=prefix-airport q=%s prefix=%s count=%d", query, variation, prefixResults.length);
           data.push(...prefixResults);
         }
       }
@@ -278,22 +279,22 @@ serve(async (req) => {
       if (data.length >= max) break;
       
       const typeResults = await tryLocations(query, type);
-      console.log("amadeus-locations step=locations subtype=%s q=%s count=%d", type, query, typeResults.length);
+      logger.info("amadeus-locations step=locations subtype=%s q=%s count=%d", type, query, typeResults.length);
       data.push(...typeResults);
     }
 
     // Fallback: cities endpoint (if CITY is allowed and no results yet)
     if (data.length === 0 && requestedTypes.includes("CITY")) {
       const cities = await tryCitiesEndpoint(query);
-      console.log("amadeus-locations step=cities-endpoint q=%s count=%d", query, cities.length);
+      logger.info("amadeus-locations step=cities-endpoint q=%s count=%d", query, cities.length);
       data = cities;
     }
 
     // Final fallback: local airport data
     if (data.length === 0 && requestedTypes.includes("AIRPORT")) {
-      console.log("amadeus-locations step=fallback-local q=%s", query);
+      logger.info("amadeus-locations step=fallback-local q=%s", query);
       const fallbackResults = searchFallbackAirports(query, max);
-      console.log("amadeus-locations step=fallback-local q=%s count=%d", query, fallbackResults.length);
+      logger.info("amadeus-locations step=fallback-local q=%s count=%d", query, fallbackResults.length);
       
       return new Response(JSON.stringify({ 
         results: fallbackResults,
@@ -316,7 +317,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("amadeus-locations-autocomplete error:", err);
+    logger.error("amadeus-locations-autocomplete error:", err);
     
     // Emergency fallback for airport searches
     const body = await req.json().catch(() => ({}));
@@ -326,7 +327,7 @@ serve(async (req) => {
     
     if (requestedTypes.includes("AIRPORT") && query.length >= 2) {
       const fallbackResults = searchFallbackAirports(query, 12);
-      console.log("amadeus-locations emergency-fallback q=%s count=%d", query, fallbackResults.length);
+      logger.info("amadeus-locations emergency-fallback q=%s count=%d", query, fallbackResults.length);
       
       return new Response(JSON.stringify({ 
         results: fallbackResults,

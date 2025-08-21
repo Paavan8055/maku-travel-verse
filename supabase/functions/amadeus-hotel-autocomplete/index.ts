@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,7 +44,7 @@ async function getHotelAutocomplete(query: string, accessToken: string) {
   // Use correct Amadeus Hotel List API endpoint - no "by-keyword" suffix
   const url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels?keyword=${encodeURIComponent(query)}&subType=HOTEL_LEISURE,HOTEL_GDS`;
   
-  console.log('Getting hotel autocomplete for:', query, 'using URL:', url);
+  logger.info('Getting hotel autocomplete for:', query, 'using URL:', url);
   
   const response = await fetch(url, {
     headers: {
@@ -54,7 +55,7 @@ async function getHotelAutocomplete(query: string, accessToken: string) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Hotel autocomplete API error:', response.status, response.statusText, errorText);
+    logger.error('Hotel autocomplete API error:', response.status, response.statusText, errorText);
     
     // Handle rate limiting with exponential backoff
     if (response.status === 429) {
@@ -65,7 +66,7 @@ async function getHotelAutocomplete(query: string, accessToken: string) {
   }
 
   const data = await response.json();
-  console.log('Hotel autocomplete response:', data);
+  logger.info('Hotel autocomplete response:', data);
   return data;
 }
 
@@ -85,11 +86,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Hotel autocomplete request for:', query);
+    logger.info('Hotel autocomplete request for:', query);
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
-    console.log('Got Amadeus access token for hotel autocomplete');
+    logger.info('Got Amadeus access token for hotel autocomplete');
 
     // Get hotel suggestions
     const autocompleteData = await getHotelAutocomplete(query, accessToken);
@@ -126,7 +127,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Hotel autocomplete function error:', error);
+    logger.error('Hotel autocomplete function error:', error);
     
     return new Response(
       JSON.stringify({

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createHash } from "https://deno.land/std@0.190.0/crypto/crypto.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -87,7 +88,7 @@ serve(async (req) => {
       rooms = 1 
     } = await req.json();
 
-    console.log('HotelBeds hotel search:', { destination, checkIn, checkOut, guests, rooms });
+    logger.info('HotelBeds hotel search:', { destination, checkIn, checkOut, guests, rooms });
 
     // For demo, we'll use a destination code mapping
     // In production, you'd have a proper destination mapping system
@@ -165,7 +166,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('HotelBeds search error:', error);
+    logger.error('HotelBeds search error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,

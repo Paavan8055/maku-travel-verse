@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,7 +59,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 }
 
 async function bookHotel(params: HotelBookingParams, accessToken: string): Promise<any> {
-  console.log('Creating Amadeus hotel booking:', {
+  logger.info('Creating Amadeus hotel booking:', {
     offerId: params.hotelOfferId,
     guest: `${params.guestDetails.firstName} ${params.guestDetails.lastName}`,
     email: params.guestDetails.email,
@@ -100,7 +101,7 @@ async function bookHotel(params: HotelBookingParams, accessToken: string): Promi
     }
   };
 
-  console.log('Amadeus booking request:', JSON.stringify(bookingData, null, 2));
+  logger.info('Amadeus booking request:', JSON.stringify(bookingData, null, 2));
 
   const response = await fetch('https://test.api.amadeus.com/v1/booking/hotel-bookings', {
     method: 'POST',
@@ -113,7 +114,7 @@ async function bookHotel(params: HotelBookingParams, accessToken: string): Promi
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus hotel booking failed:', {
+    logger.error('Amadeus hotel booking failed:', {
       status: response.status,
       statusText: response.statusText,
       error: errorText
@@ -122,7 +123,7 @@ async function bookHotel(params: HotelBookingParams, accessToken: string): Promi
   }
 
   const result = await response.json();
-  console.log('Amadeus booking successful:', {
+  logger.info('Amadeus booking successful:', {
     bookingId: result.data?.[0]?.id,
     confirmationNumber: result.data?.[0]?.bookingReference,
     status: result.data?.[0]?.status
@@ -189,7 +190,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Hotel booking error:', error);
+    logger.error('Hotel booking error:', error);
     
     return new Response(
       JSON.stringify({

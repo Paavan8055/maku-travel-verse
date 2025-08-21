@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,7 +80,7 @@ const searchCars = async (params: CarSearchParams, accessToken: string) => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus car search error:', errorText);
+    logger.error('Amadeus car search error:', errorText);
     throw new Error(`Car search failed: ${response.statusText}`);
   }
 
@@ -94,7 +95,7 @@ serve(async (req) => {
   try {
     const searchParams: CarSearchParams = await req.json();
     
-    console.log('Searching cars with Amadeus:', searchParams);
+    logger.info('Searching cars with Amadeus:', searchParams);
 
     // Get Amadeus access token
     const accessToken = await getAmadeusAccessToken();
@@ -102,7 +103,7 @@ serve(async (req) => {
     // Search for cars
     const carResults = await searchCars(searchParams, accessToken);
     
-    console.log('Car search successful:', carResults.data?.length || 0, 'offers found');
+    logger.info('Car search successful:', carResults.data?.length || 0, 'offers found');
 
     // Transform the response to our format
     const cars = carResults.data?.map((offer: any) => ({
@@ -162,7 +163,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Car search error:', error);
+    logger.error('Car search error:', error);
     
     return new Response(JSON.stringify({
       success: false,

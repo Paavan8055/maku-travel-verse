@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,7 +34,7 @@ const getAmadeusAccessToken = async (): Promise<string> => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus auth failed:', errorText);
+    logger.error('Amadeus auth failed:', errorText);
     throw new Error(`Amadeus auth failed: ${response.statusText}`);
   }
 
@@ -55,7 +56,7 @@ const getHotelList = async (params: any, accessToken: string) => {
   if (params.amenities) searchParams.append('amenities', params.amenities);
   if (params.ratings) searchParams.append('ratings', params.ratings);
 
-  console.log('Amadeus Hotel List API call:', `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?${searchParams}`);
+  logger.info('Amadeus Hotel List API call:', `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?${searchParams}`);
 
   const response = await fetch(
     `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?${searchParams}`,
@@ -69,7 +70,7 @@ const getHotelList = async (params: any, accessToken: string) => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus hotel list error:', {
+    logger.error('Amadeus hotel list error:', {
       status: response.status,
       statusText: response.statusText,
       error: errorText,
@@ -79,7 +80,7 @@ const getHotelList = async (params: any, accessToken: string) => {
   }
 
   const result = await response.json();
-  console.log('Amadeus Hotel List API response:', {
+  logger.info('Amadeus Hotel List API response:', {
     dataCount: result.data?.length || 0,
     meta: result.meta
   });
@@ -104,7 +105,7 @@ serve(async (req) => {
       ratings
     } = await req.json();
 
-    console.log('=== Amadeus Hotel List Request ===', {
+    logger.info('=== Amadeus Hotel List Request ===', {
       cityCode,
       latitude,
       longitude,
@@ -150,7 +151,7 @@ serve(async (req) => {
       lastUpdate: hotel.lastUpdate
     })) || [];
 
-    console.log(`=== Hotel List Complete ===`, {
+    logger.info(`=== Hotel List Complete ===`, {
       hotelsFound: transformedHotels.length,
       searchSuccess: true
     });
@@ -170,7 +171,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('=== Amadeus Hotel List Error ===', {
+    logger.error('=== Amadeus Hotel List Error ===', {
       error: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString()
