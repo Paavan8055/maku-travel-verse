@@ -24,13 +24,13 @@ const Press = () => {
   const pressReleases = [
     {
       id: 1,
-      title: "Maku.travel Announces Soft Launch Date and Four-Way Travel Marketplace Vision",
+      title: "Soft Beta Launch Date & Travel Eco-system Vision",
       date: "2025-07-15",
       category: "Company News",
-      excerpt: "Australian travel tech startup announces September 9, 2025 soft launch of unique marketplace focused on Family, Solo, Pet-friendly, and Spiritual travel experiences.",
+      excerpt: "Australian travel tech startup announces September 9, 2025 soft beta launch of revolutionary travel ecosystem connecting specialized marketplaces, AI-powered planning, and sustainable travel solutions.",
       featured: true,
-      readTime: "3 min read",
-      fullText: "Melbourne, Australia - Maku.travel, an innovative Australian travel technology startup, today announced its official soft launch date of September 9, 2025, alongside the unveiling of its revolutionary four-way travel marketplace. The platform will cater specifically to Family adventures, Solo explorations, Pet-friendly journeys, and Spiritual travel experiences, addressing the growing demand for specialized travel solutions in the Australian market..."
+      readTime: "4 min read",
+      fullText: "Melbourne, Australia - Maku.travel, an innovative Australian travel technology startup, today announced its official soft beta launch date of September 9, 2025, alongside the unveiling of its comprehensive travel ecosystem vision. The platform introduces a revolutionary approach that goes beyond traditional booking platforms, creating an interconnected travel ecosystem that includes four specialized marketplaces (Family adventures, Solo explorations, Pet-friendly journeys, and Spiritual travel experiences), AI-powered travel planning, sustainable tourism initiatives, and blockchain-integrated payment solutions. This ecosystem approach addresses the growing demand for personalized, responsible travel solutions in the Australian market while setting the foundation for global expansion. The soft beta launch will initially serve Australian travelers, with plans to gather real-world feedback and refine the platform's unique ecosystem approach before full public launch in Q1 2026. The company's vision extends beyond simple booking functionality to create a comprehensive travel companion that supports every aspect of the modern traveler's journey, from inspiration and planning to booking and post-travel sharing."
     },
     {
       id: 2,
