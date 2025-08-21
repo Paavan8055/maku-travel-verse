@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, DollarSign, Settings, Shield, TrendingUp, 
   Building, Plane, MapPin, CheckCircle, XCircle, 
@@ -23,6 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
@@ -38,8 +40,17 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    const checkAdmin = async () => {
+      const { data: isAdmin, error } = await supabase.rpc('get_admin_status');
+      if (error || !isAdmin) {
+        navigate(user ? '/dashboard' : '/auth', { replace: true });
+        return;
+      }
+      fetchDashboardData();
+    };
+
+    checkAdmin();
+  }, [navigate, user]);
 
   const fetchDashboardData = async () => {
     try {
