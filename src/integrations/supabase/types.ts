@@ -503,6 +503,45 @@ export type Database = {
         }
         Relationships: []
       }
+      correlation_tracking: {
+        Row: {
+          completed_at: string | null
+          correlation_id: string
+          created_at: string
+          duration_ms: number | null
+          id: string
+          request_data: Json | null
+          request_type: string
+          response_data: Json | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          correlation_id: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          request_data?: Json | null
+          request_type: string
+          response_data?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          correlation_id?: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          request_data?: Json | null
+          request_type?: string
+          response_data?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       custom_activities: {
         Row: {
           activity_code: string
@@ -3002,6 +3041,33 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_idempotency: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          processed_at: string
+          response_data: Json | null
+          webhook_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          processed_at?: string
+          response_data?: Json | null
+          webhook_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          processed_at?: string
+          response_data?: Json | null
+          webhook_id?: string
         }
         Relationships: []
       }
