@@ -38,7 +38,7 @@ interface JobPosition {
   description: string;
   requirements: string[];
   benefits: string[];
-  cryptoShares: string;
+  equityAllocation: string;
 }
 
 const jobPositions: JobPosition[] = [
@@ -58,12 +58,12 @@ const jobPositions: JobPosition[] = [
       'Network of contacts in travel industry preferred'
     ],
     benefits: [
-      'Founding team equity + MAKU crypto shares',
+      'Founding team equity (converts to MAKU tokens)',
       'Flexible Sydney office + remote work',
       'Travel allowance for industry events',
       'Unlimited vacation policy'
     ],
-    cryptoShares: '0.5% - 2% founding allocation'
+    equityAllocation: '0.5% - 2% founding allocation'
   },
   {
     id: 'full-stack-engineer',
@@ -81,12 +81,12 @@ const jobPositions: JobPosition[] = [
       'Travel industry experience is a plus'
     ],
     benefits: [
-      'Founding team equity + MAKU crypto shares',
+      'Founding team equity (converts to MAKU tokens)',
       'Top-tier tech stack and tools',
       'Sydney office with harbor views',
       'Conference and learning budget'
     ],
-    cryptoShares: '0.3% - 1.5% founding allocation'
+    equityAllocation: '0.3% - 1.5% founding allocation'
   },
   {
     id: 'product-designer',
@@ -104,12 +104,12 @@ const jobPositions: JobPosition[] = [
       'Understanding of accessibility and conversion optimization'
     ],
     benefits: [
-      'Founding team equity + MAKU crypto shares',
+      'Founding team equity (converts to MAKU tokens)',
       'Creative freedom and design leadership',
       'Latest design tools and equipment',
       'Travel inspiration budget'
     ],
-    cryptoShares: '0.3% - 1.2% founding allocation'
+    equityAllocation: '0.3% - 1.2% founding allocation'
   },
   {
     id: 'marketing-growth',
@@ -127,12 +127,12 @@ const jobPositions: JobPosition[] = [
       'Understanding of travel customer journey'
     ],
     benefits: [
-      'Founding team equity + MAKU crypto shares',
+      'Founding team equity (converts to MAKU tokens)',
       'Marketing budget and creative freedom',
       'Travel content creation opportunities',
       'Access to industry events and conferences'
     ],
-    cryptoShares: '0.2% - 1% founding allocation'
+    equityAllocation: '0.2% - 1% founding allocation'
   }
 ];
 
@@ -191,7 +191,7 @@ const Careers: React.FC = () => {
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
               Help us revolutionize travel technology from Sydney, Australia. 
-              Build the future of travel with equity and crypto shares.
+              Build the future of travel with founding team equity that converts to MAKU tokens.
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <Badge className="bg-white/20 text-white text-lg px-4 py-2">
@@ -200,11 +200,7 @@ const Careers: React.FC = () => {
               </Badge>
               <Badge className="bg-white/20 text-white text-lg px-4 py-2">
                 <Rocket className="mr-2 h-5 w-5" />
-                Founding Team Equity
-              </Badge>
-              <Badge className="bg-white/20 text-white text-lg px-4 py-2">
-                <DollarSign className="mr-2 h-5 w-5" />
-                MAKU Crypto Shares
+                Founding Team Equity (Future MAKU Tokens)
               </Badge>
             </div>
           </div>
@@ -236,14 +232,8 @@ const Careers: React.FC = () => {
               {
                 icon: Rocket,
                 title: 'Founding Team Equity',
-                description: 'Real ownership in a company with global ambitions and Series A potential.',
+                description: 'Real ownership that converts to MAKU tokens upon crypto launch. Series A potential with global ambitions.',
                 color: 'text-travel-forest'
-              },
-              {
-                icon: DollarSign,
-                title: 'MAKU Crypto Shares',
-                description: 'Participate in our tokenized economy with founding team crypto allocations.',
-                color: 'text-travel-gold'
               },
               {
                 icon: Globe,
@@ -348,11 +338,11 @@ const Careers: React.FC = () => {
                     <div>
                       <h4 className="font-semibold mb-2 flex items-center">
                         <DollarSign className="mr-2 h-4 w-4 text-travel-coral" />
-                        Crypto Allocation
+                        Equity Allocation
                       </h4>
                       <div className="bg-gradient-to-r from-travel-gold/10 to-travel-sunset/10 p-3 rounded-lg border border-travel-gold/20">
-                        <p className="text-travel-gold font-semibold text-sm">{job.cryptoShares}</p>
-                        <p className="text-xs text-muted-foreground mt-1">MAKU founding shares</p>
+                        <p className="text-travel-gold font-semibold text-sm">{job.equityAllocation}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Founding shares → MAKU tokens</p>
                       </div>
                     </div>
                   </div>
