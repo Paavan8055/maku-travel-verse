@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { 
   BarChart3, Building, Car, Plane, Users, TrendingUp, 
@@ -22,6 +23,21 @@ import { useToast } from "@/components/ui/use-toast";
 import { AuthGuard } from "@/features/auth/components/AuthGuard";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+
+// Type definition for dashboard data
+interface DashboardData {
+  current_month_bookings: number;
+  current_month_revenue: number;
+  active_properties: number;
+  total_properties: number;
+  recent_bookings: Array<{
+    id: string;
+    booking_value: number;
+    commission_amount?: number;
+    created_at: string;
+    property_name: string;
+  }>;
+}
 
 const PartnerDashboard = () => {
   const { user, signOut } = useAuth();
@@ -84,39 +100,40 @@ const PartnerDashboard = () => {
           { p_partner_id: partnerId }
         );
 
-        if (dashboardError || (dashboardData && (dashboardData as any).error)) {
+        if (dashboardError || (dashboardData && typeof dashboardData === 'object' && 'error' in dashboardData)) {
           const msg = dashboardError?.message || (dashboardData as any)?.error || 'Failed to load metrics';
           setError((prev) => ({ ...prev, stats: msg, bookings: msg }));
-        } else if (dashboardData) {
+        } else if (dashboardData && typeof dashboardData === 'object') {
+          const data = dashboardData as DashboardData;
           setStats([
             {
               title: 'Total Bookings',
-              value: String(dashboardData.current_month_bookings || 0),
+              value: String(data.current_month_bookings || 0),
               icon: Calendar,
               color: 'text-travel-ocean',
             },
             {
               title: 'Revenue',
-              value: `$${(dashboardData.current_month_revenue || 0).toLocaleString()}`,
+              value: `$${(data.current_month_revenue || 0).toLocaleString()}`,
               icon: DollarSign,
               color: 'text-travel-forest',
             },
             {
               title: 'Active Listings',
-              value: String(dashboardData.active_properties || 0),
+              value: String(data.active_properties || 0),
               icon: Building,
               color: 'text-primary',
             },
             {
               title: 'Occupancy Rate',
-              value: dashboardData.total_properties
-                ? `${Math.round(((dashboardData.active_properties || 0) / (dashboardData.total_properties || 1)) * 100)}%`
+              value: data.total_properties
+                ? `${Math.round(((data.active_properties || 0) / (data.total_properties || 1)) * 100)}%`
                 : '0%',
               icon: TrendingUp,
               color: 'text-travel-sunset',
             },
           ]);
-          setRecentBookings(dashboardData.recent_bookings || []);
+          setRecentBookings(data.recent_bookings || []);
         }
         setLoading((prev) => ({ ...prev, stats: false, bookings: false }));
 
