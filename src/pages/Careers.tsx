@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -266,7 +265,7 @@ const Careers: React.FC = () => {
             {[
               {
                 icon: Building2,
-                title: 'Sydney Harbour Office',
+                title: 'Sydney Office',
                 description: 'Work from our beautiful Sydney office with harbour views, or fully remote - your choice.',
                 color: 'text-travel-ocean'
               },
