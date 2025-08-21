@@ -66,52 +66,6 @@ const jobPositions: JobPosition[] = [
     equityAllocation: '0.5% - 2% founding allocation'
   },
   {
-    id: 'full-stack-engineer',
-    title: 'Senior Full-Stack Engineer',
-    department: 'Engineering',
-    location: 'Sydney, Australia / Remote',
-    type: 'Full-time Founding Team',
-    description: 'Build the core platform using React, Node.js, and travel APIs. You\'ll work on everything from user interfaces to booking systems and payment processing.',
-    requirements: [
-      'React, TypeScript, Node.js expertise',
-      'Experience with travel APIs (Amadeus, Sabre preferred)',
-      'Payment processing integration experience',
-      'AWS/Cloud infrastructure knowledge',
-      'Startup or fast-paced environment experience',
-      'Travel industry experience is a plus'
-    ],
-    benefits: [
-      'Founding team equity (converts to MAKU tokens)',
-      'Top-tier tech stack and tools',
-      'Sydney office with harbor views',
-      'Conference and learning budget'
-    ],
-    equityAllocation: '0.3% - 1.5% founding allocation'
-  },
-  {
-    id: 'product-designer',
-    title: 'Lead Product Designer',
-    department: 'Design',
-    location: 'Sydney, Australia / Remote',
-    type: 'Full-time Founding Team',
-    description: 'Shape the user experience for millions of travelers. Design intuitive booking flows, mobile apps, and create a travel platform that delights users.',
-    requirements: [
-      'UX/UI design expertise with travel platforms',
-      'Figma, Sketch, or similar design tools',
-      'Mobile-first design experience',
-      'User research and testing experience',
-      'Portfolio showcasing e-commerce/booking flows',
-      'Understanding of accessibility and conversion optimization'
-    ],
-    benefits: [
-      'Founding team equity (converts to MAKU tokens)',
-      'Creative freedom and design leadership',
-      'Latest design tools and equipment',
-      'Travel inspiration budget'
-    ],
-    equityAllocation: '0.3% - 1.2% founding allocation'
-  },
-  {
     id: 'marketing-growth',
     title: 'Growth Marketing Manager',
     department: 'Marketing',
