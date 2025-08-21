@@ -6,6 +6,7 @@ import { MapPin, Star, Percent, Calendar, Wifi, Car, Utensils, Loader2 } from 'l
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import logger from '@/utils/logger';
 
 interface FeaturedHotelDeal {
   id: string;
@@ -79,7 +80,7 @@ export function FeaturedHotelDeals({ onDealSelect }: FeaturedHotelDealsProps) {
             });
 
             if (error) {
-              console.warn(`Failed to fetch hotels for ${destination}:`, error);
+              logger.warn(`Failed to fetch hotels for ${destination}:`, error);
               continue;
             }
 
@@ -125,7 +126,7 @@ export function FeaturedHotelDeals({ onDealSelect }: FeaturedHotelDealsProps) {
               allDeals.push(...destinationDeals);
             }
           } catch (destError) {
-            console.warn(`Error fetching hotels for ${destination}:`, destError);
+            logger.warn(`Error fetching hotels for ${destination}:`, destError);
           }
         }
 
@@ -134,7 +135,7 @@ export function FeaturedHotelDeals({ onDealSelect }: FeaturedHotelDealsProps) {
         setDeals(shuffledDeals);
 
       } catch (error) {
-        console.error('Error fetching featured deals:', error);
+        logger.error('Error fetching featured deals:', error);
         toast.error('Unable to load featured deals');
       } finally {
         setLoading(false);

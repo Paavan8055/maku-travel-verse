@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import { FlightBookingProgress } from "@/components/flight/FlightBookingProgress";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { useToast } from "@/hooks/use-toast";
+import logger from "@/utils/logger";
 
 interface FlightDetails {
   id: string;
@@ -52,7 +53,7 @@ const FlightBookingReview = () => {
         const outbound = JSON.parse(storedOutbound);
         setOutboundFlight(outbound);
       } catch (error) {
-        console.error('Error parsing outbound flight:', error);
+        logger.error('Error parsing outbound flight:', error);
       }
     }
 
@@ -61,7 +62,7 @@ const FlightBookingReview = () => {
         const inbound = JSON.parse(storedInbound);
         setInboundFlight(inbound);
       } catch (error) {
-        console.error('Error parsing inbound flight:', error);
+        logger.error('Error parsing inbound flight:', error);
       }
     }
 
@@ -75,7 +76,7 @@ const FlightBookingReview = () => {
           return total + (flight.fare?.price || 0);
         }, 0);
       } catch (error) {
-        console.error('Error parsing multi-city flights:', error);
+        logger.error('Error parsing multi-city flights:', error);
       }
     } else {
       const outboundPrice = outboundFlight?.price || 0;

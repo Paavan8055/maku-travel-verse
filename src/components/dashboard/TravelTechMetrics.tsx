@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, Zap, Globe, Activity, Eye, BookOpen, Star } from 'lucide-react';
 import { activityAPI } from '@/lib/otaDataClient';
+import logger from "@/utils/logger";
 interface TechMetrics {
   aiPoweredRecommendations: number;
   priceIntelligenceAccuracy: number;
@@ -32,7 +33,7 @@ export const TravelTechMetrics: React.FC<{
         const activity = await activityAPI.fetchRecentActivity(undefined, 5);
         setRecentActivity(activity || []);
       } catch (error) {
-        console.error('Error loading recent activity:', error);
+        logger.error('Error loading recent activity:', error);
       }
     };
     loadRecentActivity();

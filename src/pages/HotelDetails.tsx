@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Star, Wifi, Car, Utensils, Waves } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 type RoomOffer = {
   id: string;
@@ -86,7 +87,7 @@ export const HotelDetails = () => {
           throw new Error(data?.error || 'Failed to fetch hotel details');
         }
       } catch (err: any) {
-        console.error('Hotel details error:', err);
+        logger.error('Hotel details error:', err);
         const errorMessage = err.message || 'Failed to fetch hotel details';
         setError(errorMessage);
         toast.error(errorMessage);

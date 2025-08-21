@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { analyticsAPI, activityAPI } from '@/lib/otaDataClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import logger from "@/utils/logger";
 interface SmartRecommendationsProps {
   currentLocation?: string;
   searchCriteria?: any;
@@ -46,7 +47,7 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       const analytics = await analyticsAPI.fetchTravelAnalytics(user.id);
       setUserProfile(analytics);
     } catch (error) {
-      console.error('Error loading user profile:', error);
+      logger.error('Error loading user profile:', error);
     }
   };
   const generateRecommendations = () => {

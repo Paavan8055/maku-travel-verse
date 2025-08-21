@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plane, Calendar, Percent } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from "@/utils/logger";
 
 // Import destination images
 import tokyoImg from '@/assets/destinations/tokyo.jpg';
@@ -94,7 +95,7 @@ export function FeaturedDealsCarousel({ onDealSelect, origin = 'SYD' }: Featured
         });
 
         if (error) {
-          console.error('Error fetching featured deals:', error);
+          logger.error('Error fetching featured deals:', error);
           return;
         }
 
@@ -108,7 +109,7 @@ export function FeaturedDealsCarousel({ onDealSelect, origin = 'SYD' }: Featured
           setDeals(dealsData);
         }
       } catch (error) {
-        console.error('Error fetching featured deals:', error);
+        logger.error('Error fetching featured deals:', error);
       } finally {
         setLoading(false);
       }

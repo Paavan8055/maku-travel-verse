@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 // Import activity images
 import bridgeClimbImg from "@/assets/activity-bridge-climb.jpg";
@@ -87,7 +88,7 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
           setError("No activities found for your search criteria");
         }
       } catch (err) {
-        console.error("Activity search error:", err);
+        logger.error("Activity search error:", err);
         setError(err instanceof Error ? err.message : "Failed to search activities");
         toast.error("Activity search failed. Please try different search criteria.");
         setActivities([]);

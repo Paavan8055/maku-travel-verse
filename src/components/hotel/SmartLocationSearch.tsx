@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
+import logger from "@/utils/logger";
 
 interface LocationResult {
   name: string;
@@ -67,7 +68,7 @@ export const SmartLocationSearch: React.FC<SmartLocationSearchProps> = ({
         });
       },
       (error) => {
-        console.error('Error getting location:', error);
+        logger.error('Error getting location:', error);
         setIsGettingLocation(false);
         
         let message = "Could not access your location.";

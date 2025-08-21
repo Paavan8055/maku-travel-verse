@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 interface CarSearchCriteria {
   pickUpLocation: string;
@@ -106,7 +107,7 @@ export const useCarSearch = (criteria: CarSearchCriteria) => {
           setError("No cars available for your search criteria. Try different dates or locations.");
         }
       } catch (err) {
-        console.error("Car search error:", err);
+        logger.error("Car search error:", err);
         setError(err instanceof Error ? err.message : "Failed to search cars");
         toast.error("Failed to search cars. Please try different search criteria.");
         setCars([]);

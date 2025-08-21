@@ -1,4 +1,5 @@
 // Agentic Bot Client - Handles AI-powered travel planning and booking automation
+import logger from '@/utils/logger';
 
 interface AgenticTaskParams {
   userId?: string;
@@ -56,7 +57,7 @@ export const runAgenticTask = async (
 
     return data;
   } catch (error) {
-    console.error('Agentic Bot API Error:', error);
+    logger.error('Agentic Bot API Error:', error);
     
     // Fallback responses based on intent
     const fallbackResponses: Record<string, string> = {
@@ -92,7 +93,7 @@ export const getAgenticTaskStatus = async (userId: string): Promise<any[]> => {
 
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch agentic task status:', error);
+    logger.error('Failed to fetch agentic task status:', error);
     return [];
   }
 };
@@ -111,7 +112,7 @@ export const cancelAgenticTask = async (taskId: string): Promise<boolean> => {
 
     return response.ok;
   } catch (error) {
-    console.error('Failed to cancel agentic task:', error);
+    logger.error('Failed to cancel agentic task:', error);
     return false;
   }
 };
@@ -178,6 +179,6 @@ export const runAgenticTaskWithRetry = async (
     }
   }
 
-  console.error(`Agentic Bot failed after ${maxRetries} attempts:`, lastError);
+  logger.error(`Agentic Bot failed after ${maxRetries} attempts:`, lastError);
   throw lastError;
 };
