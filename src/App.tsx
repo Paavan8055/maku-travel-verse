@@ -36,6 +36,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import PaymentSetup from "./pages/PaymentSetup";
 import Partners from "./pages/Partners";
+import Press from "./pages/Press";
 import PartnerAuth from "./pages/PartnerAuth";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import PartnerPortal from "./pages/PartnerPortal";
@@ -85,6 +86,7 @@ function App() {
                     <Route path="/payment/cancelled" element={<PaymentCancelled />} />
                     <Route path="/payment-setup" element={<PaymentSetup />} />
                     <Route path="/partners" element={<Partners />} />
+                    <Route path="/press" element={<Press />} />
                     <Route path="/partner-auth" element={<PartnerAuth />} />
                     <Route path="/partner-dashboard" element={<PartnerDashboard />} />
                     <Route path="/partner-portal" element={<PartnerPortal />} />

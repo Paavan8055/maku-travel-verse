@@ -8,11 +8,11 @@ const Footer = () => {
       name: "About Maku.travel",
       href: "/"
     }, {
-      name: "Careers",
+      name: "Careers", 
       href: "/partners?tab=careers"
     }, {
       name: "Press",
-      href: "/partners?tab=press"
+      href: "/press"
     }, {
       name: "Partner Portal",
       href: "/partner-portal"
@@ -181,4 +181,5 @@ return <footer className="bg-primary text-primary-foreground">
       </div>
     </footer>;
 };
+
 export default Footer;
