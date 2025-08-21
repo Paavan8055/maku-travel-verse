@@ -60,6 +60,15 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Logging
+
+Control log verbosity with environment variables:
+
+- `VITE_LOG_LEVEL` for client-side logging
+- `LOG_LEVEL` for server-side functions
+
+Both default to `info` in production and `debug` otherwise.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/70b60dfe-602f-470b-aa3d-b4fc2fe1e77e) and click on Share -> Publish.

@@ -8,3 +8,5 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  VITE_LOG_LEVEL = "info"
+  LOG_LEVEL = "info"
