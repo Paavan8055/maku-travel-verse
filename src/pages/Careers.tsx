@@ -266,7 +266,7 @@ const Careers: React.FC = () => {
               {
                 icon: Building2,
                 title: 'Sydney Office',
-                description: 'Work from our beautiful Sydney office with harbour views, or fully remote - your choice.',
+                description: 'Work from our beautiful Sydney office or fully remote - your choice.',
                 color: 'text-travel-ocean'
               },
               {
