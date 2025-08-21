@@ -12,7 +12,7 @@ const AdminAuth = () => {
   const location = useLocation();
 
   // Get the intended destination after login
-  const from = location.state?.from?.pathname || '/admin-dashboard';
+  const from = location.state?.from?.pathname || '/admin/dashboard';
 
   // Check if current user is admin
   useEffect(() => {
