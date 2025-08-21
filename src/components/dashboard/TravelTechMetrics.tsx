@@ -7,7 +7,6 @@ import { activityAPI } from '@/lib/otaDataClient';
 import logger from "@/utils/logger";
 interface TechMetrics {
   aiPoweredRecommendations: number;
-  priceIntelligenceAccuracy: number;
   realTimeBookings: number;
   globalReach: number;
   userEngagement: number;
@@ -20,7 +19,6 @@ export const TravelTechMetrics: React.FC<{
 }) => {
   const [metrics, setMetrics] = useState<TechMetrics>({
     aiPoweredRecommendations: 94,
-    priceIntelligenceAccuracy: 87,
     realTimeBookings: 156,
     globalReach: 180,
     userEngagement: 89,
@@ -55,13 +53,6 @@ export const TravelTechMetrics: React.FC<{
     description: "Accuracy Rate",
     color: "text-travel-gold",
     bgColor: "bg-travel-gold/10"
-  }, {
-    icon: TrendingUp,
-    title: "Price Intelligence",
-    value: `${metrics.priceIntelligenceAccuracy}%`,
-    description: "Prediction Accuracy",
-    color: "text-travel-ocean",
-    bgColor: "bg-travel-ocean/10"
   }, {
     icon: Activity,
     title: "Real-Time Bookings",
