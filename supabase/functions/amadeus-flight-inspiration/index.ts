@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,7 +64,7 @@ async function getMostTraveledDestinations(accessToken: string, originLocationCo
     );
 
     if (!response.ok) {
-      console.log(`Most traveled destinations API failed: ${response.statusText}`);
+      logger.info(`Most traveled destinations API failed: ${response.statusText}`);
       return [];
     }
 
@@ -75,7 +76,7 @@ async function getMostTraveledDestinations(accessToken: string, originLocationCo
       departure: originLocationCode,
     })) || [];
   } catch (error) {
-    console.error('Error fetching most traveled destinations:', error);
+    logger.error('Error fetching most traveled destinations:', error);
     return [];
   }
 }
@@ -95,7 +96,7 @@ async function getFlightInspiration(accessToken: string, origin: string = 'SYD')
     );
 
     if (!response.ok) {
-      console.log(`Flight inspiration API failed: ${response.statusText}`);
+      logger.info(`Flight inspiration API failed: ${response.statusText}`);
       return [];
     }
 
@@ -113,7 +114,7 @@ async function getFlightInspiration(accessToken: string, origin: string = 'SYD')
       returnDate: item.returnDate,
     })) || [];
   } catch (error) {
-    console.error('Error fetching flight inspiration:', error);
+    logger.error('Error fetching flight inspiration:', error);
     return [];
   }
 }
@@ -155,7 +156,7 @@ serve(async (req) => {
     const origin = searchParams.get('origin') || 'SYD';
     const type = searchParams.get('type') || 'inspiration'; // 'inspiration', 'popular', 'both'
 
-    console.log(`Fetching flight inspiration data for origin: ${origin}, type: ${type}`);
+    logger.info(`Fetching flight inspiration data for origin: ${origin}, type: ${type}`);
 
     const accessToken = await getAmadeusAccessToken();
     
@@ -167,7 +168,7 @@ serve(async (req) => {
       
       // Fallback to mock data if API fails
       if (inspirationData.length === 0) {
-        console.log('Using mock inspiration data as fallback');
+        logger.info('Using mock inspiration data as fallback');
         inspirationData = generateMockInspirationData();
       }
     }
@@ -191,7 +192,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in flight inspiration function:', error);
+    logger.error('Error in flight inspiration function:', error);
     
     // Return mock data as fallback
     const mockData = generateMockInspirationData();

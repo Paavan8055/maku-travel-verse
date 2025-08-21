@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +43,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 async function getPointsOfInterest(latitude: number, longitude: number, radius: number, accessToken: string) {
   const url = `https://test.api.amadeus.com/v1/reference-data/locations/pois?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
   
-  console.log('Getting points of interest for coordinates:', latitude, longitude, 'radius:', radius);
+  logger.info('Getting points of interest for coordinates:', latitude, longitude, 'radius:', radius);
   
   const response = await fetch(url, {
     headers: {
@@ -52,12 +53,12 @@ async function getPointsOfInterest(latitude: number, longitude: number, radius: 
   });
 
   if (!response.ok) {
-    console.error('Points of Interest API error:', response.status, response.statusText);
+    logger.error('Points of Interest API error:', response.status, response.statusText);
     throw new Error(`Points of Interest API error: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Points of Interest response:', data);
+  logger.info('Points of Interest response:', data);
   return data;
 }
 
@@ -77,11 +78,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Points of interest request for coordinates:', latitude, longitude);
+    logger.info('Points of interest request for coordinates:', latitude, longitude);
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
-    console.log('Got Amadeus access token for points of interest');
+    logger.info('Got Amadeus access token for points of interest');
 
     // Get points of interest
     const poisData = await getPointsOfInterest(parseFloat(latitude), parseFloat(longitude), radius, accessToken);
@@ -128,7 +129,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Points of interest function error:', error);
+    logger.error('Points of interest function error:', error);
     
     return new Response(
       JSON.stringify({

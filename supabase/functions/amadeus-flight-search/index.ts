@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -112,7 +113,7 @@ serve(async (req) => {
       nonStop = false
     } = await req.json();
 
-    console.log('Amadeus flight search:', { origin, destination, departureDate, returnDate, passengers });
+    logger.info('Amadeus flight search:', { origin, destination, departureDate, returnDate, passengers });
 
     // Get Amadeus access token
     const accessToken = await getAmadeusAccessToken();
@@ -290,7 +291,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Amadeus flight search error:', error);
+    logger.error('Amadeus flight search error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,

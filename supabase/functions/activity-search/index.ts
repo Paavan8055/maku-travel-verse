@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +15,7 @@ serve(async (req) => {
   try {
     const { destination, date, participants } = await req.json();
 
-    console.log('Activity search request:', {
+    logger.info('Activity search request:', {
       destination,
       date,
       participants
@@ -142,7 +143,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Activity search error:', error);
+    logger.error('Activity search error:', error);
     
     return new Response(
       JSON.stringify({

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -118,7 +119,7 @@ serve(async (req) => {
     const searchParams = await req.json();
     const { type } = searchParams;
 
-    console.log('Travelport search:', { type, ...searchParams });
+    logger.info('Travelport search:', { type, ...searchParams });
 
     let results;
     let transformedData = [];
@@ -209,7 +210,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Travelport search error:', error);
+    logger.error('Travelport search error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,

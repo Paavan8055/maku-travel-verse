@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -91,7 +92,7 @@ async function searchTransfers(params: TransferSearchParams, accessToken: string
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Transfer search API error:', errorText);
+    logger.error('Transfer search API error:', errorText);
     throw new Error(`Transfer search failed: ${response.statusText}`);
   }
 
@@ -123,7 +124,7 @@ serve(async (req) => {
     );
 
     const params: TransferSearchParams = await req.json();
-    console.log('[TRANSFER-SEARCH] Search params:', params);
+    logger.info('[TRANSFER-SEARCH] Search params:', params);
 
     const searchKey = generateSearchKey(params);
     
@@ -136,7 +137,7 @@ serve(async (req) => {
       .single();
 
     if (cached && !cacheError) {
-      console.log('[TRANSFER-SEARCH] Cache hit');
+      logger.info('[TRANSFER-SEARCH] Cache hit');
       return new Response(JSON.stringify({
         success: true,
         data: cached.offers,
@@ -147,7 +148,7 @@ serve(async (req) => {
     }
 
     // Cache miss - call Amadeus
-    console.log('[TRANSFER-SEARCH] Cache miss, calling Amadeus');
+    logger.info('[TRANSFER-SEARCH] Cache miss, calling Amadeus');
     const accessToken = await getAmadeusAccessToken();
     const amadeusData = await searchTransfers(params, accessToken);
 
@@ -164,7 +165,7 @@ serve(async (req) => {
       p_ttl: ttlExpires.toISOString()
     });
 
-    console.log('[TRANSFER-SEARCH] Search completed, offers:', amadeusData.data?.length || 0);
+    logger.info('[TRANSFER-SEARCH] Search completed, offers:', amadeusData.data?.length || 0);
 
     return new Response(JSON.stringify({
       success: true,
@@ -175,7 +176,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[TRANSFER-SEARCH] Error:', error);
+    logger.error('[TRANSFER-SEARCH] Error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message

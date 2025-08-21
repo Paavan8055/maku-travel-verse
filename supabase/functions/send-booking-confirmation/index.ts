@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { Resend } from "npm:resend@2.0.0"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -169,7 +170,7 @@ serve(async (req) => {
       html: emailContent.html,
     });
 
-    console.log('Confirmation email sent successfully:', emailResponse);
+    logger.info('Confirmation email sent successfully:', emailResponse);
 
     return new Response(
       JSON.stringify({ 
@@ -182,7 +183,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error sending confirmation email:', error);
+    logger.error('Error sending confirmation email:', error);
     
     return new Response(
       JSON.stringify({

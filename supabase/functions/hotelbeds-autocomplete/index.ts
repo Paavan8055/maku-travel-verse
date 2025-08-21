@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,11 +95,11 @@ async function fetchDestinationsPaged(qLower: string, max: number) {
       }
       if (items.length < batch) break; // no more pages
     } catch (e) {
-      console.error("HotelBeds destinations page error:", e);
+      logger.error("HotelBeds destinations page error:", e);
       break;
     }
   }
-  console.log("hotelbeds-autocomplete destinations scanned=%d matched=%d", scanned, out.length);
+  logger.info("hotelbeds-autocomplete destinations scanned=%d matched=%d", scanned, out.length);
   return out;
 }
 
@@ -131,11 +132,11 @@ async function fetchHotelsPaged(qLower: string, max: number) {
       }
       if (items.length < batch) break;
     } catch (e) {
-      console.error("HotelBeds hotels page error:", e);
+      logger.error("HotelBeds hotels page error:", e);
       break;
     }
   }
-  console.log("hotelbeds-autocomplete hotels scanned=%d matched=%d", scanned, out.length);
+  logger.info("hotelbeds-autocomplete hotels scanned=%d matched=%d", scanned, out.length);
   return out;
 }
 
@@ -173,7 +174,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("hotelbeds-autocomplete error:", err);
+    logger.error("hotelbeds-autocomplete error:", err);
     return new Response(JSON.stringify({ error: String((err as Error).message || err) }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

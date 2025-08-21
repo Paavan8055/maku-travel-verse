@@ -45,7 +45,7 @@ async function getSabreAccessToken(): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Sabre auth error:', errorText);
+    logger.error('Sabre auth error:', errorText);
     throw new Error('Failed to authenticate with Sabre API');
   }
 
@@ -139,7 +139,7 @@ async function searchFlights(params: FlightSearchParams, accessToken: string): P
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Sabre flight search error:', errorText);
+    logger.error('Sabre flight search error:', errorText);
     throw new Error(`Sabre API error: ${response.status} ${response.statusText}`);
   }
 
@@ -152,7 +152,7 @@ function transformSabreResponse(sabreData: any): any[] {
     const flights: any[] = [];
     
     if (!sabreData?.OTA_AirLowFareSearchRS?.PricedItineraries?.PricedItinerary) {
-      console.log('No flights found in Sabre response');
+      logger.info('No flights found in Sabre response');
       return flights;
     }
 
@@ -234,7 +234,7 @@ function transformSabreResponse(sabreData: any): any[] {
 
     return flights.slice(0, 50); // Limit to 50 results
   } catch (error) {
-    console.error('Error transforming Sabre response:', error);
+    logger.error('Error transforming Sabre response:', error);
     return [];
   }
 }
@@ -246,7 +246,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('Sabre flight search request received');
+    logger.info('Sabre flight search request received');
     
     const body = await req.json();
     const {
@@ -272,10 +272,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Getting Sabre access token...');
+    logger.info('Getting Sabre access token...');
     const accessToken = await getSabreAccessToken();
     
-    console.log('Searching flights with Sabre...');
+    logger.info('Searching flights with Sabre...');
     const searchParams: FlightSearchParams = {
       origin,
       destination,
@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
     };
 
     const sabreData = await searchFlights(searchParams, accessToken);
-    console.log('Sabre flight data received, transforming...');
+    logger.info('Sabre flight data received, transforming...');
     
     const transformedFlights = transformSabreResponse(sabreData);
     
@@ -305,7 +305,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in sabre-flight-search:', error);
+    logger.error('Error in sabre-flight-search:', error);
     return new Response(
       JSON.stringify({
         success: false,

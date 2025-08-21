@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import Stripe from "https://esm.sh/stripe@14.21.0"
 import { Resend } from "npm:resend@2.0.0"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,10 +27,10 @@ async function sendConfirmationEmail(booking: any, bookingId: string, supabaseCl
       html: emailContent.html,
     });
 
-    console.log('Confirmation email sent:', emailResponse.data?.id);
+    logger.info('Confirmation email sent:', emailResponse.data?.id);
     return emailResponse;
   } catch (error) {
-    console.error('Failed to send confirmation email:', error);
+    logger.error('Failed to send confirmation email:', error);
     throw error;
   }
 }
@@ -163,7 +164,7 @@ serve(async (req) => {
       throw new Error(`Booking not found: ${bookingError?.message}`);
     }
 
-    console.log('Verifying payment for booking:', booking.booking_reference);
+    logger.info('Verifying payment for booking:', booking.booking_reference);
 
     // Verify payment with Stripe
     let paymentVerified = false;
@@ -194,7 +195,7 @@ serve(async (req) => {
       throw new Error('Payment verification failed');
     }
 
-    console.log('Payment verified successfully');
+    logger.info('Payment verified successfully');
 
     // Insert payment record
     const { error: paymentError } = await supabaseClient
@@ -206,7 +207,7 @@ serve(async (req) => {
       });
 
     if (paymentError) {
-      console.error('Failed to insert payment record:', paymentError);
+      logger.error('Failed to insert payment record:', paymentError);
     }
 
     // Update booking status to confirmed
@@ -219,14 +220,14 @@ serve(async (req) => {
       .eq('id', bookingId);
 
     if (updateError) {
-      console.error('Failed to update booking status:', updateError);
+      logger.error('Failed to update booking status:', updateError);
     }
 
     // Send confirmation email
     try {
       await sendConfirmationEmail(booking, bookingId, supabaseClient);
     } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
+      logger.error('Failed to send confirmation email:', emailError);
       // Don't fail the entire request if email fails
     }
 
@@ -242,7 +243,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Payment verification error:', error);
+    logger.error('Payment verification error:', error);
     
     return new Response(
       JSON.stringify({

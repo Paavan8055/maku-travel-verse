@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -67,7 +68,7 @@ const searchToursActivities = async (params: ToursActivitiesParams, accessToken:
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus tours/activities search error:', errorText);
+    logger.error('Amadeus tours/activities search error:', errorText);
     throw new Error(`Tours/activities search failed: ${response.statusText} - ${errorText}`);
   }
 
@@ -82,7 +83,7 @@ serve(async (req) => {
   try {
     const { destination, date, participants = 1 } = await req.json();
 
-    console.log('Amadeus tours/activities search:', { destination, date, participants });
+    logger.info('Amadeus tours/activities search:', { destination, date, participants });
 
     // Get coordinates for destination (simplified mapping)
     const locationMap: { [key: string]: { lat: number; lng: number } } = {
@@ -218,7 +219,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Amadeus tours/activities search error:', error);
+    logger.error('Amadeus tours/activities search error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,

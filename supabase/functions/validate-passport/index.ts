@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +23,7 @@ serve(async (req) => {
 
     // TODO: Integrate with OCR service (AWS Textract, Google Vision, etc.)
     // For now, simulate validation logic
-    console.log(`Validating passport for user ${userId} with image: ${passportImageUrl}`)
+    logger.info(`Validating passport for user ${userId} with image: ${passportImageUrl}`)
 
     // Simulate OCR extraction
     const mockOcrResult = {
@@ -48,7 +49,7 @@ serve(async (req) => {
       .single()
 
     if (error) {
-      console.error('Database error:', error)
+      logger.error('Database error:', error)
       return new Response(
         JSON.stringify({ error: 'Failed to update passport info' }),
         { 
@@ -72,7 +73,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Function error:', error)
+    logger.error('Function error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { 

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,17 +26,17 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    console.log("Starting security cleanup process...");
+    logger.info("Starting security cleanup process...");
 
     // Run the guest data cleanup function
     const { data, error } = await supabaseClient.rpc('cleanup_guest_data');
 
     if (error) {
-      console.error("Guest data cleanup failed:", error);
+      logger.error("Guest data cleanup failed:", error);
       throw new Error(`Cleanup failed: ${error.message}`);
     }
 
-    console.log("Guest data cleanup completed successfully");
+    logger.info("Guest data cleanup completed successfully");
 
     return new Response(JSON.stringify({
       success: true,
@@ -47,7 +48,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("Security cleanup error:", error);
+    logger.error("Security cleanup error:", error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +15,7 @@ serve(async (req) => {
   try {
     const { origin, destination, departureDate, returnDate, passengers } = await req.json();
 
-    console.log('Flight search request:', {
+    logger.info('Flight search request:', {
       origin,
       destination,
       departureDate,
@@ -179,7 +180,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Flight search error:', error);
+    logger.error('Flight search error:', error);
     
     return new Response(
       JSON.stringify({

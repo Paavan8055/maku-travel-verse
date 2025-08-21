@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +43,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 async function getHotelPhotos(hotelId: string, accessToken: string) {
   const url = `https://test.api.amadeus.com/v2/media/files/generated-photos?category=HOTEL&hotelIds=${hotelId}`;
   
-  console.log('Getting hotel photos for:', hotelId);
+  logger.info('Getting hotel photos for:', hotelId);
   
   const response = await fetch(url, {
     headers: {
@@ -52,12 +53,12 @@ async function getHotelPhotos(hotelId: string, accessToken: string) {
   });
 
   if (!response.ok) {
-    console.error('Hotel photos API error:', response.status, response.statusText);
+    logger.error('Hotel photos API error:', response.status, response.statusText);
     throw new Error(`Hotel photos API error: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Hotel photos response:', data);
+  logger.info('Hotel photos response:', data);
   return data;
 }
 
@@ -77,11 +78,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Hotel photos request for:', hotelId);
+    logger.info('Hotel photos request for:', hotelId);
 
     // Get access token
     const accessToken = await getAmadeusAccessToken();
-    console.log('Got Amadeus access token for hotel photos');
+    logger.info('Got Amadeus access token for hotel photos');
 
     // Get hotel photos
     const photosData = await getHotelPhotos(hotelId, accessToken);
@@ -108,7 +109,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Hotel photos function error:', error);
+    logger.error('Hotel photos function error:', error);
     
     return new Response(
       JSON.stringify({
