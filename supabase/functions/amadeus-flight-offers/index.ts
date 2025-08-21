@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -111,7 +112,7 @@ serve(async (req) => {
     );
 
     const params: FlightSearchParams = await req.json();
-    console.log('[FLIGHT-OFFERS] Search params:', params);
+    logger.info('[FLIGHT-OFFERS] Search params:', params);
 
     const searchKey = generateSearchKey(params);
     
@@ -124,7 +125,7 @@ serve(async (req) => {
       .single();
 
     if (cached && !cacheError) {
-      console.log('[FLIGHT-OFFERS] Cache hit');
+      logger.info('[FLIGHT-OFFERS] Cache hit');
       return new Response(JSON.stringify({
         success: true,
         data: cached.offers,
@@ -135,7 +136,7 @@ serve(async (req) => {
     }
 
     // Cache miss - call Amadeus
-    console.log('[FLIGHT-OFFERS] Cache miss, calling Amadeus');
+    logger.info('[FLIGHT-OFFERS] Cache miss, calling Amadeus');
     const accessToken = await getAmadeusAccessToken();
     const amadeusData = await searchFlightOffers(params, accessToken);
 
@@ -156,7 +157,7 @@ serve(async (req) => {
       p_ttl: ttlExpires.toISOString()
     });
 
-    console.log('[FLIGHT-OFFERS] Search completed, offers:', amadeusData.data?.length || 0);
+    logger.info('[FLIGHT-OFFERS] Search completed, offers:', amadeusData.data?.length || 0);
 
     return new Response(JSON.stringify({
       success: true,
@@ -167,7 +168,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[FLIGHT-OFFERS] Error:', error);
+    logger.error('[FLIGHT-OFFERS] Error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message

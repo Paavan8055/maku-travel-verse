@@ -1,4 +1,5 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,7 +41,7 @@ async function getSabreAccessToken(): Promise<string> {
   });
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Sabre auth error:', errorText);
+    logger.error('Sabre auth error:', errorText);
     throw new Error('Failed to authenticate with Sabre API');
   }
   const data: SabreAuthResponse = await response.json();
@@ -102,7 +103,7 @@ async function searchOffers(params: FlightOfferParams, accessToken: string): Pro
   });
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Sabre search error:', errorText);
+    logger.error('Sabre search error:', errorText);
     throw new Error(`Sabre API error: ${response.status} ${response.statusText}`);
   }
   return response.json();
@@ -151,7 +152,7 @@ function transformSabreOffers(sabreData: any): any[] {
       }
     }
   } catch (error) {
-    console.error('Error transforming Sabre response:', error);
+    logger.error('Error transforming Sabre response:', error);
     return [];
   }
   return flights;
@@ -162,7 +163,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
   try {
-    console.log('Sabre flight offers request received');
+    logger.info('Sabre flight offers request received');
     const body = await req.json();
     const {
       origin,
@@ -193,7 +194,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Sabre flight offers error:', error);
+    logger.error('Sabre flight offers error:', error);
     return new Response(JSON.stringify({ success: false, error: String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

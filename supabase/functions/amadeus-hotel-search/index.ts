@@ -32,11 +32,11 @@ async function getAmadeusAccessToken(): Promise<string> {
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
   
   if (!clientId || !clientSecret) {
-    console.error('❌ CRITICAL: Missing Amadeus credentials');
+    logger.error('❌ CRITICAL: Missing Amadeus credentials');
     throw new Error('Missing Amadeus credentials - check environment configuration');
   }
 
-  console.log('🔐 Attempting Amadeus authentication...');
+  logger.info('🔐 Attempting Amadeus authentication...');
 
   try {
     const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
@@ -53,16 +53,16 @@ async function getAmadeusAccessToken(): Promise<string> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Amadeus authentication failed:', errorText);
+      logger.error('❌ Amadeus authentication failed:', errorText);
       throw new Error(`Amadeus auth failed: ${response.statusText}`);
     }
 
     const data: AmadeusAuthResponse = await response.json();
-    console.log('✅ Successfully authenticated with Amadeus');
+    logger.info('✅ Successfully authenticated with Amadeus');
     return data.access_token;
     
   } catch (error) {
-    console.error('❌ Amadeus authentication error:', error);
+    logger.error('❌ Amadeus authentication error:', error);
     throw error;
   }
 }
@@ -80,7 +80,7 @@ async function getHotelList(accessToken: string, cityCode: string, latitude?: nu
     params.delete('cityCode');
   }
 
-  console.log('Getting hotel list from:', `${url}?${params}`);
+  logger.info('Getting hotel list from:', `${url}?${params}`);
 
   const response = await fetch(`${url}?${params}`, {
     headers: {
@@ -91,12 +91,12 @@ async function getHotelList(accessToken: string, cityCode: string, latitude?: nu
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Hotel list API failed:', response.status, response.statusText, errorText);
+    logger.error('Hotel list API failed:', response.status, response.statusText, errorText);
     throw new Error(`Hotel list failed: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Hotel list successful, found', data.data?.length || 0, 'hotels');
+  logger.info('Hotel list successful, found', data.data?.length || 0, 'hotels');
   return data;
 }
 
@@ -104,7 +104,7 @@ async function getHotelList(accessToken: string, cityCode: string, latitude?: nu
 async function getHotelOffers(accessToken: string, hotelIds: string[], context: SearchContext): Promise<any> {
   const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers`;
   
-  console.log('Getting hotel offers for hotels:', hotelIds.slice(0, 5));
+  logger.info('Getting hotel offers for hotels:', hotelIds.slice(0, 5));
 
   const params = new URLSearchParams({
     hotelIds: hotelIds.join(','),
@@ -128,18 +128,18 @@ async function getHotelOffers(accessToken: string, hotelIds: string[], context: 
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Hotel offers failed:', response.status, response.statusText, errorText);
+    logger.error('Hotel offers failed:', response.status, response.statusText, errorText);
     throw new Error(`Hotel offers failed: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log('Hotel offers successful, found', data.data?.length || 0, 'hotel offers');
+  logger.info('Hotel offers successful, found', data.data?.length || 0, 'hotel offers');
   return data;
 }
 
 // Complete hotel search using real Amadeus data
 async function searchHotels(accessToken: string, context: SearchContext): Promise<any> {
-  console.log('Starting hotel search with context:', {
+  logger.info('Starting hotel search with context:', {
     cityCode: context.cityCode,
     coordinates: context.coordinates,
     checkInDate: context.checkInDate,
@@ -158,7 +158,7 @@ async function searchHotels(accessToken: string, context: SearchContext): Promis
   );
 
   if (!hotelListData?.data || hotelListData.data.length === 0) {
-    console.warn('No hotels found in hotel list for', context.cityCode);
+    logger.warn('No hotels found in hotel list for', context.cityCode);
     throw new Error('No hotels found for this destination');
   }
 
@@ -172,7 +172,7 @@ async function searchHotels(accessToken: string, context: SearchContext): Promis
     throw new Error('No valid hotel IDs found');
   }
 
-  console.log(`Found ${hotelIds.length} hotels, getting offers...`);
+  logger.info(`Found ${hotelIds.length} hotels, getting offers...`);
 
   // Step 3: Get offers for these hotels
   const offersData = await getHotelOffers(accessToken, hotelIds, context);
@@ -229,7 +229,7 @@ async function resolveCity(destination: string, accessToken: string): Promise<{ 
   
   // Try direct mapping first
   if (cityMapping[normalizedDest]) {
-    console.log('Resolved destination using city mapping:', normalizedDest, '->', cityMapping[normalizedDest]);
+    logger.info('Resolved destination using city mapping:', normalizedDest, '->', cityMapping[normalizedDest]);
     return { cityCode: cityMapping[normalizedDest] };
   }
 
@@ -249,7 +249,7 @@ async function resolveCity(destination: string, accessToken: string): Promise<{ 
       const data = await response.json();
       const location = data.data?.[0];
       if (location?.iataCode) {
-        console.log('Resolved destination using Amadeus API:', destination, '->', location.iataCode);
+        logger.info('Resolved destination using Amadeus API:', destination, '->', location.iataCode);
         return { 
           cityCode: location.iataCode,
           coordinates: location.geoCode ? { 
@@ -260,10 +260,10 @@ async function resolveCity(destination: string, accessToken: string): Promise<{ 
       }
     }
   } catch (error) {
-    console.warn('City resolution failed:', error);
+    logger.warn('City resolution failed:', error);
   }
 
-  console.log('Could not resolve destination, using Sydney as default');
+  logger.info('Could not resolve destination, using Sydney as default');
   return { cityCode: 'SYD' };
 }
 
@@ -307,7 +307,7 @@ serve(async (req) => {
   }
 
   const requestId = crypto.randomUUID().substring(0, 8);
-  console.log(`🔍 [${requestId}] Hotel search request started`);
+  logger.info(`🔍 [${requestId}] Hotel search request started`);
 
   try {
     const { destination, checkIn, checkOut, checkInDate, checkOutDate, guests = 2, children = 0, rooms = 1, currency = 'AUD', hotelName } = await req.json();
@@ -316,7 +316,7 @@ serve(async (req) => {
     const normalizedCheckOut = checkOut || checkOutDate;
     
     if (!destination || !normalizedCheckIn || !normalizedCheckOut) {
-      console.error(`❌ [${requestId}] Missing required parameters`);
+      logger.error(`❌ [${requestId}] Missing required parameters`);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -357,7 +357,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`📋 [${requestId}] Search params:`, { 
+    logger.info(`📋 [${requestId}] Search params:`, { 
       destination, 
       checkIn: normalizedCheckIn, 
       checkOut: normalizedCheckOut, 
@@ -370,7 +370,7 @@ serve(async (req) => {
 
     // Get Amadeus access token
     const accessToken = await getAmadeusAccessToken();
-    console.log(`✅ [${requestId}] Amadeus authentication successful`);
+    logger.info(`✅ [${requestId}] Amadeus authentication successful`);
 
     // Initialize search context
     const context: SearchContext = {
@@ -400,11 +400,11 @@ serve(async (req) => {
     }
 
     // Perform hotel search
-    console.log(`🔍 [${requestId}] Starting hotel search...`);
+    logger.info(`🔍 [${requestId}] Starting hotel search...`);
     const searchResult = await searchHotels(accessToken, context);
     
     if (!searchResult?.data || searchResult.data.length === 0) {
-      console.log(`📭 [${requestId}] No hotels found for search criteria`);
+      logger.info(`📭 [${requestId}] No hotels found for search criteria`);
       return new Response(
         JSON.stringify({
           success: true,
@@ -419,7 +419,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`✅ [${requestId}] Hotel search successful - found ${searchResult.data.length} hotels`);
+    logger.info(`✅ [${requestId}] Hotel search successful - found ${searchResult.data.length} hotels`);
 
     // Transform Amadeus data to frontend format
     const transformedHotels = transformAmadeusHotels(searchResult.data);
@@ -435,7 +435,7 @@ serve(async (req) => {
     // Sort by price
     filteredHotels.sort((a: any, b: any) => a.pricePerNight - b.pricePerNight);
 
-    console.log(`✅ [${requestId}] Successfully found ${filteredHotels.length} hotels for ${destination}`);
+    logger.info(`✅ [${requestId}] Successfully found ${filteredHotels.length} hotels for ${destination}`);
 
     return new Response(
       JSON.stringify({
@@ -453,7 +453,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error(`❌ [${requestId}] Hotel search function error:`, error);
+    logger.error(`❌ [${requestId}] Hotel search function error:`, error);
     
     return new Response(
       JSON.stringify({

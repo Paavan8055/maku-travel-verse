@@ -34,7 +34,7 @@ const getAmadeusAccessToken = async (): Promise<string> => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus auth failed:', errorText);
+    logger.error('Amadeus auth failed:', errorText);
     throw new Error(`Amadeus auth failed: ${response.statusText}`);
   }
 
@@ -67,7 +67,7 @@ const getHotelOffers = async (
   }
 
   const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers?${params.toString()}`;
-  console.log('Amadeus Hotel Offers API call:', url);
+  logger.info('Amadeus Hotel Offers API call:', url);
 
   const response = await fetch(url, {
     headers: {
@@ -78,7 +78,7 @@ const getHotelOffers = async (
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Amadeus hotel offers error:', {
+    logger.error('Amadeus hotel offers error:', {
       status: response.status,
       statusText: response.statusText,
       error: errorText,
@@ -88,7 +88,7 @@ const getHotelOffers = async (
   }
 
   const result = await response.json();
-  console.log('Amadeus Hotel Offers API response:', {
+  logger.info('Amadeus Hotel Offers API response:', {
     dataExists: !!result.data,
     dataLength: result.data?.length || 0,
     hotelExists: !!result.data?.[0]?.hotel,
@@ -108,7 +108,7 @@ serve(async (req) => {
   try {
     const { hotelId, checkIn, checkOut, adults = 2, children = 0, rooms = 1, currency = 'USD' } = await req.json();
 
-    console.log('=== Amadeus Hotel Offers Request ===', {
+    logger.info('=== Amadeus Hotel Offers Request ===', {
       hotelId,
       checkIn,
       checkOut,
@@ -142,7 +142,7 @@ serve(async (req) => {
 
     // Check if hotel was found
     if (!hotel) {
-      console.log('=== Hotel Not Found ===', {
+      logger.info('=== Hotel Not Found ===', {
         hotelId,
         responseStructure: Object.keys(offersData),
         dataExists: !!offersData.data,
@@ -203,7 +203,7 @@ serve(async (req) => {
       self: offer.self
     }));
 
-    console.log(`=== Hotel Offers Complete ===`, {
+    logger.info(`=== Hotel Offers Complete ===`, {
       hotelId: hotel?.hotelId,
       hotelName: hotel?.name,
       offersFound: transformedOffers.length,
@@ -234,7 +234,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('=== Amadeus Hotel Offers Error ===', {
+    logger.error('=== Amadeus Hotel Offers Error ===', {
       error: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString()

@@ -44,7 +44,7 @@ async function getSabreAccessToken(): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Sabre auth error:', errorText);
+    logger.error('Sabre auth error:', errorText);
     throw new Error('Failed to authenticate with Sabre API');
   }
 
@@ -107,7 +107,7 @@ async function searchHotels(params: HotelSearchParams, accessToken: string): Pro
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Sabre hotel search error:', errorText);
+    logger.error('Sabre hotel search error:', errorText);
     throw new Error(`Sabre API error: ${response.status} ${response.statusText}`);
   }
 
@@ -120,7 +120,7 @@ function transformSabreHotelResponse(sabreData: any): any[] {
     const hotels: any[] = [];
     
     if (!sabreData?.GetHotelAvailRS?.HotelAvailInfos?.HotelAvailInfo) {
-      console.log('No hotels found in Sabre response');
+      logger.info('No hotels found in Sabre response');
       return hotels;
     }
 
@@ -220,7 +220,7 @@ function transformSabreHotelResponse(sabreData: any): any[] {
 
     return hotels.slice(0, 50); // Limit to 50 results
   } catch (error) {
-    console.error('Error transforming Sabre hotel response:', error);
+    logger.error('Error transforming Sabre hotel response:', error);
     return [];
   }
 }
@@ -232,7 +232,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('Sabre hotel search request received');
+    logger.info('Sabre hotel search request received');
     
     const body = await req.json();
     const {
@@ -258,10 +258,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Getting Sabre access token...');
+    logger.info('Getting Sabre access token...');
     const accessToken = await getSabreAccessToken();
     
-    console.log('Searching hotels with Sabre...');
+    logger.info('Searching hotels with Sabre...');
     const searchParams: HotelSearchParams = {
       cityCode,
       checkIn,
@@ -272,7 +272,7 @@ Deno.serve(async (req) => {
     };
 
     const sabreData = await searchHotels(searchParams, accessToken);
-    console.log('Sabre hotel data received, transforming...');
+    logger.info('Sabre hotel data received, transforming...');
     
     const transformedHotels = transformSabreHotelResponse(sabreData);
     
@@ -291,7 +291,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in sabre-hotel-search:', error);
+    logger.error('Error in sabre-hotel-search:', error);
     return new Response(
       JSON.stringify({
         success: false,

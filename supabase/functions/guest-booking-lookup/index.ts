@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,7 +26,7 @@ export async function handler(req: Request, supabaseClient?: any): Promise<Respo
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
 
-    console.log('Looking up booking:', { bookingReference, email });
+    logger.info('Looking up booking:', { bookingReference, email });
 
     // Get booking by reference
     const { data: booking, error: bookingError } = await client
@@ -35,7 +36,7 @@ export async function handler(req: Request, supabaseClient?: any): Promise<Respo
       .single();
 
     if (bookingError || !booking) {
-      console.error('Booking not found:', bookingError?.message);
+      logger.error('Booking not found:', bookingError?.message);
       throw new Error('Booking not found');
     }
 
@@ -48,7 +49,7 @@ export async function handler(req: Request, supabaseClient?: any): Promise<Respo
       });
 
     if (verifyError || !hasAccess) {
-      console.error('Access verification failed:', verifyError?.message);
+      logger.error('Access verification failed:', verifyError?.message);
       
       // Log failed access attempt
       await client.rpc('log_booking_access', {
@@ -77,7 +78,7 @@ export async function handler(req: Request, supabaseClient?: any): Promise<Respo
       .eq('booking_id', booking.id);
 
     if (itemsError) {
-      console.error('Failed to fetch booking items:', itemsError);
+      logger.error('Failed to fetch booking items:', itemsError);
     }
 
     // Get latest payment
@@ -90,7 +91,7 @@ export async function handler(req: Request, supabaseClient?: any): Promise<Respo
       .single();
 
     if (paymentError && paymentError.code !== 'PGRST116') {
-      console.error('Failed to fetch payment:', paymentError);
+      logger.error('Failed to fetch payment:', paymentError);
     }
 
     // Prepare response data
@@ -108,7 +109,7 @@ export async function handler(req: Request, supabaseClient?: any): Promise<Respo
       latest_payment: latestPayment || null
     };
 
-    console.log('Booking lookup successful:', booking.booking_reference);
+    logger.info('Booking lookup successful:', booking.booking_reference);
 
     return new Response(
       JSON.stringify({
@@ -120,7 +121,7 @@ export async function handler(req: Request, supabaseClient?: any): Promise<Respo
       }
     );
   } catch (error) {
-    console.error('Guest booking lookup error:', error);
+    logger.error('Guest booking lookup error:', error);
 
     return new Response(
       JSON.stringify({
