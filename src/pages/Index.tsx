@@ -7,15 +7,12 @@ import FeaturedListings from "@/components/FeaturedListings";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/features/makuBot/components/ChatWidget";
 import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
-import { PriceIntelligence } from "@/components/ota/PriceIntelligence";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
       <MarketplacePills />
-
-      <PriceIntelligence itemType="landing" itemId="index" currentPrice={0} />
 
       <SearchSection />
       <MarketplaceSection />
