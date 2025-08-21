@@ -70,9 +70,9 @@ interface Coordinates {
 }
 
 export interface LocationSearchResult {
-  type: string;
+  type: 'airport' | 'city' | 'location';
   iataCode?: string;
-  icaoCode: string | null;
+  icaoCode?: string | null;
   name?: string;
   city?: string;
   country?: string;
@@ -161,6 +161,8 @@ function transformSabreLocationResponse(sabreResults: SabreLocationResponse[]): 
         const airports: SabreAirport[] = Array.isArray(result.Airports) ? result.Airports : [result.Airports];
 
         for (const airport of airports) {
+          const lat = airport.GeoCoordinates?.Latitude;
+          const lon = airport.GeoCoordinates?.Longitude;
           locations.push({
             type: 'airport',
             iataCode: airport.AirportCode || airport.Code,
@@ -169,9 +171,9 @@ function transformSabreLocationResponse(sabreResults: SabreLocationResponse[]): 
             city: airport.CityName || airport.City,
             country: airport.CountryName || airport.Country,
             countryCode: airport.CountryCode,
-            coordinates: airport.GeoCoordinates ? {
-              latitude: parseFloat(airport.GeoCoordinates.Latitude || '0'),
-              longitude: parseFloat(airport.GeoCoordinates.Longitude || '0')
+            coordinates: lat && lon ? {
+              latitude: parseFloat(lat),
+              longitude: parseFloat(lon)
             } : null,
             timezone: airport.TimeZoneInfo || null,
             source: 'sabre'
@@ -184,17 +186,18 @@ function transformSabreLocationResponse(sabreResults: SabreLocationResponse[]): 
         const cities: SabreCity[] = Array.isArray(result.Cities) ? result.Cities : [result.Cities];
 
         for (const city of cities) {
+          const lat = city.GeoCoordinates?.Latitude;
+          const lon = city.GeoCoordinates?.Longitude;
           locations.push({
             type: 'city',
             iataCode: city.CityCode || city.Code,
-            icaoCode: null,
             name: city.CityName || city.Name,
             city: city.CityName || city.Name,
             country: city.CountryName || city.Country,
             countryCode: city.CountryCode,
-            coordinates: city.GeoCoordinates ? {
-              latitude: parseFloat(city.GeoCoordinates.Latitude || '0'),
-              longitude: parseFloat(city.GeoCoordinates.Longitude || '0')
+            coordinates: lat && lon ? {
+              latitude: parseFloat(lat),
+              longitude: parseFloat(lon)
             } : null,
             timezone: city.TimeZoneInfo || null,
             source: 'sabre'
@@ -204,9 +207,13 @@ function transformSabreLocationResponse(sabreResults: SabreLocationResponse[]): 
 
       // Handle generic location results (fallback)
       if (result.Locations) {
-        const locations_data: SabreGenericLocation[] = Array.isArray(result.Locations) ? result.Locations : [result.Locations];
+        const genericLocations: SabreGenericLocation[] = Array.isArray(result.Locations)
+          ? result.Locations
+          : [result.Locations];
 
-        for (const location of locations_data) {
+        for (const location of genericLocations) {
+          const lat = location.Position?.Latitude ?? location.GeoCoordinates?.Latitude;
+          const lon = location.Position?.Longitude ?? location.GeoCoordinates?.Longitude;
           locations.push({
             type: location.Type?.toLowerCase() || 'location',
             iataCode: location.Code,
@@ -215,9 +222,9 @@ function transformSabreLocationResponse(sabreResults: SabreLocationResponse[]): 
             city: location.CityName || location.City || location.Name,
             country: location.CountryName || location.Country,
             countryCode: location.CountryCode,
-            coordinates: location.Position || location.GeoCoordinates ? {
-              latitude: parseFloat(location.Position?.Latitude || location.GeoCoordinates?.Latitude || '0'),
-              longitude: parseFloat(location.Position?.Longitude || location.GeoCoordinates?.Longitude || '0')
+            coordinates: lat && lon ? {
+              latitude: parseFloat(lat),
+              longitude: parseFloat(lon)
             } : null,
             timezone: location.TimeZone || location.TimeZoneInfo || null,
             source: 'sabre'
@@ -228,8 +235,12 @@ function transformSabreLocationResponse(sabreResults: SabreLocationResponse[]): 
 
     // Remove duplicates based on IATA code
     const uniqueLocations = locations.reduce<LocationSearchResult[]>((acc, current) => {
-      const existing = acc.find(item => item.iataCode === current.iataCode);
-      if (!existing && current.iataCode) {
+      const existing = acc.find(
+        item =>
+          (current.iataCode && item.iataCode === current.iataCode) ||
+          (current.icaoCode && item.icaoCode === current.icaoCode)
+      );
+      if (!existing) {
         acc.push(current);
       }
       return acc;
@@ -289,10 +300,11 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in sabre-locations-autocomplete:', error);
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || 'An unexpected error occurred',
+        error: message,
         source: 'sabre'
       }),
       {
