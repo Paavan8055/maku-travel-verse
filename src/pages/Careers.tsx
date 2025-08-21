@@ -250,7 +250,7 @@ const Careers: React.FC = () => {
               {
                 icon: Heart,
                 title: 'Travel Perks',
-                description: 'Unlimited vacation, travel allowances, and first access to platform features.',
+                description: 'Limited vacation policy with 50-50% split MAKU & Employee family travel allowance each year.',
                 color: 'text-travel-pink'
               }
             ].map((perk, index) => (
