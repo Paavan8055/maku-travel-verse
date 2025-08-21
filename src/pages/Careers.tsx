@@ -20,7 +20,9 @@ import {
   Plane,
   DollarSign,
   Trophy,
-  Target
+  Target,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
@@ -136,6 +138,7 @@ const jobPositions: JobPosition[] = [
 
 const Careers: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<JobPosition | null>(null);
+  const [expandedRequirements, setExpandedRequirements] = useState<{ [key: string]: boolean }>({});
   const [applicationForm, setApplicationForm] = useState({
     name: '',
     email: '',
@@ -164,6 +167,13 @@ const Careers: React.FC = () => {
       motivation: '',
       portfolio: ''
     });
+  };
+
+  const toggleRequirements = (jobId: string) => {
+    setExpandedRequirements(prev => ({
+      ...prev,
+      [jobId]: !prev[jobId]
+    }));
   };
 
   return (
@@ -301,11 +311,26 @@ const Careers: React.FC = () => {
                         Requirements
                       </h4>
                       <ul className="text-sm space-y-1">
-                        {job.requirements.slice(0, 3).map((req, index) => (
+                        {(expandedRequirements[job.id] ? job.requirements : job.requirements.slice(0, 3)).map((req, index) => (
                           <li key={index} className="text-muted-foreground">• {req}</li>
                         ))}
                         {job.requirements.length > 3 && (
-                          <li className="text-travel-ocean font-medium">+ {job.requirements.length - 3} more</li>
+                          <li 
+                            className="text-travel-ocean font-medium cursor-pointer hover:text-travel-ocean/80 flex items-center"
+                            onClick={() => toggleRequirements(job.id)}
+                          >
+                            {expandedRequirements[job.id] ? (
+                              <>
+                                <ChevronUp className="mr-1 h-3 w-3" />
+                                Show less
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="mr-1 h-3 w-3" />
+                                + {job.requirements.length - 3} more
+                              </>
+                            )}
+                          </li>
                         )}
                       </ul>
                     </div>
