@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
@@ -6,28 +5,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+export async function handler(req: Request, supabaseClient?: any): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { bookingReference, email, accessToken } = await req.json();
-    
+
     if (!bookingReference || !email) {
       throw new Error('Booking reference and email are required');
     }
 
     // Initialize Supabase client with service role to bypass RLS
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const client =
+      supabaseClient ??
+      createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
 
     console.log('Looking up booking:', { bookingReference, email });
 
     // Get booking by reference
-    const { data: booking, error: bookingError } = await supabaseClient
+    const { data: booking, error: bookingError } = await client
       .from('bookings')
       .select('*')
       .eq('booking_reference', bookingReference)
@@ -39,7 +40,7 @@ serve(async (req) => {
     }
 
     // Verify guest access using the RPC function
-    const { data: hasAccess, error: verifyError } = await supabaseClient
+    const { data: hasAccess, error: verifyError } = await client
       .rpc('verify_guest_booking_access', {
         _booking_id: booking.id,
         _email: email,
@@ -50,7 +51,7 @@ serve(async (req) => {
       console.error('Access verification failed:', verifyError?.message);
       
       // Log failed access attempt
-      await supabaseClient.rpc('log_booking_access', {
+      await client.rpc('log_booking_access', {
         _booking_id: booking.id,
         _access_type: 'guest_lookup',
         _access_method: accessToken ? 'token' : 'email',
@@ -62,7 +63,7 @@ serve(async (req) => {
     }
 
     // Log successful access
-    await supabaseClient.rpc('log_booking_access', {
+    await client.rpc('log_booking_access', {
       _booking_id: booking.id,
       _access_type: 'guest_lookup',
       _access_method: accessToken ? 'token' : 'email',
@@ -70,7 +71,7 @@ serve(async (req) => {
     });
 
     // Get booking items
-    const { data: bookingItems, error: itemsError } = await supabaseClient
+    const { data: bookingItems, error: itemsError } = await client
       .from('booking_items')
       .select('*')
       .eq('booking_id', booking.id);
@@ -80,7 +81,7 @@ serve(async (req) => {
     }
 
     // Get latest payment
-    const { data: latestPayment, error: paymentError } = await supabaseClient
+    const { data: latestPayment, error: paymentError } = await client
       .from('payments')
       .select('*')
       .eq('booking_id', booking.id)
@@ -120,7 +121,7 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Guest booking lookup error:', error);
-    
+
     return new Response(
       JSON.stringify({
         success: false,
@@ -132,4 +133,9 @@ serve(async (req) => {
       }
     );
   }
-});
+}
+
+// Use built-in Deno.serve when available
+if (import.meta.main && typeof Deno !== 'undefined' && 'serve' in Deno) {
+  Deno.serve(handler);
+}
