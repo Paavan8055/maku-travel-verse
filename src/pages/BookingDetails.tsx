@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -380,10 +381,13 @@ const BookingDetailsInner: React.FC = () => {
   );
 };
 
-export const BookingDetails: React.FC = () => {
+const BookingDetails: React.FC = () => {
   return (
     <AuthGuard>
       <BookingDetailsInner />
     </AuthGuard>
   );
 };
+
+export { BookingDetails };
+export default BookingDetails;
