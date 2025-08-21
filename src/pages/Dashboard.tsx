@@ -56,7 +56,7 @@ interface BookingData {
   } | null;
 }
 
-export const Dashboard: React.FC = () => {
+const Dashboard: React.FC = () => {
   console.log('Dashboard: Component mounting');
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -341,3 +341,5 @@ export const Dashboard: React.FC = () => {
     </AuthGuard>
   );
 };
+
+export default Dashboard;

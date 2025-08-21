@@ -12,9 +12,9 @@ import Navbar from "@/components/Navbar";
 import { Link, useNavigate } from "react-router-dom";
 import { TravelTechMetrics } from "@/components/dashboard/TravelTechMetrics";
 import { RealTimeFeeds } from "@/components/dashboard/RealTimeFeeds";
-import { StartupMetrics } from "@/components/startup/StartupMetrics";
-import { PartnerAnalytics } from "@/components/startup/PartnerAnalytics";
-import { InnovationRoadmap } from "@/components/startup/InnovationRoadmap";
+import StartupMetrics from "@/components/startup/StartupMetrics";
+import PartnerAnalytics from "@/components/startup/PartnerAnalytics";
+import InnovationRoadmap from "@/components/startup/InnovationRoadmap";
 import { useAuth } from "@/features/auth/context/AuthContext";
 
 const PartnersPage = () => {
@@ -197,19 +197,19 @@ const PartnersPage = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <StartupMetrics className="mb-8" />
+            <StartupMetrics />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <PartnerAnalytics className="mb-8" />
+            <PartnerAnalytics />
           </TabsContent>
 
           <TabsContent value="roadmap">
-            <InnovationRoadmap className="mb-8" />
+            <InnovationRoadmap />
           </TabsContent>
 
           <TabsContent value="realtime">
-            <RealTimeFeeds className="mb-8" />
+            <RealTimeFeeds />
           </TabsContent>
 
           <TabsContent value="apply">
