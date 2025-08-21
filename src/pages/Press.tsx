@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,10 +31,10 @@ const Press = () => {
     },
     {
       id: 4,
-      title: "Sydney Startup Maku.travel Begins Beta Testing for Specialized Travel Marketplace",
-      date: "2025-04-08",
+      title: "Maku.travel Invites Australian Users to Beta Test Specialized Travel Marketplace",
+      date: "2025-09-15",
       category: "Product Testing",
-      excerpt: "Early beta users provide positive feedback on unique four-way marketplace approach, validating demand for specialized travel experiences in Australian market."
+      excerpt: "Following successful soft launch, Maku.travel opens beta program for Australian travelers to experience and help refine the four-way marketplace approach."
     }
   ];
 
@@ -198,7 +197,7 @@ const Press = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold">Stage</h4>
-                  <p className="text-muted-foreground">Pre-seed startup in beta testing</p>
+                  <p className="text-muted-foreground">Startup in post-launch beta phase</p>
                 </div>
                 <div>
                   <h4 className="font-semibold">Innovation Focus</h4>
