@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { 
 import logger from "@/utils/logger";
+import { 
   Plane, 
   Building, 
   Car, 
@@ -23,6 +23,7 @@ import logger from "@/utils/logger";
   AlertCircle,
   Clock
 } from 'lucide-react';
+
 // Use database types instead of Amadeus types for better compatibility
 
 interface TripsData {
