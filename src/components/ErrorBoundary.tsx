@@ -1,3 +1,4 @@
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCcw } from 'lucide-react';
@@ -13,7 +14,7 @@ interface State {
   errorInfo?: ErrorInfo;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryComponent extends Component<Props, State> {
   public state: State = {
     hasError: false
   };
@@ -88,3 +89,6 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export { ErrorBoundaryComponent as ErrorBoundary };
+export default ErrorBoundaryComponent;
