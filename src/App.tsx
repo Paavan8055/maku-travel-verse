@@ -9,6 +9,7 @@ import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
 import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
 import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SkipLink } from "@/components/SkipLink";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
