@@ -273,7 +273,7 @@ export class HotelbedsClient extends BaseSupplierClient {
     coordinates?: { latitude: number; longitude: number };
     fields?: string[];
     language?: string;
-  }, correlationId?: string): Promise<SupplierResponse<any[]>> {
+  }, correlationId?: string): Promise<SupplierResponse<any>> {
     const queryParams = new URLSearchParams();
     
     if (params.destinationCode) queryParams.append('destinationCode', params.destinationCode);
