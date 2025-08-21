@@ -46,9 +46,9 @@ image_transformation = { enabled = true }
 [auth]
 enabled = true
 port = 54329
-site_"https://maku.travel"
-additional_rehttps://maku.travel"]
-jwt_expiry = 3600 10
+site_url = "https://maku.travel"
+additional_redirect_urls = ["https://maku.travel"]
+jwt_expiry = 3600
 enable_signup = true
 
 [auth.email]
@@ -74,14 +74,82 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
-# Public search functions for guest access
 [functions.unified-search]
 verify_jwt = false
 
 [functions.amadeus-flight-search]
 verify_jwt = false
 
+[functions.amadeus-hotel-search]
+verify_jwt = false
+
+[functions.amadeus-hotel-list]
+verify_jwt = false
+
+[functions.amadeus-hotel-offers]
+verify_jwt = false
+
+[functions.amadeus-hotel-details]
+verify_jwt = false
+
+[functions.amadeus-hotel-photos]
+verify_jwt = false
+
+[functions.amadeus-hotel-ratings]
+verify_jwt = false
+
+[functions.amadeus-hotel-booking]
+verify_jwt = true
+
+[functions.amadeus-flight-booking]
+verify_jwt = true
+
+[functions.amadeus-flight-offers]
+verify_jwt = false
+
+[functions.amadeus-flight-price-confirm]
+verify_jwt = true
+
+[functions.amadeus-price-confirm]
+verify_jwt = true
+
+[functions.amadeus-seat-map]
+verify_jwt = false
+
+[functions.amadeus-locations-autocomplete]
+verify_jwt = false
+
+[functions.amadeus-hotel-autocomplete]
+verify_jwt = false
+
+[functions.amadeus-points-of-interest]
+verify_jwt = false
+
+[functions.amadeus-safe-place]
+verify_jwt = false
+
+[functions.amadeus-tours-activities]
+verify_jwt = false
+
+[functions.amadeus-activity-search]
+verify_jwt = false
+
+[functions.amadeus-car-search]
+verify_jwt = false
+
+[functions.amadeus-transfer-search]
+verify_jwt = false
+
+[functions.amadeus-flight-inspiration]
+verify_jwt = false
+
+[functions.amadeus-health]
+verify_jwt = false
+
 [functions.hotelbeds-search]
+verify_jwt = false
+
+[functions.hotelbeds-autocomplete]
 verify_jwt = false
 
 [functions.hotel-search]
@@ -96,19 +164,49 @@ verify_jwt = false
 [functions.travelport-search]
 verify_jwt = false
 
-[functions.amadeus-locations-autocomplete]
+[functions.sabre-flight-search]
 verify_jwt = false
 
-[functions.hotelbeds-autocomplete]
+[functions.sabre-hotel-search]
+verify_jwt = false
+
+[functions.sabre-locations-autocomplete]
+verify_jwt = false
+
+[functions.sabre-flight-offers]
 verify_jwt = false
 
 [functions.verify-booking-payment]
+verify_jwt = true
+
+[functions.verify-partner-payment]
 verify_jwt = true
 
 [functions.validate-passport]
 verify_jwt = true
 
 [functions.create-card-payment-intent]
+verify_jwt = false
+
+[functions.create-hotel-booking]
+verify_jwt = true
+
+[functions.create-partner-checkout]
+verify_jwt = true
+
+[functions.create-gift-card]
+verify_jwt = false
+
+[functions.validate-gift-card]
+verify_jwt = false
+
+[functions.send-gift-card-email]
+verify_jwt = false
+
+[functions.send-booking-confirmation]
+verify_jwt = false
+
+[functions.guest-booking-lookup]
 verify_jwt = false
 
 [functions.get-stripe-publishable-key]
@@ -120,14 +218,10 @@ verify_jwt = false
 [functions.rate-limiter]
 verify_jwt = false
 
-# Sabre API functions for alternative inventory
-[functions.sabre-flight-search]
+[functions.ai-training-anonymizer]
 verify_jwt = false
 
-[functions.sabre-hotel-search]
-verify_jwt = false
-
-[functions.sabre-locations-autocomplete]
+[functions.generate-offers]
 verify_jwt = false
 
 [analytics]

@@ -503,6 +503,189 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_activities: {
+        Row: {
+          activity_code: string
+          capacity: number | null
+          category: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          location: Json | null
+          name: string
+          partner_id: string
+          price_cents: number
+          updated_at: string
+        }
+        Insert: {
+          activity_code: string
+          capacity?: number | null
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location?: Json | null
+          name: string
+          partner_id: string
+          price_cents: number
+          updated_at?: string
+        }
+        Update: {
+          activity_code?: string
+          capacity?: number | null
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location?: Json | null
+          name?: string
+          partner_id?: string
+          price_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_activities_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_flights: {
+        Row: {
+          airline_arc: string | null
+          airline_iata: string
+          arrival_time: string
+          created_at: string
+          currency: string
+          departure_time: string
+          destination_iata: string
+          fare_class: string | null
+          flight_number: string
+          id: string
+          origin_iata: string
+          partner_id: string
+          price_cents: number
+          seat_inventory: Json | null
+          updated_at: string
+        }
+        Insert: {
+          airline_arc?: string | null
+          airline_iata: string
+          arrival_time: string
+          created_at?: string
+          currency?: string
+          departure_time: string
+          destination_iata: string
+          fare_class?: string | null
+          flight_number: string
+          id?: string
+          origin_iata: string
+          partner_id: string
+          price_cents: number
+          seat_inventory?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          airline_arc?: string | null
+          airline_iata?: string
+          arrival_time?: string
+          created_at?: string
+          currency?: string
+          departure_time?: string
+          destination_iata?: string
+          fare_class?: string | null
+          flight_number?: string
+          id?: string
+          origin_iata?: string
+          partner_id?: string
+          price_cents?: number
+          seat_inventory?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_flights_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_hotels: {
+        Row: {
+          address: Json | null
+          base_price_cents: number
+          city: string | null
+          country: string | null
+          created_at: string
+          currency: string
+          id: string
+          inventory: Json | null
+          lat: number | null
+          lng: number | null
+          name: string
+          notes: string | null
+          partner_id: string
+          property_code: string
+          room_types: Json | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          base_price_cents: number
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          inventory?: Json | null
+          lat?: number | null
+          lng?: number | null
+          name: string
+          notes?: string | null
+          partner_id: string
+          property_code: string
+          room_types?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          base_price_cents?: number
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          inventory?: Json | null
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          notes?: string | null
+          partner_id?: string
+          property_code?: string
+          room_types?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_hotels_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       detailed_reviews: {
         Row: {
           booking_id: string | null
@@ -1600,6 +1783,50 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "partner_properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_codes: {
+        Row: {
+          activity_supplier_code: string | null
+          airline_arc: string | null
+          airline_iata: string | null
+          created_at: string
+          hotel_chain_code: string | null
+          id: string
+          partner_id: string
+          property_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          activity_supplier_code?: string | null
+          airline_arc?: string | null
+          airline_iata?: string | null
+          created_at?: string
+          hotel_chain_code?: string | null
+          id?: string
+          partner_id: string
+          property_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activity_supplier_code?: string | null
+          airline_arc?: string | null
+          airline_iata?: string | null
+          created_at?: string
+          hotel_chain_code?: string | null
+          id?: string
+          partner_id?: string
+          property_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_codes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
             referencedColumns: ["id"]
           },
         ]
