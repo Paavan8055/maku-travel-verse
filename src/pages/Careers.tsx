@@ -44,7 +44,7 @@ interface JobPosition {
 const jobPositions: JobPosition[] = [
   {
     id: 'partnership-director',
-    title: 'Partnership & Affiliation Director',
+    title: 'Head of Partnerships',
     department: 'Business Development',
     location: 'Sydney, Australia / Remote',
     type: 'Full-time Founding Team',
