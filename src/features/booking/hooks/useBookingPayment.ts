@@ -1,21 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface BookingPaymentParams {
-  bookingType: 'flight' | 'hotel' | 'activity' | 'package';
-  bookingData: any;
-  amount: number;
-  currency?: string;
-  customerInfo: {
-    email: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-  };
-  paymentMethod?: 'card' | 'fund' | 'split';
-  fundAmount?: number;
-}
+import type { BookingPaymentParams } from '@/types/booking';
 
 interface BookingPaymentResult {
   success: boolean;

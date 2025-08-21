@@ -1,23 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import type { BookingPaymentParams } from "../../../src/types/booking.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-type BookingPaymentParams = {
-  bookingType: 'flight' | 'hotel' | 'activity' | 'package';
-  bookingData: any;
-  amount: number;
-  currency?: string;
-  customerInfo: {
-    email: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-  };
 };
 
 serve(async (req) => {
@@ -26,8 +14,8 @@ serve(async (req) => {
   }
 
   try {
-    const body: BookingPaymentParams = await req.json();
-    const { bookingType, bookingData, amount, currency, customerInfo } = (body as any) ?? {};
+    const body = (await req.json()) as BookingPaymentParams;
+    const { bookingType, bookingData, amount, currency, customerInfo } = body;
     console.log('create-card-payment-intent init', {
       bookingType,
       amount,
