@@ -212,59 +212,6 @@ const Careers: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-16">
-        {/* Company Culture */}
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Why Join Maku?</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              We're building more than a travel platform - we're creating a global ecosystem that transforms how people explore the world.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {[
-              {
-                icon: Building2,
-                title: 'Sydney Harbour Office',
-                description: 'Work from our beautiful Sydney office with harbour views, or fully remote - your choice.',
-                color: 'text-travel-ocean'
-              },
-              {
-                icon: Rocket,
-                title: 'Founding Team Equity',
-                description: 'Real ownership that converts to MAKU tokens upon crypto launch. Series A potential with global ambitions.',
-                color: 'text-travel-forest'
-              },
-              {
-                icon: Globe,
-                title: 'Global Impact',
-                description: 'Build technology that will be used by millions of travelers worldwide.',
-                color: 'text-travel-coral'
-              },
-              {
-                icon: Zap,
-                title: 'Cutting-Edge Tech',
-                description: 'Work with the latest technologies, APIs, and travel industry innovations.',
-                color: 'text-travel-sky'
-              },
-              {
-                icon: Heart,
-                title: 'Travel Perks',
-                description: 'Vacation policy with equal split MAKU & founding team family travel allowance each year.',
-                color: 'text-travel-pink'
-              }
-            ].map((perk, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <perk.icon className={`h-12 w-12 ${perk.color} mx-auto mb-4`} />
-                  <h3 className="font-semibold text-lg mb-2">{perk.title}</h3>
-                  <p className="text-muted-foreground">{perk.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
         {/* Open Positions */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-12">Open Founding Positions</h2>
@@ -346,6 +293,59 @@ const Careers: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Company Culture */}
+        <div className="mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Why Join Maku?</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              We're building more than a travel platform - we're creating a global ecosystem that transforms how people explore the world.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {[
+              {
+                icon: Building2,
+                title: 'Sydney Harbour Office',
+                description: 'Work from our beautiful Sydney office with harbour views, or fully remote - your choice.',
+                color: 'text-travel-ocean'
+              },
+              {
+                icon: Rocket,
+                title: 'Founding Team Equity',
+                description: 'Real ownership that converts to MAKU tokens upon crypto launch. Series A potential with global ambitions.',
+                color: 'text-travel-forest'
+              },
+              {
+                icon: Globe,
+                title: 'Global Impact',
+                description: 'Build technology that will be used by millions of travelers worldwide.',
+                color: 'text-travel-coral'
+              },
+              {
+                icon: Zap,
+                title: 'Cutting-Edge Tech',
+                description: 'Work with the latest technologies, APIs, and travel industry innovations.',
+                color: 'text-travel-sky'
+              },
+              {
+                icon: Heart,
+                title: 'Travel Perks',
+                description: 'Vacation policy with equal split MAKU & founding team family travel allowance each year.',
+                color: 'text-travel-pink'
+              }
+            ].map((perk, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <perk.icon className={`h-12 w-12 ${perk.color} mx-auto mb-4`} />
+                  <h3 className="font-semibold text-lg mb-2">{perk.title}</h3>
+                  <p className="text-muted-foreground">{perk.description}</p>
                 </CardContent>
               </Card>
             ))}
