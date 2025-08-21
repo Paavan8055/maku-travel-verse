@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ArrowLeft, Download, Calendar, Users, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import logger from "@/utils/logger";
 
 interface BookingDetailsData {
   id: string;
@@ -69,7 +70,7 @@ const BookingDetailsInner: React.FC = () => {
       }
       setBooking(foundBooking);
     } catch (error) {
-      console.error('Error fetching booking details:', error);
+      logger.error('Error fetching booking details:', error);
       toast({
         title: "Error",
         description: "Failed to load booking details. Please try again.",

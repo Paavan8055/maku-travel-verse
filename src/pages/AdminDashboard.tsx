@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
+import logger from "@/utils/logger";
   Users, DollarSign, Settings, Shield, TrendingUp, 
   Building, Plane, MapPin, CheckCircle, XCircle, 
   Eye, Edit, AlertTriangle, Filter, Search,
@@ -87,7 +88,7 @@ const AdminDashboard = () => {
       });
 
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      logger.error('Error fetching dashboard data:', error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data",

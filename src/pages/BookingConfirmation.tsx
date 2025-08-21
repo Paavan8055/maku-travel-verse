@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import logger from "@/utils/logger";
 
 interface BookingData {
   id: string;
@@ -77,7 +78,7 @@ export default function BookingConfirmation() {
 
         throw new Error('Booking not found');
       } catch (err: any) {
-        console.error('Booking confirmation error:', err);
+        logger.error('Booking confirmation error:', err);
         setError(err.message || 'Failed to load booking details');
       } finally {
         setLoading(false);

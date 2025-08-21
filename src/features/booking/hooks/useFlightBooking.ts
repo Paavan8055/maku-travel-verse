@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import logger from "@/utils/logger";
 
 interface PassengerDetails {
   firstName: string;
@@ -135,7 +136,7 @@ export const useFlightBooking = () => {
         .single();
 
       if (supabaseError) {
-        console.error('Supabase booking error:', supabaseError);
+        logger.error('Supabase booking error:', supabaseError);
         // Don't fail here - we have the Amadeus booking
         toast.error('Booking saved to external system but may not appear in dashboard immediately');
       }
@@ -156,7 +157,7 @@ export const useFlightBooking = () => {
       });
 
       if (paymentError) {
-        console.error('Payment creation error:', paymentError);
+        logger.error('Payment creation error:', paymentError);
         // Booking exists but payment failed
         toast.error('Booking created but payment setup failed. Please contact support.');
       }
@@ -171,7 +172,7 @@ export const useFlightBooking = () => {
       };
 
     } catch (error) {
-      console.error('Flight booking error:', error);
+      logger.error('Flight booking error:', error);
       toast.error(error instanceof Error ? error.message : 'Flight booking failed');
       
       return {

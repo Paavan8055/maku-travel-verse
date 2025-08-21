@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import logger from "@/utils/logger";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -47,7 +48,7 @@ const PaymentSuccess = () => {
       });
 
     } catch (error) {
-      console.error('Payment verification error:', error);
+      logger.error('Payment verification error:', error);
       toast({
         title: "Verification Error",
         description: "Unable to verify payment status",

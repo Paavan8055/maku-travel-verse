@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Plane, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 interface SeatMapDialogProps {
   open: boolean;
@@ -80,7 +81,7 @@ export const SeatMapDialog = ({ open, onOpenChange, flightOfferId, onSeatSelecte
         throw new Error('No seat map data available');
       }
     } catch (err) {
-      console.error('Seat map error:', err);
+      logger.error('Seat map error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load seat map');
       toast.error('Failed to load seat map');
     } finally {

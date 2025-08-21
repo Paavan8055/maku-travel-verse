@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import logger from "@/utils/logger";
 
 interface HotelPhoto {
   url: string;
@@ -50,7 +51,7 @@ export const HotelPhotosGallery = ({
           setUseRealPhotos(false);
         }
       } catch (err) {
-        console.error("Failed to fetch hotel photos:", err);
+        logger.error("Failed to fetch hotel photos:", err);
         setPhotos([]);
         setUseRealPhotos(false);
       } finally {

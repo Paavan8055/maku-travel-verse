@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plane, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from "@/utils/logger";
 
 // Import destination images
 import tokyoImg from '@/assets/destinations/tokyo.jpg';
@@ -85,7 +86,7 @@ export function PopularRoutesSection({ onRouteSelect, origin = 'SYD' }: PopularR
         });
 
         if (error) {
-          console.error('Error fetching popular routes:', error);
+          logger.error('Error fetching popular routes:', error);
           return;
         }
 
@@ -93,7 +94,7 @@ export function PopularRoutesSection({ onRouteSelect, origin = 'SYD' }: PopularR
           setRoutes(data.data.inspiration);
         }
       } catch (error) {
-        console.error('Error fetching popular routes:', error);
+        logger.error('Error fetching popular routes:', error);
       } finally {
         setLoading(false);
       }

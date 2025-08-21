@@ -3,6 +3,7 @@ import { MapPin, Star, Clock, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import logger from "@/utils/logger";
 
 interface PointOfInterest {
   id: string;
@@ -62,7 +63,7 @@ export const PointsOfInterestSection = ({
           setPois(sortedPOIs);
         }
       } catch (err) {
-        console.error("Failed to fetch points of interest:", err);
+        logger.error("Failed to fetch points of interest:", err);
         setError("Failed to load nearby attractions");
       } finally {
         setLoading(false);

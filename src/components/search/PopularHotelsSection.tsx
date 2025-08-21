@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import logger from '@/utils/logger';
 
 interface PopularHotel {
   id: string;
@@ -60,7 +61,7 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
             });
 
             if (error) {
-              console.warn(`Failed to fetch hotels for ${destination}:`, error);
+              logger.warn(`Failed to fetch hotels for ${destination}:`, error);
               continue;
             }
 
@@ -82,7 +83,7 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
               allHotels.push(...destinationHotels);
             }
           } catch (destError) {
-            console.warn(`Error fetching hotels for ${destination}:`, destError);
+            logger.warn(`Error fetching hotels for ${destination}:`, destError);
           }
         }
 
@@ -91,7 +92,7 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
         setHotels(shuffledHotels);
 
       } catch (error) {
-        console.error('Error fetching popular hotels:', error);
+        logger.error('Error fetching popular hotels:', error);
         toast({
           title: 'Unable to load popular hotels',
           description: 'Please try again later',

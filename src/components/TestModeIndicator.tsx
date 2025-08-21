@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TestTube, CreditCard, AlertTriangle, CheckCircle } from 'lucide-react';
+import logger from "@/utils/logger";
 
 interface TestCard {
   type: string;
@@ -40,7 +41,7 @@ const TestModeIndicator: React.FC<TestModeIndicatorProps> = ({
       setCopiedCard(text);
       setTimeout(() => setCopiedCard(null), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      logger.error('Failed to copy:', err);
     }
   };
 

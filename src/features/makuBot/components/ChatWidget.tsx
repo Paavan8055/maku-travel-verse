@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import MessageBubble from './MessageBubble';
 import { sendToMakuBot } from '../lib/makuBotClient';
+import logger from "@/utils/logger";
 
 interface Message {
   id: string;
@@ -46,7 +47,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userVertical = 'Solo' }) => {
         const parsed = JSON.parse(savedMessages);
         setMessages(parsed);
       } catch (error) {
-        console.error('Failed to load saved messages:', error);
+        logger.error('Failed to load saved messages:', error);
       }
     }
   }, []);
@@ -87,7 +88,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userVertical = 'Solo' }) => {
 
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
-      console.error('Failed to get bot response:', error);
+      logger.error('Failed to get bot response:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "Sorry, I'm having trouble connecting right now. Please try again!",

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Plus, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 type Addon = {
   id: string; 
@@ -48,13 +49,13 @@ export default function BookingExtras() {
           .eq("active", true);
           
         if (error) {
-          console.error('Error loading addons:', error);
+          logger.error('Error loading addons:', error);
           toast.error('Failed to load hotel extras');
         } else {
           setAddons(data as Addon[]);
         }
       } catch (err) {
-        console.error('Addons loading error:', err);
+        logger.error('Addons loading error:', err);
         toast.error('Failed to load hotel extras');
       } finally {
         setLoading(false);

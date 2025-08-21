@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 // Reviews & Ratings API
 export const reviewsAPI = {
@@ -288,7 +289,7 @@ export const activityAPI = {
         ...activity
       });
     
-    if (error) console.warn('Activity logging failed:', error);
+    if (error) logger.warn('Activity logging failed:', error);
   },
 
   async fetchRecentActivity(itemType?: string, limit = 50) {

@@ -14,6 +14,7 @@ import { Sparkles, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { autofillService } from "@/lib/autofillService";
+import logger from "@/utils/logger";
 
 const HotelGuestSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -52,7 +53,7 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
         return { ...parsed, ...initial }; // initial props take precedence
       }
     } catch (error) {
-      console.error('Error loading saved guest data:', error);
+      logger.error('Error loading saved guest data:', error);
     }
     return {
       title: "",

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import logger from "@/utils/logger";
 
 interface BookingPaymentParams {
   bookingType: 'flight' | 'hotel' | 'activity' | 'package';
@@ -71,7 +72,7 @@ export const useBookingPayment = () => {
       return data;
 
     } catch (error) {
-      console.error('Booking payment error:', error);
+      logger.error('Booking payment error:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       

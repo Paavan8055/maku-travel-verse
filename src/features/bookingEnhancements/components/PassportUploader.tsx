@@ -9,6 +9,7 @@ import { savePassportInfo } from "@/lib/bookingDataClient";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Upload, FileText, CheckCircle, AlertCircle, Camera } from "lucide-react";
+import logger from "@/utils/logger";
 
 const countries = [
   "Australia", "United States", "United Kingdom", "Canada", "Germany", 
@@ -73,7 +74,7 @@ export default function PassportUploader() {
       await handleValidatePassport(mockUrl);
       
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
       toast({
         title: "Upload failed",
         description: "Failed to upload passport image. Please try again.",
@@ -125,7 +126,7 @@ export default function PassportUploader() {
         });
       }
     } catch (error) {
-      console.error('Validation error:', error);
+      logger.error('Validation error:', error);
       toast({
         title: "Validation error",
         description: "Failed to validate passport. Please try again.",
@@ -157,7 +158,7 @@ export default function PassportUploader() {
         description: "Your passport information has been saved successfully.",
       });
     } catch (error) {
-      console.error('Save error:', error);
+      logger.error('Save error:', error);
       toast({
         title: "Save failed",
         description: "Failed to save passport information.",
