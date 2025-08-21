@@ -18,7 +18,7 @@ import PartnerAuth from "./pages/PartnerAuth";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import PartnerPortal from "./pages/PartnerPortal";
 import Partners from "./pages/Partners";
-import { Dashboard } from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import Search from "./pages/Search";
 import SearchHotels from "./pages/search/hotels";
 import SearchFlights from "./pages/search/flights";
