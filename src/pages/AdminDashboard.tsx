@@ -169,7 +169,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AuthGuard redirectTo="/admin-auth">
+    <AuthGuard redirectTo="/admin/auth">
       <div className="min-h-screen bg-background">
         <Navbar />
         
