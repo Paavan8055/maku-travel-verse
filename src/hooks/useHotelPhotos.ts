@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 
 interface HotelPhoto {
   url: string;
@@ -34,7 +35,7 @@ export const useHotelPhotos = (): UseHotelPhotosResult => {
       });
 
       if (functionError) {
-        console.error('Hotel photos function error:', functionError);
+        logger.error('Hotel photos function error:', functionError);
         throw new Error(functionError.message || 'Failed to fetch hotel photos');
       }
 
@@ -45,7 +46,7 @@ export const useHotelPhotos = (): UseHotelPhotosResult => {
         throw new Error(data?.error || 'Failed to fetch hotel photos');
       }
     } catch (err: any) {
-      console.error('Hotel photos error:', err);
+      logger.error('Hotel photos error:', err);
       const errorMessage = err.message || 'Failed to fetch hotel photos';
       setError(errorMessage);
       setPhotos([]);

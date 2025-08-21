@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { fetchUserPreferences, saveUserPreferences, fetchPassportInfo, fetchPaymentMethods } from "@/lib/bookingDataClient";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Calendar, MapPin, CreditCard, CheckCircle, Zap, Users } from "lucide-react";
+import logger from "@/utils/logger";
 
 interface BookingFormData {
   destination: string;
@@ -72,7 +73,7 @@ export default function OneClickBooking({ bookingData, onBookingComplete }: OneC
       setCanOneClick(hasVerifiedPassport && hasPaymentMethod);
 
     } catch (error) {
-      console.error('Error loading user data:', error);
+      logger.error('Error loading user data:', error);
     }
   };
 
@@ -111,7 +112,7 @@ export default function OneClickBooking({ bookingData, onBookingComplete }: OneC
       onBookingComplete?.(mockBookingId);
 
     } catch (error) {
-      console.error('Booking error:', error);
+      logger.error('Booking error:', error);
       toast({
         title: "Booking failed",
         description: "Something went wrong. Please try again.",

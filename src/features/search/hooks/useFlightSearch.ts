@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { detectFlightCurrency } from "@/lib/currencyDetection";
+import logger from '@/utils/logger';
 
 interface FlightSearchCriteria {
   origin: string;
@@ -299,7 +300,7 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           }
         }
       } catch (err) {
-        console.error("Flight search error:", err);
+        logger.error("Flight search error:", err);
         setError(err instanceof Error ? err.message : "Failed to search flights");
         toast.error("Flight search failed. Please try different search criteria.");
         setFlights([]);

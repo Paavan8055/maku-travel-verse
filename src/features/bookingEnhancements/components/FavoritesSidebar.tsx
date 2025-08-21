@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { fetchUserFavorites, toggleFavorite } from "@/lib/bookingDataClient";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Heart, MapPin, Plane, Hotel, Camera, Trash2 } from "lucide-react";
+import logger from "@/utils/logger";
 
 interface Favorite {
   id: string;
@@ -35,7 +36,7 @@ export default function FavoritesSidebar() {
       const data = await fetchUserFavorites(user.id);
       setFavorites(data);
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      logger.error('Error loading favorites:', error);
       toast({
         title: "Error",
         description: "Failed to load favorites.",

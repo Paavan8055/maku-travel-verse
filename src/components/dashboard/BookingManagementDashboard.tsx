@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
+import logger from "@/utils/logger";
   Search, 
   Filter, 
   Calendar, 
@@ -72,7 +73,7 @@ export const BookingManagementDashboard = () => {
       const { data, error } = await supabase.rpc('get_user_bookings');
       
       if (error) {
-        console.error('Error fetching bookings:', error);
+        logger.error('Error fetching bookings:', error);
         toast({
           title: "Error",
           description: "Failed to load your bookings. Please try again.",
@@ -85,7 +86,7 @@ export const BookingManagementDashboard = () => {
       setBookings(bookingsArray);
       
     } catch (err) {
-      console.error('Fetch bookings exception:', err);
+      logger.error('Fetch bookings exception:', err);
       toast({
         title: "Error",
         description: "Failed to load your bookings. Please try again.",
@@ -131,7 +132,7 @@ export const BookingManagementDashboard = () => {
         throw new Error(result.message);
       }
     } catch (error) {
-      console.error('Error cancelling booking:', error);
+      logger.error('Error cancelling booking:', error);
       toast({
         title: "Error",
         description: "Failed to cancel booking. Please try again.",

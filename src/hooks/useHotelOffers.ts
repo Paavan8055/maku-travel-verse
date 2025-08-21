@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import logger from "@/utils/logger";
 
 interface HotelOffersParams {
   hotelId: string;
@@ -76,7 +77,7 @@ export const useHotelOffers = (): UseHotelOffersResult => {
       });
 
       if (functionError) {
-        console.error('Hotel offers function error:', functionError);
+        logger.error('Hotel offers function error:', functionError);
         throw new Error(functionError.message || 'Failed to fetch hotel offers');
       }
 
@@ -94,7 +95,7 @@ export const useHotelOffers = (): UseHotelOffersResult => {
         throw new Error(data?.error || 'Failed to fetch hotel offers');
       }
     } catch (err: any) {
-      console.error('Hotel offers error:', err);
+      logger.error('Hotel offers error:', err);
       const errorMessage = err.message || 'Failed to fetch hotel offers';
       setError(errorMessage);
       toast.error(errorMessage);

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import logger from "@/utils/logger";
 
 interface ActivityBookingParams {
   activityId: string;
@@ -103,7 +104,7 @@ export const useActivityBooking = () => {
       });
 
       if (paymentError) {
-        console.error('Payment creation error:', paymentError);
+        logger.error('Payment creation error:', paymentError);
         toast.error('Booking created but payment setup failed. Please contact support.');
       }
 
@@ -120,7 +121,7 @@ export const useActivityBooking = () => {
       };
 
     } catch (error) {
-      console.error('Activity booking error:', error);
+      logger.error('Activity booking error:', error);
       toast.error(error instanceof Error ? error.message : 'Activity booking failed');
       
       return {

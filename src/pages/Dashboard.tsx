@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, X, Calendar, Users, DollarSign, Loader2, Zap, TrendingUp, Activity, BarChart3, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import logger from "@/utils/logger";
 
 import { SmartAnalytics } from '@/components/dashboard/SmartAnalytics';
 import { RealTimeFeeds } from '@/components/dashboard/RealTimeFeeds';
@@ -74,7 +75,7 @@ export const Dashboard: React.FC = () => {
       const { data, error } = await supabase.rpc('get_user_bookings');
       
       if (error) {
-        console.error('Error fetching bookings:', error);
+        logger.error('Error fetching bookings:', error);
         toast({
           title: "Error",
           description: "Failed to load your bookings. Please try again.",
@@ -111,7 +112,7 @@ export const Dashboard: React.FC = () => {
       }
       
     } catch (err) {
-      console.error('Fetch bookings exception:', err);
+      logger.error('Fetch bookings exception:', err);
       toast({
         title: "Error",
         description: "Failed to load your bookings. Please try again.",
@@ -144,7 +145,7 @@ export const Dashboard: React.FC = () => {
         throw new Error(result.message);
       }
     } catch (error) {
-      console.error('Error cancelling booking:', error);
+      logger.error('Error cancelling booking:', error);
       toast({
         title: "Error",
         description: "Failed to cancel booking. Please try again.",

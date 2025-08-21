@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import logger from "@/utils/logger";
 
 interface VoiceSearchInterfaceProps {
   onVoiceResult: (text: string) => void;
@@ -58,7 +59,7 @@ export const VoiceSearchInterface: React.FC<VoiceSearchInterfaceProps> = ({
       }, 10000);
 
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      logger.error('Error accessing microphone:', error);
       toast({
         title: "Microphone Access Denied",
         description: "Please allow microphone access to use voice search.",
@@ -119,7 +120,7 @@ export const VoiceSearchInterface: React.FC<VoiceSearchInterfaceProps> = ({
       };
       reader.readAsDataURL(audioBlob);
     } catch (error) {
-      console.error('Error processing audio:', error);
+      logger.error('Error processing audio:', error);
       toast({
         title: "Voice Processing Failed",
         description: "Could not process your voice input. Please try again.",
@@ -153,7 +154,7 @@ export const VoiceSearchInterface: React.FC<VoiceSearchInterfaceProps> = ({
         audio.onended = () => URL.revokeObjectURL(audioUrl);
       }
     } catch (error) {
-      console.error('Error with text-to-speech:', error);
+      logger.error('Error with text-to-speech:', error);
     }
   };
 

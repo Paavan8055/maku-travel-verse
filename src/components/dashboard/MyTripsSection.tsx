@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { 
+import logger from "@/utils/logger";
   Plane, 
   Building, 
   Car, 
@@ -74,7 +75,7 @@ export const MyTripsSection: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (bookingsError) {
-        console.error('Bookings fetch error:', bookingsError);
+        logger.error('Bookings fetch error:', bookingsError);
         toast({
           title: 'Error',
           description: 'Failed to load your bookings. Please try again.',
@@ -98,7 +99,7 @@ export const MyTripsSection: React.FC = () => {
       });
 
     } catch (error) {
-      console.error('Error fetching trips:', error);
+      logger.error('Error fetching trips:', error);
       toast({
         title: 'Error',
         description: 'Failed to load your trips. Please try again.',
@@ -175,7 +176,7 @@ export const MyTripsSection: React.FC = () => {
       // Refresh the trips data
       fetchTrips();
     } catch (error) {
-      console.error('Error cancelling order:', error);
+      logger.error('Error cancelling order:', error);
       toast({
         title: 'Error',
         description: 'Failed to cancel the booking. Please try again.',
