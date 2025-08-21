@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { useToast } from "@/components/ui/use-toast";
 import { AuthGuard } from "@/features/auth/components/AuthGuard";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const PartnerDashboard = () => {
   const { user, signOut } = useAuth();
@@ -36,6 +38,25 @@ const PartnerDashboard = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
+  const navigate = useNavigate();
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  useEffect(() => {
+    const verifyPartnerRole = async () => {
+      if (!user) return;
+      const { data: isPartner, error } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'partner'
+      });
+      if (error || !isPartner) {
+        navigate('/dashboard');
+      } else {
+        setCheckingRole(false);
+      }
+    };
+
+    verifyPartnerRole();
+  }, [user, navigate]);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -122,11 +143,16 @@ const PartnerDashboard = () => {
 
   return (
     <AuthGuard redirectTo="/auth">
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        
-        <div className="pt-24 px-6">
-          <div className="max-w-7xl mx-auto">
+      {checkingRole ? (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <div className="min-h-screen bg-background">
+          <Navbar />
+
+          <div className="pt-24 px-6">
+            <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <div>
@@ -416,6 +442,7 @@ const PartnerDashboard = () => {
           </div>
         </div>
       </div>
+      )}
     </AuthGuard>
   );
 };
