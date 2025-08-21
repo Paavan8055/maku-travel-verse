@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { useToast } from "@/components/ui/use-toast";
 import { AuthGuard } from "@/features/auth/components/AuthGuard";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const PartnerDashboard = () => {
   const { user, signOut } = useAuth();
@@ -53,72 +54,99 @@ const PartnerDashboard = () => {
     }
   };
 
-  const stats = [
-    { title: "Total Bookings", value: "1,234", change: "+12%", icon: Calendar, color: "text-travel-ocean" },
-    { title: "Revenue", value: "$45,678", change: "+8%", icon: DollarSign, color: "text-travel-forest" },
-    { title: "Occupancy Rate", value: "87%", change: "+5%", icon: TrendingUp, color: "text-travel-sunset" },
-    { title: "Active Listings", value: "12", change: "0%", icon: Building, color: "text-primary" }
-  ];
+    const [stats, setStats] = useState<any[]>([]);
+    const [listings, setListings] = useState<any[]>([]);
+    const [recentBookings, setRecentBookings] = useState<any[]>([]);
+    const [loading, setLoading] = useState({ stats: true, listings: true, bookings: true });
+    const [error, setError] = useState<{ stats?: string; listings?: string; bookings?: string }>({});
 
-  const revenueData = [
-    { month: "Jan", revenue: 12000, bookings: 45 },
-    { month: "Feb", revenue: 15000, bookings: 52 },
-    { month: "Mar", revenue: 18000, bookings: 68 },
-    { month: "Apr", revenue: 22000, bookings: 78 },
-    { month: "May", revenue: 25000, bookings: 89 },
-    { month: "Jun", revenue: 28000, bookings: 95 }
-  ];
+    useEffect(() => {
+      if (!user) return;
 
-  const listings = [
-    {
-      id: "1",
-      name: "Ocean View Resort",
-      type: "Hotel",
-      location: "Maldives",
-      status: "Active",
-      bookings: 45,
-      revenue: "$12,450",
-      rating: 4.8,
-      occupancy: 87,
-      images: 24,
-      lastUpdated: "2 hours ago",
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop"
-    },
-    {
-      id: "2", 
-      name: "Mountain Retreat",
-      type: "Hotel",
-      location: "Swiss Alps",
-      status: "Active",
-      bookings: 32,
-      revenue: "$8,960",
-      rating: 4.9,
-      occupancy: 92,
-      images: 18,
-      lastUpdated: "5 hours ago",
-      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&h=150&fit=crop"
-    },
-    {
-      id: "3",
-      name: "Executive Jet Service",
-      type: "Flight",
-      location: "Global",
-      status: "Active", 
-      bookings: 78,
-      revenue: "$35,200",
-      rating: 4.7,
-      occupancy: 75,
-      images: 12,
-      lastUpdated: "1 day ago",
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&h=150&fit=crop"
-    }
-  ];
+      const fetchData = async () => {
+        const { data: profile, error: profileError } = await supabase
+          .from('partner_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
 
-  const recentBookings = [
-    { id: "B001", guest: "John Smith", property: "Ocean View Resort", checkIn: "2024-03-15", amount: "$450", status: "Confirmed" },
-    { id: "B002", guest: "Sarah Johnson", property: "Mountain Retreat", checkIn: "2024-03-18", amount: "$320", status: "Pending" },
-    { id: "B003", guest: "Mike Davis", property: "Ocean View Resort", checkIn: "2024-03-20", amount: "$450", status: "Confirmed" }
-  ];
+        if (profileError || !profile) {
+          const message = profileError?.message || 'Partner profile not found';
+          setError({ stats: message, listings: message, bookings: message });
+          setLoading({ stats: false, listings: false, bookings: false });
+          return;
+        }
+
+        const partnerId = profile.id;
+
+        const { data: dashboardData, error: dashboardError } = await supabase.rpc(
+          'get_partner_dashboard_data',
+          { p_partner_id: partnerId }
+        );
+
+        if (dashboardError || (dashboardData && (dashboardData as any).error)) {
+          const msg = dashboardError?.message || (dashboardData as any)?.error || 'Failed to load metrics';
+          setError((prev) => ({ ...prev, stats: msg, bookings: msg }));
+        } else if (dashboardData) {
+          setStats([
+            {
+              title: 'Total Bookings',
+              value: String(dashboardData.current_month_bookings || 0),
+              icon: Calendar,
+              color: 'text-travel-ocean',
+            },
+            {
+              title: 'Revenue',
+              value: `$${(dashboardData.current_month_revenue || 0).toLocaleString()}`,
+              icon: DollarSign,
+              color: 'text-travel-forest',
+            },
+            {
+              title: 'Active Listings',
+              value: String(dashboardData.active_properties || 0),
+              icon: Building,
+              color: 'text-primary',
+            },
+            {
+              title: 'Occupancy Rate',
+              value: dashboardData.total_properties
+                ? `${Math.round(((dashboardData.active_properties || 0) / (dashboardData.total_properties || 1)) * 100)}%`
+                : '0%',
+              icon: TrendingUp,
+              color: 'text-travel-sunset',
+            },
+          ]);
+          setRecentBookings(dashboardData.recent_bookings || []);
+        }
+        setLoading((prev) => ({ ...prev, stats: false, bookings: false }));
+
+        const { data: listingsData, error: listingsError } = await supabase
+          .from('partner_properties')
+          .select('id, property_name, location, status, photos, updated_at, property_type')
+          .eq('partner_id', partnerId);
+
+        if (listingsError) {
+          setError((prev) => ({ ...prev, listings: listingsError.message }));
+        } else {
+          const mappedListings = (listingsData || []).map((l: any) => ({
+            id: l.id,
+            name: l.property_name,
+            type: l.property_type,
+            location: typeof l.location === 'object' && l.location !== null
+              ? [l.location.city, l.location.country].filter(Boolean).join(', ')
+              : '',
+            status: l.status || 'inactive',
+            rating: 0,
+            image: Array.isArray(l.photos) && l.photos.length > 0 ? l.photos[0] : 'https://via.placeholder.com/50',
+            lastUpdated: l.updated_at ? new Date(l.updated_at).toLocaleString() : '',
+          }));
+          setListings(mappedListings);
+        }
+        setLoading((prev) => ({ ...prev, listings: false }));
+      };
+
+      fetchData();
+    }, [user]);
 
   return (
     <AuthGuard redirectTo="/auth">
@@ -214,22 +242,32 @@ const PartnerDashboard = () => {
               <TabsContent value="dashboard" className="space-y-8">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {stats.map((stat, index) => (
-                    <Card key={index} className="travel-card hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">{stat.title}</p>
-                            <p className="text-3xl font-bold">{stat.value}</p>
-                            <p className={`text-sm ${stat.change.startsWith('+') ? 'text-travel-forest' : 'text-travel-sunset'}`}>
-                              {stat.change}
-                            </p>
+                  {loading.stats ? (
+                    <p className="col-span-full text-center text-muted-foreground">Loading statistics...</p>
+                  ) : error.stats ? (
+                    <p className="col-span-full text-center text-destructive">Failed to load statistics.</p>
+                  ) : stats.length === 0 ? (
+                    <p className="col-span-full text-center text-muted-foreground">No statistics available.</p>
+                  ) : (
+                    stats.map((stat, index) => (
+                      <Card key={index} className="travel-card hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">{stat.title}</p>
+                              <p className="text-3xl font-bold">{stat.value}</p>
+                              {stat.change && (
+                                <p className={`text-sm ${stat.change.startsWith('+') ? 'text-travel-forest' : 'text-travel-sunset'}`}>
+                                  {stat.change}
+                                </p>
+                              )}
+                            </div>
+                            <stat.icon className={`h-8 w-8 ${stat.color}`} />
                           </div>
-                          <stat.icon className={`h-8 w-8 ${stat.color}`} />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
 
                 {/* Recent Activity */}
@@ -243,21 +281,28 @@ const PartnerDashboard = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {recentBookings.map((booking) => (
-                          <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
-                            <div>
-                              <p className="font-semibold">{booking.guest}</p>
-                              <p className="text-sm text-muted-foreground">{booking.property}</p>
-                              <p className="text-xs text-muted-foreground">{booking.checkIn}</p>
+                        {loading.bookings ? (
+                          <p className="text-sm text-muted-foreground">Loading bookings...</p>
+                        ) : error.bookings ? (
+                          <p className="text-sm text-destructive">Failed to load bookings.</p>
+                        ) : recentBookings.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No recent bookings.</p>
+                        ) : (
+                          recentBookings.map((booking) => (
+                            <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
+                              <div>
+                                <p className="font-semibold">{booking.property_name}</p>
+                                <p className="text-xs text-muted-foreground">{new Date(booking.created_at).toLocaleDateString()}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold">${Number(booking.booking_value ?? 0).toFixed(2)}</p>
+                                {booking.commission_amount !== undefined && (
+                                  <Badge variant="secondary">${Number(booking.commission_amount ?? 0).toFixed(2)}</Badge>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold">{booking.amount}</p>
-                              <Badge variant={booking.status === "Confirmed" ? "default" : "secondary"}>
-                                {booking.status}
-                              </Badge>
-                            </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                       <Button variant="outline" className="w-full mt-4" size="sm">
                         View All Bookings
@@ -274,28 +319,36 @@ const PartnerDashboard = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {listings.slice(0, 3).map((listing) => (
-                          <div key={listing.id} className="p-3 rounded-lg border border-border">
-                            <div className="flex items-start space-x-3">
-                              <img
-                                src={listing.image}
-                                alt={listing.name}
-                                className="w-12 h-12 rounded object-cover"
-                              />
-                              <div className="flex-1">
-                                <p className="font-medium text-sm">{listing.name}</p>
-                                <p className="text-xs text-muted-foreground">{listing.location}</p>
-                                <div className="flex items-center justify-between mt-1">
-                                  <Badge variant="outline" className="text-xs">{listing.status}</Badge>
-                                  <div className="flex items-center space-x-1">
-                                    <Star className="h-3 w-3 fill-current text-travel-sunset" />
-                                    <span className="text-xs">{listing.rating}</span>
+                        {loading.listings ? (
+                          <p className="text-sm text-muted-foreground">Loading properties...</p>
+                        ) : error.listings ? (
+                          <p className="text-sm text-destructive">Failed to load properties.</p>
+                        ) : listings.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No properties found.</p>
+                        ) : (
+                          listings.slice(0, 3).map((listing) => (
+                            <div key={listing.id} className="p-3 rounded-lg border border-border">
+                              <div className="flex items-start space-x-3">
+                                <img
+                                  src={listing.image}
+                                  alt={listing.name}
+                                  className="w-12 h-12 rounded object-cover"
+                                />
+                                <div className="flex-1">
+                                  <p className="font-medium text-sm">{listing.name}</p>
+                                  <p className="text-xs text-muted-foreground">{listing.location}</p>
+                                  <div className="flex items-center justify-between mt-1">
+                                    <Badge variant="outline" className="text-xs">{listing.status}</Badge>
+                                    <div className="flex items-center space-x-1">
+                                      <Star className="h-3 w-3 fill-current text-travel-sunset" />
+                                      <span className="text-xs">{listing.rating}</span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                       <Button variant="outline" className="w-full mt-4" size="sm" onClick={() => setActiveTab('listings')}>
                         Manage All Properties
