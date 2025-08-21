@@ -9,24 +9,23 @@ import ChatWidget from "@/features/makuBot/components/ChatWidget";
 import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
 import { SocialProofIndicators } from "@/components/ota/SocialProofIndicators";
 import { PriceIntelligence } from "@/components/ota/PriceIntelligence";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Zap, Activity, TrendingUp } from "lucide-react";
 const Index = () => {
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
       <MarketplacePills />
-      
-      {/* Travel Tech Intelligence Section */}
-      
-      
+
+      <SocialProofIndicators itemType="landing" itemId="index" />
+      <PriceIntelligence itemType="landing" itemId="index" currentPrice={0} />
+
       <SearchSection />
       <MarketplaceSection />
       <FeaturedListings />
       <Footer />
       <ChatWidget userVertical="Solo" />
       <AgenticWidget />
-    </div>;
+    </div>
+  );
 };
 export default Index;
