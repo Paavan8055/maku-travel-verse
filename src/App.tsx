@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +16,7 @@ import SearchHub from "./pages/search/index";
 import HotelSearchPage from "./pages/search/hotels";
 import FlightSearchPage from "./pages/search/flights";
 import ActivitySearchPage from "./pages/search/activities";
+import Careers from "./pages/Careers";
 
 import { HotelDetails } from "./pages/HotelDetails";
 import BookingSelect from "./pages/BookingSelect";
@@ -67,6 +67,7 @@ function App() {
                     <Route path="/search/hotels" element={<HotelSearchPage />} />
                     <Route path="/search/flights" element={<FlightSearchPage />} />
                     <Route path="/search/activities" element={<ActivitySearchPage />} />
+                    <Route path="/careers" element={<Careers />} />
                     
                     <Route path="/hotel/:hotelId" element={<HotelDetails />} />
                     <Route path="/hotel-details" element={<HotelDetails />} />
