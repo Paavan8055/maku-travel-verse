@@ -80,7 +80,7 @@ export const useHotelBooking = () => {
         const selectedPrice = parseFloat(sessionStorage.getItem('selectedHotelPrice') || '200');
         const selectedHotelData = JSON.parse(sessionStorage.getItem('hotelBookingSelections') || '{}');
 
-        const { data: bookingResponse, error: bookingError } = await supabase.functions.invoke('create-hotel-booking', {
+        const { data: bookingResponse, error: bookingError } = await supabase.functions.invoke('create-booking-payment', {
           body: {
             bookingType: 'hotel',
             bookingData: {

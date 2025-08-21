@@ -23,7 +23,7 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       try {
         // This would connect to your admin API
-        logger.info("Fetching admin dashboard stats");
+        console.log("Fetching admin dashboard stats");
         
         // Mock data for now
         setStats({

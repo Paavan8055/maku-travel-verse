@@ -1,3 +1,4 @@
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -49,60 +50,62 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CurrencyProvider>
-          <AgenticBotProvider>
-            <MakuBotProvider>
-              <TooltipProvider>
-                <Toaster />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/admin/auth" element={<AdminAuth />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/search" element={<SearchHub />} />
-                    <Route path="/search/hotels" element={<HotelSearchPage />} />
-                    <Route path="/search/flights" element={<FlightSearchPage />} />
-                    <Route path="/search/activities" element={<ActivitySearchPage />} />
-                    <Route path="/careers" element={<Careers />} />
-                    
-                    <Route path="/hotel/:hotelId" element={<HotelDetails />} />
-                    <Route path="/hotel-details" element={<HotelDetails />} />
-                    <Route path="/booking/select" element={<BookingSelect />} />
-                    <Route path="/booking/extras" element={<BookingExtras />} />
-                    <Route path="/booking/checkout" element={<HotelCheckout />} />
-                    <Route path="/booking/baggage" element={<BookingBaggage />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/flight-booking-review" element={<FlightBookingReview />} />
-                    <Route path="/flight-checkout" element={<FlightCheckout />} />
-                    <Route path="/activity-checkout" element={<ActivityCheckout />} />
-                    <Route path="/activity-select" element={<ActivitySelect />} />
-                    <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-                    <Route path="/booking-cancelled" element={<BookingCancelled />} />
-                    <Route path="/booking/:id" element={<BookingDetails />} />
-                    <Route path="/payment/success" element={<PaymentSuccess />} />
-                    <Route path="/payment/cancelled" element={<PaymentCancelled />} />
-                    <Route path="/payment-setup" element={<PaymentSetup />} />
-                    <Route path="/partners" element={<Partners />} />
-                    <Route path="/press" element={<Press />} />
-                    <Route path="/partner-auth" element={<PartnerAuth />} />
-                    <Route path="/partner-dashboard" element={<PartnerDashboard />} />
-                    <Route path="/partner-portal" element={<PartnerPortal />} />
-                    <Route path="/deals" element={<Deals />} />
-                    <Route path="/gift-cards" element={<GiftCards />} />
-                    <Route path="/roadmap" element={<Roadmap />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
-            </MakuBotProvider>
-          </AgenticBotProvider>
-        </CurrencyProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <CurrencyProvider>
+            <AgenticBotProvider>
+              <MakuBotProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/admin/auth" element={<AdminAuth />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                      <Route path="/search" element={<SearchHub />} />
+                      <Route path="/search/hotels" element={<HotelSearchPage />} />
+                      <Route path="/search/flights" element={<FlightSearchPage />} />
+                      <Route path="/search/activities" element={<ActivitySearchPage />} />
+                      <Route path="/careers" element={<Careers />} />
+                      
+                      <Route path="/hotel/:hotelId" element={<HotelDetails />} />
+                      <Route path="/hotel-details" element={<HotelDetails />} />
+                      <Route path="/booking/select" element={<BookingSelect />} />
+                      <Route path="/booking/extras" element={<BookingExtras />} />
+                      <Route path="/booking/checkout" element={<HotelCheckout />} />
+                      <Route path="/booking/baggage" element={<BookingBaggage />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/flight-booking-review" element={<FlightBookingReview />} />
+                      <Route path="/flight-checkout" element={<FlightCheckout />} />
+                      <Route path="/activity-checkout" element={<ActivityCheckout />} />
+                      <Route path="/activity-select" element={<ActivitySelect />} />
+                      <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+                      <Route path="/booking-cancelled" element={<BookingCancelled />} />
+                      <Route path="/booking/:id" element={<BookingDetails />} />
+                      <Route path="/payment/success" element={<PaymentSuccess />} />
+                      <Route path="/payment/cancelled" element={<PaymentCancelled />} />
+                      <Route path="/payment-setup" element={<PaymentSetup />} />
+                      <Route path="/partners" element={<Partners />} />
+                      <Route path="/press" element={<Press />} />
+                      <Route path="/partner-auth" element={<PartnerAuth />} />
+                      <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+                      <Route path="/partner-portal" element={<PartnerPortal />} />
+                      <Route path="/deals" element={<Deals />} />
+                      <Route path="/gift-cards" element={<GiftCards />} />
+                      <Route path="/roadmap" element={<Roadmap />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </MakuBotProvider>
+            </AgenticBotProvider>
+          </CurrencyProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -45,7 +45,7 @@ export const useBookingPayment = () => {
     try {
       console.log('Creating booking payment:', params);
 
-      const { data, error } = await supabase.functions.invoke('create-hotel-booking', {
+      const { data, error } = await supabase.functions.invoke('create-booking-payment', {
         body: params
       });
 
