@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -23,5 +24,9 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.ts',
+  },
+  define: {
+    // Make Vitest globals available in TypeScript
+    global: 'globalThis',
   },
 }));
