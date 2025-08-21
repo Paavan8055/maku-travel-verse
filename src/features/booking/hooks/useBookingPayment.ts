@@ -39,14 +39,17 @@ export const useBookingPayment = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const createBookingPayment = async (params: BookingPaymentParams): Promise<BookingPaymentResult> => {
+  const createBookingPayment = async (
+    params: BookingPaymentParams
+  ): Promise<BookingPaymentResult> => {
     setIsLoading(true);
-    
+
     try {
-      console.log('Creating booking payment:', params);
+      // Use logger instead of console for consistency across the app
+      logger.info('Creating booking payment:', params);
 
       const { data, error } = await supabase.functions.invoke('create-hotel-booking', {
-        body: params
+        body: params,
       });
 
       if (error) {
@@ -59,32 +62,32 @@ export const useBookingPayment = () => {
 
       // Show success toast
       toast({
-        title: "Booking Created",
+        title: 'Booking Created',
         description: `Booking reference: ${data.booking.reference}`,
       });
 
       // If there's a checkout URL, redirect to Stripe
       if (data.payment.checkoutUrl) {
-        console.log('Redirecting to Stripe checkout:', data.payment.checkoutUrl);
+        logger.info('Redirecting to Stripe checkout:', data.payment.checkoutUrl);
         window.location.href = data.payment.checkoutUrl;
       }
 
       return data;
-
     } catch (error) {
       logger.error('Booking payment error:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unexpected error occurred';
+
       toast({
-        title: "Booking Failed",
+        title: 'Booking Failed',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
 
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     } finally {
       setIsLoading(false);
@@ -93,6 +96,6 @@ export const useBookingPayment = () => {
 
   return {
     createBookingPayment,
-    isLoading
+    isLoading,
   };
 };
