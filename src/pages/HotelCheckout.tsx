@@ -1,18 +1,41 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { ChevronLeft, Shield } from "lucide-react";
+import { ChevronLeft, Shield, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import HotelGuestForm, { HotelGuestFormData } from "@/features/booking/components/HotelGuestForm";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import logger from "@/utils/logger";
 
-// Load Stripe
-const stripePromise = loadStripe('pk_test_51QXYwPILlBrPBZqYWJSr9jbQ2zLMlVHwBb7LQI8c7QJ8x9eLqShZ8N2C8p4lJaW1qZQrNxGO2YI9QwV3O8cM2YrM00lV2XFO6W');
+// Dynamic Stripe loading
+let stripePromise: Promise<Stripe | null> | null = null;
+
+const getStripe = async () => {
+  if (!stripePromise) {
+    stripePromise = (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-stripe-publishable-key');
+        
+        if (error || !data?.publishable_key) {
+          logger.error('Failed to get Stripe publishable key:', error);
+          throw new Error('Failed to load payment system');
+        }
+        
+        console.log('Loading Stripe with key:', data.publishable_key.substring(0, 20) + '...');
+        return await loadStripe(data.publishable_key);
+      } catch (error) {
+        logger.error('Stripe initialization error:', error);
+        return null;
+      }
+    })();
+  }
+  return stripePromise;
+};
 
 function CheckoutInner() {
   const [searchParams] = useSearchParams();
@@ -26,6 +49,8 @@ function CheckoutInner() {
   const [isLoading, setIsLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [bookingData, setBookingData] = useState<any>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Extract parameters
   const hotelId = searchParams.get("hotelId")!;
@@ -41,9 +66,13 @@ function CheckoutInner() {
   // Create booking and payment intent
   useEffect(() => {
     const createBooking = async () => {
-      if (!hotelId || !offerId || !checkIn || !checkOut) return;
+      if (!hotelId || !offerId || !checkIn || !checkOut) {
+        setIsInitializing(false);
+        return;
+      }
 
       try {
+        setPaymentError(null);
         console.log('Creating hotel booking:', { hotelId, offerId, checkIn, checkOut, adults, children, rooms, addons });
 
         const { data, error } = await supabase.functions.invoke("create-hotel-booking", {
@@ -61,12 +90,16 @@ function CheckoutInner() {
           }
         });
 
+        console.log('Booking creation response:', { data, error });
+
         if (error) {
           logger.error('Booking creation error:', error);
+          setPaymentError(`Failed to prepare booking: ${error.message || error}`);
           throw error;
         }
 
-        if (data?.success) {
+        if (data?.success && data.clientSecret) {
+          console.log('✅ Booking created successfully with client secret');
           setClientSecret(data.clientSecret);
           setBookingData({
             booking_id: data.booking_id,
@@ -79,15 +112,21 @@ function CheckoutInner() {
             description: "Ready for payment"
           });
         } else {
-          throw new Error(data?.error || 'Failed to create booking');
+          const errorMsg = data?.error || 'Failed to create booking - no client secret received';
+          setPaymentError(errorMsg);
+          throw new Error(errorMsg);
         }
       } catch (err: any) {
         logger.error('Error creating booking:', err);
+        const errorMessage = err.message || 'Failed to prepare booking';
+        setPaymentError(errorMessage);
         toast({
           title: "Booking error",
-          description: err.message || 'Failed to prepare booking',
+          description: errorMessage,
           variant: "destructive"
         });
+      } finally {
+        setIsInitializing(false);
       }
     };
 
@@ -163,7 +202,7 @@ function CheckoutInner() {
     handlePayment();
   }, [isLoading, guestValid, guest, stripe, elements, handlePayment, toast]);
 
-  const isButtonDisabled = !guestValid || !guest || isLoading || !clientSecret;
+  const isButtonDisabled = !guestValid || !guest || isLoading || !clientSecret || !!paymentError;
 
   // Memoize the form change handler to prevent infinite loops
   const handleGuestFormChange = useCallback((data: HotelGuestFormData, valid: boolean) => {
@@ -204,12 +243,27 @@ function CheckoutInner() {
                 <CardTitle>Payment Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {clientSecret ? (
+                {paymentError ? (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {paymentError}
+                    </AlertDescription>
+                  </Alert>
+                ) : clientSecret ? (
                   <PaymentElement />
-                ) : (
+                ) : isInitializing ? (
                   <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                     <p className="text-muted-foreground">Preparing payment...</p>
                   </div>
+                ) : (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Payment system not ready. Please refresh the page.
+                    </AlertDescription>
+                  </Alert>
                 )}
                 
                 {bookingData && (
@@ -318,12 +372,66 @@ function CheckoutInner() {
 }
 
 export default function HotelCheckout() {
+  const [stripe, setStripe] = useState<Stripe | null>(null);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const initializeStripe = async () => {
+      try {
+        const stripeInstance = await getStripe();
+        if (stripeInstance) {
+          setStripe(stripeInstance);
+          console.log('✅ Stripe initialized successfully');
+        } else {
+          setStripeError('Failed to initialize payment system');
+        }
+      } catch (error) {
+        console.error('Stripe initialization error:', error);
+        setStripeError('Failed to load payment system');
+      }
+    };
+
+    initializeStripe();
+  }, []);
+
   const options = useMemo(() => ({ 
     appearance: { theme: 'stripe' as const } 
   }), []);
+
+  if (stripeError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-24 px-6">
+          <div className="max-w-2xl mx-auto">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {stripeError}. Please refresh the page or contact support.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stripe) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-24 px-6">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading payment system...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
-    <Elements stripe={stripePromise} options={options}>
+    <Elements stripe={stripe} options={options}>
       <CheckoutInner />
     </Elements>
   );
