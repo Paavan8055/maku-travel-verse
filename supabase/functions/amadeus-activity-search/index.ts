@@ -8,8 +8,11 @@ const corsHeaders = {
 };
 
 interface ActivitySearchParams {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
+  destination?: string;
+  date?: string;
+  participants?: number;
   radius?: number;
   north?: number;
   west?: number;
@@ -80,8 +83,9 @@ async function searchActivities(params: ActivitySearchParams, accessToken: strin
 
 function generateSearchKey(params: ActivitySearchParams): string {
   const keyData = {
-    lat: params.latitude,
-    lng: params.longitude,
+    lat: params.latitude || 0,
+    lng: params.longitude || 0,
+    destination: params.destination || null,
     radius: params.radius || null,
     bbox: params.north ? {
       north: params.north,
@@ -105,9 +109,38 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const params: ActivitySearchParams = await req.json();
-    logger.info('[ACTIVITY-SEARCH] Search params:', params);
+    const body = await req.json();
+    logger.info('[ACTIVITY-SEARCH] Request body:', body);
 
+    // Convert destination to coordinates if needed
+    let params: ActivitySearchParams;
+    if (body.destination && !body.latitude) {
+      // Simple geocoding map for common destinations
+      const locationMap: { [key: string]: { lat: number; lng: number } } = {
+        'sydney': { lat: -33.8688, lng: 151.2093 },
+        'melbourne': { lat: -37.8136, lng: 144.9631 },
+        'brisbane': { lat: -27.4698, lng: 153.0251 },
+        'paris': { lat: 48.8566, lng: 2.3522 },
+        'london': { lat: 51.5074, lng: -0.1278 },
+        'new york': { lat: 40.7128, lng: -74.0060 },
+        'tokyo': { lat: 35.6762, lng: 139.6503 },
+        'mumbai': { lat: 19.0760, lng: 72.8777 }
+      };
+      
+      const coords = locationMap[body.destination.toLowerCase()] || { lat: -33.8688, lng: 151.2093 };
+      params = {
+        latitude: coords.lat,
+        longitude: coords.lng,
+        radius: 20,
+        destination: body.destination,
+        date: body.date,
+        participants: body.participants
+      };
+    } else {
+      params = body;
+    }
+
+    logger.info('[ACTIVITY-SEARCH] Processed params:', params);
     const searchKey = generateSearchKey(params);
     
     // Check cache first
