@@ -51,6 +51,7 @@ import Roadmap from "./pages/Roadmap";
 import BookingEnhanced from "./pages/BookingEnhanced";
 import Testing from "./pages/Testing";
 import UXShowcase from "./pages/UXShowcase";
+import AIAdvanced from "./pages/AIAdvanced";
 
 const queryClient = new QueryClient();
 
@@ -104,8 +105,9 @@ const App = () => (
                     <Route path="/gift-cards" element={<GiftCards />} />
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/booking-enhanced" element={<BookingEnhanced />} />
-        <Route path="/testing" element={<Testing />} />
-        <Route path="/ux-showcase" element={<UXShowcase />} />
+          <Route path="/testing" element={<Testing />} />
+          <Route path="/ux-showcase" element={<UXShowcase />} />
+          <Route path="/ai-advanced" element={<AIAdvanced />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ErrorBoundary>
