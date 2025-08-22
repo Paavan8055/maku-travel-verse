@@ -26,6 +26,7 @@ import SearchActivities from "./pages/search/activities";
 import SearchCars from "./pages/search/cars";
 import { HotelDetails } from "./pages/HotelDetails";
 import HotelCheckout from "./pages/HotelCheckout";
+import HotelCheckoutTest from "./pages/HotelCheckoutTest";
 import FlightCheckout from "./pages/FlightCheckout";
 import ActivityCheckout from "./pages/ActivityCheckout";
 import BookingConfirmation from "./pages/BookingConfirmation";
@@ -85,6 +86,7 @@ const App = () => (
                     <Route path="/search/cars" element={<SearchCars />} />
                     <Route path="/hotel/:id" element={<HotelDetails />} />
                     <Route path="/hotel-checkout" element={<HotelCheckout />} />
+                    <Route path="/hotel-checkout-test" element={<HotelCheckoutTest />} />
                     <Route path="/flight-checkout" element={<FlightCheckout />} />
                     <Route path="/activity-checkout" element={<ActivityCheckout />} />
                     <Route path="/booking-confirmation" element={<BookingConfirmation />} />

@@ -15,26 +15,39 @@ export default function PaymentDebugger() {
     setIsTestingStripe(true);
     try {
       console.log('🔍 Testing Stripe publishable key retrieval...');
+      const startTime = Date.now();
       const { data, error } = await supabase.functions.invoke('get-stripe-publishable-key');
+      const responseTime = Date.now() - startTime;
       
-      console.log('Stripe key test result:', { data, error });
-      setStripeResult({ data, error, timestamp: new Date().toISOString() });
+      console.log('Stripe key test result:', { data, error, responseTime });
+      setStripeResult({ data, error, responseTime, timestamp: new Date().toISOString() });
       
       if (error) {
         toast({
           title: "Stripe Key Test Failed",
-          description: error.message,
+          description: error.message || 'Unknown error',
           variant: "destructive"
+        });
+      } else if (data?.publishable_key) {
+        toast({
+          title: "✅ Stripe Key Test Success",
+          description: `Key retrieved in ${responseTime}ms`
         });
       } else {
         toast({
-          title: "Stripe Key Test Success",
-          description: "Publishable key retrieved successfully"
+          title: "Stripe Key Test Issue",
+          description: "No key in response",
+          variant: "destructive"
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Stripe key test error:', err);
-      setStripeResult({ error: err, timestamp: new Date().toISOString() });
+      setStripeResult({ error: err.message || err, timestamp: new Date().toISOString() });
+      toast({
+        title: "Stripe Key Test Error",
+        description: err.message || 'Network error',
+        variant: "destructive"
+      });
     } finally {
       setIsTestingStripe(false);
     }

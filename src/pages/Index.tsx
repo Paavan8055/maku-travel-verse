@@ -10,6 +10,7 @@ import ChatWidget from "@/features/makuBot/components/ChatWidget";
 import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import TestModeIndicator from "@/components/TestModeIndicator";
+import { Button } from "@/components/ui/button";
 const Index = () => {
   return (
     <PerformanceWrapper componentName="HomePage">
@@ -23,12 +24,21 @@ const Index = () => {
       <MarketplaceSection />
       <FeaturedListings />
       
-      {/* Debug Section - Only visible in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <PaymentDebugger />
-        </div>
-      )}
+          {/* Debug Section - Only visible in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="max-w-4xl mx-auto px-6 py-12">
+              <PaymentDebugger />
+              <div className="mt-8 text-center">
+                <Button 
+                  onClick={() => window.location.href = '/hotel-checkout-test'}
+                  variant="outline"
+                  className="mb-4"
+                >
+                  🧪 Test Hotel Checkout Flow
+                </Button>
+              </div>
+            </div>
+          )}
       
       <Footer />
         <ChatWidget userVertical="Solo" />
