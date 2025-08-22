@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Filter, SortAsc, Calendar, MapPin, Clock } from "lucide-react";
+import { Filter, SortAsc, Calendar, MapPin, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import { useCarSearch } from "@/features/search/hooks/useCarSearch";
 
@@ -350,11 +351,12 @@ const CarSearchPage = () => {
             )}
 
             {error && (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-destructive">Error loading cars: {error}</p>
-                </CardContent>
-              </Card>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {error}. Please check your search criteria and try again.
+                </AlertDescription>
+              </Alert>
             )}
 
             {!loading && !error && (

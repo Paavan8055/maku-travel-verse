@@ -1,75 +1,43 @@
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'jsr:@supabase/supabase-js@2'
-import logger from "../_shared/logger.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import Stripe from "https://esm.sh/stripe@14.21.0"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0"
+import logger from "../_shared/logger.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface CreateHotelBookingParams {
-  hotelId: string;
-  offerId: string;
-  checkIn: string;
-  checkOut: string;
-  adults: number;
-  children?: number;
-  rooms?: number;
-  addons?: string[];
-  bedPref?: string;
-  note?: string;
-}
-
-Deno.serve(async (req) => {
-  // Handle CORS preflight requests
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeSecretKey) {
-      throw new Error('Missing STRIPE_SECRET_KEY');
-    }
-
-    // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    );
-
-    // Get user from auth header (optional for guest bookings)
-    let user = null;
-    const authHeader = req.headers.get('Authorization');
-    if (authHeader) {
-      try {
-        const token = authHeader.replace('Bearer ', '');
-        const { data } = await supabaseClient.auth.getUser(token);
-        user = data.user;
-        logger.info('Authenticated user found:', user?.id);
-      } catch (authError) {
-        logger.info('No authenticated user, proceeding as guest booking');
-      }
-    } else {
-      logger.info('No auth header, proceeding as guest booking');
-    }
-
-    const {
-      hotelId,
-      offerId,
-      checkIn,
-      checkOut,
-      adults,
-      children = 0,
+    const { 
+      hotelId, 
+      offerId, 
+      checkIn, 
+      checkOut, 
+      adults = 2, 
+      children = 0, 
       rooms = 1,
       addons = [],
-      bedPref,
-      note
-    }: CreateHotelBookingParams = await req.json();
+      bedPref = '',
+      note = ''
+    } = await req.json();
 
+    logger.info('Creating hotel booking with params:', { 
+      hotelId, offerId, checkIn, checkOut, adults, children, rooms 
+    });
+
+    // Validate required parameters
     if (!hotelId || !offerId || !checkIn || !checkOut) {
       return new Response(
-        JSON.stringify({ error: 'Missing required parameters' }),
+        JSON.stringify({ 
+          success: false, 
+          error: 'Missing required booking parameters' 
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -77,190 +45,145 @@ Deno.serve(async (req) => {
       );
     }
 
-    logger.info('Creating hotel booking:', { hotelId, offerId, checkIn, checkOut, adults, children, rooms, userType: user ? 'authenticated' : 'guest' });
-
-    // For demo purposes, use fallback pricing if Amadeus fails
-    let roomPrice = 250; // Default fallback price
-    let currency = 'AUD';
-    let selectedOffer = null;
-
-    try {
-      // Re-fetch the offer from Amadeus to get accurate pricing
-      const { data: hotelData, error: hotelError } = await supabaseClient.functions.invoke(
-        'amadeus-hotel-details',
-        {
-          body: { hotelId, checkIn, checkOut, adults, children, rooms }
+    // Get Stripe secret key
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeSecretKey) {
+      logger.error('Stripe secret key not configured');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Payment system not configured' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
-
-      if (hotelData?.success && hotelData.offers?.length > 0) {
-        // Find the selected offer
-        selectedOffer = hotelData.offers.find((offer: any) => offer.id === offerId);
-        if (selectedOffer) {
-          roomPrice = parseFloat(selectedOffer.price?.total || '250');
-          currency = selectedOffer.price?.currency || 'AUD';
-          logger.info('Using Amadeus pricing:', { roomPrice, currency });
-        } else {
-          logger.warn('Selected offer not found, using fallback pricing');
-        }
-      } else {
-        logger.warn('Amadeus pricing failed, using fallback pricing:', hotelError);
-      }
-    } catch (pricingError) {
-      logger.warn('Amadeus pricing error, using fallback:', pricingError);
     }
 
-    // Calculate addon costs
-    let addonsPrice = 0;
-    if (addons && addons.length > 0) {
-      try {
-        const { data: addonData, error: addonError } = await supabaseClient
-          .from('hotel_addons')
-          .select('*')
-          .in('id', addons)
-          .eq('active', true);
+    // Initialize Stripe
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2023-10-16',
+    });
 
-        if (!addonError && addonData) {
-          addonsPrice = addonData.reduce((total: number, addon: any) => {
-            const basePrice = addon.price_cents / 100;
-            const multiplier = addon.per_person ? (adults + children) : 1;
-            return total + (basePrice * multiplier);
-          }, 0);
-          logger.info('Calculated addons price:', addonsPrice);
-        }
-      } catch (addonError) {
-        logger.warn('Failed to calculate addon costs:', addonError);
-      }
-    }
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const totalAmount = roomPrice + addonsPrice;
-    const amountCents = Math.round(totalAmount * 100);
+    // Calculate nights and estimated price
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Base price calculation (this would normally come from HotelBeds API)
+    const basePrice = 150; // AUD per night
+    const totalAmount = basePrice * nights * rooms;
+    const currency = 'AUD';
 
-    logger.info('Final pricing:', { roomPrice, addonsPrice, totalAmount, amountCents, currency });
-
-    // Create booking record using service role client for RLS bypass
-    const supabaseService = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
+    // Create booking record
+    const bookingReference = 'BK' + Math.random().toString(36).substr(2, 8).toUpperCase();
+    
     const bookingData = {
-      user_id: user?.id || null,
-      booking_reference: `HB${Date.now()}`,
-      status: 'pending',
+      booking_reference: bookingReference,
       booking_type: 'hotel',
+      status: 'pending',
       total_amount: totalAmount,
-      currency,
+      currency: currency,
       booking_data: {
-        hotelId,
-        offerId,
-        checkIn,
-        checkOut,
-        adults,
-        children,
-        rooms,
-        bedPref,
-        note,
-        addons,
-        selectedOffer,
-        roomPrice,
-        addonsPrice,
-        customerInfo: user ? {
-          email: user.email,
-          userId: user.id
-        } : {
-          email: null,
-          userId: null
+        hotel: {
+          hotelId,
+          offerId,
+          checkIn,
+          checkOut,
+          adults,
+          children,
+          rooms,
+          nights,
+          addons,
+          bedPref,
+          note
+        },
+        customerInfo: {
+          // Will be filled when guest completes form
         }
       }
     };
 
-    const { data: booking, error: bookingError } = await supabaseService
+    const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .insert(bookingData)
       .select()
       .single();
 
     if (bookingError) {
-      logger.error('Booking creation error:', bookingError);
-      throw new Error(`Failed to create booking record: ${bookingError.message}`);
+      logger.error('Error creating booking:', bookingError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Failed to create booking record' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    logger.info('✅ Booking record created:', booking.id);
-
-    // Create Stripe Payment Intent
-    const paymentIntentData = new URLSearchParams({
-      amount: amountCents.toString(),
+    // Create Stripe payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(totalAmount * 100), // Convert to cents
       currency: currency.toLowerCase(),
-      'automatic_payment_methods[enabled]': 'true',
-      'metadata[booking_id]': booking.id,
-      'metadata[hotel_id]': hotelId,
-      'metadata[user_id]': user?.id || 'guest'
-    });
-
-    if (user?.email) {
-      paymentIntentData.append('receipt_email', user.email);
-    }
-
-    const stripeResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${stripeSecretKey}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: paymentIntentData,
-    });
-
-    const paymentIntent = await stripeResponse.json();
-
-    if (!stripeResponse.ok) {
-      logger.error('Stripe error:', paymentIntent);
-      throw new Error('Failed to create payment intent');
-    }
-
-    // Store payment record using service role
-    const { error: paymentError } = await supabaseService
-      .from('payments')
-      .insert({
+      metadata: {
         booking_id: booking.id,
-        stripe_payment_intent_id: paymentIntent.id,
-        amount: totalAmount,
-        currency,
-        status: paymentIntent.status
-      });
+        booking_type: 'hotel',
+        hotel_id: hotelId,
+        offer_id: offerId
+      },
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
 
-    if (paymentError) {
-      logger.error('Payment record error:', paymentError);
-      // Don't fail the entire process for payment record error
-    }
+    logger.info('Payment intent created:', paymentIntent.id);
 
-    logger.info(`✅ Created hotel booking ${booking.id} with payment intent ${paymentIntent.id}`);
+    // Update booking with payment intent ID
+    await supabase
+      .from('bookings')
+      .update({ 
+        booking_data: {
+          ...bookingData.booking_data,
+          stripe_payment_intent_id: paymentIntent.id
+        }
+      })
+      .eq('id', booking.id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        clientSecret: paymentIntent.client_secret,
         booking_id: booking.id,
-        amount_cents: amountCents,
-        currency,
-        total_amount: totalAmount
+        booking_reference: bookingReference,
+        clientSecret: paymentIntent.client_secret,
+        total_amount: totalAmount,
+        currency: currency,
+        amount_cents: Math.round(totalAmount * 100)
       }),
       {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
 
   } catch (error) {
-    logger.error('Create hotel booking error:', error);
+    logger.error('Error in create-hotel-booking:', error);
+    
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create hotel booking'
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Internal server error' 
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

@@ -192,7 +192,7 @@ function CheckoutInner() {
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment/success?booking_id=${bookingData?.booking_id}`,
+          return_url: `${window.location.origin}/payment-success?booking_id=${bookingData?.booking_id}&type=hotel`,
         },
       });
 

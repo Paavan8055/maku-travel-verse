@@ -75,10 +75,14 @@ const FlightCheckout = () => {
       logger.error('Session storage error:', e);
     }
     
-    const search = typeof window !== 'undefined' ? window.location.search : '';
+    // Use the existing search params and add booking_type=flight
+    const currentParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    currentParams.set('booking_type', 'flight');
+    
+    const search = currentParams.toString();
     console.log('Navigating to payment with search:', search);
     
-    navigate(`/booking/payment${search}`);
+    navigate(`/booking/payment?${search}`);
   };
 
   const handleContinue = () => {
