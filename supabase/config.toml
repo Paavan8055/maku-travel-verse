@@ -215,6 +215,15 @@ verify_jwt = false
 [functions.generate-offers]
 verify_jwt = false
 
+[functions.health-check]
+verify_jwt = false
+
+[functions.performance-monitor]
+verify_jwt = false
+
+[functions.create-activity-booking]
+verify_jwt = true
+
 [analytics]
 enabled = false
 port = 54327
