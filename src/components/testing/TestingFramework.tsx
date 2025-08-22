@@ -87,7 +87,7 @@ const mockTestSuites: TestSuite[] = [
   }
 ];
 
-export const TestingFramework: React.FC = () => {
+const TestingFramework: React.FC = () => {
   const [testSuites, setTestSuites] = useState<TestSuite[]>(mockTestSuites);
   const [runningTests, setRunningTests] = useState<Set<string>>(new Set());
   const { reportError } = useErrorReporting();
@@ -354,3 +354,6 @@ export const TestingFramework: React.FC = () => {
     </div>
   );
 };
+
+export { TestingFramework };
+export default TestingFramework;

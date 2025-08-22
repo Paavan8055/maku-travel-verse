@@ -25,7 +25,7 @@ interface SecurityStats {
   activeThreats: number;
 }
 
-export const SecurityMonitoring: React.FC = () => {
+const SecurityMonitoring: React.FC = () => {
   const [events, setEvents] = useState<SecurityEvent[]>([]);
   const [stats, setStats] = useState<SecurityStats>({
     totalEvents: 0,
@@ -247,3 +247,6 @@ export const SecurityMonitoring: React.FC = () => {
     </div>
   );
 };
+
+export { SecurityMonitoring };
+export default SecurityMonitoring;
