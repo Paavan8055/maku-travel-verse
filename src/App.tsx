@@ -50,6 +50,7 @@ import Deals from "./pages/Deals";
 import GiftCards from "./pages/GiftCards";
 import Roadmap from "./pages/Roadmap";
 import BookingEnhanced from "./pages/BookingEnhanced";
+import BookingPayment from "./pages/BookingPayment";
 import Testing from "./pages/Testing";
 import UXShowcase from "./pages/UXShowcase";
 import AIAdvanced from "./pages/AIAdvanced";
@@ -98,6 +99,7 @@ const App = () => (
                     <Route path="/flight-booking-review" element={<FlightBookingReview />} />
                     <Route path="/activity-select" element={<ActivitySelect />} />
                     <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/booking/payment" element={<BookingPayment />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                     <Route path="/payment-setup" element={<PaymentSetup />} />
