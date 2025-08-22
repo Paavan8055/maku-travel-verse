@@ -41,7 +41,7 @@ interface PerformanceMetrics {
   }>;
 }
 
-export const ObservabilityDashboard: React.FC = () => {
+const ObservabilityDashboard: React.FC = () => {
   const [errorMetrics, setErrorMetrics] = useState<ErrorMetrics>({
     total: 0,
     critical: 0,
@@ -356,3 +356,6 @@ export const ObservabilityDashboard: React.FC = () => {
     </div>
   );
 };
+
+export { ObservabilityDashboard };
+export default ObservabilityDashboard;

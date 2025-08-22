@@ -182,7 +182,7 @@ export const createLazyRoute = (
 };
 
 // Component-level code splitting for heavy features
-export const LazyAdminDashboard = createLazyRoute(
+export const LazySecurityMonitoring = createLazyRoute(
   () => import('@/components/admin/SecurityMonitoring').then(module => ({ default: module.SecurityMonitoring })),
   <PageLoader height="h-screen" />
 );
