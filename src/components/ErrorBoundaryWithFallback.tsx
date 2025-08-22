@@ -1,7 +1,9 @@
 import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ErrorFallbackProps {
   error: Error;
@@ -14,6 +16,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   resetErrorBoundary, 
   context = 'application' 
 }) => {
+  const navigate = useNavigate();
   const getErrorMessage = (error: Error) => {
     // Provide user-friendly error messages based on error types
     if (error.message.includes('Network request failed') || error.message.includes('Failed to fetch')) {
@@ -43,24 +46,31 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   };
 
   return (
-    <div className="min-h-[400px] flex items-center justify-center p-6">
-      <div className="max-w-md w-full">
-        <Alert variant="destructive" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="text-sm">
-            {getErrorMessage(error)}
-          </AlertDescription>
-        </Alert>
-        
-        <div className="space-y-3">
-          <Button 
-            onClick={resetErrorBoundary}
-            className="w-full"
-            variant="outline"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Try Again
-          </Button>
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <CardTitle className="text-xl">Something went wrong</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert variant="destructive">
+            <AlertDescription>
+              {getErrorMessage(error)}
+            </AlertDescription>
+          </Alert>
+          
+          <div className="space-y-2">
+            <Button onClick={resetErrorBoundary} className="w-full" variant="default">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+            <Button onClick={() => navigate('/')} className="w-full" variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+          </div>
           
           {isSystemError(error) && (
             <p className="text-xs text-muted-foreground text-center">
@@ -70,17 +80,16 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
           
           {process.env.NODE_ENV === 'development' && (
             <details className="mt-4">
-              <summary className="text-xs text-muted-foreground cursor-pointer">
-                Technical Details (Development)
+              <summary className="cursor-pointer text-sm text-muted-foreground">
+                Error Details (Development)
               </summary>
-              <pre className="text-xs mt-2 p-2 bg-muted rounded overflow-auto">
-                {error.message}
-                {error.stack && `\n\n${error.stack}`}
+              <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-auto">
+                {error.stack}
               </pre>
             </details>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
