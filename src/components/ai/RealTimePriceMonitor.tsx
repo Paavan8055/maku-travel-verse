@@ -191,27 +191,15 @@ export const RealTimePriceMonitor: React.FC<RealTimePriceMonitorProps> = ({
     if (!isMonitoring) return;
     
     try {
-      // Simulate real-time price update
-      const lastPrice = priceHistory[priceHistory.length - 1]?.price || currentPrice;
-      const volatility = (Math.random() - 0.5) * 20; // ±10 price change
-      const newPrice = Math.max(50, Math.round(lastPrice + volatility));
+      // In production, this would fetch real-time pricing from supplier APIs
+      // Removed fake price generation to maintain data integrity
+      console.log('Real-time price monitoring would fetch from supplier APIs');
       
-      const newDataPoint: PriceDataPoint = {
-        timestamp: new Date().toISOString(),
-        price: newPrice,
-        supplier: ['Amadeus', 'Sabre', 'Booking.com'][Math.floor(Math.random() * 3)],
-        availability: Math.floor(Math.random() * 50) + 10,
-        demandLevel: newPrice > lastPrice + 10 ? 'high' : newPrice < lastPrice - 10 ? 'low' : 'medium'
-      };
-      
-      setPriceHistory(prev => [...prev.slice(-23), newDataPoint]);
-      setCurrentPrice(newPrice);
-      
-      // Check for price alerts
-      checkPriceAlerts(newPrice);
+      // For now, show no price updates until real integration is complete
+      // This prevents misleading users with fake pricing data
       
     } catch (error) {
-      logger.error('Failed to fetch real-time price:', error);
+      logger.error('Real-time price fetch error:', error);
     }
   };
 

@@ -122,12 +122,16 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
           <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
             <div className="flex items-center space-x-1">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium text-foreground">{activity.rating}</span>
-              <span>({activity.reviewCount})</span>
+              <span className="font-medium text-foreground">
+                {activity.rating > 0 ? activity.rating.toFixed(1) : 'Not rated'}
+              </span>
+              <span>
+                {activity.reviewCount > 0 ? `(${activity.reviewCount})` : '(No reviews)'}
+              </span>
             </div>
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4" />
-              <span>{activity.duration}</span>
+              <span>{activity.duration || 'Duration not specified'}</span>
             </div>
           </div>
 
@@ -175,12 +179,18 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
             <div>
               <p className="text-sm text-muted-foreground">From</p>
               <p className="text-xl font-bold text-foreground">
-                {activity.currency}{activity.price}
+                {activity.price > 0 
+                  ? `${activity.currency}${activity.price}`
+                  : 'Price on request'
+                }
               </p>
               <p className="text-xs text-muted-foreground">per person</p>
             </div>
-            <Button onClick={handleSelectActivity}>
-              Choose Activity
+            <Button 
+              onClick={handleSelectActivity}
+              disabled={activity.price <= 0}
+            >
+              {activity.price > 0 ? 'Choose Activity' : 'Contact for Price'}
             </Button>
           </div>
         </div>

@@ -57,61 +57,17 @@ export const SmartTripPlanner: React.FC<{ className?: string }> = ({ className }
   const [currencyRates, setCurrencyRates] = useState<CurrencyRate[]>([]);
   const [trendingDestinations, setTrendingDestinations] = useState<Destination[]>([]);
 
-  // Mock data for demonstration
+  // Remove mock data and use real supplier data only
   useEffect(() => {
-    const mockWeather: WeatherData = {
-      destination: 'Tokyo, Japan',
-      temperature: 18,
-      condition: 'Partly Cloudy',
-      humidity: 65,
-      forecast: [
-        { day: 'Today', high: 20, low: 15, condition: 'Sunny' },
-        { day: 'Tomorrow', high: 22, low: 16, condition: 'Cloudy' },
-        { day: 'Wed', high: 19, low: 14, condition: 'Rain' },
-        { day: 'Thu', high: 21, low: 17, condition: 'Sunny' }
-      ]
-    };
-
-    const mockCurrencyRates: CurrencyRate[] = [
-      { from: 'AUD', to: 'JPY', rate: 97.45, change: '+0.5%' },
-      { from: 'AUD', to: 'USD', rate: 0.67, change: '-0.2%' },
-      { from: 'AUD', to: 'EUR', rate: 0.61, change: '+0.3%' },
-      { from: 'AUD', to: 'GBP', rate: 0.53, change: '+0.1%' }
-    ];
-
-    const mockDestinations: Destination[] = [
-      {
-        name: 'Bali',
-        country: 'Indonesia',
-        rating: 4.8,
-        bestTime: 'Apr-Sep',
-        averageCost: 2200,
-        image: '/placeholder.svg',
-        timezone: 'GMT+8'
-      },
-      {
-        name: 'Paris',
-        country: 'France',
-        rating: 4.7,
-        bestTime: 'May-Sep',
-        averageCost: 3500,
-        image: '/placeholder.svg',
-        timezone: 'GMT+1'
-      },
-      {
-        name: 'Dubai',
-        country: 'UAE',
-        rating: 4.6,
-        bestTime: 'Nov-Mar',
-        averageCost: 2800,
-        image: '/placeholder.svg',
-        timezone: 'GMT+4'
-      }
-    ];
-
-    setWeatherData(mockWeather);
-    setCurrencyRates(mockCurrencyRates);
-    setTrendingDestinations(mockDestinations);
+    // In production, this would fetch real data from external APIs
+    // Mock data removed to maintain data integrity
+    
+    setWeatherData(null);
+    setCurrencyRates([]);
+    setTrendingDestinations([]);
+    
+    // Show loading state until real data is available
+    console.log('Real weather and destination data would be fetched from APIs');
   }, []);
 
   const timeZones = [

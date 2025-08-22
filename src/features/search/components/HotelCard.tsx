@@ -150,10 +150,12 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                 <div className="flex items-center space-x-2 mb-3">
                   <div className="flex items-center space-x-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium text-foreground">{hotel.rating}</span>
+                    <span className="font-medium text-foreground">
+                      {hotel.rating > 0 ? hotel.rating.toFixed(1) : 'Not rated'}
+                    </span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    ({hotel.reviewCount} reviews)
+                    {hotel.reviewCount > 0 ? `(${hotel.reviewCount} reviews)` : '(No reviews yet)'}
                   </span>
                   <Badge variant="secondary">{hotel.propertyType}</Badge>
                   {hotel.safetyRating && (
@@ -165,7 +167,9 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                  {hotel.description}
+                  {hotel.description && hotel.description !== 'Hotel accommodation' 
+                    ? hotel.description 
+                    : 'Description not available'}
                 </p>
 
                 {/* Amenities */}
@@ -196,43 +200,52 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                 </div>
               </div>
 
-              {/* Pricing */}
-              <div className="text-right space-y-2 ml-6">
-                <div>
-                  <p className="text-sm text-muted-foreground">From</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {hotel.currency}{hotel.pricePerNight}
-                  </p>
-                  <p className="text-sm text-muted-foreground">per night</p>
-                </div>
-                <div className="border-t pt-2">
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {hotel.currency}{hotel.totalPrice}
-                  </p>
-                </div>
-                <Button 
-                  className="btn-primary w-full"
-                  onClick={() => {
-                    // Temporarily redirect to hotel checkout instead of booking-enhanced
-                    const params = new URLSearchParams({
-                      destination: hotel.address || hotel.name,
-                      checkIn: new Date().toISOString().split('T')[0],
-                      checkOut: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
-                      guests: "2", 
-                      hotelId: hotel.id,
-                      hotelName: hotel.name,
-                      price: hotel.pricePerNight.toString()
-                    });
-                    // Store hotel selection for booking flow
-                    sessionStorage.setItem('selectedHotelId', hotel.id);
-                    sessionStorage.setItem('selectedHotelName', hotel.name);
-                    sessionStorage.setItem('selectedOfferId', `offer_${hotel.id}_${Date.now()}`);
-                    window.location.href = `/hotel-checkout?${params.toString()}`;
-                  }}
-                >
-                  Book Now
-                </Button>
+                {/* Pricing */}
+                <div className="text-right space-y-2 ml-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground">From</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {hotel.pricePerNight > 0 
+                        ? `${hotel.currency}${hotel.pricePerNight}`
+                        : 'Price unavailable'
+                      }
+                    </p>
+                    <p className="text-sm text-muted-foreground">per night</p>
+                  </div>
+                  <div className="border-t pt-2">
+                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-lg font-semibold text-foreground">
+                      {hotel.totalPrice > 0 
+                        ? `${hotel.currency}${hotel.totalPrice}`
+                        : 'Contact for price'
+                      }
+                    </p>
+                  </div>
+                  <Button 
+                    className="btn-primary w-full"
+                    disabled={hotel.pricePerNight <= 0}
+                    onClick={() => {
+                      if (hotel.pricePerNight <= 0) return;
+                      
+                      // Temporarily redirect to hotel checkout instead of booking-enhanced
+                      const params = new URLSearchParams({
+                        destination: hotel.address || hotel.name,
+                        checkIn: new Date().toISOString().split('T')[0],
+                        checkOut: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
+                        guests: "2", 
+                        hotelId: hotel.id,
+                        hotelName: hotel.name,
+                        price: hotel.pricePerNight.toString()
+                      });
+                      // Store hotel selection for booking flow
+                      sessionStorage.setItem('selectedHotelId', hotel.id);
+                      sessionStorage.setItem('selectedHotelName', hotel.name);
+                      sessionStorage.setItem('selectedOfferId', `offer_${hotel.id}_${Date.now()}`);
+                      window.location.href = `/hotel-checkout?${params.toString()}`;
+                    }}
+                  >
+                    {hotel.pricePerNight > 0 ? 'Book Now' : 'Contact Hotel'}
+                  </Button>
               </div>
             </div>
           </div>
