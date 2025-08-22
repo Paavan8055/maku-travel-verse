@@ -14,6 +14,11 @@ serve(async (req) => {
   }
 
   try {
+    logger.info('Hotel booking request received');
+    
+    const body = await req.json();
+    logger.info('Request body:', body);
+    
     const { 
       hotelId, 
       offerId, 
@@ -25,7 +30,7 @@ serve(async (req) => {
       addons = [],
       bedPref = '',
       note = ''
-    } = await req.json();
+    } = body;
 
     logger.info('Creating hotel booking with params:', { 
       hotelId, offerId, checkIn, checkOut, adults, children, rooms 
@@ -33,10 +38,12 @@ serve(async (req) => {
 
     // Validate required parameters
     if (!hotelId || !offerId || !checkIn || !checkOut) {
+      logger.error('Missing required parameters:', { hotelId, offerId, checkIn, checkOut });
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Missing required booking parameters' 
+          error: 'Missing required booking parameters',
+          details: { hotelId: !!hotelId, offerId: !!offerId, checkIn: !!checkIn, checkOut: !!checkOut }
         }),
         { 
           status: 400, 
@@ -52,7 +59,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Payment system not configured' 
+          error: 'Payment system not configured - missing STRIPE_SECRET_KEY',
+          config_issue: true
         }),
         { 
           status: 500, 
@@ -60,26 +68,50 @@ serve(async (req) => {
         }
       );
     }
+    
+    logger.info('Stripe configuration found');
 
     // Initialize Stripe
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
+    logger.info('Stripe client initialized');
 
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      logger.error('Supabase configuration missing:', { hasUrl: !!supabaseUrl, hasKey: !!supabaseServiceKey });
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Database configuration missing',
+          config_issue: true
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    logger.info('Supabase client initialized');
 
     // Calculate nights and estimated price
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
     const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
     
+    logger.info('Booking calculation:', { checkIn, checkOut, nights, adults, children, rooms });
+    
     // Base price calculation (this would normally come from HotelBeds API)
     const basePrice = 150; // AUD per night
     const totalAmount = basePrice * nights * rooms;
     const currency = 'AUD';
+    
+    logger.info('Price calculation:', { basePrice, nights, rooms, totalAmount, currency });
 
     // Create booking record
     const bookingReference = 'BK' + Math.random().toString(36).substr(2, 8).toUpperCase();
@@ -121,7 +153,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Failed to create booking record' 
+          error: 'Failed to create booking record',
+          details: bookingError.message
         }),
         { 
           status: 500, 
@@ -129,8 +162,12 @@ serve(async (req) => {
         }
       );
     }
+    
+    logger.info('Booking created successfully:', { bookingId: booking.id, reference: booking.booking_reference });
 
     // Create Stripe payment intent
+    logger.info('Creating Stripe payment intent:', { amount: Math.round(totalAmount * 100), currency });
+    
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(totalAmount * 100), // Convert to cents
       currency: currency.toLowerCase(),
@@ -138,17 +175,33 @@ serve(async (req) => {
         booking_id: booking.id,
         booking_type: 'hotel',
         hotel_id: hotelId,
-        offer_id: offerId
+        offer_id: offerId,
+        booking_reference: booking.booking_reference
       },
       automatic_payment_methods: {
         enabled: true,
       },
     });
 
-    logger.info('Payment intent created:', paymentIntent.id);
+    logger.info('Payment intent created:', { id: paymentIntent.id, status: paymentIntent.status });
+
+    // Create payment record
+    const { error: paymentError } = await supabase
+      .from('payments')
+      .insert({
+        booking_id: booking.id,
+        stripe_payment_intent_id: paymentIntent.id,
+        amount: totalAmount,
+        currency: currency,
+        status: 'pending'
+      });
+
+    if (paymentError) {
+      logger.error('Failed to create payment record:', paymentError);
+    }
 
     // Update booking with payment intent ID
-    await supabase
+    const { error: updateError } = await supabase
       .from('bookings')
       .update({ 
         booking_data: {
@@ -157,6 +210,10 @@ serve(async (req) => {
         }
       })
       .eq('id', booking.id);
+
+    if (updateError) {
+      logger.error('Failed to update booking with payment intent:', updateError);
+    }
 
     return new Response(
       JSON.stringify({
@@ -176,10 +233,21 @@ serve(async (req) => {
   } catch (error) {
     logger.error('Error in create-hotel-booking:', error);
     
+    // Log error details for debugging
+    const errorDetails = {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      timestamp: new Date().toISOString()
+    };
+    logger.error('Full error details:', errorDetails);
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Internal server error' 
+        error: error.message || 'Internal server error',
+        error_type: error.name || 'UnknownError',
+        timestamp: new Date().toISOString()
       }),
       {
         status: 500,

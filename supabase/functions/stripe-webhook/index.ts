@@ -320,17 +320,31 @@ serve(async (req) => {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         logStep("Payment failed", { paymentIntentId: paymentIntent.id });
 
-        // Update payment status
+        // Update payment status with failure reason
         const { error: paymentError } = await supabaseClient
           .from("payments")
           .update({ 
             status: "failed",
+            failure_reason: paymentIntent.last_payment_error?.message || 'Payment failed',
             updated_at: new Date().toISOString()
           })
           .eq("stripe_payment_intent_id", paymentIntent.id);
 
         if (paymentError) {
           logStep("Failed to update payment", { error: paymentError.message });
+        }
+        
+        // Update booking status to failed
+        const bookingId = paymentIntent.metadata.booking_id;
+        if (bookingId) {
+          await supabaseClient
+            .from("bookings")
+            .update({ 
+              status: "failed",
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", bookingId);
+          logStep("Booking marked as failed", { bookingId });
         }
         break;
       }
