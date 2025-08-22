@@ -53,6 +53,7 @@ import Testing from "./pages/Testing";
 import UXShowcase from "./pages/UXShowcase";
 import AIAdvanced from "./pages/AIAdvanced";
 import ProductionDashboard from "./pages/ProductionDashboard";
+import ComingSoon from "./pages/ComingSoon";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,7 @@ const App = () => (
                      <Route path="/ux-showcase" element={<UXShowcase />} />
                      <Route path="/ai-advanced" element={<AIAdvanced />} />
                      <Route path="/production" element={<ProductionDashboard />} />
+                     <Route path="/coming-soon" element={<ComingSoon />} />
                      <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ErrorBoundary>

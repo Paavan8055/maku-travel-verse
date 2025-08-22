@@ -86,9 +86,8 @@ const Navbar = () => {
             
             <Button 
               variant="ghost" 
-              className={`text-foreground hover:text-primary flex items-center space-x-1 ${!isActivitiesAvailable ? 'opacity-50 cursor-not-allowed' : ''}`} 
-              onClick={() => isActivitiesAvailable ? navigate('/search/activities') : toast({ title: "Activities unavailable", description: "Activity search is temporarily unavailable. Please try again later.", variant: "destructive" })} 
-              disabled={!isActivitiesAvailable}
+              className="text-foreground hover:text-primary flex items-center space-x-1" 
+              onClick={() => isActivitiesAvailable ? navigate('/search/activities') : navigate('/coming-soon')}
               role="menuitem"
             >
               <MapPin className="h-4 w-4" aria-hidden="true" />
@@ -193,16 +192,15 @@ const Navbar = () => {
               </Button>
               <Button 
                 variant="ghost" 
-                className={`w-full justify-start ${!isActivitiesAvailable ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                className="w-full justify-start" 
                 onClick={() => {
                   if (isActivitiesAvailable) {
                     navigate('/search/activities');
-                    setIsMenuOpen(false);
                   } else {
-                    toast({ title: "Activities unavailable", description: "Activity search is temporarily unavailable.", variant: "destructive" });
+                    navigate('/coming-soon');
                   }
+                  setIsMenuOpen(false);
                 }}
-                disabled={!isActivitiesAvailable}
               >
                 <MapPin className="mr-2 h-4 w-4" />
                 Activities {!isActivitiesAvailable && <span className="text-xs ml-1">(Coming Soon)</span>}

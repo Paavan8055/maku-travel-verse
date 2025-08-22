@@ -8,3 +8,14 @@
 
 [build.environment]
   NODE_VERSION = "18"
+
+[[redirects]]
+  from = "https://maku.travel/*"
+  to = "https://www.maku.travel/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
