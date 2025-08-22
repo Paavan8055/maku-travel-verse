@@ -1365,6 +1365,33 @@ export type Database = {
           },
         ]
       }
+      health_checks: {
+        Row: {
+          checked_at: string
+          created_at: string
+          id: string
+          performance: Json
+          services: Json
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          created_at?: string
+          id?: string
+          performance?: Json
+          services?: Json
+          status: string
+        }
+        Update: {
+          checked_at?: string
+          created_at?: string
+          id?: string
+          performance?: Json
+          services?: Json
+          status?: string
+        }
+        Relationships: []
+      }
       hotel_addons: {
         Row: {
           active: boolean

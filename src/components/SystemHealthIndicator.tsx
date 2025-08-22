@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, Clock, Wifi, WifiOff } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Wifi, WifiOff, Shield, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useHealthMonitor } from '@/hooks/useHealthMonitor';
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -28,37 +28,18 @@ interface ServiceHealth {
 }
 
 export const SystemHealthIndicator = () => {
-  const [health, setHealth] = useState<HealthStatus | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [lastChecked, setLastChecked] = useState<Date | null>(null);
-
-  const checkHealth = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('health-check');
-      
-      if (error) {
-        console.error('Health check failed:', error);
-        return;
-      }
-
-      setHealth(data);
-      setLastChecked(new Date());
-    } catch (error) {
-      console.error('Health check error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    checkHealth();
-    
-    // Check health every 5 minutes
-    const interval = setInterval(checkHealth, 5 * 60 * 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  const { 
+    health, 
+    loading, 
+    lastChecked, 
+    error,
+    checkHealth,
+    isCircuitBreakerOpen,
+    circuitBreakerState
+  } = useHealthMonitor({
+    checkInterval: 5 * 60 * 1000, // 5 minutes
+    enableAutoCheck: true
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -129,13 +110,36 @@ export const SystemHealthIndicator = () => {
       </PopoverTrigger>
       
       <PopoverContent className="w-80" align="end">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-semibold">System Health</h4>
-            <Badge variant={health ? getBadgeVariant(health.status) : 'outline'}>
-              {health?.status || 'Unknown'}
-            </Badge>
-          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">System Health</h4>
+              <div className="flex items-center gap-2">
+                {isCircuitBreakerOpen && (
+                  <Shield className="h-4 w-4 text-orange-500" title="Circuit breaker active" />
+                )}
+                <Badge variant={health ? getBadgeVariant(health.status) : 'outline'}>
+                  {health?.status || 'Unknown'}
+                </Badge>
+              </div>
+            </div>
+
+            {error && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {isCircuitBreakerOpen && (
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  Health monitoring temporarily paused due to repeated failures. System will retry automatically.
+                </AlertDescription>
+              </Alert>
+            )}
 
           {health && (
             <>
@@ -180,15 +184,24 @@ export const SystemHealthIndicator = () => {
                 )}
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={checkHealth}
-                disabled={loading}
-                className="w-full"
-              >
-                {loading ? 'Checking...' : 'Refresh Status'}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={checkHealth}
+                  disabled={loading || isCircuitBreakerOpen}
+                  className="flex-1"
+                >
+                  {loading ? 'Checking...' : 
+                   isCircuitBreakerOpen ? 'Paused' : 
+                   'Refresh Status'}
+                </Button>
+                {circuitBreakerState && (
+                  <Badge variant="outline" className="text-xs">
+                    {circuitBreakerState.toUpperCase()}
+                  </Badge>
+                )}
+              </div>
             </>
           )}
         </div>
