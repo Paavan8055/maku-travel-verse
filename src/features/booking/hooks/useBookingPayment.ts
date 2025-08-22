@@ -45,8 +45,14 @@ export const useBookingPayment = () => {
     try {
       console.log('Creating booking payment:', params);
 
+      // Generate idempotency key for this payment
+      const idempotencyKey = `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
       const { data, error } = await supabase.functions.invoke('create-booking-payment', {
-        body: params
+        body: { 
+          ...params,
+          idempotencyKey 
+        }
       });
 
       if (error) {
