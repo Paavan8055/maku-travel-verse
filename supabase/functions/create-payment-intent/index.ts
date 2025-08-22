@@ -30,12 +30,16 @@ Deno.serve(async (req) => {
 
     const amountCents = Math.round(amount * 100);
 
+    // Generate idempotency key to prevent duplicate payments
+    const idempotencyKey = correlationId || `booking_${bookingId}_${Date.now()}`;
+
     const paymentIntentData = new URLSearchParams({
       amount: amountCents.toString(),
       currency: currency.toLowerCase(),
       'automatic_payment_methods[enabled]': 'true',
       'metadata[booking_id]': bookingId,
-      'metadata[payment_method]': paymentMethod
+      'metadata[payment_method]': paymentMethod,
+      'metadata[correlation_id]': correlationId || 'none'
     });
 
     if (customerInfo.email) {
@@ -47,6 +51,7 @@ Deno.serve(async (req) => {
       headers: {
         'Authorization': `Bearer ${stripeSecretKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Idempotency-Key': idempotencyKey,
       },
       body: paymentIntentData,
     });
