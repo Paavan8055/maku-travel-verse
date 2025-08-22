@@ -5,6 +5,7 @@ import MarketplaceSection from "@/components/MarketplaceSection";
 import MarketplacePills from "@/components/MarketplacePills";
 import FeaturedListings from "@/components/FeaturedListings";
 import Footer from "@/components/Footer";
+import PaymentDebugger from "@/components/debugging/PaymentDebugger";
 import ChatWidget from "@/features/makuBot/components/ChatWidget";
 import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
@@ -19,9 +20,17 @@ const Index = () => {
         <MarketplacePills />
 
         <SearchSection />
-        <MarketplaceSection />
-        <FeaturedListings />
-        <Footer />
+      <MarketplaceSection />
+      <FeaturedListings />
+      
+      {/* Debug Section - Only visible in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          <PaymentDebugger />
+        </div>
+      )}
+      
+      <Footer />
         <ChatWidget userVertical="Solo" />
         <AgenticWidget />
       </div>

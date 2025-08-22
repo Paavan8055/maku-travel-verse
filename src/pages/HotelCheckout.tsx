@@ -26,8 +26,10 @@ const getStripe = async () => {
           throw new Error('Failed to load payment system');
         }
         
-        console.log('Loading Stripe with key:', data.publishable_key.substring(0, 20) + '...');
-        return await loadStripe(data.publishable_key);
+        console.log('✅ Loading Stripe with key:', data.publishable_key.substring(0, 20) + '...');
+        const stripeInstance = await loadStripe(data.publishable_key);
+        console.log('✅ Stripe loaded successfully:', !!stripeInstance);
+        return stripeInstance;
       } catch (error) {
         logger.error('Stripe initialization error:', error);
         return null;
@@ -67,14 +69,39 @@ function CheckoutInner() {
   useEffect(() => {
     const createBooking = async () => {
       if (!hotelId || !offerId || !checkIn || !checkOut) {
+        console.log('❌ Missing required parameters:', { hotelId, offerId, checkIn, checkOut });
+        setPaymentError('Missing booking parameters. Please return to hotel search.');
         setIsInitializing(false);
         return;
       }
 
       try {
         setPaymentError(null);
-        console.log('Creating hotel booking:', { hotelId, offerId, checkIn, checkOut, adults, children, rooms, addons });
+        console.log('🔍 Creating hotel booking with parameters:', { 
+          hotelId, offerId, checkIn, checkOut, adults, children, rooms, addons, bedPref, note 
+        });
 
+        // First check if we can get Stripe key
+        console.log('🔍 Testing Stripe publishable key...');
+        const { data: stripeData, error: stripeError } = await supabase.functions.invoke('get-stripe-publishable-key');
+        
+        if (stripeError) {
+          console.log('❌ Stripe key retrieval failed:', stripeError);
+          setPaymentError('Payment system configuration error. Please contact support.');
+          setIsInitializing(false);
+          return;
+        }
+        
+        if (!stripeData?.publishable_key) {
+          console.log('❌ No publishable key returned:', stripeData);
+          setPaymentError('Payment system not configured. Please contact support.');
+          setIsInitializing(false);
+          return;
+        }
+        
+        console.log('✅ Stripe key retrieved successfully');
+
+        // Now create the booking
         const { data, error } = await supabase.functions.invoke("create-hotel-booking", {
           body: { 
             hotelId, 
@@ -90,11 +117,17 @@ function CheckoutInner() {
           }
         });
 
-        console.log('Booking creation response:', { data, error });
+        console.log('📋 Booking creation response:', { data, error });
 
         if (error) {
           logger.error('Booking creation error:', error);
-          setPaymentError(`Failed to prepare booking: ${error.message || error}`);
+          if (error.message?.includes('STRIPE_SECRET_KEY')) {
+            setPaymentError('Payment system not configured on server. Please contact support.');
+          } else if (error.message?.includes('Authentication')) {
+            setPaymentError('Authentication error. Please try refreshing the page.');
+          } else {
+            setPaymentError(`Failed to prepare booking: ${error.message || error}`);
+          }
           throw error;
         }
 
@@ -113,6 +146,7 @@ function CheckoutInner() {
           });
         } else {
           const errorMsg = data?.error || 'Failed to create booking - no client secret received';
+          console.log('❌ Booking creation failed:', data);
           setPaymentError(errorMsg);
           throw new Error(errorMsg);
         }
