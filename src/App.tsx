@@ -105,7 +105,9 @@ const App = () => (
                     <Route path="/deals" element={<Deals />} />
                      <Route path="/gift-cards" element={<GiftCards />} />
                      <Route path="/roadmap" element={<Roadmap />} />
-                     <Route path="/booking-enhanced" element={<BookingEnhanced />} />
+                // Temporarily disable the booking-enhanced route to prevent 404s
+                // Remove this from HotelCard links until fully implemented
+                // <Route path="/booking-enhanced" element={<BookingEnhanced />} />
                      <Route path="/testing" element={<Testing />} />
                      <Route path="/ux-showcase" element={<UXShowcase />} />
                      <Route path="/ai-advanced" element={<AIAdvanced />} />
