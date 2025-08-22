@@ -87,12 +87,12 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
           setActivities([]);
           setError("No activities found for your search criteria");
         }
-      } catch (err) {
-        logger.error("Activity search error:", err);
-        setError(err instanceof Error ? err.message : "Failed to search activities");
-        toast.error("Activity search failed. Please try different search criteria.");
-        setActivities([]);
-      } finally {
+        } catch (err) {
+          logger.error("Activity search error:", err);
+          setError(err instanceof Error ? err.message : "Failed to search activities");
+          toast.error("Activity search failed. Please try different search criteria.");
+          setActivities([]);
+        } finally {
         setLoading(false);
       }
     };

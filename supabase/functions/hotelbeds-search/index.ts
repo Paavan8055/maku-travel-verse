@@ -118,23 +118,17 @@ serve(async (req) => {
       name: hotel.name,
       location: hotel.destinationName || destination,
       address: hotel.address || '',
-      rating: hotel.categoryCode ? parseInt(hotel.categoryCode) : 4,
-      reviews: Math.floor(Math.random() * 2000) + 500, // Placeholder
-      reviewScore: hotel.ranking ? (hotel.ranking / 10) : (Math.random() * 2 + 7.5),
+      rating: hotel.categoryCode ? parseInt(hotel.categoryCode) : null,
+      reviews: null, // No review data available from HotelBeds
+      reviewScore: hotel.ranking ? (hotel.ranking / 10) : null,
       price: {
-        amount: hotel.minRate || Math.floor(Math.random() * 500) + 100,
+        amount: hotel.minRate || null,
         currency: hotel.currency || 'USD',
         per: 'night'
       },
-      images: hotel.images?.map((img: any) => img.path) || [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"
-      ],
-      amenities: hotel.facilities?.map((f: any) => f.description) || [
-        "Free WiFi", "Pool", "Spa", "Restaurant"
-      ],
-      distance: hotel.coordinates ? 
-        `${(Math.random() * 5).toFixed(1)} km from center` : 
-        '2.5 km from center',
+      images: hotel.images?.map((img: any) => img.path) || [],
+      amenities: hotel.facilities?.map((f: any) => f.description) || [],
+      distance: null, // Distance calculation requires destination coordinates
       coordinates: hotel.coordinates ? {
         latitude: hotel.coordinates.latitude,
         longitude: hotel.coordinates.longitude
@@ -142,11 +136,11 @@ serve(async (req) => {
       rooms: [{
         type: 'Standard Room',
         beds: '1 King Bed',
-        size: '25 sqm',
+        size: null, // Size not available from HotelBeds
         guests: guests,
-        price: hotel.minRate || Math.floor(Math.random() * 500) + 100,
-        amenities: ['Free WiFi', 'Air Conditioning', 'TV'],
-        available: true
+        price: hotel.minRate || null,
+        amenities: [], // Room amenities not available from search
+        available: !!hotel.minRate
       }],
       policies: {
         checkIn: '15:00',
