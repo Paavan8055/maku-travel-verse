@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { LoadingState } from "@/components/ui/enhanced-loading";
 import logger from "@/utils/logger";
 
 // Dynamic Stripe loading
@@ -242,10 +243,12 @@ function PaymentInner() {
                 ) : clientSecret ? (
                   <PaymentElement />
                 ) : isInitializing ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Preparing payment...</p>
-                  </div>
+                  <LoadingState 
+                    type="payment" 
+                    title="Preparing payment..."
+                    description="Setting up secure payment for your booking"
+                    className="py-8"
+                  />
                 ) : (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
@@ -359,9 +362,12 @@ export default function BookingPayment() {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="pt-24 px-6">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading payment system...</p>
+          <div className="max-w-2xl mx-auto">
+            <LoadingState 
+              type="payment"
+              title="Loading payment system..."
+              description="Initializing secure payment processing"
+            />
           </div>
         </div>
       </div>
