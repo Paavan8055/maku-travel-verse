@@ -67,6 +67,16 @@ function PaymentInner() {
         let createBookingFunction = '';
         let bookingParams: any = {};
 
+        // For payment flow, we need to get customer details from session storage
+        let customerInfo = null;
+        try {
+          const guestInfo = sessionStorage.getItem('guestInfo');
+          const passengerInfo = sessionStorage.getItem('passengerInfo');
+          customerInfo = guestInfo ? JSON.parse(guestInfo) : (passengerInfo ? JSON.parse(passengerInfo) : null);
+        } catch (e) {
+          console.warn('Failed to parse customer info from session storage');
+        }
+
         // Determine which booking function to call based on booking type
         if (bookingType === 'hotel') {
           createBookingFunction = 'create-hotel-booking';
@@ -80,7 +90,8 @@ function PaymentInner() {
             rooms: parseInt(searchParams.get("rooms") || "1"),
             addons: (searchParams.get("addons") || "").split(",").filter(Boolean),
             bedPref: searchParams.get("bedPref") || "",
-            note: searchParams.get("note") || ""
+            note: searchParams.get("note") || "",
+            customerInfo: customerInfo
           };
         } else if (bookingType === 'flight' || bookingType === 'roundtrip' || bookingType === 'oneway') {
           // For flights, create a generic payment intent with all flight data
@@ -113,7 +124,7 @@ function PaymentInner() {
                 checked: searchParams.get("checked"),
                 segments: searchParams.get("segments")
               },
-              customerInfo: passengerInfo
+              customerInfo: customerInfo
             }
           };
         } else if (bookingType === 'activity') {

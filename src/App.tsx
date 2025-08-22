@@ -8,7 +8,7 @@ import { AuthProvider } from "@/features/auth/context/AuthContext";
 import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
 import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
 import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorBoundaryWithFallback } from "@/components/ErrorBoundaryWithFallback";
 import { SkipLink } from "@/components/SkipLink";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -69,7 +69,7 @@ const App = () => (
           <CurrencyProvider>
             <MakuBotProvider>
               <AgenticBotProvider>
-                <ErrorBoundary>
+                <ErrorBoundaryWithFallback context="application">
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
@@ -120,7 +120,7 @@ const App = () => (
                      <Route path="/coming-soon" element={<ComingSoon />} />
                      <Route path="*" element={<NotFound />} />
                   </Routes>
-                </ErrorBoundary>
+                </ErrorBoundaryWithFallback>
               </AgenticBotProvider>
             </MakuBotProvider>
           </CurrencyProvider>
