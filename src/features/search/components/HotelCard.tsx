@@ -214,6 +214,7 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                 <Button 
                   className="btn-primary w-full"
                   onClick={() => {
+                    // Temporarily redirect to hotel checkout instead of booking-enhanced
                     const params = new URLSearchParams({
                       destination: hotel.address || hotel.name,
                       checkIn: new Date().toISOString().split('T')[0],
@@ -223,7 +224,11 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                       hotelName: hotel.name,
                       price: hotel.pricePerNight.toString()
                     });
-                    window.location.href = `/booking-enhanced?${params.toString()}`;
+                    // Store hotel selection for booking flow
+                    sessionStorage.setItem('selectedHotelId', hotel.id);
+                    sessionStorage.setItem('selectedHotelName', hotel.name);
+                    sessionStorage.setItem('selectedOfferId', `offer_${hotel.id}_${Date.now()}`);
+                    window.location.href = `/hotel-checkout?${params.toString()}`;
                   }}
                 >
                   Book Now

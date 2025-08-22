@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast, toast } from "@/hooks/use-toast";
+import { useApiHealth } from "@/hooks/useApiHealth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -16,6 +17,7 @@ import { useHealthMonitor } from "@/hooks/useHealthMonitor";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useTranslation();
+  const { apiHealth, isActivitiesAvailable } = useApiHealth();
   const { health, isUnhealthy } = useHealthMonitor({ 
     enableAutoCheck: true,
     onStatusChange: (status) => {
@@ -82,9 +84,16 @@ const Navbar = () => {
               <span>{t('navigation.flights')}</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/activities')} role="menuitem">
+            <Button 
+              variant="ghost" 
+              className={`text-foreground hover:text-primary flex items-center space-x-1 ${!isActivitiesAvailable ? 'opacity-50 cursor-not-allowed' : ''}`} 
+              onClick={() => isActivitiesAvailable ? navigate('/search/activities') : toast({ title: "Activities unavailable", description: "Activity search is temporarily unavailable. Please try again later.", variant: "destructive" })} 
+              disabled={!isActivitiesAvailable}
+              role="menuitem"
+            >
               <MapPin className="h-4 w-4" aria-hidden="true" />
               <span>{t('navigation.activities')}</span>
+              {!isActivitiesAvailable && <span className="text-xs ml-1">(Coming Soon)</span>}
             </Button>
             
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')} role="menuitem">
@@ -182,12 +191,21 @@ const Navbar = () => {
                 <Plane className="mr-2 h-4 w-4" />
                 Flights
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/search/activities');
-                setIsMenuOpen(false);
-              }}>
+              <Button 
+                variant="ghost" 
+                className={`w-full justify-start ${!isActivitiesAvailable ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                onClick={() => {
+                  if (isActivitiesAvailable) {
+                    navigate('/search/activities');
+                    setIsMenuOpen(false);
+                  } else {
+                    toast({ title: "Activities unavailable", description: "Activity search is temporarily unavailable.", variant: "destructive" });
+                  }
+                }}
+                disabled={!isActivitiesAvailable}
+              >
                 <MapPin className="mr-2 h-4 w-4" />
-                Activities
+                Activities {!isActivitiesAvailable && <span className="text-xs ml-1">(Coming Soon)</span>}
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
                 navigate('/gift-cards');

@@ -115,7 +115,7 @@ export const SystemHealthIndicator = () => {
               <h4 className="font-semibold">System Health</h4>
               <div className="flex items-center gap-2">
                 {isCircuitBreakerOpen && (
-                  <Shield className="h-4 w-4 text-orange-500" title="Circuit breaker active" />
+                  <Shield className="h-4 w-4 text-orange-500" />
                 )}
                 <Badge variant={health ? getBadgeVariant(health.status) : 'outline'}>
                   {health?.status || 'Unknown'}
