@@ -67,7 +67,7 @@ async function getAmadeusAccessToken(): Promise<string> {
   }
 }
 
-// Step 1: Get hotel list from city
+// Step 1: Get hotel list from city  
 async function getHotelList(accessToken: string, cityCode: string, latitude?: number, longitude?: number): Promise<any> {
   let url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city`;
   const params = new URLSearchParams({ cityCode });
