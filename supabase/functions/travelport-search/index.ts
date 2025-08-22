@@ -165,9 +165,9 @@ serve(async (req) => {
             carry_on: true
           },
           amenities: {
-            wifi: Math.random() > 0.5,
-            meal: true,
-            entertainment: Math.random() > 0.3
+            wifi: null, // WiFi info not available from Travelport
+            meal: null, // Meal info not available from search
+            entertainment: null // Entertainment info not available
           }
         };
       }) || [];

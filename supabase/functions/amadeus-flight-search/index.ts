@@ -223,9 +223,9 @@ serve(async (req) => {
           carry_on: true
         },
         amenities: {
-          wifi: Math.random() > 0.5,
-          meal: travelClass !== 'ECONOMY',
-          entertainment: Math.random() > 0.3
+          wifi: null, // WiFi availability not provided by Amadeus flight search
+          meal: travelClass !== 'ECONOMY', // Basic meal service for premium classes
+          entertainment: null // Entertainment availability not provided
         },
         bookingClass: offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.class || 'M',
         segments: segments.map((segment: any) => ({
