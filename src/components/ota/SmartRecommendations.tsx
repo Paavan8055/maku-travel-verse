@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, DollarSign, Users, Sparkles } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Users, Sparkles, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -139,5 +139,74 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
         </CardContent>
       </Card>;
   }
-  return;
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5" />
+          Smart Recommendations
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {recommendations.map((recommendation) => {
+            const Icon = getTypeIcon(recommendation.type);
+            
+            return (
+              <div
+                key={recommendation.id}
+                className="flex gap-4 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                onClick={() => handleRecommendationClick(recommendation)}
+              >
+                <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                  <Icon className="h-8 w-8 text-muted-foreground" />
+                </div>
+                
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-semibold">{recommendation.title}</h4>
+                      <p className="text-sm text-muted-foreground">{recommendation.description}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{recommendation.location}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="font-semibold">${recommendation.price}</div>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-current text-yellow-500" />
+                        <span className="text-xs">{recommendation.score}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {recommendation.savings && (
+                      <Badge variant="secondary" className="text-xs">
+                        Save ${recommendation.savings}
+                      </Badge>
+                    )}
+                    {recommendation.urgency && (
+                      <Badge variant="destructive" className="text-xs">
+                        {recommendation.urgency}
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-xs">
+                      Match {Math.round(recommendation.score * 10)}%
+                    </Badge>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground">
+                    {recommendation.reasons.slice(0, 2).join(' • ')}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
 };

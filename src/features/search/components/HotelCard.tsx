@@ -211,8 +211,22 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                     {hotel.currency}{hotel.totalPrice}
                   </p>
                 </div>
-                <Button className="w-full" onClick={handleSelectHotel}>
-                  View offers
+                <Button 
+                  className="btn-primary w-full"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      destination: hotel.address || hotel.name,
+                      checkIn: new Date().toISOString().split('T')[0],
+                      checkOut: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
+                      guests: "2", 
+                      hotelId: hotel.id,
+                      hotelName: hotel.name,
+                      price: hotel.pricePerNight.toString()
+                    });
+                    window.location.href = `/booking-enhanced?${params.toString()}`;
+                  }}
+                >
+                  Book Now
                 </Button>
               </div>
             </div>

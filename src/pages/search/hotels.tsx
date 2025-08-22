@@ -20,6 +20,9 @@ import { RealTimeOccupancy } from "@/components/hotel/RealTimeOccupancy";
 import { DateFlexibilityMatrix } from "@/components/hotel/DateFlexibilityMatrix";
 import { PredictivePricing } from "@/components/hotel/PredictivePricing";
 import { CompactSearchToolbar } from "@/components/hotel/CompactSearchToolbar";
+import { SmartRecommendations } from "@/components/ota/SmartRecommendations";
+import { PerformanceWrapper } from "@/components/PerformanceWrapper";
+import OneClickBooking from "@/features/bookingEnhancements/components/OneClickBooking";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -98,8 +101,10 @@ const HotelSearchPage = () => {
     }
   });
 
-  return <div className="min-h-screen bg-background">
-      <Navbar />
+  return (
+    <PerformanceWrapper componentName="HotelSearchPage">
+      <div className="min-h-screen bg-background">
+        <Navbar />
       
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header with Search Actions */}
@@ -215,7 +220,20 @@ const HotelSearchPage = () => {
             </Card>}
           </SearchResultsLayout>
         )}
+        
+        {/* Smart Recommendations Sidebar */}
+        {hasSearched && filteredAndSortedHotels.length > 0 && (
+          <div className="mt-8">
+            <SmartRecommendations 
+              currentLocation={destination}
+              searchCriteria={{ checkIn, checkOut, guests }}
+              className="max-w-4xl mx-auto"
+            />
+          </div>
+        )}
       </div>
-    </div>;
+    </div>
+    </PerformanceWrapper>
+  );
 };
 export default HotelSearchPage;
