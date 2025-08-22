@@ -1,0 +1,5 @@
+# Domain redirect - canonical to www
+https://maku.travel/* https://www.maku.travel/:splat 301!
+
+# SPA fallback for all routes
+/*    /index.html   200
