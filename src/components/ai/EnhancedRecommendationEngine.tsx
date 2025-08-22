@@ -123,26 +123,10 @@ export const EnhancedRecommendationEngine: React.FC<EnhancedRecommendationEngine
     if (!user) return;
     
     try {
-      // In production, this would call ML APIs to build user profile
-      const mockProfile: UserBehaviorProfile = {
-        travelStyle: 'mid-range',
-        bookingPatterns: {
-          advanceBookingDays: 28,
-          preferredTripLength: 5,
-          seasonalPreferences: ['spring', 'autumn']
-        },
-        pricesSensitivity: 65,
-        brandLoyalty: [
-          { brand: 'Hilton', score: 78 },
-          { brand: 'Marriott', score: 56 }
-        ],
-        contextualPreferences: {
-          timeOfDay: 'evening',
-          deviceType: 'desktop',
-          locationBias: 'urban'
-        }
-      };
-      setUserProfile(mockProfile);
+      // In production, this would call real ML APIs to build user profile
+      // Mock data removed to maintain data integrity
+      console.log('User behavior profile would be loaded from real ML analysis');
+      setUserProfile(null);
     } catch (error) {
       logger.error('Error loading user profile:', error);
     }

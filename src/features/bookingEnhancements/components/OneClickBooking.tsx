@@ -109,25 +109,25 @@ export default function OneClickBooking({ bookingData, onBookingComplete }: OneC
         throw new Error(bookingResult?.error || 'Hotel booking failed');
       }
 
-      // Step 2: Complete booking with supplier after payment intent created
+  // Step 2: Complete booking with supplier after payment intent created
       if (bookingResult.clientSecret) {
         // In production, this would redirect to Stripe checkout
-        // For now, we'll simulate successful payment completion
-        const { data: confirmResult, error: confirmError } = await supabase.functions.invoke('confirm-hotel-booking', {
+        // For now, we'll simulate successful payment and immediate booking confirmation
+        const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-payment-and-complete-booking', {
           body: {
             booking_id: bookingResult.booking_id,
             payment_intent_id: bookingResult.clientSecret.split('_secret_')[0]
           }
         });
 
-        if (confirmError || !confirmResult?.success) {
-          logger.error('Booking confirmation failed:', confirmError);
-          throw new Error('Payment processed but booking confirmation failed. Please contact support.');
+        if (verifyError || !verifyResult?.success) {
+          logger.error('Payment verification failed:', verifyError);
+          throw new Error('Payment processing failed. Please try again or contact support.');
         }
 
         toast({
           title: "Booking confirmed! 🎉",
-          description: `Your hotel booking is confirmed. Reference: ${bookingResult.booking_id}`,
+          description: `Hotel booking confirmed. Reference: ${verifyResult.confirmation_number}`,
         });
 
         onBookingComplete?.(bookingResult.booking_id);
