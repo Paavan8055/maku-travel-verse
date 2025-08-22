@@ -2411,6 +2411,7 @@ export type Database = {
           booking_id: string
           created_at: string | null
           currency: string | null
+          failure_reason: string | null
           id: string
           payment_method_id: string | null
           status: Database["public"]["Enums"]["payment_status"]
@@ -2422,6 +2423,7 @@ export type Database = {
           booking_id: string
           created_at?: string | null
           currency?: string | null
+          failure_reason?: string | null
           id?: string
           payment_method_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
@@ -2433,6 +2435,7 @@ export type Database = {
           booking_id?: string
           created_at?: string | null
           currency?: string | null
+          failure_reason?: string | null
           id?: string
           payment_method_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]

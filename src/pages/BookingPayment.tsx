@@ -83,18 +83,37 @@ function PaymentInner() {
             note: searchParams.get("note") || ""
           };
         } else if (bookingType === 'flight' || bookingType === 'roundtrip' || bookingType === 'oneway') {
-          // For flights, create a generic payment intent
+          // For flights, create a generic payment intent with all flight data
           createBookingFunction = 'create-payment-intent';
+          
+          // Get passenger details from session storage
+          let passengerInfo = null;
+          try {
+            const storedPassenger = sessionStorage.getItem('passengerInfo');
+            passengerInfo = storedPassenger ? JSON.parse(storedPassenger) : null;
+          } catch (e) {
+            console.warn('Failed to parse passenger info from session storage');
+          }
+          
           bookingParams = {
             booking_type: 'flight',
             amount: amount,
             currency: currency,
-            metadata: {
-              tripType: bookingType,
-              flightOfferId: searchParams.get("flightOfferId"),
-              outboundOfferId: searchParams.get("outboundOfferId"),
-              inboundOfferId: searchParams.get("inboundOfferId"),
-              passengers: searchParams.get("passengers") || "1"
+            booking_data: {
+              flight: {
+                tripType: bookingType,
+                flightId: searchParams.get("flightId"),
+                outboundId: searchParams.get("outboundId"),
+                inboundId: searchParams.get("inboundId"),
+                outboundOfferId: searchParams.get("outboundOfferId"),
+                inboundOfferId: searchParams.get("inboundOfferId"),
+                fareType: searchParams.get("fareType"),
+                passengers: Number(searchParams.get("passengers")) || 1,
+                carryOn: searchParams.get("carryOn"),
+                checked: searchParams.get("checked"),
+                segments: searchParams.get("segments")
+              },
+              customerInfo: passengerInfo
             }
           };
         } else if (bookingType === 'activity') {
