@@ -261,7 +261,7 @@ export const MobileTestingSuite = () => {
                         {test.minWidth}px{test.maxWidth ? ` - ${test.maxWidth}px` : '+'}
                       </span>
                     </div>
-                    <Badge variant={test.passed ? 'success' : 'destructive'}>
+                    <Badge variant={test.passed ? 'default' : 'destructive'}>
                       {test.passed ? 'Pass' : 'Issues Found'}
                     </Badge>
                   </div>

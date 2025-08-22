@@ -342,7 +342,7 @@ export const HealthCheckValidator = () => {
               ) : (
                 <AlertCircle className="h-5 w-5 text-destructive" />
               )}
-              <Badge variant={isHealthy ? 'success' : 'destructive'}>
+              <Badge variant={isHealthy ? 'default' : 'destructive'}>
                 {health?.status || 'Unknown'}
               </Badge>
             </div>
@@ -402,7 +402,7 @@ export const HealthCheckValidator = () => {
                       </div>
                     </div>
                   </div>
-                  <Badge variant={service.status === 'up' ? 'success' : 'destructive'}>
+                  <Badge variant={service.status === 'up' ? 'default' : 'destructive'}>
                     {service.status}
                   </Badge>
                 </div>
@@ -439,9 +439,9 @@ export const HealthCheckValidator = () => {
                     </div>
                   </div>
                   <Badge variant={
-                    test.status === 'passed' ? 'success' : 
+                    test.status === 'passed' ? 'default' : 
                     test.status === 'failed' ? 'destructive' : 
-                    'default'
+                    'secondary'
                   }>
                     {test.status}
                   </Badge>
