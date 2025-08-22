@@ -109,6 +109,9 @@ Deno.serve(async (req) => {
 
     const amountCents = Math.round(amount * 100);
 
+    // Generate idempotency key to prevent duplicate payments
+    const idempotencyKey = `booking_${finalBookingId}_${Date.now()}_${user?.id || 'guest'}`;
+
     // Create Stripe Payment Intent
     const paymentIntentData = new URLSearchParams({
       amount: amountCents.toString(),
@@ -129,6 +132,7 @@ Deno.serve(async (req) => {
       headers: {
         'Authorization': `Bearer ${stripeSecretKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Idempotency-Key': idempotencyKey,
       },
       body: paymentIntentData,
     });
