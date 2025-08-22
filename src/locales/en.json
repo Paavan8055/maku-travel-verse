@@ -17,7 +17,11 @@
     "delete": "Delete",
     "view": "View",
     "select": "Select",
-    "clear": "Clear"
+    "clear": "Clear",
+    "sending": "Sending...",
+    "retryIn1Min": "Retry in 1 min",
+    "retryScheduled": "Retry scheduled",
+    "optional": "Optional"
   },
   "navigation": {
     "home": "Home",
@@ -87,6 +91,7 @@
   },
   "accessibility": {
     "skipToContent": "Skip to main content",
+    "mainContent": "Main content",
     "menuToggle": "Toggle navigation menu",
     "searchToggle": "Toggle search",
     "userMenu": "User menu",
@@ -101,5 +106,106 @@
     "optional": "Optional field",
     "errorMessage": "Error message",
     "successMessage": "Success message"
+  },
+  "feedback": {
+    "feedback": "Feedback",
+    "provideFeedback": "Provide Feedback",
+    "title": "How was your experience?",
+    "howWasExperience": "How was your experience with this feature?",
+    "positive": "Positive feedback",
+    "negative": "Negative feedback",
+    "good": "Good",
+    "needsWork": "Needs work",
+    "additionalComments": "Additional comments",
+    "tellUsMore": "Tell us more about your experience...",
+    "context": "Context",
+    "submit": "Submit Feedback",
+    "thankYou": "Thank you for your feedback!",
+    "submitError": "Failed to submit feedback. Please try again.",
+    "pleaseProvideRatingOrMessage": "Please provide a rating or message"
+  },
+  "loading": {
+    "searching": "Searching...",
+    "searchingHotels": "Searching for hotels...",
+    "searchingFlights": "Searching for flights...",
+    "searchingActivities": "Searching for activities...",
+    "processingBooking": "Processing your booking...",
+    "validatingBooking": "Validating booking details...",
+    "confirmingBooking": "Confirming your reservation...",
+    "processingPayment": "Processing payment...",
+    "doNotRefresh": "Please don't refresh the page",
+    "secureProcessing": "Your payment is being processed securely",
+    "complete": "complete"
+  },
+  "errors": {
+    "generic": {
+      "message": "Something went wrong. Please try again.",
+      "tryAgain": "Try again"
+    },
+    "network": {
+      "message": "Connection error. Please check your internet connection and try again.",
+      "checkConnection": "Check your internet connection",
+      "tryAgainLater": "Try again in a few minutes",
+      "contactSupport": "Contact support if the issue persists"
+    },
+    "auth": {
+      "serviceUnavailable": "Service temporarily unavailable. Our team has been notified.",
+      "teamNotified": "Our technical team has been automatically notified",
+      "tryAgainLater": "Please try again in a few minutes"
+    },
+    "rateLimit": {
+      "message": "Service is temporarily busy. Please try again in a few minutes.",
+      "waitAndRetry": "Wait a few minutes before trying again",
+      "reducedLoad": "Try using fewer filters or search criteria",
+      "tryOffPeak": "Consider searching during off-peak hours"
+    },
+    "validation": {
+      "checkInput": "Please check your input and try again.",
+      "specificField": "Please check the {{field}} field and try again.",
+      "reviewForm": "Review all form fields for accuracy",
+      "requiredFields": "Ensure all required fields are filled",
+      "formatCheck": "Check date and time formats"
+    },
+    "dates": {
+      "pastCheckIn": "Please select a check-in date that is today or in the future.",
+      "invalidOrder": "Please ensure your check-out date is after your check-in date.",
+      "selectFutureDate": "Select today's date or a future date",
+      "checkCalendar": "Double-check your calendar",
+      "adjustCheckOut": "Adjust your check-out date",
+      "verifyDates": "Verify both dates are correct"
+    },
+    "search": {
+      "noResults": "No results found for your search criteria. Try adjusting your dates or location.",
+      "tryDifferentDates": "Try different dates or longer stays",
+      "expandLocation": "Expand your search to nearby areas",
+      "adjustFilters": "Remove some filters to see more options",
+      "contactAgent": "Contact our travel agents for personalized help"
+    },
+    "payment": {
+      "failed": "Payment could not be processed. Please check your payment details and try again.",
+      "checkDetails": "Verify your card details are correct",
+      "tryDifferentCard": "Try a different payment method",
+      "contactBank": "Contact your bank if issues persist",
+      "contactSupport": "Contact our support team for assistance"
+    },
+    "booking": {
+      "failed": "Booking could not be completed. Please try again or contact support.",
+      "typeSpecific": "{{type}} booking encountered an issue",
+      "verifyAvailability": "Verify availability hasn't changed",
+      "checkPayment": "Ensure your payment method is valid",
+      "contactSupport": "Contact support for immediate assistance"
+    },
+    "context": {
+      "hotelSearch": "Unable to search hotels at this time. Please try again.",
+      "flightSearch": "Unable to search flights at this time. Please try again.",
+      "activitySearch": "Unable to search activities at this time. Please try again.",
+      "booking": "Unable to complete booking at this time. Please try again.",
+      "payment": "Payment processing failed. Please try again.",
+      "adjustCriteria": "Try adjusting your search criteria",
+      "checkDates": "Check your travel dates",
+      "adjustLocation": "Try a different location or expand your search",
+      "checkPaymentMethod": "Verify your payment method"
+    },
+    "helpTitle": "Here's how to resolve this:"
   }
 }
