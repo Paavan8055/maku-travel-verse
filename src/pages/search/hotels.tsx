@@ -126,7 +126,7 @@ const HotelSearchPage = () => {
         ) : (
           <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
               <SearchHeaderBand destination={destination} checkIn={checkIn} checkOut={checkOut} guests={guests} hotelName={hotelName} />
-              <SystemHealthIndicator className="mb-4" />
+              <SystemHealthIndicator />
             </>} extrasBelowControls={<SortChips filters={filters} onFiltersChange={setFilters} />} sidebarAddon={<MapPreviewCard destination={destination} />}>
           {loading && <div className="space-y-4">
               {[...Array(5)].map((_, i) => <Card key={i} className="animate-pulse">

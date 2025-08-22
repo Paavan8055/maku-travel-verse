@@ -1,110 +1,198 @@
-import { useState, useEffect } from "react";
-import { AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import logger from "@/utils/logger";
+import { useState, useEffect } from 'react';
+import { AlertCircle, CheckCircle, Clock, Wifi, WifiOff } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { supabase } from '@/integrations/supabase/client';
 
-interface SystemHealthIndicatorProps {
-  className?: string;
+interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: number;
+  services: {
+    database: ServiceHealth;
+    amadeus: ServiceHealth;
+    stripe: ServiceHealth;
+    supabase: ServiceHealth;
+  };
+  performance: {
+    responseTime: number;
+    memoryUsage?: number;
+  };
 }
 
-// PHASE 5: System health monitoring component
-export const SystemHealthIndicator = ({ className }: SystemHealthIndicatorProps) => {
-  const [healthStatus, setHealthStatus] = useState<'healthy' | 'degraded' | 'unavailable'>('healthy');
-  const [lastCheck, setLastCheck] = useState<Date>(new Date());
+interface ServiceHealth {
+  status: 'up' | 'down' | 'slow';
+  responseTime?: number;
+  lastChecked: number;
+  error?: string;
+}
 
-  // Real health monitoring connected to Amadeus API
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const response = await fetch('https://iomeddeasarntjhqzndu.supabase.co/functions/v1/amadeus-health', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvbWVkZGVhc2FybnRqaHF6bmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzODk0NjksImV4cCI6MjA2OTk2NTQ2OX0.tZ50J9PPa6ZqDdPF0-WPYwoLO-aGBIf6Qtjr7dgYrDI'
-          },
-          body: JSON.stringify({ healthCheck: true })
-        });
-        
-        setLastCheck(new Date());
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.healthy) {
-            setHealthStatus('healthy');
-          } else {
-            setHealthStatus('degraded');
-          }
-        } else {
-          setHealthStatus('unavailable');
-        }
-      } catch (error) {
-        logger.error('Health check failed:', error);
-        setHealthStatus('unavailable');
-        setLastCheck(new Date());
+export const SystemHealthIndicator = () => {
+  const [health, setHealth] = useState<HealthStatus | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+
+  const checkHealth = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('health-check');
+      
+      if (error) {
+        console.error('Health check failed:', error);
+        return;
       }
-    };
 
-    checkHealth();
-    const interval = setInterval(checkHealth, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const getStatusConfig = () => {
-    switch (healthStatus) {
-      case 'healthy':
-        return {
-          icon: CheckCircle,
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          label: 'All systems operational',
-          description: 'Hotel search and booking services are running normally'
-        };
-      case 'degraded':
-        return {
-          icon: AlertCircle,
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-50',
-          borderColor: 'border-yellow-200',
-          label: 'Limited service',
-          description: 'Some hotel search features may be slower than usual'
-        };
-      case 'unavailable':
-        return {
-          icon: AlertCircle,
-          color: 'text-red-600',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
-          label: 'Service disruption',
-          description: 'Hotel search is temporarily unavailable. We are working to restore service.'
-        };
+      setHealth(data);
+      setLastChecked(new Date());
+    } catch (error) {
+      console.error('Health check error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const config = getStatusConfig();
-  const Icon = config.icon;
+  useEffect(() => {
+    checkHealth();
+    
+    // Check health every 5 minutes
+    const interval = setInterval(checkHealth, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'healthy':
+      case 'up':
+        return 'text-green-500';
+      case 'degraded':
+      case 'slow':
+        return 'text-yellow-500';
+      case 'unhealthy':
+      case 'down':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'healthy':
+      case 'up':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'degraded':
+      case 'slow':
+        return <Clock className="h-4 w-4" />;
+      case 'unhealthy':
+      case 'down':
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <WifiOff className="h-4 w-4" />;
+    }
+  };
+
+  const getBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'healthy':
+        return 'default';
+      case 'degraded':
+        return 'secondary';
+      case 'unhealthy':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  if (!health && !loading) {
+    return null;
+  }
 
   return (
-    <Card className={`${className} ${config.bgColor} ${config.borderColor} border`}>
-      <CardContent className="p-3">
-        <div className="flex items-center space-x-2">
-          <Icon className={`h-4 w-4 ${config.color}`} />
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm font-medium ${config.color}`}>
-              {config.label}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {config.description}
-            </p>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`h-8 px-2 ${health ? getStatusColor(health.status) : 'text-gray-500'}`}
+        >
+          {loading ? (
+            <Wifi className="h-4 w-4 animate-pulse" />
+          ) : (
+            health && getStatusIcon(health.status)
+          )}
+          <span className="ml-1 text-xs font-medium">
+            {loading ? 'Checking...' : health?.status || 'Unknown'}
+          </span>
+        </Button>
+      </PopoverTrigger>
+      
+      <PopoverContent className="w-80" align="end">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold">System Health</h4>
+            <Badge variant={health ? getBadgeVariant(health.status) : 'outline'}>
+              {health?.status || 'Unknown'}
+            </Badge>
           </div>
-          <div className="flex items-center text-xs text-muted-foreground">
-            <Clock className="h-3 w-3 mr-1" />
-            {lastCheck.toLocaleTimeString()}
-          </div>
+
+          {health && (
+            <>
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium text-muted-foreground">Services</h5>
+                {Object.entries(health.services).map(([service, status]) => (
+                  <div key={service} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className={getStatusColor(status.status)}>
+                        {getStatusIcon(status.status)}
+                      </div>
+                      <span className="capitalize">{service}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {status.responseTime && `${Math.round(status.responseTime)}ms`}
+                      {status.error && (
+                        <div className="text-red-500 max-w-40 truncate">
+                          {status.error}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2 border-t space-y-1">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Response Time</span>
+                  <span>{Math.round(health.performance.responseTime)}ms</span>
+                </div>
+                {health.performance.memoryUsage && (
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Memory Usage</span>
+                    <span>{health.performance.memoryUsage}MB</span>
+                  </div>
+                )}
+                {lastChecked && (
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Last Checked</span>
+                    <span>{lastChecked.toLocaleTimeString()}</span>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={checkHealth}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? 'Checking...' : 'Refresh Status'}
+              </Button>
+            </>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </PopoverContent>
+    </Popover>
   );
 };
