@@ -66,8 +66,8 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
       setError(null);
 
       try {
-        // Use direct Amadeus Tours & Activities API
-        const { data, error: functionError } = await supabase.functions.invoke('amadeus-tours-activities', {
+        // Use Amadeus Activity Search API
+        const { data, error: functionError } = await supabase.functions.invoke('amadeus-activity-search', {
           body: {
             destination: criteria.destination,
             date: criteria.date,
@@ -79,9 +79,9 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
           throw functionError;
         }
 
-        if (data?.success && data?.activities && Array.isArray(data.activities)) {
-          console.log("Activity search success:", data.activities.length, "activities found");
-          setActivities(data.activities);
+        if (data?.success && data?.data?.data && Array.isArray(data.data.data)) {
+          console.log("Activity search success:", data.data.data.length, "activities found");
+          setActivities(data.data.data);
         } else {
           console.log("Activity search returned no data");
           setActivities([]);
