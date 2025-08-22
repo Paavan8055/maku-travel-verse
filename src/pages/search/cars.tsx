@@ -86,6 +86,17 @@ const CarSearchPage = () => {
   };
 
   const handleSearch = () => {
+    // Validate required fields
+    if (!pickUpLocation || !pickUpDate || !dropOffDate) {
+      alert('Please fill in pickup location and both dates before searching.');
+      return;
+    }
+
+    if (new Date(dropOffDate) <= new Date(pickUpDate)) {
+      alert('Drop-off date must be after pickup date.');
+      return;
+    }
+
     const params = new URLSearchParams();
     if (pickUpLocation) params.set("pickUpLocation", pickUpLocation);
     if (dropOffLocation) params.set("dropOffLocation", dropOffLocation);
@@ -136,11 +147,14 @@ const CarSearchPage = () => {
                     type="date"
                     value={pickUpDate}
                     onChange={(e) => setPickUpDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
                   />
                   <Input
                     type="time"
                     value={pickUpTime}
                     onChange={(e) => setPickUpTime(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -152,11 +166,14 @@ const CarSearchPage = () => {
                     type="date"
                     value={dropOffDate}
                     onChange={(e) => setDropOffDate(e.target.value)}
+                    min={pickUpDate || new Date().toISOString().split('T')[0]}
+                    required
                   />
                   <Input
                     type="time"
                     value={dropOffTime}
                     onChange={(e) => setDropOffTime(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -174,7 +191,12 @@ const CarSearchPage = () => {
                   className="w-24"
                 />
               </div>
-              <Button onClick={handleSearch}>Search Cars</Button>
+              <Button 
+                onClick={handleSearch}
+                disabled={!pickUpLocation || !pickUpDate || !dropOffDate}
+              >
+                Search Cars
+              </Button>
             </div>
           </CardContent>
         </Card>
