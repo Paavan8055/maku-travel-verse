@@ -48,6 +48,7 @@ import Press from "./pages/Press";
 import Deals from "./pages/Deals";
 import GiftCards from "./pages/GiftCards";
 import Roadmap from "./pages/Roadmap";
+import BookingEnhanced from "./pages/BookingEnhanced";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ const App = () => (
                     <Route path="/deals" element={<Deals />} />
                     <Route path="/gift-cards" element={<GiftCards />} />
                     <Route path="/roadmap" element={<Roadmap />} />
+                    <Route path="/booking-enhanced" element={<BookingEnhanced />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ErrorBoundary>

@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, X, Calendar, Users, DollarSign, Loader2, Zap, TrendingUp, Activity, BarChart3, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import logger from "@/utils/logger";
+import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 
 import { SmartAnalytics } from '@/components/dashboard/SmartAnalytics';
 import { RealTimeFeeds } from '@/components/dashboard/RealTimeFeeds';
@@ -222,7 +223,8 @@ const Dashboard: React.FC = () => {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-background">
+      <PerformanceWrapper componentName="DashboardPage">
+        <div className="min-h-screen bg-background">
         <Navbar />
         
         <div className="container mx-auto px-4 py-8">
@@ -338,6 +340,7 @@ const Dashboard: React.FC = () => {
           </Tabs>
         </div>
       </div>
+      </PerformanceWrapper>
     </AuthGuard>
   );
 };

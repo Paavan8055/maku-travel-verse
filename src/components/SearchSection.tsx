@@ -14,6 +14,7 @@ import { DestinationAutocomplete } from "@/components/search/DestinationAutocomp
 import FlightPassengerSelector from "@/components/search/FlightPassengerSelector";
 import MultiCitySegments, { type Segment } from "@/components/search/MultiCitySegments";
 import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
+import { MobileSearchSheet } from "@/components/MobileSearchSheet";
 
 const SearchSection = () => {
   const { t } = useTranslation();
@@ -168,7 +169,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                 </Select>
               </div>
 
-              <div className="flex justify-center">
+              <div className="flex justify-center gap-4">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
                   onClick={handleHotelSearch}
@@ -176,6 +177,16 @@ const [activityChildren, setActivityChildren] = useState(0);
                   <Search className="mr-2 h-5 w-5" />
                   {t('search.searchHotels')}
                 </Button>
+                
+                <div className="md:hidden">
+                  <MobileSearchSheet 
+                    trigger={
+                      <Button variant="outline" size="lg" className="p-4">
+                        <Search className="h-5 w-5" />
+                      </Button>
+                    }
+                  />
+                </div>
               </div>
             </TabsContent>
 

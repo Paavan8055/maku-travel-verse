@@ -13,6 +13,8 @@ import { DateFlexibilityCalendar } from "@/components/flight/DateFlexibilityCale
 import { EnhancedFlightCard } from "@/components/flight/EnhancedFlightCard";
 import { FlightSortingToolbar } from "@/components/flight/FlightSortingToolbar";
 import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
+import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
+import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import MultiCityFlightManager from "@/components/flight/MultiCityFlightManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -351,7 +353,8 @@ const FlightSearchPage = () => {
   const isMultiCity = tripType === "multicity";
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper componentName="FlightSearchPage">
+      <div className="min-h-screen bg-background">
       <Navbar />
       
       {hasSearched && (
@@ -728,6 +731,7 @@ const FlightSearchPage = () => {
         multiCitySelections={multiCitySelections}
       />
     </div>
+    </PerformanceWrapper>
   );
 };
 

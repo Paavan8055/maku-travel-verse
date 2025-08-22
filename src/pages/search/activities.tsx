@@ -10,6 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import { ActivityCard } from "@/features/search/components/ActivityCard";
 import { useActivitySearch } from "@/features/search/hooks/useActivitySearch";
+import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
+import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 
 const ActivitySearchPage = () => {
@@ -90,7 +92,8 @@ const ActivitySearchPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper componentName="ActivitySearchPage">
+      <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
@@ -294,6 +297,7 @@ const ActivitySearchPage = () => {
         </div>
       </div>
     </div>
+    </PerformanceWrapper>
   );
 };
 
