@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { usePerformanceOptimizer } from "@/hooks/usePerformanceOptimizer";
 import { useTranslation } from "react-i18next";
 import { Search, Calendar, Users, MapPin, Plane, Building, Car, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,10 @@ import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 
 const SearchSection = () => {
   const { t } = useTranslation();
+  const { startRender, endRender } = usePerformanceOptimizer({
+    componentName: 'SearchSection',
+    enableMonitoring: true
+  });
   const [destination, setDestination] = useState("");
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
@@ -61,12 +66,14 @@ const [activityChildren, setActivityChildren] = useState(0);
   ];
 
   const handleHotelSearch = () => {
+    startRender();
     const params = new URLSearchParams();
     if (destination) params.set("destination", destination);
     if (checkIn) params.set("checkIn", format(checkIn, "yyyy-MM-dd"));
     if (checkOut) params.set("checkOut", format(checkOut, "yyyy-MM-dd"));
     params.set("guests", guests);
     params.set("searched", "true");
+    endRender();
     window.location.href = `/search/hotels?${params.toString()}`;
   };
 

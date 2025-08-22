@@ -9,11 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
+import { useHealthMonitor } from "@/hooks/useHealthMonitor";
 
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useTranslation();
+  const { health } = useHealthMonitor({ enableAutoCheck: true });
   const {
     user,
     signOut
@@ -93,6 +96,9 @@ const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
+            {/* System Health */}
+            <SystemHealthIndicator />
+            
             {/* Language Selector */}
             <LanguageSwitcher />
 
