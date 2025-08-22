@@ -5,7 +5,7 @@ import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, User
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useToast, toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -16,15 +16,24 @@ import { useHealthMonitor } from "@/hooks/useHealthMonitor";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useTranslation();
-  const { health } = useHealthMonitor({ enableAutoCheck: true });
+  const { health, isUnhealthy } = useHealthMonitor({ 
+    enableAutoCheck: true,
+    onStatusChange: (status) => {
+      if (status.status === 'unhealthy') {
+        toast({
+          title: "Service Issues Detected",
+          description: "Some services may be temporarily unavailable",
+          variant: "destructive",
+        });
+      }
+    }
+  });
   const {
     user,
     signOut
   } = useAuth();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast: toastFn } = useToast();
 
   const handleSignOut = async () => {
     try {
@@ -32,20 +41,20 @@ const Navbar = () => {
         error
       } = await signOut();
       if (error) {
-        toast({
+        toastFn({
           title: "Error",
           description: "Failed to sign out",
           variant: "destructive"
         });
       } else {
-        toast({
+        toastFn({
           title: "Signed out",
           description: "You have been successfully signed out"
         });
         navigate('/');
       }
     } catch (error) {
-      toast({
+      toastFn({
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive"
