@@ -952,6 +952,36 @@ export type Database = {
         }
         Relationships: []
       }
+      environment_configs: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string
+          environment: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          created_at?: string
+          environment: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          environment?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       flight_offers_cache: {
         Row: {
           adults: number | null
@@ -3068,6 +3098,30 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          processed_at: string
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          processed_at?: string
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          processed_at?: string
+          stripe_event_id?: string
         }
         Relationships: []
       }
