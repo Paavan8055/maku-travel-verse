@@ -1006,6 +1006,90 @@ export type Database = {
         }
         Relationships: []
       }
+      error_tracking: {
+        Row: {
+          correlation_id: string
+          created_at: string
+          environment: string
+          error_message: string
+          error_type: string
+          id: string
+          request_context: Json | null
+          resolved: boolean
+          severity: string
+          stack_trace: string | null
+          updated_at: string
+          user_context: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          correlation_id: string
+          created_at?: string
+          environment?: string
+          error_message: string
+          error_type: string
+          id?: string
+          request_context?: Json | null
+          resolved?: boolean
+          severity?: string
+          stack_trace?: string | null
+          updated_at?: string
+          user_context?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          correlation_id?: string
+          created_at?: string
+          environment?: string
+          error_message?: string
+          error_type?: string
+          id?: string
+          request_context?: Json | null
+          resolved?: boolean
+          severity?: string
+          stack_trace?: string | null
+          updated_at?: string
+          user_context?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          conditions: Json | null
+          created_at: string
+          description: string | null
+          enabled: boolean
+          flag_name: string
+          id: string
+          rollout_percentage: number
+          target_users: Json | null
+          updated_at: string
+        }
+        Insert: {
+          conditions?: Json | null
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          flag_name: string
+          id?: string
+          rollout_percentage?: number
+          target_users?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          conditions?: Json | null
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          flag_name?: string
+          id?: string
+          rollout_percentage?: number
+          target_users?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       flight_offers_cache: {
         Row: {
           adults: number | null
@@ -2723,6 +2807,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      provider_configs: {
+        Row: {
+          circuit_breaker: Json
+          created_at: string
+          enabled: boolean
+          health_score: number
+          id: string
+          name: string
+          priority: number
+          response_time: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          circuit_breaker?: Json
+          created_at?: string
+          enabled?: boolean
+          health_score?: number
+          id: string
+          name: string
+          priority?: number
+          response_time?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          circuit_breaker?: Json
+          created_at?: string
+          enabled?: boolean
+          health_score?: number
+          id?: string
+          name?: string
+          priority?: number
+          response_time?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_metrics: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          provider_id: string
+          response_time: number
+          success: boolean
+          timestamp: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider_id: string
+          response_time: number
+          success: boolean
+          timestamp?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider_id?: string
+          response_time?: number
+          success?: boolean
+          timestamp?: string
+        }
+        Relationships: []
       }
       reviews: {
         Row: {
