@@ -34,7 +34,7 @@
 
     --border: 220 15% 90%;
     --input: 220 15% 96%;
-    --ring: var(--primary);
+    --ring: 330 85% 58%;
 
     --radius: 12px;
 
@@ -107,7 +107,7 @@
 
     --border: 230 15% 20%;
     --input: 230 15% 15%;
-    --ring: var(--primary);
+    --ring: 330 85% 65%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
