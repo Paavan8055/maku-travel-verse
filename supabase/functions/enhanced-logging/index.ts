@@ -1,5 +1,4 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { correlationId } from '../../../src/utils/correlationId.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
