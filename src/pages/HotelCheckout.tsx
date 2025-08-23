@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import HotelGuestForm, { HotelGuestFormData } from "@/features/booking/components/HotelGuestForm";
+import { BookingProgressIndicator } from "@/components/booking/BookingProgressIndicator";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import logger from "@/utils/logger";
@@ -283,23 +285,27 @@ function CheckoutInner() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      {/* Header */}
-      <div className="pt-24 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
-        <div className="max-w-7xl mx-auto">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-4">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Room Selection
-          </Button>
-          
-          <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Hotel Booking</span></h1>
-          <p className="text-muted-foreground">
-            Enter guest details and confirm your reservation
-          </p>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        
+        {/* Header */}
+        <div className="pt-24 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
+          <div className="max-w-7xl mx-auto">
+            <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-4">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Room Selection
+            </Button>
+            
+            <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Hotel Booking</span></h1>
+            <p className="text-muted-foreground">
+              Enter guest details and confirm your reservation
+            </p>
+            <div className="mt-6">
+              <BookingProgressIndicator currentStep={3} totalSteps={4} />
+            </div>
+          </div>
         </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-6 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -464,7 +470,8 @@ function CheckoutInner() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

@@ -10,15 +10,19 @@ import ChatWidget from "@/features/makuBot/components/ChatWidget";
 import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import TestModeIndicator from "@/components/TestModeIndicator";
+import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { Button } from "@/components/ui/button";
 const Index = () => {
   return (
-    <PerformanceWrapper componentName="HomePage">
-      <div className="min-h-screen bg-background">
-        <TestModeIndicator />
-        <Navbar />
-        <HeroSection />
-        <MarketplacePills />
+    <ErrorBoundary>
+      <PerformanceWrapper componentName="HomePage">
+        <div className="min-h-screen bg-background">
+          <TestModeIndicator />
+          <SessionRecoveryBanner />
+          <Navbar />
+          <HeroSection />
+          <MarketplacePills />
 
         <SearchSection />
       <MarketplaceSection />
@@ -43,8 +47,9 @@ const Index = () => {
       <Footer />
         <ChatWidget userVertical="Solo" />
         <AgenticWidget />
-      </div>
-    </PerformanceWrapper>
+        </div>
+      </PerformanceWrapper>
+    </ErrorBoundary>
   );
 };
 export default Index;

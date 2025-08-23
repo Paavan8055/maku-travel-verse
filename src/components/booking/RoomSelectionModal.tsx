@@ -353,9 +353,9 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
             >
               Try Again
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </DialogContent>
+    </Dialog>
     );
   }
 
