@@ -72,8 +72,15 @@ const [activityChildren, setActivityChildren] = useState(0);
     if (destination) params.set("destination", destination);
     if (checkIn) params.set("checkIn", format(checkIn, "yyyy-MM-dd"));
     if (checkOut) params.set("checkOut", format(checkOut, "yyyy-MM-dd"));
-    params.set("guests", guests);
+    
+    // Use consistent parameter names for better integration
+    const guestCount = parseInt(guests);
+    params.set("adults", String(Math.max(1, guestCount)));
+    params.set("children", "0");
+    params.set("rooms", "1");
+    params.set("guests", guests); // Keep for backward compatibility
     params.set("searched", "true");
+    
     endRender();
     window.location.href = `/search/hotels?${params.toString()}`;
   };

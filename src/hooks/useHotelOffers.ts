@@ -80,7 +80,18 @@ export const useHotelOffers = (): UseHotelOffersResult => {
 
       if (functionError) {
         logger.error('Hotel offers function error:', functionError);
-        throw new Error(functionError.message || 'Failed to fetch hotel offers');
+        const errorMessage = functionError.message || 'Failed to fetch hotel offers';
+        
+        // Enhanced error handling with retry suggestion
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+          throw new Error('Hotel not found. Please try a different hotel or check your search criteria.');
+        } else if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+          throw new Error('Connection timeout. Please check your internet connection and try again.');
+        } else if (errorMessage.includes('rate limit')) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       if (data?.success) {
@@ -91,7 +102,8 @@ export const useHotelOffers = (): UseHotelOffersResult => {
         console.log(`✅ Found ${data.ancillaryServices?.length || 0} ancillary services`);
         
         if (data.offers?.length === 0) {
-          toast.info('No room offers available for selected dates');
+          toast.info('No room offers available for selected dates. Try adjusting your dates or check other hotels.');
+          setError('No rooms available for the selected dates. Please try different dates or another hotel.');
         } else {
           toast.success(`Found ${data.offers.length} room options`);
         }

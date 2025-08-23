@@ -44,6 +44,9 @@ const HotelSearchPage = () => {
   const checkIn = searchParams.get("checkIn") || "";
   const checkOut = searchParams.get("checkOut") || "";
   const guests = parseInt(searchParams.get("guests") || "2");
+  const adults = parseInt(searchParams.get("adults") || searchParams.get("guests") || "2");
+  const children = parseInt(searchParams.get("children") || "0");
+  const rooms = parseInt(searchParams.get("rooms") || "1");
   const hotelName = searchParams.get("hotelName") || "";
 
   // Check if user came from a search (URL has 'searched' param)
@@ -57,7 +60,7 @@ const HotelSearchPage = () => {
     destination,
     checkIn,
     checkOut,
-    guests,
+    guests: adults + children, // Use calculated total
     hotelName: hotelName || undefined
   } : null);
 
@@ -116,7 +119,11 @@ const HotelSearchPage = () => {
           checkIn={checkIn}
           checkOut={checkOut}
           guests={guests}
-          onDestinationChange={(dest) => console.log('Destination:', dest)}
+          onDestinationChange={(dest) => {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.set('destination', dest);
+            window.location.href = `/search/hotels?${newParams.toString()}`;
+          }}
           onLocationSelect={(location) => console.log('Location selected:', location)}
           selectedAccessibility={[]}
           onAccessibilityChange={(filters) => console.log('Accessibility filters:', filters)}
