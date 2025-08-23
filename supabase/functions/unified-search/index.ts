@@ -14,7 +14,7 @@ const corsHeaders = {
 };
 
 interface SearchParams {
-  type: 'flight' | 'hotel' | 'activity';
+  type: 'flight' | 'hotel' | 'activity' | 'car' | 'transfer';
   origin?: string;
   destination: string;
   departureDate?: string;
@@ -24,7 +24,18 @@ interface SearchParams {
   passengers?: number;
   guests?: number;
   rooms?: number;
-  providers?: string[]; // ['amadeus', 'hotelbeds', 'travelport']
+  pickUpLocationCode?: string;
+  dropOffLocationCode?: string;
+  pickUpDate?: string;
+  pickUpTime?: string;
+  dropOffDate?: string;
+  dropOffTime?: string;
+  driverAge?: number;
+  fromType?: string;
+  fromCode?: string;
+  toType?: string;
+  toCode?: string;
+  providers?: string[]; // ['amadeus', 'hotelbeds', 'sabre', 'travelport']
 }
 
 const callEdgeFunction = async (functionName: string, payload: any) => {
@@ -50,29 +61,37 @@ const callEdgeFunction = async (functionName: string, payload: any) => {
 };
 
 const aggregateResults = (results: any[], type: string) => {
+  const resultKey = {
+    'flight': 'flights',
+    'hotel': 'hotels', 
+    'activity': 'activities',
+    'car': 'cars',
+    'transfer': 'transfers'
+  }[type] || 'items';
+
   const allItems = results
     .filter(result => result && result.success)
-    .flatMap(result => result[type === 'flight' ? 'flights' : 'hotels'] || []);
+    .flatMap(result => result[resultKey] || []);
 
   // Sort by price (lowest first) and add source diversity
   const sortedItems = allItems.sort((a, b) => {
-    const priceA = a.price?.amount || 0;
-    const priceB = b.price?.amount || 0;
+    const priceA = a.price?.amount || a.pricePerNight || 0;
+    const priceB = b.price?.amount || b.pricePerNight || 0;
     return priceA - priceB;
   });
 
   // Ensure we have a good mix of sources
   const diversifiedResults = [];
-  const sourceTracking = { amadeus: 0, hotelbeds: 0, travelport: 0 };
+  const sourceTracking = { amadeus: 0, hotelbeds: 0, sabre: 0, travelport: 0 };
   
   for (const item of sortedItems) {
     const source = item.source || 'unknown';
-    if (sourceTracking[source] < 10) { // Max 10 results per source
+    if (sourceTracking[source] < 15) { // Max 15 results per source
       diversifiedResults.push(item);
       sourceTracking[source]++;
     }
     
-    if (diversifiedResults.length >= 50) break; // Max total results
+    if (diversifiedResults.length >= 60) break; // Max total results
   }
 
   return diversifiedResults;
@@ -85,7 +104,7 @@ serve(async (req) => {
 
   try {
     const params: SearchParams = await req.json();
-    const { type, providers = ['amadeus', 'hotelbeds', 'travelport'] } = params;
+    const { type, providers = ['amadeus', 'hotelbeds', 'sabre', 'travelport'] } = params;
 
     logger.info('Unified search:', { type, providers, ...params });
 
@@ -122,6 +141,18 @@ serve(async (req) => {
 
     // Hotel search
     if (type === 'hotel') {
+      if (providers.includes('amadeus')) {
+        searchPromises.push(
+          callEdgeFunction('amadeus-hotel-search', {
+            destination: params.destination,
+            checkIn: params.checkIn,
+            checkOut: params.checkOut,
+            guests: params.guests || 2,
+            rooms: params.rooms || 1
+          })
+        );
+      }
+
       if (providers.includes('hotelbeds')) {
         searchPromises.push(
           callEdgeFunction('hotelbeds-search', {
@@ -148,6 +179,85 @@ serve(async (req) => {
       }
     }
 
+    // Activity search
+    if (type === 'activity') {
+      if (providers.includes('amadeus')) {
+        searchPromises.push(
+          callEdgeFunction('activity-search', {
+            destination: params.destination,
+            date: params.departureDate,
+            participants: params.passengers || 2
+          })
+        );
+      }
+
+      if (providers.includes('hotelbeds')) {
+        searchPromises.push(
+          callEdgeFunction('hotelbeds-activities', {
+            destination: params.destination,
+            from: params.departureDate,
+            to: params.returnDate,
+            language: 'en'
+          })
+        );
+      }
+    }
+
+    // Car search
+    if (type === 'car') {
+      if (providers.includes('amadeus')) {
+        searchPromises.push(
+          callEdgeFunction('amadeus-car-search', {
+            pickUpLocationCode: params.pickUpLocationCode || params.origin,
+            dropOffLocationCode: params.dropOffLocationCode || params.destination,
+            pickUpDate: params.pickUpDate || params.departureDate,
+            pickUpTime: params.pickUpTime || '10:00',
+            dropOffDate: params.dropOffDate || params.returnDate,
+            dropOffTime: params.dropOffTime || '10:00',
+            driverAge: params.driverAge || 25
+          })
+        );
+      }
+
+      if (providers.includes('sabre')) {
+        searchPromises.push(
+          callEdgeFunction('sabre-car-search', {
+            pickUpLocationCode: params.pickUpLocationCode || params.origin,
+            dropOffLocationCode: params.dropOffLocationCode || params.destination,
+            pickUpDate: params.pickUpDate || params.departureDate,
+            pickUpTime: params.pickUpTime || '10:00',
+            dropOffDate: params.dropOffDate || params.returnDate,
+            dropOffTime: params.dropOffTime || '10:00',
+            driverAge: params.driverAge || 25
+          })
+        );
+      }
+    }
+
+    // Transfer search
+    if (type === 'transfer') {
+      if (providers.includes('hotelbeds')) {
+        searchPromises.push(
+          callEdgeFunction('hotelbeds-transfers', {
+            fromType: params.fromType || 'IATA',
+            fromCode: params.fromCode || params.origin,
+            toType: params.toType || 'IATA', 
+            toCode: params.toCode || params.destination,
+            outbound: {
+              date: params.departureDate,
+              time: params.pickUpTime || '10:00'
+            },
+            inbound: params.returnDate ? {
+              date: params.returnDate,
+              time: params.dropOffTime || '10:00'
+            } : undefined,
+            occupancy: [{ adults: params.passengers || 2, children: 0, infants: 0 }],
+            language: 'en'
+          })
+        );
+      }
+    }
+
     // Execute all searches in parallel
     const results = await Promise.allSettled(searchPromises);
     const successfulResults = results
@@ -159,7 +269,13 @@ serve(async (req) => {
     // Aggregate and sort results
     const aggregatedResults = aggregateResults(successfulResults, type);
 
-    const responseKey = type === 'flight' ? 'flights' : 'hotels';
+    const responseKey = {
+      'flight': 'flights',
+      'hotel': 'hotels',
+      'activity': 'activities', 
+      'car': 'cars',
+      'transfer': 'transfers'
+    }[type] || 'items';
 
     return new Response(JSON.stringify({
       success: true,
@@ -171,6 +287,7 @@ serve(async (req) => {
         total: aggregatedResults.length,
         amadeus: aggregatedResults.filter(r => r.source === 'amadeus').length,
         hotelbeds: aggregatedResults.filter(r => r.source === 'hotelbeds').length,
+        sabre: aggregatedResults.filter(r => r.source === 'sabre').length,
         travelport: aggregatedResults.filter(r => r.source === 'travelport').length
       }
     }), {

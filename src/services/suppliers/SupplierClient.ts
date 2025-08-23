@@ -25,6 +25,9 @@ export interface SupplierResponse<T = any> {
   correlationId?: string;
   supplier: string;
   cached?: boolean;
+  responseTime?: number;
+  healthScores?: Record<string, number>;
+  supplierResults?: Record<string, { success: boolean; count: number; responseTime: number }>;
 }
 
 // Schema validation for common supplier responses
