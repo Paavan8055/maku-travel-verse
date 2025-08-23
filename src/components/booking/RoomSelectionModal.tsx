@@ -5,6 +5,8 @@ import {
   DialogHeader, 
   DialogTitle 
 } from '@/components/ui/dialog';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
+import { formatCurrency } from '@/utils/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -326,7 +328,8 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
   const groupedOffers = groupOffersByRoomType(offers);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <ErrorBoundary>
+      <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
@@ -443,20 +446,20 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
                             <div className="text-right space-y-2 ml-6">
                               <div>
                                 <p className="text-sm text-muted-foreground">Total for your stay</p>
-                                <p className="text-xl font-bold text-foreground">
-                                  {currency} {formatPrice(offer.price.total)}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {currency} {formatPrice((parseFloat(offer.price.total) / nights).toString())} per night
-                                </p>
+                                 <p className="text-xl font-bold text-foreground">
+                                   {formatCurrency(parseFloat(offer.price.total), offer.price.currency)}
+                                 </p>
+                                 <p className="text-sm text-muted-foreground">
+                                   {formatCurrency(parseFloat(offer.price.total) / nights, offer.price.currency)} per night
+                                 </p>
                               </div>
 
                               {offer.price.base !== offer.price.total && (
                                 <div className="text-xs text-muted-foreground">
-                                  <p>Base: {currency} {formatPrice(offer.price.base)}</p>
-                                  {offer.price.taxes && offer.price.taxes.length > 0 && (
-                                    <p>Taxes: {currency} {offer.price.taxes.reduce((sum, tax) => sum + parseFloat(tax.amount), 0).toFixed(2)}</p>
-                                  )}
+                                     <p>Base: {formatCurrency(parseFloat(offer.price.base), offer.price.currency)}</p>
+                                     {offer.price.taxes && offer.price.taxes.length > 0 && (
+                                       <p>Taxes: {formatCurrency(offer.price.taxes.reduce((sum, tax) => sum + parseFloat(tax.amount), 0), offer.price.currency)}</p>
+                                     )}
                                 </div>
                               )}
                             </div>
@@ -492,7 +495,7 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
                       <p className="text-sm text-muted-foreground">{getRatePlanName(selectedOffer)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{currency} {formatPrice(selectedOffer.price.total)}</p>
+                      <p className="font-medium">{formatCurrency(parseFloat(selectedOffer.price.total), selectedOffer.price.currency)}</p>
                       <p className="text-sm text-muted-foreground">for {nights} nights</p>
                     </div>
                   </div>
@@ -513,7 +516,7 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center font-medium">
                     <span>Add-ons total:</span>
-                    <span>{currency} {getSelectedAddOnsPrice().toFixed(2)}</span>
+                    <span>{formatCurrency(getSelectedAddOnsPrice(), currency)}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -535,7 +538,7 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
                 Continue to extras
                 {selectedOffer && (
                   <span className="ml-2">
-                    {currency} {formatPrice(selectedOffer.price.total)}
+                    {formatCurrency(parseFloat(selectedOffer.price.total), selectedOffer.price.currency)}
                   </span>
                 )}
               </Button>
@@ -547,13 +550,14 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
               >
                 Continue to checkout
                 <span className="ml-2">
-                  {currency} {getTotalPrice().toFixed(2)}
+                  {formatCurrency(getTotalPrice(), selectedOffer?.price?.currency || currency)}
                 </span>
               </Button>
             )}
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </ErrorBoundary>
   );
 };
