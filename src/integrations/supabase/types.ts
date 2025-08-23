@@ -106,6 +106,30 @@ export type Database = {
           },
         ]
       }
+      admin_metrics_cache: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          metric_type: string
+          metric_value: Json
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          metric_type: string
+          metric_value: Json
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          metric_type?: string
+          metric_value?: Json
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -1763,6 +1787,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          priority: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          priority?: string
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          priority?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       partner_analytics: {
         Row: {
           avg_booking_value: number | null
@@ -2950,6 +3016,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          document_number: string | null
+          document_type: string
+          expiry_date: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          issue_date: string | null
+          issuing_authority: string | null
+          metadata: Json | null
+          mime_type: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          document_number?: string | null
+          document_type: string
+          expiry_date?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          issue_date?: string | null
+          issuing_authority?: string | null
+          metadata?: Json | null
+          mime_type?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          document_number?: string | null
+          document_type?: string
+          expiry_date?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          issue_date?: string | null
+          issuing_authority?: string | null
+          metadata?: Json | null
+          mime_type?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_dream_bookmarks: {
         Row: {
           created_at: string
@@ -3171,6 +3294,10 @@ export type Database = {
       cancel_booking: {
         Args: { p_booking_id: string }
         Returns: Json
+      }
+      check_document_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       cleanup_expired_guest_tokens: {
         Args: Record<PropertyKey, never>
