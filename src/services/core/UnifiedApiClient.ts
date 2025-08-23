@@ -2,6 +2,7 @@ import { serviceRegistry } from './ServiceRegistry';
 import { dataNormalizer } from './DataNormalizer';
 import { advancedCacheManager } from './AdvancedCacheManager';
 import { correlationId } from '@/utils/correlationId';
+import { supabase } from '@/integrations/supabase/client';
 import logger from '@/utils/logger';
 
 export class UnifiedApiClient {
@@ -19,18 +20,21 @@ export class UnifiedApiClient {
     
     try {
       const startTime = Date.now();
-      // Make API call (simplified)
-      const response = await fetch('/api/flights/search', {
-        method: 'POST',
-        body: JSON.stringify(params),
-        headers: correlationId.getHeaders()
-      });
+      // Make real API call via Supabase client
+      const { data: responseData, error: responseError } = await supabase.functions.invoke(
+        `${endpoint.provider}-flight-search`,
+        {
+          body: params,
+          headers: correlationId.getHeaders()
+        }
+      );
       
-      const data = await response.json();
+      if (responseError) throw new Error(responseError.message);
+      const data = responseData;
       const responseTime = Date.now() - startTime;
       
       // Update endpoint metrics
-      serviceRegistry.updateEndpointPerformance(endpoint.id, response.ok, responseTime);
+      serviceRegistry.updateEndpointPerformance(endpoint.id, responseData?.success || false, responseTime);
       
       // Normalize data
       const normalized = await dataNormalizer.normalizeFlights({ [endpoint.provider]: data }, corrId);
@@ -57,16 +61,19 @@ export class UnifiedApiClient {
     const startTime = Date.now();
     
     try {
-      const response = await fetch('/api/hotels/search', {
-        method: 'POST',
-        body: JSON.stringify(params),
-        headers: correlationId.getHeaders()
-      });
+      const { data: responseData, error: responseError } = await supabase.functions.invoke(
+        `${endpoint.provider}-hotel-search`,
+        {
+          body: params,
+          headers: correlationId.getHeaders()
+        }
+      );
       
-      const data = await response.json();
+      if (responseError) throw new Error(responseError.message);
+      const data = responseData;
       const responseTime = Date.now() - startTime;
       
-      serviceRegistry.updateEndpointPerformance(endpoint.id, response.ok, responseTime);
+      serviceRegistry.updateEndpointPerformance(endpoint.id, responseData?.success || false, responseTime);
       
       const normalized = await dataNormalizer.normalizeHotels({ [endpoint.provider]: data }, corrId);
       await advancedCacheManager.set(cacheKey, normalized, { strategy: 'hotel-search' });
