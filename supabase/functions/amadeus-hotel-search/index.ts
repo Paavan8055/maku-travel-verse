@@ -1,6 +1,13 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import logger from "../_shared/logger.ts";
+
+// Simple logger fallback to avoid import errors
+const logger = {
+  info: (msg: any, ...args: any[]) => console.log('[INFO]', msg, ...args),
+  error: (msg: any, ...args: any[]) => console.error('[ERROR]', msg, ...args),
+  warn: (msg: any, ...args: any[]) => console.warn('[WARN]', msg, ...args),
+  debug: (msg: any, ...args: any[]) => console.debug('[DEBUG]', msg, ...args),
+};
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

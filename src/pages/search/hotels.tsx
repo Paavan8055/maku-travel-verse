@@ -7,6 +7,9 @@ import Navbar from "@/components/Navbar";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { HotelCard } from "@/features/search/components/HotelCard";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
+import { HotelCardSkeleton } from "@/components/booking/HotelCardSkeleton";
+import { SearchFilters } from "@/components/booking/SearchFilters";
+import { useHealthStatus } from "@/hooks/useHealthStatus";
 import { LoadingSpinner, PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { useHotelSearch } from "@/features/search/hooks/useHotelSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
@@ -33,6 +36,7 @@ const HotelSearchPage = () => {
   const [sortBy, setSortBy] = useState("price");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [fundApplied, setFundApplied] = useState(false);
+  const { healthStatus } = useHealthStatus();
   const [filters, setFilters] = useState({
     priceRange: [0, 1000] as [number, number],
     starRating: [] as string[],
@@ -145,12 +149,10 @@ const HotelSearchPage = () => {
               <SearchHeaderBand destination={destination} checkIn={checkIn} checkOut={checkOut} guests={guests} hotelName={hotelName} />
               <SystemHealthIndicator />
             </>} extrasBelowControls={<SortChips filters={filters} onFiltersChange={setFilters} />} sidebarAddon={<MapPreviewCard destination={destination} />}>
-          {loading && <div className="space-y-4">
-              {[...Array(5)].map((_, i) => <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-32 bg-muted rounded"></div>
-                  </CardContent>
-                </Card>)}
+          {loading && <div className="space-y-6">
+              {[...Array(5)].map((_, i) => (
+                <HotelCardSkeleton key={i} />
+              ))}
             </div>}
 
           {error && <Card>
@@ -159,6 +161,12 @@ const HotelSearchPage = () => {
                 <p className="text-sm text-muted-foreground mt-2">
                   Please try searching for a specific destination or check your search criteria.
                 </p>
+                {healthStatus && healthStatus.status !== 'healthy' && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    <strong>Service Status:</strong> Some of our booking services are currently experiencing issues. 
+                    Please try again in a few minutes.
+                  </p>
+                )}
               </CardContent>
             </Card>}
 
