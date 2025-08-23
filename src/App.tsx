@@ -22,7 +22,12 @@ import UnifiedSearchPage from "./pages/search/index";
 import HotelBookingReviewPage from "./pages/hotel-booking-review";
 import FlightBookingReviewPage from "./pages/flight-booking-review";
 import ActivityBookingReviewPage from "./pages/activity-booking-review";
-import HotelCheckoutTestPage from "./pages/hotel-checkout-test";
+import HotelCheckoutPage from "./pages/HotelCheckout";
+import FlightCheckoutPage from "./pages/FlightCheckout";
+import ActivityCheckoutPage from "./pages/ActivityCheckout";
+import BookingConfirmationPage from "./pages/BookingConfirmation";
+import BookingDetailsPage from "./pages/BookingDetails";
+import DashboardPage from "./pages/Dashboard";
 import SettingsPage from "./pages/settings";
 import ProfilePage from "./pages/profile";
 import BookingsPage from "./pages/bookings";
@@ -59,7 +64,12 @@ const App = () => (
                         <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
                         <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
                         <Route path="/activity-booking-review" element={<ActivityBookingReviewPage />} />
-                        <Route path="/hotel-checkout-test" element={<HotelCheckoutTestPage />} />
+                        <Route path="/hotel-checkout" element={<HotelCheckoutPage />} />
+                        <Route path="/flight-checkout" element={<FlightCheckoutPage />} />
+                        <Route path="/activity-checkout" element={<ActivityCheckoutPage />} />
+                        <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+                        <Route path="/booking/:id" element={<BookingDetailsPage />} />
+                        <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/bookings" element={<BookingsPage />} />
