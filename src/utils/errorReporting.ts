@@ -43,6 +43,37 @@ class ErrorReporter {
     // Log locally first
     logger.error('Error reported:', errorData);
 
+    // Enhanced logging
+    try {
+      await supabase.functions.invoke('enhanced-logging', {
+        body: {
+          logs: [{
+            service_name: context.section || 'frontend',
+            log_level: severity === 'critical' ? 'error' : severity === 'high' ? 'error' : 'warn',
+            message: `${error.name}: ${error.message}`,
+            metadata: {
+              error_id: errorData.correlationId,
+              context,
+              userAgent: errorData.userAgent,
+              url: errorData.url
+            },
+            error_details: {
+              name: error.name,
+              message: error.message,
+              stack: error.stack
+            },
+            user_id: context.userId,
+            request_id: errorData.correlationId
+          }]
+        },
+        headers: {
+          'X-Correlation-ID': errorData.correlationId
+        }
+      });
+    } catch (loggingError) {
+      logger.error('Enhanced logging failed:', loggingError);
+    }
+
     // Add to processing queue
     this.errorQueue.push({ error, context: { ...context, correlationId: errorData.correlationId }, severity });
 

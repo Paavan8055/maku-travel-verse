@@ -6,6 +6,7 @@ import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { BookingManagement } from '@/components/admin/BookingManagement';
 import { SecurityMonitoring } from '@/components/admin/SecurityMonitoring';
+import { ProductionMonitoringDashboard } from '@/components/admin/ProductionMonitoringDashboard';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -111,6 +112,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
@@ -155,6 +157,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="security">
             <SecurityMonitoring />
+          </TabsContent>
+          
+          <TabsContent value="monitoring">
+            <ProductionMonitoringDashboard />
           </TabsContent>
         </Tabs>
       </div>
