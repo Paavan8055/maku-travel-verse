@@ -246,7 +246,15 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                     children={0}
                     rooms={1}
                     currency={hotel.currency}
-                    onRoomSelected={(selectedOffer, hotelData) => {
+                    onRoomSelected={(selectedOffer, hotelData, selectedAddOns) => {
+                      // Calculate add-ons total
+                      const addOnsTotal = selectedAddOns?.reduce((total, addOn) => {
+                        const nights = Math.ceil((new Date(selectedOffer.checkOutDate).getTime() - 
+                                                  new Date(selectedOffer.checkInDate).getTime()) / (1000 * 60 * 60 * 24));
+                        const price = addOn.perNight ? addOn.price * nights : addOn.price;
+                        return total + price;
+                      }, 0) || 0;
+
                       // Navigate to hotel checkout with selected room offer
                       const params = new URLSearchParams({
                         hotelId: hotelData.hotelId,
@@ -262,9 +270,11 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                         offerId: selectedOffer.id
                       });
                       
-                      // Store detailed offer for checkout
+                      // Store detailed offer and add-ons for checkout
                       sessionStorage.setItem('selectedHotelOffer', JSON.stringify(selectedOffer));
                       sessionStorage.setItem('selectedHotelData', JSON.stringify(hotelData));
+                      sessionStorage.setItem('selectedAddOns', JSON.stringify(selectedAddOns || []));
+                      sessionStorage.setItem('addOnsTotal', addOnsTotal.toString());
                       
                       navigate(`/hotel-checkout?${params.toString()}`);
                     }}
