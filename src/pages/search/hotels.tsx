@@ -34,6 +34,14 @@ import AccessibilityProvider from "@/components/accessibility/AccessibilityProvi
 import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
 import SmartUpselling from "@/components/conversion/SmartUpselling";
 import ConversionTracker from "@/components/analytics/ConversionTracker";
+import { AmadeusOptimizer } from "@/components/api/AmadeusOptimizer";
+import { SearchPerformanceOptimizer } from "@/components/search/SearchPerformanceOptimizer";
+import { PersonalizationEngine } from "@/components/personalization/PersonalizationEngine";
+import { RevenueOptimizer } from "@/components/revenue/RevenueOptimizer";
+import ABTestingFramework from "@/components/testing/ABTestingFramework";
+import { MultiPropertyBooking } from "@/components/enterprise/MultiPropertyBooking";
+import { LoyaltyProgramIntegration } from "@/components/loyalty/LoyaltyProgramIntegration";
+import { CurrencyProvider } from "@/components/localization/MultiCurrencySupport";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -51,8 +59,19 @@ const HotelSearchPage = () => {
     distanceFromCenter: 50
   });
   const [hasSearched, setHasSearched] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'healthy' | 'degraded' | 'down'>('healthy');
+  const [abTestVariant, setAbTestVariant] = useState<string>('');
   
   const destination = searchParams.get("destination") || "";
+  
+  const [userPreferences, setUserPreferences] = useState({
+    priceRange: [0, 1000] as [number, number],
+    amenities: [] as string[],
+    travelStyle: 'leisure' as 'leisure' | 'business' | 'family',
+    starRating: 4,
+    location: destination,
+    previousBookings: [] as any[]
+  });
   const checkIn = searchParams.get("checkIn") || "";
   const checkOut = searchParams.get("checkOut") || "";
   const guests = parseInt(searchParams.get("guests") || "2");
@@ -117,20 +136,45 @@ const HotelSearchPage = () => {
   });
 
   return (
-    <AccessibilityProvider>
-      <ErrorBoundary>
-        <PerformanceWrapper componentName="HotelSearchPage">
-          <MobileBookingOptimization 
-            onBookingStart={() => console.log('Mobile booking started')}
-            onBookingComplete={() => console.log('Mobile booking completed')}
-          >
-            <div className="min-h-screen bg-background">
-              <Navbar />
-              <SessionRecoveryBanner />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Enhanced Header with Search Actions */}
-        <HotelSearchBar />
+    <CurrencyProvider>
+      <AccessibilityProvider>
+        <ErrorBoundary>
+          <PerformanceWrapper componentName="HotelSearchPage">
+            <MobileBookingOptimization 
+              onBookingStart={() => console.log('Mobile booking started')}
+              onBookingComplete={() => console.log('Mobile booking completed')}
+            >
+              <div className="min-h-screen bg-background">
+                <Navbar />
+                <SessionRecoveryBanner />
+        
+        <div className="container mx-auto px-4 py-8">
+          {/* API Optimization Component */}
+          <AmadeusOptimizer onApiStatusChange={setApiStatus} />
+          
+          {/* A/B Testing Framework */}
+          <ABTestingFramework className="mb-4" />
+          
+          {/* Personalization Engine */}
+          <PersonalizationEngine 
+            userPreferences={userPreferences}
+            onRecommendationClick={(rec) => console.log('Recommendation clicked:', rec)}
+          />
+        {/* Enhanced Header with Search Performance Optimizer */}
+        <SearchPerformanceOptimizer 
+          onSearch={(query) => {
+            if (query.length >= 2) {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.set('destination', query);
+              newParams.set('searched', 'true');
+              window.location.href = `/search/hotels?${newParams.toString()}`;
+            }
+          }}
+          suggestions={['New York', 'Paris', 'Tokyo', 'London']}
+          recentSearches={['Miami', 'Barcelona']}
+          trendingSearches={['Dubai', 'Rome']}
+          className="mb-6"
+        />
         
         {/* Compact Advanced Features Toolbar */}
         <CompactSearchToolbar 
@@ -151,8 +195,18 @@ const HotelSearchPage = () => {
 
         {!hasSearched ? (
           <div className="space-y-8">
+            {/* Multi-Property Booking for Packages */}
+            <MultiPropertyBooking 
+              onPackageSelect={(pkg) => console.log('Package selected:', pkg)}
+            />
+            
             <PopularHotelsSection onHotelSelect={handleHotelSelect} />
             <FeaturedHotelDeals onDealSelect={handleDealSelect} />
+            
+            {/* Loyalty Program Integration */}
+            <LoyaltyProgramIntegration 
+              onPointsRedeem={(points) => console.log('Points redeemed:', points)}
+            />
           </div>
         ) : (
           <SearchResultsLayout results={filteredAndSortedHotels} loading={loading} filters={filters} onFiltersChange={setFilters} sortBy={sortBy} onSortChange={setSortBy} viewMode={viewMode} onViewModeChange={setViewMode} topBanner={<>
@@ -181,6 +235,12 @@ const HotelSearchPage = () => {
             </Card>}
 
           {!loading && !error && viewMode === "list" && <div className="space-y-6">
+              {/* Revenue Optimizer for the results */}
+              <RevenueOptimizer 
+                basePrice={filteredAndSortedHotels.length > 0 ? filteredAndSortedHotels[0].pricePerNight : 100}
+                className="mb-4" 
+              />
+              
               {filteredAndSortedHotels.map((hotel, index) => <div key={hotel.id} className="relative">
                   {/* Enhanced Hotel Card with Conversion Features */}
                   <div className="space-y-3">
@@ -279,6 +339,7 @@ const HotelSearchPage = () => {
       </PerformanceWrapper>
     </ErrorBoundary>
   </AccessibilityProvider>
+</CurrencyProvider>
   );
 };
 export default HotelSearchPage;
