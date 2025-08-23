@@ -24,10 +24,9 @@ const Index = () => {
           <Navbar />
           <HeroSection />
           <MarketplacePills />
-
-        <SearchSection />
-      <MarketplaceSection />
-      <FeaturedListings />
+          <SearchSection />
+          <MarketplaceSection />
+          <FeaturedListings />
           {/* Debug Section - Only visible in development */}
           {process.env.NODE_ENV === 'development' && (
             <div className="max-w-4xl mx-auto px-6 py-12">

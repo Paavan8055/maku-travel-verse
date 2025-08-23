@@ -65,8 +65,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-border" role="navigation" aria-label="Main navigation">
-      <div className="container mx-auto px-4">
+    <nav className="sticky top-0 z-50 bg-white border-b border-border w-full" role="navigation" aria-label="Main navigation">
+      <div className="w-full px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>

@@ -94,7 +94,7 @@ const [activityChildren, setActivityChildren] = useState(0);
   };
 
   return (
-    <section className="relative -mt-32 z-30 px-6">
+    <section className="relative -mt-16 z-30 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="travel-card bg-white p-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
