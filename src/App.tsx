@@ -11,6 +11,7 @@ import { HealthMonitorProvider } from "@/providers/HealthMonitorProvider";
 import { PaymentProvider } from "@/features/payment/PaymentProvider";
 import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
 import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
+import { ProductionProvider } from "@/contexts/ProductionContext";
 import Index from "./pages/Index";
 import FlightsPage from "./pages/flights";
 import ActivitiesPage from "./pages/activities";
@@ -36,12 +37,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <HealthMonitorProvider>
       <AuthProvider>
-        <CurrencyProvider>
-          <SearchProvider>
-            <PaymentProvider>
-              <AgenticBotProvider defaultVertical="Solo">
-                <MakuBotProvider defaultVertical="Solo">
-                  <TooltipProvider>
+        <ProductionProvider>
+          <CurrencyProvider>
+            <SearchProvider>
+              <PaymentProvider>
+                <AgenticBotProvider defaultVertical="Solo">
+                  <MakuBotProvider defaultVertical="Solo">
+                    <TooltipProvider>
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
@@ -66,12 +68,13 @@ const App = () => (
                         <Route path="/invite-friends" element={<InviteFriendsPage />} />
                       </Routes>
                     </BrowserRouter>
-                  </TooltipProvider>
-                </MakuBotProvider>
-              </AgenticBotProvider>
-            </PaymentProvider>
-          </SearchProvider>
-        </CurrencyProvider>
+                    </TooltipProvider>
+                  </MakuBotProvider>
+                </AgenticBotProvider>
+              </PaymentProvider>
+            </SearchProvider>
+          </CurrencyProvider>
+        </ProductionProvider>
       </AuthProvider>
     </HealthMonitorProvider>
   </QueryClientProvider>
