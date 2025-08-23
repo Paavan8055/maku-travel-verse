@@ -19,6 +19,13 @@ interface BookingPaymentPayload {
     lastName: string;
     phone?: string;
   };
+  selectedAddOns?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity?: number;
+  }>;
+  addOnsTotal?: number;
   paymentMethod?: 'card' | 'fund' | 'split';
 }
 
@@ -60,6 +67,8 @@ Deno.serve(async (req) => {
       amount,
       currency,
       customerInfo,
+      selectedAddOns = [],
+      addOnsTotal = 0,
       paymentMethod = 'card'
     }: BookingPaymentPayload = await req.json();
 
@@ -88,7 +97,9 @@ Deno.serve(async (req) => {
         currency: currency.toUpperCase(),
         booking_data: {
           ...bookingData,
-          customerInfo
+          customerInfo,
+          selectedAddOns,
+          addOnsTotal
         }
       };
 
