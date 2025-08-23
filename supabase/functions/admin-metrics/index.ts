@@ -58,12 +58,36 @@ Deno.serve(async (req) => {
 
     logger.info('Fetching admin metrics for user:', user.id);
 
-    // Aggregate metrics from database
+    // Check cache first
+    const { data: cachedMetrics } = await supabaseClient
+      .from('admin_metrics_cache')
+      .select('*')
+      .eq('metric_type', 'dashboard_summary')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (cachedMetrics) {
+      logger.info('✅ Returning cached admin metrics');
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: cachedMetrics.metric_value
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Aggregate fresh metrics from database
     const [
-      { data: totalBookings },
-      { data: totalRevenue },
+      { data: totalBookings, count: bookingsCount },
+      { data: confirmedBookings },
       { data: totalUsers },
-      { data: activeProperties },
+      { data: activeProperties, count: propertiesCount },
       { data: recentBookings }
     ] = await Promise.all([
       // Total bookings count
@@ -71,11 +95,11 @@ Deno.serve(async (req) => {
         .from('bookings')
         .select('id', { count: 'exact' }),
       
-      // Total revenue sum
+      // Confirmed bookings for revenue calculation
       supabaseClient
         .from('bookings')
         .select('total_amount')
-        .eq('status', 'confirmed'),
+        .in('status', ['confirmed', 'completed']),
       
       // Total users count
       supabaseClient.auth.admin.listUsers(),
@@ -102,18 +126,39 @@ Deno.serve(async (req) => {
         .limit(10)
     ]);
 
-    // Calculate total revenue
-    const revenue = totalRevenue?.reduce((sum: number, booking: any) => 
+    // Calculate total revenue from confirmed bookings
+    const revenue = confirmedBookings?.reduce((sum: number, booking: any) => 
       sum + (parseFloat(booking.total_amount) || 0), 0) || 0;
 
+    // Get notification stats
+    const { data: notificationStats } = await supabaseClient
+      .from('notifications')
+      .select('type', { count: 'exact' });
+
+    // Get document stats
+    const { data: documentStats } = await supabaseClient
+      .from('user_documents')
+      .select('document_type', { count: 'exact' });
+
     const metrics = {
-      totalBookings: totalBookings?.length || 0,
+      totalBookings: bookingsCount || 0,
       totalRevenue: revenue,
       totalUsers: totalUsers?.users?.length || 0,
-      activeProperties: activeProperties?.length || 0,
+      activeProperties: propertiesCount || 0,
       recentBookings: recentBookings || [],
+      notificationCount: notificationStats?.length || 0,
+      documentCount: documentStats?.length || 0,
       lastUpdated: new Date().toISOString()
     };
+
+    // Cache the metrics
+    await supabaseClient
+      .from('admin_metrics_cache')
+      .insert({
+        metric_type: 'dashboard_summary',
+        metric_value: metrics,
+        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour cache
+      });
 
     logger.info('✅ Admin metrics fetched successfully');
 

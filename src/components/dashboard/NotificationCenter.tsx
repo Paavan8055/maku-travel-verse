@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,66 +13,17 @@ import {
   X,
   Settings
 } from 'lucide-react';
-
-interface Notification {
-  id: string;
-  type: 'flight_delay' | 'price_drop' | 'check_in' | 'weather_alert' | 'document_expiry';
-  title: string;
-  message: string;
-  timestamp: string;
-  priority: 'high' | 'medium' | 'low';
-  isRead: boolean;
-  actionUrl?: string;
-}
+import { useNotifications } from '@/hooks/useNotifications';
 
 export const NotificationCenter: React.FC<{ className?: string }> = ({ className }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'flight_delay',
-        title: 'Flight Delay Alert',
-        message: 'Your flight JQ123 to Tokyo is delayed by 2 hours. New departure: 8:30 PM',
-        timestamp: '2024-01-15T10:30:00Z',
-        priority: 'high',
-        isRead: false
-      },
-      {
-        id: '2',
-        type: 'check_in',
-        title: 'Check-in Reminder',
-        message: 'Check-in opens in 6 hours for your flight to Tokyo. Save time by checking in early!',
-        timestamp: '2024-01-15T09:00:00Z',
-        priority: 'medium',
-        isRead: false
-      },
-      {
-        id: '3',
-        type: 'price_drop',
-        title: 'Price Drop Alert',
-        message: 'Great news! Hotel prices in Bali dropped by 25%. Book now to save $200!',
-        timestamp: '2024-01-15T08:15:00Z',
-        priority: 'medium',
-        isRead: true
-      },
-      {
-        id: '4',
-        type: 'weather_alert',
-        title: 'Weather Update',
-        message: 'Heavy rain expected in Tokyo during your visit. Pack an umbrella!',
-        timestamp: '2024-01-15T07:00:00Z',
-        priority: 'low',
-        isRead: true
-      }
-    ];
-    
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.isRead).length);
-  }, []);
+  const { 
+    notifications, 
+    unreadCount, 
+    loading,
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification 
+  } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -115,29 +66,27 @@ export const NotificationCenter: React.FC<{ className?: string }> = ({ className
     return `${Math.floor(diffHours / 24)}d ago`;
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
+  if (loading) {
+    return (
+      <div className={className}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              Notifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="animate-pulse space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-16 bg-muted rounded"></div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
-    setUnreadCount(prev => Math.max(0, prev - 1));
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, isRead: true }))
-    );
-    setUnreadCount(0);
-  };
-
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
-    const notif = notifications.find(n => n.id === id);
-    if (notif && !notif.isRead) {
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    }
-  };
+  }
 
   return (
     <div className={className}>
