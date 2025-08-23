@@ -66,8 +66,8 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
       setError(null);
 
       try {
-        // Use Amadeus Activity Search API
-        const { data, error: functionError } = await supabase.functions.invoke('amadeus-activity-search', {
+        // Use HotelBeds Activities API
+        const { data, error: functionError } = await supabase.functions.invoke('hotelbeds-activities', {
           body: {
             destination: criteria.destination,
             date: criteria.date,
@@ -79,22 +79,23 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
           throw functionError;
         }
 
-        if (data?.success && data?.data?.data && Array.isArray(data.data.data)) {
-          console.log("Activity search success:", data.data.data.length, "activities found");
-          setActivities(data.data.data);
+        if (data?.success && data?.activities && Array.isArray(data.activities)) {
+          console.log("Activity search success:", data.activities.length, "activities found");
+          setActivities(data.activities);
         } else {
           console.log("Activity search returned no data");
           setActivities([]);
-          setError("No activities found for your search criteria");
+          setError("No activities found for your search criteria. Please try a different destination or check back later.");
         }
         } catch (err) {
           logger.error("Activity search error:", err);
-          setError(err instanceof Error ? err.message : "Failed to search activities");
-          toast.error("Activity search failed. Please try different search criteria.");
+          const errorMessage = err instanceof Error ? err.message : "Failed to search activities";
+          setError(`HotelBeds API Error: ${errorMessage}. Please try a different destination or check our service status.`);
+          toast.error("Activity search temporarily unavailable. Please try again in a few minutes.");
           setActivities([]);
         } finally {
-        setLoading(false);
-      }
+          setLoading(false);
+        }
     };
 
     searchActivities();

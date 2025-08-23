@@ -101,19 +101,24 @@ function CheckoutInner() {
         
         console.log('✅ Stripe key retrieved successfully');
 
-        // Now create the booking
-        const { data, error } = await supabase.functions.invoke("create-hotel-booking", {
+        // Create payment intent for hotel booking
+        const { data, error } = await supabase.functions.invoke("create-payment-intent", {
           body: { 
-            hotelId, 
-            offerId, 
-            checkIn, 
-            checkOut, 
-            adults, 
-            children, 
-            rooms, 
-            addons,
-            bedPref,
-            note
+            booking_type: 'hotel',
+            amount: 299.99, // This should come from the offer data in production
+            currency: 'USD',
+            metadata: {
+              hotelId, 
+              offerId, 
+              checkIn, 
+              checkOut, 
+              adults, 
+              children, 
+              rooms, 
+              addons,
+              bedPref,
+              note
+            }
           }
         });
 
@@ -122,11 +127,15 @@ function CheckoutInner() {
         if (error) {
           logger.error('Booking creation error:', error);
           if (error.message?.includes('STRIPE_SECRET_KEY')) {
-            setPaymentError('Payment system not configured on server. Please contact support.');
+            setPaymentError('Payment system configuration error. Our technical team has been notified. Please try again in a few minutes or contact support.');
           } else if (error.message?.includes('Authentication')) {
-            setPaymentError('Authentication error. Please try refreshing the page.');
+            setPaymentError('Session expired. Please refresh the page and try again.');
+          } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+            setPaymentError('Network connectivity issue. Please check your internet connection and try again.');
+          } else if (error.message?.includes('rate limit')) {
+            setPaymentError('Too many requests. Please wait a moment before trying again.');
           } else {
-            setPaymentError(`Failed to prepare booking: ${error.message || error}`);
+            setPaymentError(`Booking preparation failed: ${error.message || error}. Please refresh the page or try a different payment method.`);
           }
           throw error;
         }
