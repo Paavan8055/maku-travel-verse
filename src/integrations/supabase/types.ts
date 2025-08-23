@@ -2518,6 +2518,45 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          correlation_id: string | null
+          created_at: string | null
+          duration_ms: number
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          metric_type: string
+          operation: string
+          success: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string | null
+          duration_ms: number
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          operation: string
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string | null
+          duration_ms?: number
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          operation?: string
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       points_transactions: {
         Row: {
           booking_id: string | null
@@ -2785,6 +2824,84 @@ export type Database = {
           result_count?: number | null
           session_id?: string | null
           user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      system_logs: {
+        Row: {
+          correlation_id: string | null
+          created_at: string | null
+          duration_ms: number | null
+          error_details: Json | null
+          id: string
+          log_level: string
+          message: string
+          metadata: Json | null
+          request_id: string | null
+          service_name: string
+          status_code: number | null
+          user_id: string | null
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_details?: Json | null
+          id?: string
+          log_level?: string
+          message: string
+          metadata?: Json | null
+          request_id?: string | null
+          service_name: string
+          status_code?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_details?: Json | null
+          id?: string
+          log_level?: string
+          message?: string
+          metadata?: Json | null
+          request_id?: string | null
+          service_name?: string
+          status_code?: number | null
           user_id?: string | null
         }
         Relationships: []
@@ -3445,6 +3562,21 @@ export type Database = {
           _user_agent?: string
         }
         Returns: undefined
+      }
+      log_system_event: {
+        Args: {
+          p_correlation_id: string
+          p_duration_ms?: number
+          p_error_details?: Json
+          p_log_level: string
+          p_message: string
+          p_metadata?: Json
+          p_request_id?: string
+          p_service_name: string
+          p_status_code?: number
+          p_user_id?: string
+        }
+        Returns: string
       }
       redeem_gift_card: {
         Args: {
