@@ -1,10 +1,12 @@
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Star, Wifi, Car, Utensils, Waves, Shield, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RealBookingButton } from "@/components/RealBookingButton";
+import { RoomSelectionModal } from "@/components/booking";
 
 interface Hotel {
   id: string;
@@ -44,6 +46,7 @@ interface HotelCardProps {
 
 export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
+  const [showRoomSelection, setShowRoomSelection] = useState(false);
 
   const handleSelectHotel = () => {
     // Get current search parameters to preserve them
@@ -226,26 +229,46 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                     disabled={hotel.pricePerNight <= 0}
                     onClick={() => {
                       if (hotel.pricePerNight <= 0) return;
-                      
-                      // Temporarily redirect to hotel checkout instead of booking-enhanced
-                      const params = new URLSearchParams({
-                        destination: hotel.address || hotel.name,
-                        checkIn: new Date().toISOString().split('T')[0],
-                        checkOut: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
-                        guests: "2", 
-                        hotelId: hotel.id,
-                        hotelName: hotel.name,
-                        price: hotel.pricePerNight.toString()
-                      });
-                      // Store hotel selection for booking flow
-                      sessionStorage.setItem('selectedHotelId', hotel.id);
-                      sessionStorage.setItem('selectedHotelName', hotel.name);
-                      sessionStorage.setItem('selectedOfferId', `offer_${hotel.id}_${Date.now()}`);
-                      window.location.href = `/hotel-checkout?${params.toString()}`;
+                      setShowRoomSelection(true);
                     }}
                   >
-                    {hotel.pricePerNight > 0 ? 'Book Now' : 'Contact Hotel'}
+                    {hotel.pricePerNight > 0 ? 'Select Room' : 'Contact Hotel'}
                   </Button>
+
+                  <RoomSelectionModal
+                    isOpen={showRoomSelection}
+                    onClose={() => setShowRoomSelection(false)}
+                    hotelId={hotel.amadeus?.hotelId || hotel.id}
+                    hotelName={hotel.name}
+                    checkIn={new Date().toISOString().split('T')[0]}
+                    checkOut={new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0]}
+                    adults={2}
+                    children={0}
+                    rooms={1}
+                    currency={hotel.currency}
+                    onRoomSelected={(selectedOffer, hotelData) => {
+                      // Navigate to hotel checkout with selected room offer
+                      const params = new URLSearchParams({
+                        hotelId: hotelData.hotelId,
+                        hotelName: hotelData.name,
+                        checkIn: selectedOffer.checkInDate,
+                        checkOut: selectedOffer.checkOutDate,
+                        adults: selectedOffer.guests.adults?.toString() || '2',
+                        children: selectedOffer.guests.children?.toString() || '0',
+                        rooms: '1',
+                        price: selectedOffer.price.total,
+                        currency: selectedOffer.price.currency,
+                        rateCode: selectedOffer.rateCode,
+                        offerId: selectedOffer.id
+                      });
+                      
+                      // Store detailed offer for checkout
+                      sessionStorage.setItem('selectedHotelOffer', JSON.stringify(selectedOffer));
+                      sessionStorage.setItem('selectedHotelData', JSON.stringify(hotelData));
+                      
+                      navigate(`/hotel-checkout?${params.toString()}`);
+                    }}
+                  />
               </div>
             </div>
           </div>
