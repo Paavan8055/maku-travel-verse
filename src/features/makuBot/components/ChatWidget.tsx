@@ -136,7 +136,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userVertical = 'Solo' }) => {
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
               🐕
             </div>
-            <span className="font-semibold text-primary-foreground">Maku Bot</span>
+            <span className="font-semibold text-primary-foreground">MAKU AI</span>
           </div>
           <Button
             variant="ghost"
