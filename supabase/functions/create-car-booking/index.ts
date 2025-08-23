@@ -8,31 +8,48 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ActivityBookingParams {
-  activityId: string;
-  activityData: {
-    name: string;
-    description: string;
-    duration: string;
-    location: string;
-    provider: string;
-    images: string[];
+interface CarBookingParams {
+  carOffer: {
+    id: string;
+    vehicleInfo: {
+      category: string;
+      type: string;
+      make: string;
+      model: string;
+      transmission: string;
+      fuel: string;
+      airConditioning: boolean;
+      doors: number;
+      seats: number;
+    };
+    rateInfo: {
+      totalPrice: number;
+      currency: string;
+      dailyRate: number;
+    };
+    pickupLocation: {
+      code: string;
+      name: string;
+      address: string;
+    };
+    dropoffLocation: {
+      code: string;
+      name: string;
+      address: string;
+    };
+    pickupDateTime: string;
+    dropoffDateTime: string;
   };
-  selectedDate: string;
-  selectedTime: string;
-  participants: {
-    adults: number;
-    children: number;
-    infants?: number;
-  };
-  participantDetails: {
+  driverDetails: {
     firstName: string;
     lastName: string;
     email: string;
     phone: string;
-    age?: number;
-    specialRequirements?: string;
-  }[];
+    dateOfBirth: string;
+    licenseNumber: string;
+    licenseCountry: string;
+    licenseExpiry: string;
+  };
   customerInfo: {
     email: string;
     firstName: string;
@@ -51,12 +68,12 @@ serve(async (req) => {
   }
 
   try {
-    const params: ActivityBookingParams = await req.json();
+    const params: CarBookingParams = await req.json();
     
-    logger.info('Creating activity booking:', {
-      activityId: params.activityId,
-      selectedDate: params.selectedDate,
-      participantsCount: params.participantDetails?.length,
+    logger.info('Creating car booking:', {
+      carOfferId: params.carOffer.id,
+      pickupDate: params.carOffer.pickupDateTime,
+      dropoffDate: params.carOffer.dropoffDateTime,
       amount: params.amount,
       currency: params.currency
     });
@@ -73,7 +90,7 @@ serve(async (req) => {
     });
 
     // Generate booking reference
-    const bookingReference = 'AC' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    const bookingReference = 'CR' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
     // Get authenticated user (optional for guest bookings)
     let userId = null;
@@ -88,41 +105,43 @@ serve(async (req) => {
       }
     }
 
-    // Step 1: Validate activity availability with HotelBeds
-    logger.info('Validating activity availability with HotelBeds');
-    const availabilityResponse = await supabaseService.functions.invoke('hotelbeds-activities', {
+    // Step 1: Validate car availability with Sabre
+    logger.info('Validating car availability with Sabre');
+    const availabilityResponse = await supabaseService.functions.invoke('sabre-car-search', {
       body: {
-        destination: params.activityData.location,
-        from: params.selectedDate,
-        to: params.selectedDate,
-        activityId: params.activityId
+        pickupLocation: params.carOffer.pickupLocation.code,
+        dropoffLocation: params.carOffer.dropoffLocation.code,
+        pickupDateTime: params.carOffer.pickupDateTime,
+        dropoffDateTime: params.carOffer.dropoffDateTime,
+        carId: params.carOffer.id
       }
     });
 
     if (availabilityResponse.error) {
-      throw new Error(`Activity availability check failed: ${availabilityResponse.error.message}`);
+      throw new Error(`Car availability check failed: ${availabilityResponse.error.message}`);
     }
 
-    logger.info('Activity availability confirmed');
+    logger.info('Car availability confirmed');
 
     // Step 2: Store booking in Supabase
     const { data: booking, error: bookingError } = await supabaseService
       .from('bookings')
       .insert({
         user_id: userId,
-        booking_type: 'activity',
+        booking_type: 'car',
         booking_reference: bookingReference,
         status: 'pending',
         total_amount: params.amount,
         currency: params.currency,
         booking_data: {
           customerInfo: params.customerInfo,
-          activityId: params.activityId,
-          activityData: params.activityData,
-          selectedDate: params.selectedDate,
-          selectedTime: params.selectedTime,
-          participants: params.participants,
-          participantDetails: params.participantDetails,
+          carOffer: params.carOffer,
+          driverDetails: params.driverDetails,
+          pickupDateTime: params.carOffer.pickupDateTime,
+          dropoffDateTime: params.carOffer.dropoffDateTime,
+          pickupLocation: params.carOffer.pickupLocation,
+          dropoffLocation: params.carOffer.dropoffLocation,
+          vehicleInfo: params.carOffer.vehicleInfo,
           bookingConfirmation: null // Will be updated after provider booking
         }
       })
@@ -133,7 +152,7 @@ serve(async (req) => {
       throw new Error(`Failed to store booking: ${bookingError.message}`);
     }
 
-    logger.info('Activity booking stored in database:', { bookingId: booking.id });
+    logger.info('Car booking stored in database:', { bookingId: booking.id });
 
     // Step 3: Create Stripe payment intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -141,12 +160,14 @@ serve(async (req) => {
       currency: params.currency.toLowerCase(),
       metadata: {
         booking_id: booking.id,
-        booking_type: 'activity',
+        booking_type: 'car',
         booking_reference: bookingReference,
         user_id: userId || 'guest',
-        activity_id: params.activityId
+        car_offer_id: params.carOffer.id,
+        pickup_location: params.carOffer.pickupLocation.name,
+        dropoff_location: params.carOffer.dropoffLocation.name
       },
-      description: `Activity booking ${bookingReference} - ${params.activityData.name}`,
+      description: `Car rental booking ${bookingReference} - ${params.carOffer.vehicleInfo.make} ${params.carOffer.vehicleInfo.model}`,
     });
 
     // Step 4: Store payment record
@@ -165,7 +186,7 @@ serve(async (req) => {
       logger.error('Failed to store payment record:', paymentError);
     }
 
-    logger.info('Activity booking process completed successfully');
+    logger.info('Car booking process completed successfully');
 
     return new Response(JSON.stringify({
       success: true,
@@ -175,9 +196,11 @@ serve(async (req) => {
         status: 'pending',
         amount: params.amount,
         currency: params.currency,
-        activityName: params.activityData.name,
-        selectedDate: params.selectedDate,
-        selectedTime: params.selectedTime
+        vehicleInfo: params.carOffer.vehicleInfo,
+        pickupDateTime: params.carOffer.pickupDateTime,
+        dropoffDateTime: params.carOffer.dropoffDateTime,
+        pickupLocation: params.carOffer.pickupLocation,
+        dropoffLocation: params.carOffer.dropoffLocation
       },
       payment: {
         client_secret: paymentIntent.client_secret,
@@ -189,17 +212,14 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error('Activity booking error:', error);
+    logger.error('Car booking error:', error);
     
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : 'Activity booking failed'
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message || 'Car booking failed'
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 });
