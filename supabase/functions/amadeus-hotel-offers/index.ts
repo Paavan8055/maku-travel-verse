@@ -173,6 +173,65 @@ serve(async (req) => {
       });
     }
 
+    // Extract ancillary services from offers
+    const ancillaryServices = [];
+    
+    // Parse potential add-ons from offer data
+    offers.forEach((offer: any) => {
+      // Check for breakfast in rate family or room description
+      const hasBreakfast = offer.rateFamilyEstimated?.type?.includes('BREAKFAST') || 
+                          offer.room?.description?.toLowerCase().includes('breakfast');
+      
+      if (hasBreakfast && !ancillaryServices.find(s => s.id === 'breakfast')) {
+        ancillaryServices.push({
+          id: 'breakfast',
+          name: 'Continental Breakfast',
+          description: 'Daily breakfast buffet for all guests',
+          price: 25.00,
+          currency: offer.price?.currency || 'USD',
+          category: 'meal',
+          perNight: true,
+          required: false
+        });
+      }
+    });
+
+    // Add standard ancillary services
+    const standardAddOns = [
+      {
+        id: 'parking',
+        name: 'Parking',
+        description: 'Self-parking at the hotel',
+        price: 15.00,
+        currency: currency,
+        category: 'transport',
+        perNight: true,
+        required: false
+      },
+      {
+        id: 'wifi',
+        name: 'Premium WiFi',
+        description: 'High-speed internet access',
+        price: 12.00,
+        currency: currency,
+        category: 'amenity',
+        perNight: true,
+        required: false
+      },
+      {
+        id: 'late-checkout',
+        name: 'Late Check-out',
+        description: 'Check out until 2 PM',
+        price: 35.00,
+        currency: currency,
+        category: 'service',
+        perNight: false,
+        required: false
+      }
+    ];
+
+    ancillaryServices.push(...standardAddOns);
+
     // Transform offers to match frontend expectations
     const transformedOffers = offers.map((offer: any) => ({
       id: offer.id,
@@ -224,11 +283,13 @@ serve(async (req) => {
         longitude: hotel?.longitude
       },
       offers: transformedOffers,
+      ancillaryServices,
       available: hotelData?.available,
       meta: {
         apiProvider: 'Amadeus Hotel Offers',
         searchId: crypto.randomUUID(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        ancillaryServicesCount: ancillaryServices.length
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

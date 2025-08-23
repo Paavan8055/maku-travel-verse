@@ -49,11 +49,13 @@ interface UseHotelOffersResult {
   error: string | null;
   fetchOffers: (params: HotelOffersParams) => Promise<void>;
   hotel: any;
+  ancillaryServices?: any[];
 }
 
 export const useHotelOffers = (): UseHotelOffersResult => {
   const [offers, setOffers] = useState<HotelOffer[]>([]);
   const [hotel, setHotel] = useState<any>(null);
+  const [ancillaryServices, setAncillaryServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,7 +86,9 @@ export const useHotelOffers = (): UseHotelOffersResult => {
       if (data?.success) {
         setOffers(data.offers || []);
         setHotel(data.hotel);
+        setAncillaryServices(data.ancillaryServices || []);
         console.log(`✅ Found ${data.offers?.length || 0} offers for hotel ${params.hotelId}`);
+        console.log(`✅ Found ${data.ancillaryServices?.length || 0} ancillary services`);
         
         if (data.offers?.length === 0) {
           toast.info('No room offers available for selected dates');
@@ -107,6 +111,7 @@ export const useHotelOffers = (): UseHotelOffersResult => {
   return {
     offers,
     hotel,
+    ancillaryServices,
     loading,
     error,
     fetchOffers
