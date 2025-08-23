@@ -108,10 +108,11 @@ function CheckoutInner() {
         // Calculate nights for add-ons pricing
         const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
         
-        // Calculate total amount
+        // Calculate total amount with proper add-ons pricing
         const baseAmount = parseFloat(offerData?.price?.total || '299.99');
         const addOnsAmount = addOnsData.reduce((total: number, addon: any) => {
-          return total + (addon.price * (addon.perNight ? nights : 1));
+          const addonPrice = addon.perNight ? addon.price * nights : addon.price;
+          return total + addonPrice;
         }, 0);
         const totalAmount = baseAmount + addOnsAmount;
         

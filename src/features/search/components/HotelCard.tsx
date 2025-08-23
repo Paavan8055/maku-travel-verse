@@ -240,11 +240,26 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                     onClose={() => setShowRoomSelection(false)}
                     hotelId={hotel.amadeus?.hotelId || hotel.id}
                     hotelName={hotel.name}
-                    checkIn={new Date().toISOString().split('T')[0]}
-                    checkOut={new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0]}
-                    adults={2}
-                    children={0}
-                    rooms={1}
+                    checkIn={(() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      return urlParams.get('checkIn') || urlParams.get('checkin') || new Date().toISOString().split('T')[0];
+                    })()}
+                    checkOut={(() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      return urlParams.get('checkOut') || urlParams.get('checkout') || new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0];
+                    })()}
+                    adults={(() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      return parseInt(urlParams.get('adults') || urlParams.get('guests') || '2');
+                    })()}
+                    children={(() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      return parseInt(urlParams.get('children') || '0');
+                    })()}
+                    rooms={(() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      return parseInt(urlParams.get('rooms') || '1');
+                    })()}
                     currency={hotel.currency}
                     onRoomSelected={(selectedOffer, hotelData, selectedAddOns) => {
                       // Calculate add-ons total

@@ -111,8 +111,17 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
   const [currentTab, setCurrentTab] = useState<'rooms' | 'addons'>('rooms');
   const { offers, hotel, ancillaryServices, loading, error, fetchOffers } = useHotelOffers();
 
-  // Mock add-ons data - in real app this would come from API
-  const mockAddOns: AddOn[] = [
+  // Use real ancillary services from API or fallback to mock data
+  const mockAddOns: AddOn[] = ancillaryServices?.length > 0 ? ancillaryServices.map(service => ({
+    id: service.code || service.id || `addon-${Date.now()}`,
+    name: service.name || service.description || 'Service',
+    description: service.description || service.name || 'Additional service',
+    price: service.price || 0,
+    currency: service.currency || currency,
+    category: service.category || 'amenities',
+    perNight: service.perNight || false,
+    required: false
+  })) : [
     {
       id: 'breakfast',
       name: 'Continental Breakfast',
