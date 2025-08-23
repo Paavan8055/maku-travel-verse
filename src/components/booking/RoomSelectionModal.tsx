@@ -29,6 +29,10 @@ import {
 import { useHotelOffers } from '@/hooks/useHotelOffers';
 import { AddOnsSelector } from './AddOnsSelector';
 import { toast } from 'sonner';
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useSessionRecovery } from "@/hooks/useSessionRecovery";
+import { format } from 'date-fns';
 
 interface HotelOffer {
   id: string;
@@ -111,7 +115,10 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
   const [selectedOffer, setSelectedOffer] = useState<HotelOffer | null>(null);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [currentTab, setCurrentTab] = useState<'rooms' | 'addons'>('rooms');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { offers, hotel, ancillaryServices, loading, error, fetchOffers } = useHotelOffers();
+  const { saveSession } = useSessionRecovery();
 
   // Use real ancillary services from API or fallback to mock data
   const mockAddOns: AddOn[] = ancillaryServices?.length > 0 ? ancillaryServices.map(service => ({
@@ -184,12 +191,39 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
     setSelectedOffer(offer);
   };
 
-  const handleContinueToCheckout = () => {
-    if (selectedOffer && hotel) {
+  const handleContinueToCheckout = async () => {
+    if (!selectedOffer || !hotel) return;
+    
+    setIsProcessing(true);
+    try {
+      // Save session for recovery
+      saveSession({
+        hotelId,
+        hotelName,
+        checkIn,
+        checkOut,
+        adults,
+        children,
+        rooms,
+        selectedOffer,
+        selectedAddOns: (ancillaryServices || mockAddOns).filter(addOn => selectedAddOnIds.includes(addOn.id)),
+        step: 'checkout'
+      });
+
       const addOnsToUse = ancillaryServices || mockAddOns;
       const selectedAddOns = addOnsToUse.filter(addOn => selectedAddOnIds.includes(addOn.id));
+      
+      // Add a small delay to show processing state
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       onRoomSelected(selectedOffer, hotel, selectedAddOns);
       onClose();
+      setShowConfirmation(false);
+    } catch (error) {
+      console.error('Error proceeding to checkout:', error);
+      toast.error('Failed to proceed to checkout. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -291,13 +325,13 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
   if (loading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Loading room options...</DialogTitle>
-          </DialogHeader>
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3 text-muted-foreground">Fetching available rooms...</span>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+          <div className="flex flex-col items-center justify-center h-40 space-y-4">
+            <LoadingSpinner size="lg" text="Finding the best room options for you..." />
+            <div className="text-sm text-muted-foreground text-center">
+              <p>Checking {hotelName}</p>
+              <p>{format(new Date(checkIn), 'MMM dd')} - {format(new Date(checkOut), 'MMM dd')} • {adults} Adults{children > 0 && `, ${children} Children`}</p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -544,11 +578,11 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
               </Button>
             ) : (
               <Button 
-                onClick={handleContinueToCheckout}
-                disabled={!selectedOffer}
+                onClick={() => setShowConfirmation(true)}
+                disabled={!selectedOffer || isProcessing}
                 className="btn-primary"
               >
-                Continue to checkout
+                {isProcessing ? "Processing..." : "Continue to checkout"}
                 <span className="ml-2">
                   {formatCurrency(getTotalPrice(), selectedOffer?.price?.currency || currency)}
                 </span>
@@ -557,6 +591,18 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
           </div>
         )}
         </DialogContent>
+
+        <ConfirmationDialog
+          isOpen={showConfirmation}
+          onClose={() => setShowConfirmation(false)}
+          onConfirm={handleContinueToCheckout}
+          title="Confirm Your Selection"
+          description={`Proceed to checkout with ${selectedOffer ? getRoomTypeName(selectedOffer.room) : 'selected room'} at ${hotelName}? Your selection will be saved and you can modify it before final payment.`}
+          confirmText="Continue to Checkout"
+          cancelText="Review Selection"
+          variant="default"
+          isLoading={isProcessing}
+        />
       </Dialog>
     </ErrorBoundary>
   );

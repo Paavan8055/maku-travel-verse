@@ -62,11 +62,27 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
     const hotelId = hotel.amadeus?.hotelId || hotel.id;
     searchParams.set('hotelId', hotelId);
     
-    // Standardize parameter names (use camelCase consistently)
+    // Enhanced parameter standardization with validation
     const checkInValue = currentUrlParams.get('checkIn') || currentUrlParams.get('checkin');
     const checkOutValue = currentUrlParams.get('checkOut') || currentUrlParams.get('checkout');
-    const adultsValue = currentUrlParams.get('adults') || currentUrlParams.get('guests') || '2';
-    const childrenValue = currentUrlParams.get('children') || '0';
+    
+    // Improved guest handling with proper separation of adults/children
+    let adultsValue = currentUrlParams.get('adults');
+    let childrenValue = currentUrlParams.get('children') || '0';
+    
+    // Fallback to guests parameter if adults not specified
+    if (!adultsValue) {
+      const guestsValue = currentUrlParams.get('guests') || '2';
+      const totalGuests = parseInt(guestsValue);
+      adultsValue = Math.max(1, totalGuests).toString();
+      // If guests > 2, assume some might be children
+      if (totalGuests > 2 && parseInt(childrenValue) === 0) {
+        const assumedChildren = Math.max(0, totalGuests - 2);
+        childrenValue = assumedChildren.toString();
+        adultsValue = Math.max(1, totalGuests - assumedChildren).toString();
+      }
+    }
+    
     const roomsValue = currentUrlParams.get('rooms') || '1';
     
     if (checkInValue) searchParams.set('checkIn', checkInValue);
