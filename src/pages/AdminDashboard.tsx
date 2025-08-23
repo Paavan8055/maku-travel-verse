@@ -7,6 +7,9 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { BookingManagement } from '@/components/admin/BookingManagement';
 import { SecurityMonitoring } from '@/components/admin/SecurityMonitoring';
 import { ProductionMonitoringDashboard } from '@/components/admin/ProductionMonitoringDashboard';
+import { RealTimeMetricsDashboard } from '@/components/admin/RealTimeMetricsDashboard';
+import { CorrelationTracker } from '@/components/admin/CorrelationTracker';
+import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -109,6 +112,8 @@ const AdminDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="realtime">Real-Time</TabsTrigger>
+            <TabsTrigger value="correlation">Correlation</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
@@ -147,6 +152,14 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
           
+          <TabsContent value="realtime">
+            <RealTimeMetricsDashboard />
+          </TabsContent>
+          
+          <TabsContent value="correlation">
+            <CorrelationTracker />
+          </TabsContent>
+          
           <TabsContent value="users">
             <UserManagement />
           </TabsContent>
@@ -156,7 +169,10 @@ const AdminDashboard = () => {
           </TabsContent>
           
           <TabsContent value="security">
-            <SecurityMonitoring />
+            <div className="space-y-6">
+              <SecuritySettingsGuide />
+              <SecurityMonitoring />
+            </div>
           </TabsContent>
           
           <TabsContent value="monitoring">

@@ -38,61 +38,70 @@ export const useRealFlightSearch = () => {
     setError(null);
 
     try {
-      // Try unified API client first (uses multiple providers)
-      try {
-        const unifiedResults = await unifiedApiClient.searchFlights(params);
-        setResults({
-          data: unifiedResults,
-          source: 'api',
-          provider: 'unified',
-          timestamp: new Date().toISOString()
-        });
-        
-        toast({
-          title: "Search completed",
-          description: `Found ${unifiedResults.length} flight options`,
-        });
-        
-        return;
-      } catch (unifiedError) {
-        logger.warn('Unified API failed, falling back to direct calls', unifiedError);
-      }
+      // Multi-provider rotation with fallback
+      const providers = ['unified', 'amadeus', 'sabre'];
+      let lastError: any = null;
 
-      // Fallback to direct Amadeus search
-      const { data: amadeusData, error: amadeusError } = await supabase.functions.invoke(
-        'amadeus-flight-search',
-        {
-          body: {
-            origin: params.origin,
-            destination: params.destination,
-            departureDate: params.departureDate,
-            returnDate: params.returnDate,
-            adults: params.adults || 1,
-            children: params.children || 0,
-            infants: params.infants || 0,
-            cabin: 'ECONOMY',
-            currency: 'AUD'
+      for (const provider of providers) {
+        try {
+          if (provider === 'unified') {
+            const unifiedResults = await unifiedApiClient.searchFlights(params);
+            setResults({
+              data: unifiedResults,
+              source: 'api',
+              provider: 'unified',
+              timestamp: new Date().toISOString()
+            });
+            
+            toast({
+              title: "Flight search completed",
+              description: `Found ${unifiedResults.length} flight options`,
+            });
+            return;
           }
+
+          // Direct provider calls with error handling
+          const functionName = provider === 'amadeus' ? 'amadeus-flight-search' : 'sabre-flight-search';
+          
+          const { data, error } = await supabase.functions.invoke(functionName, {
+            body: {
+              origin: params.origin,
+              destination: params.destination,
+              departureDate: params.departureDate,
+              returnDate: params.returnDate,
+              adults: params.adults || 1,
+              children: params.children || 0,
+              infants: params.infants || 0,
+              cabin: 'ECONOMY',
+              currency: 'AUD'
+            }
+          });
+
+          if (error) throw error;
+
+          if (data?.success && data?.flights) {
+            setResults({
+              data: data.flights,
+              source: data.source || 'api',
+              provider,
+              timestamp: new Date().toISOString()
+            });
+
+            toast({
+              title: "Flight search completed",
+              description: `Found ${data.flights.length} flights via ${provider}`,
+            });
+            return;
+          }
+        } catch (providerError) {
+          logger.warn(`${provider} flight search failed, trying next provider`, providerError);
+          lastError = providerError;
+          continue;
         }
-      );
-
-      if (amadeusError) throw amadeusError;
-
-      if (amadeusData?.success && amadeusData?.flights) {
-        setResults({
-          data: amadeusData.flights,
-          source: amadeusData.source || 'api',
-          provider: 'amadeus',
-          timestamp: new Date().toISOString()
-        });
-
-        toast({
-          title: "Flight search completed",
-          description: `Found ${amadeusData.flights.length} flights`,
-        });
-      } else {
-        throw new Error('No flight results found');
       }
+
+      // If all providers failed
+      throw lastError || new Error('All flight search providers failed');
 
     } catch (err: any) {
       const errorMessage = err.message || 'Flight search failed';
@@ -123,59 +132,70 @@ export const useRealHotelSearch = () => {
     setError(null);
 
     try {
-      // Try unified API client first
-      try {
-        const unifiedResults = await unifiedApiClient.searchHotels(params);
-        setResults({
-          data: unifiedResults,
-          source: 'api',
-          provider: 'unified',
-          timestamp: new Date().toISOString()
-        });
-        
-        toast({
-          title: "Hotel search completed",
-          description: `Found ${unifiedResults.length} hotel options`,
-        });
-        
-        return;
-      } catch (unifiedError) {
-        logger.warn('Unified API failed, falling back to direct calls', unifiedError);
-      }
+      // Multi-provider rotation with fallback
+      const providers = ['unified', 'amadeus', 'sabre', 'hotelbeds'];
+      let lastError: any = null;
 
-      // Fallback to direct Amadeus hotel search
-      const { data: amadeusData, error: amadeusError } = await supabase.functions.invoke(
-        'amadeus-hotel-search',
-        {
-          body: {
-            destination: params.destination || params.cityCode,
-            checkInDate: params.checkIn,
-            checkOutDate: params.checkOut,
-            adults: params.adults || 2,
-            children: params.children || 0,
-            rooms: params.rooms || 1,
-            currency: 'AUD'
+      for (const provider of providers) {
+        try {
+          if (provider === 'unified') {
+            const unifiedResults = await unifiedApiClient.searchHotels(params);
+            setResults({
+              data: unifiedResults,
+              source: 'api',
+              provider: 'unified',
+              timestamp: new Date().toISOString()
+            });
+            
+            toast({
+              title: "Hotel search completed",
+              description: `Found ${unifiedResults.length} hotel options`,
+            });
+            return;
           }
+
+          // Direct provider calls with error handling
+          const functionName = provider === 'amadeus' ? 'amadeus-hotel-search' :
+                              provider === 'sabre' ? 'sabre-hotel-search' :
+                              'hotelbeds-search';
+          
+          const { data, error } = await supabase.functions.invoke(functionName, {
+            body: {
+              destination: params.destination || params.cityCode,
+              checkInDate: params.checkIn,
+              checkOutDate: params.checkOut,
+              adults: params.adults || 2,
+              children: params.children || 0,
+              rooms: params.rooms || 1,
+              currency: 'AUD'
+            }
+          });
+
+          if (error) throw error;
+
+          if (data?.success && data?.hotels) {
+            setResults({
+              data: data.hotels,
+              source: data.source || 'api',
+              provider,
+              timestamp: new Date().toISOString()
+            });
+
+            toast({
+              title: "Hotel search completed",
+              description: `Found ${data.hotels.length} hotels via ${provider}`,
+            });
+            return;
+          }
+        } catch (providerError) {
+          logger.warn(`${provider} hotel search failed, trying next provider`, providerError);
+          lastError = providerError;
+          continue;
         }
-      );
-
-      if (amadeusError) throw amadeusError;
-
-      if (amadeusData?.success && amadeusData?.hotels) {
-        setResults({
-          data: amadeusData.hotels,
-          source: amadeusData.source || 'api',
-          provider: 'amadeus',
-          timestamp: new Date().toISOString()
-        });
-
-        toast({
-          title: "Hotel search completed",
-          description: `Found ${amadeusData.hotels.length} hotels`,
-        });
-      } else {
-        throw new Error('No hotel results found');
       }
+
+      // If all providers failed
+      throw lastError || new Error('All hotel search providers failed');
 
     } catch (err: any) {
       const errorMessage = err.message || 'Hotel search failed';
