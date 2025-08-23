@@ -101,12 +101,33 @@ function CheckoutInner() {
         
         console.log('✅ Stripe key retrieved successfully');
 
+        // Get pricing from sessionStorage
+        const offerData = JSON.parse(sessionStorage.getItem('selectedOffer') || '{}');
+        const addOnsData = JSON.parse(sessionStorage.getItem('selectedAddOns') || '[]');
+        
+        // Calculate nights for add-ons pricing
+        const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Calculate total amount
+        const baseAmount = parseFloat(offerData?.price?.total || '299.99');
+        const addOnsAmount = addOnsData.reduce((total: number, addon: any) => {
+          return total + (addon.price * (addon.perNight ? nights : 1));
+        }, 0);
+        const totalAmount = baseAmount + addOnsAmount;
+        
+        console.log('💰 Pricing breakdown:', {
+          baseAmount,
+          addOnsAmount,
+          totalAmount,
+          currency: offerData?.price?.currency || 'USD'
+        });
+
         // Create payment intent for hotel booking
-        const { data, error } = await supabase.functions.invoke("create-payment-intent", {
+        const { data, error } = await supabase.functions.invoke("create-booking-payment", {
           body: { 
             booking_type: 'hotel',
-            amount: 299.99, // This should come from the offer data in production
-            currency: 'USD',
+            amount: totalAmount,
+            currency: offerData?.price?.currency || 'USD',
             metadata: {
               hotelId, 
               offerId, 
@@ -117,7 +138,10 @@ function CheckoutInner() {
               rooms, 
               addons,
               bedPref,
-              note
+              note,
+              baseAmount,
+              addOnsAmount,
+              selectedAddOns: addOnsData
             }
           }
         });
@@ -179,6 +203,10 @@ function CheckoutInner() {
   // Calculate display values
   const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
   const totalGuests = adults + children;
+  
+  // Get pricing breakdown from sessionStorage
+  const offerData = JSON.parse(sessionStorage.getItem('selectedOffer') || '{}');
+  const addOnsData = JSON.parse(sessionStorage.getItem('selectedAddOns') || '[]');
   
   const checkInDate = new Date(checkIn).toLocaleDateString('en-US', { 
     month: 'short', day: 'numeric', year: 'numeric' 
@@ -378,10 +406,35 @@ function CheckoutInner() {
                     </div>
                   </div>
                   
+                  {/* Add-ons Display */}
+                  {addOnsData.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Selected Add-ons</h4>
+                      {addOnsData.map((addon: any) => (
+                        <div key={addon.id} className="flex justify-between text-sm">
+                          <span>{addon.name} {addon.perNight ? `(${nights} nights)` : ''}</span>
+                          <span>{offerData?.price?.currency || 'USD'} {(addon.price * (addon.perNight ? nights : 1)).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   {/* Price Display */}
                   {bookingData && (
                     <div className="border-t pt-4 space-y-2">
-                      <div className="flex justify-between font-bold text-lg">
+                      {offerData?.price?.total && (
+                        <div className="flex justify-between">
+                          <span>Room Rate ({nights} nights)</span>
+                          <span>{offerData.price.currency} {parseFloat(offerData.price.total).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {addOnsData.length > 0 && (
+                        <div className="flex justify-between">
+                          <span>Add-ons</span>
+                          <span>{offerData?.price?.currency || bookingData.currency} {addOnsData.reduce((total: number, addon: any) => total + (addon.price * (addon.perNight ? nights : 1)), 0).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-lg border-t pt-2">
                         <span>Total</span>
                         <span>{bookingData.currency} {bookingData.total_amount?.toFixed(2)}</span>
                       </div>

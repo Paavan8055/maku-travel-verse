@@ -109,7 +109,7 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
   const [selectedOffer, setSelectedOffer] = useState<HotelOffer | null>(null);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [currentTab, setCurrentTab] = useState<'rooms' | 'addons'>('rooms');
-  const { offers, hotel, loading, error, fetchOffers } = useHotelOffers();
+  const { offers, hotel, ancillaryServices, loading, error, fetchOffers } = useHotelOffers();
 
   // Mock add-ons data - in real app this would come from API
   const mockAddOns: AddOn[] = [
@@ -175,7 +175,8 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
 
   const handleContinueToCheckout = () => {
     if (selectedOffer && hotel) {
-      const selectedAddOns = mockAddOns.filter(addOn => selectedAddOnIds.includes(addOn.id));
+      const addOnsToUse = ancillaryServices || mockAddOns;
+      const selectedAddOns = addOnsToUse.filter(addOn => selectedAddOnIds.includes(addOn.id));
       onRoomSelected(selectedOffer, hotel, selectedAddOns);
       onClose();
     }
@@ -190,7 +191,8 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
   const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
   
   const getSelectedAddOnsPrice = () => {
-    return mockAddOns
+    const addOnsToUse = ancillaryServices || mockAddOns;
+    return addOnsToUse
       .filter(addOn => selectedAddOnIds.includes(addOn.id))
       .reduce((total, addOn) => {
         const price = addOn.perNight ? addOn.price * nights : addOn.price;
@@ -489,13 +491,13 @@ export const RoomSelectionModal: React.FC<RoomSelectionModalProps> = ({
               </Card>
             )}
 
-            <AddOnsSelector
-              addOns={mockAddOns}
-              selectedAddOns={selectedAddOnIds}
-              onAddOnsChange={setSelectedAddOnIds}
-              nights={nights}
-              currency={currency}
-            />
+                <AddOnsSelector
+                  addOns={ancillaryServices || mockAddOns}
+                  selectedAddOns={selectedAddOnIds}
+                  onAddOnsChange={setSelectedAddOnIds}
+                  nights={nights}
+                  currency={currency}
+                />
 
             {getSelectedAddOnsPrice() > 0 && (
               <Card>
