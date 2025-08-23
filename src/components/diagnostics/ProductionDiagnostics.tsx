@@ -44,10 +44,10 @@ export const ProductionDiagnostics = () => {
       try {
         const { data: flightData, error: flightError } = await supabase.functions.invoke('amadeus-flight-search', {
           body: {
-            originLocationCode: 'SYD',
-            destinationLocationCode: 'MEL',
+            origin: 'SYD',
+            destination: 'MEL',
             departureDate: '2025-12-01',
-            adults: 1
+            passengers: 1
           }
         });
         flightTest = flightError ? `ERROR: ${flightError.message}` : 'SUCCESS';
