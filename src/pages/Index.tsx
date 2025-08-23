@@ -37,13 +37,34 @@ const Index = () => {
           {process.env.NODE_ENV === 'development' && (
             <div className="max-w-4xl mx-auto px-6 py-12">
               <PaymentDebugger />
-              <div className="mt-8 text-center">
+              <div className="mt-8 text-center space-y-2">
+                <div className="text-lg font-semibold mb-4">🧪 Test All Booking Flows</div>
+                <div className="grid grid-cols-3 gap-4">
+                  <Button 
+                    onClick={() => window.location.href = '/hotels?destination=sydney&checkIn=2025-08-24&checkOut=2025-08-25&guests=2'}
+                    variant="outline"
+                  >
+                    🏨 Test Hotels
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/flights?origin=LAX&destination=SYD&departureDate=2025-08-24&passengers=2'}
+                    variant="outline"
+                  >
+                    ✈️ Test Flights
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/activities?destination=sydney&date=2025-08-24&participants=2'}
+                    variant="outline"
+                  >
+                    🎯 Test Activities
+                  </Button>
+                </div>
                 <Button 
                   onClick={() => window.location.href = '/hotel-checkout-test'}
-                  variant="outline"
-                  className="mb-4"
+                  variant="default"
+                  className="mt-4"
                 >
-                  🧪 Test Hotel Checkout Flow
+                  💳 Complete Hotel Payment Test
                 </Button>
               </div>
             </div>
