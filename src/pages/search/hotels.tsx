@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { HotelCard } from "@/features/search/components/HotelCard";
+import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
+import { LoadingSpinner, PageLoadingSpinner } from "@/components/ui/loading-spinner";
 import { useHotelSearch } from "@/features/search/hooks/useHotelSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
 import { TravelFundBalance, SaveSearchActions, UrgencyBadge, GuestReviewSnippet, BestPriceGuarantee } from "@/components/search/ConversionEnhancements";
@@ -108,6 +110,7 @@ const HotelSearchPage = () => {
     <PerformanceWrapper componentName="HotelSearchPage">
       <div className="min-h-screen bg-background">
         <Navbar />
+        <SessionRecoveryBanner />
       
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header with Search Actions */}

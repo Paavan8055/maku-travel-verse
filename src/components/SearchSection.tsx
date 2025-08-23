@@ -67,16 +67,24 @@ const [activityChildren, setActivityChildren] = useState(0);
   ];
 
   const handleHotelSearch = () => {
+    if (!destination || !checkIn || !checkOut) {
+      return; // Basic validation
+    }
+    
     startRender();
     const params = new URLSearchParams();
-    if (destination) params.set("destination", destination);
-    if (checkIn) params.set("checkIn", format(checkIn, "yyyy-MM-dd"));
-    if (checkOut) params.set("checkOut", format(checkOut, "yyyy-MM-dd"));
     
-    // Use consistent parameter names for better integration
+    params.set("destination", destination);
+    params.set("checkIn", format(checkIn, "yyyy-MM-dd"));
+    params.set("checkOut", format(checkOut, "yyyy-MM-dd"));
+    
+    // Enhanced parameter handling with proper adult/children separation
     const guestCount = parseInt(guests);
-    params.set("adults", String(Math.max(1, guestCount)));
-    params.set("children", "0");
+    const adultsCount = Math.max(1, Math.min(guestCount, 8)); // Max 8 adults
+    const childrenCount = Math.max(0, guestCount - adultsCount);
+    
+    params.set("adults", String(adultsCount));
+    params.set("children", String(childrenCount));
     params.set("rooms", "1");
     params.set("guests", guests); // Keep for backward compatibility
     params.set("searched", "true");
