@@ -6,127 +6,68 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
-import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
-import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
-import { ErrorBoundaryWithFallback } from "@/components/ErrorBoundaryWithFallback";
-import { SkipLink } from "@/components/SkipLink";
+import { SearchProvider } from "@/features/search/context/SearchContext";
+import { HealthMonitorProvider } from "@/providers/HealthMonitorProvider";
+import { PaymentProvider } from "@/features/payment/PaymentProvider";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import AdminAuth from "./pages/AdminAuth";
-import AdminDashboard from "./pages/AdminDashboard";
-import PartnerAuth from "./pages/PartnerAuth";
-import PartnerDashboard from "./pages/PartnerDashboard";
-import PartnerPortal from "./pages/PartnerPortal";
-import Partners from "./pages/Partners";
-import Dashboard from "./pages/Dashboard";
-import Search from "./pages/Search";
-import SearchHotels from "./pages/search/hotels";
-import SearchFlights from "./pages/search/flights";
-import SearchActivities from "./pages/search/activities";
-import SearchCars from "./pages/search/cars";
-import { HotelDetails } from "./pages/HotelDetails";
-import HotelCheckout from "./pages/HotelCheckout";
-import HotelCheckoutTest from "./pages/HotelCheckoutTest";
-import FlightCheckout from "./pages/FlightCheckout";
-import ActivityCheckout from "./pages/ActivityCheckout";
-import BookingConfirmation from "./pages/BookingConfirmation";
-import BookingCancelled from "./pages/BookingCancelled";
-import BookingDetails from "./pages/BookingDetails";
-import BookingSelect from "./pages/BookingSelect";
-import BookingExtras from "./pages/BookingExtras";
-import BookingBaggage from "./pages/BookingBaggage";
-import FlightBookingReview from "./pages/FlightBookingReview";
-import ActivitySelect from "./pages/ActivitySelect";
-import Checkout from "./pages/Checkout";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancelled from "./pages/PaymentCancelled";
-import PaymentSetup from "./pages/PaymentSetup";
-import NotFound from "./pages/NotFound";
-import Help from "./pages/Help";
-import About from "./pages/About";
-import Careers from "./pages/Careers";
-import Press from "./pages/Press";
-import Deals from "./pages/Deals";
-import GiftCards from "./pages/GiftCards";
-import Roadmap from "./pages/Roadmap";
-import BookingEnhanced from "./pages/BookingEnhanced";
-import BookingPayment from "./pages/BookingPayment";
-import Testing from "./pages/Testing";
-import UXShowcase from "./pages/UXShowcase";
-import AIAdvanced from "./pages/AIAdvanced";
-import ProductionDashboard from "./pages/ProductionDashboard";
-import ComingSoon from "./pages/ComingSoon";
+import FlightsPage from "./pages/flights";
+import ActivitiesPage from "./pages/activities";
+import HotelSearchPage from "./pages/search/hotels";
+import FlightSearchPage from "./pages/search/flights";
+import ActivitySearchPage from "./pages/search/activities";
+import UnifiedSearchPage from "./pages/search/index";
+import HotelBookingReviewPage from "./pages/hotel-booking-review";
+import FlightBookingReviewPage from "./pages/flight-booking-review";
+import ActivityBookingReviewPage from "./pages/activity-booking-review";
+import HotelCheckoutTestPage from "./pages/hotel-checkout-test";
+import SettingsPage from "./pages/settings";
+import ProfilePage from "./pages/profile";
+import BookingsPage from "./pages/bookings";
+import TravelFundPage from "./pages/travel-fund";
+import TravelPreferencesPage from "./pages/travel-preferences";
+import InviteFriendsPage from "./pages/invite-friends";
+import "./App.css";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <CurrencyProvider>
-            <MakuBotProvider>
-              <AgenticBotProvider>
-                <ErrorBoundaryWithFallback context="application">
+    <HealthMonitorProvider>
+      <AuthProvider>
+        <CurrencyProvider>
+          <SearchProvider>
+            <PaymentProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/admin" element={<AdminAuth />} />
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/partner" element={<PartnerAuth />} />
-                    <Route path="/partner/dashboard" element={<PartnerDashboard />} />
-                    <Route path="/partner-portal" element={<PartnerPortal />} />
-                    <Route path="/partners" element={<Partners />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/search" element={<Search />} />
-                    <Route path="/search/hotels" element={<SearchHotels />} />
-                    <Route path="/search/flights" element={<SearchFlights />} />
-                    <Route path="/search/activities" element={<SearchActivities />} />
-                    <Route path="/search/cars" element={<SearchCars />} />
-                    <Route path="/hotel/:id" element={<HotelDetails />} />
-                    <Route path="/hotel-checkout" element={<HotelCheckout />} />
-                    <Route path="/hotel-checkout-test" element={<HotelCheckoutTest />} />
-                    <Route path="/flight-checkout" element={<FlightCheckout />} />
-                    <Route path="/activity-checkout" element={<ActivityCheckout />} />
-                    <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-                    <Route path="/booking-cancelled" element={<BookingCancelled />} />
-                    <Route path="/booking/:id" element={<BookingDetails />} />
-                    <Route path="/booking-select" element={<BookingSelect />} />
-                    <Route path="/booking-extras" element={<BookingExtras />} />
-                    <Route path="/booking-baggage" element={<BookingBaggage />} />
-                    <Route path="/flight-booking-review" element={<FlightBookingReview />} />
-                    <Route path="/activity-select" element={<ActivitySelect />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/booking/payment" element={<BookingPayment />} />
-                    <Route path="/payment-success" element={<PaymentSuccess />} />
-                    <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                    <Route path="/payment-setup" element={<PaymentSetup />} />
-                    <Route path="/help" element={<Help />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/careers" element={<Careers />} />
-                    <Route path="/press" element={<Press />} />
-                    <Route path="/deals" element={<Deals />} />
-                     <Route path="/gift-cards" element={<GiftCards />} />
-                     <Route path="/roadmap" element={<Roadmap />} />
-                {/* Temporarily disable the booking-enhanced route to prevent 404s */}
-                {/* Remove this from HotelCard links until fully implemented */}
-                {/* <Route path="/booking-enhanced" element={<BookingEnhanced />} /> */}
-                     <Route path="/testing" element={<Testing />} />
-                     <Route path="/ux-showcase" element={<UXShowcase />} />
-                     <Route path="/ai-advanced" element={<AIAdvanced />} />
-                     <Route path="/production" element={<ProductionDashboard />} />
-                     <Route path="/coming-soon" element={<ComingSoon />} />
-                     <Route path="*" element={<NotFound />} />
+                    <Route path="/flights" element={<FlightsPage />} />
+                    <Route path="/activities" element={<ActivitiesPage />} />
+                    <Route path="/hotels" element={<HotelSearchPage />} />
+                    <Route path="/search" element={<UnifiedSearchPage />} />
+                    <Route path="/search/hotels" element={<HotelSearchPage />} />
+                    <Route path="/search/flights" element={<FlightSearchPage />} />
+                    <Route path="/search/activities" element={<ActivitySearchPage />} />
+                    <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
+                    <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
+                    <Route path="/activity-booking-review" element={<ActivityBookingReviewPage />} />
+                    <Route path="/hotel-checkout-test" element={<HotelCheckoutTestPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/bookings" element={<BookingsPage />} />
+                    <Route path="/travel-fund" element={<TravelFundPage />} />
+                    <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
+                    <Route path="/invite-friends" element={<InviteFriendsPage />} />
                   </Routes>
-                </ErrorBoundaryWithFallback>
-              </AgenticBotProvider>
-            </MakuBotProvider>
-          </CurrencyProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+                </BrowserRouter>
+              </TooltipProvider>
+            </PaymentProvider>
+          </SearchProvider>
+        </CurrencyProvider>
+      </AuthProvider>
+    </HealthMonitorProvider>
   </QueryClientProvider>
 );
 
