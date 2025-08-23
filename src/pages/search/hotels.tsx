@@ -29,6 +29,11 @@ import { CompactSearchToolbar } from "@/components/hotel/CompactSearchToolbar";
 import { SmartRecommendations } from "@/components/ota/SmartRecommendations";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import OneClickBooking from "@/features/bookingEnhancements/components/OneClickBooking";
+import MobileBookingOptimization from "@/components/mobile/MobileBookingOptimization";
+import AccessibilityProvider from "@/components/accessibility/AccessibilityProvider";
+import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
+import SmartUpselling from "@/components/conversion/SmartUpselling";
+import ConversionTracker from "@/components/analytics/ConversionTracker";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -112,11 +117,16 @@ const HotelSearchPage = () => {
   });
 
   return (
-    <ErrorBoundary>
-      <PerformanceWrapper componentName="HotelSearchPage">
-        <div className="min-h-screen bg-background">
-          <Navbar />
-          <SessionRecoveryBanner />
+    <AccessibilityProvider>
+      <ErrorBoundary>
+        <PerformanceWrapper componentName="HotelSearchPage">
+          <MobileBookingOptimization 
+            onBookingStart={() => console.log('Mobile booking started')}
+            onBookingComplete={() => console.log('Mobile booking completed')}
+          >
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <SessionRecoveryBanner />
       
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header with Search Actions */}
@@ -251,10 +261,24 @@ const HotelSearchPage = () => {
             />
           </div>
         )}
-        </div>
-      </div>
+            </div>
+            
+            {/* Performance and Analytics Monitors */}
+            <PerformanceMonitor 
+              isVisible={process.env.NODE_ENV === 'development'} 
+              componentName="HotelSearchPage" 
+            />
+            <ConversionTracker 
+              sessionId={`search-${Date.now()}`}
+              currentStep={hasSearched ? 'results' : 'search'}
+              isVisible={process.env.NODE_ENV === 'development'}
+              onOptimizationSuggestion={(suggestion) => console.log('Optimization:', suggestion)}
+            />
+          </div>
+        </MobileBookingOptimization>
       </PerformanceWrapper>
     </ErrorBoundary>
+  </AccessibilityProvider>
   );
 };
 export default HotelSearchPage;
