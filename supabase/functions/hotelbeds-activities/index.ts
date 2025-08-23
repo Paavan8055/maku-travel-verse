@@ -37,7 +37,13 @@ async function searchHotelbedsActivities(params: ActivitySearchParams): Promise<
   const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
   const secret = Deno.env.get('HOTELBEDS_SECRET');
   
+  logger.info('HotelBeds activities credentials check:', {
+    apiKeyExists: !!apiKey,
+    secretExists: !!secret
+  });
+  
   if (!apiKey || !secret) {
+    logger.error('HotelBeds activities credentials missing');
     throw new Error('HotelBeds credentials not configured');
   }
 

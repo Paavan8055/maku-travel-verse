@@ -29,7 +29,13 @@ const getAmadeusAccessToken = async (): Promise<string> => {
   const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
   
+  logger.info('Amadeus flight search credentials check:', {
+    clientIdExists: !!clientId,
+    clientSecretExists: !!clientSecret
+  });
+  
   if (!clientId || !clientSecret) {
+    logger.error('Amadeus flight search credentials missing');
     throw new Error('Amadeus credentials not configured');
   }
 

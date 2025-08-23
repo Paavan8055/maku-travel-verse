@@ -224,6 +224,9 @@ verify_jwt = false
 [functions.create-activity-booking]
 verify_jwt = true
 
+[functions.test-deployment]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327

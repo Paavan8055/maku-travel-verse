@@ -17,7 +17,17 @@ const getAmadeusAccessToken = async (): Promise<string> => {
   const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
   
+  logger.info('Amadeus credentials check:', {
+    clientIdExists: !!clientId,
+    clientSecretExists: !!clientSecret,
+    clientIdLength: clientId ? clientId.length : 0
+  });
+  
   if (!clientId || !clientSecret) {
+    logger.error('Amadeus credentials missing:', {
+      clientId: clientId ? 'Present' : 'Missing',
+      clientSecret: clientSecret ? 'Present' : 'Missing'
+    });
     throw new Error('Amadeus credentials not configured');
   }
 
@@ -299,18 +309,25 @@ serve(async (req) => {
     logger.error('=== Amadeus Hotel Offers Error ===', {
       error: error.message,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      errorName: error.name,
+      errorInstance: error instanceof Error ? 'Error' : 'Other'
     });
 
-    return new Response(JSON.stringify({
+    // Enhanced error response with more details for debugging
+    const errorResponse = {
       success: false,
-      error: error.message,
+      error: error.message || 'Unknown error occurred',
       source: 'amadeus',
       details: {
-        errorType: error.name,
-        timestamp: new Date().toISOString()
+        errorType: error.name || 'UnknownError',
+        timestamp: new Date().toISOString(),
+        environment: 'production',
+        functionName: 'amadeus-hotel-offers'
       }
-    }), {
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
