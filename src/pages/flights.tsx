@@ -12,10 +12,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Search, Plane, AlertTriangle } from "lucide-react";
 import { format as formatDate } from "date-fns";
 import { cn } from "@/lib/utils";
+import { validateFlightSearch } from "@/utils/inputValidation";
+import { useToast } from "@/hooks/use-toast";
 
 const FlightsPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Get parameters from URL
   const origin = searchParams.get('origin') || 'LAX';
@@ -43,6 +46,19 @@ const FlightsPage = () => {
       setLoading(true);
       setError(null);
       
+      // Validate input before making API call
+      const validation = validateFlightSearch(searchCriteria);
+      if (!validation.isValid) {
+        setError(validation.error || 'Invalid search parameters');
+        setLoading(false);
+        toast({
+          title: "Invalid Search",
+          description: validation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+      
       try {
         console.log('Testing flight search with:', searchCriteria);
         
@@ -69,9 +85,11 @@ const FlightsPage = () => {
           throw new Error(functionError.message || 'Flight search failed');
         }
 
-        if (data?.success && data?.data?.flights) {
-          setFlights(data.data.flights);
-          console.log('Found flights:', data.data.flights.length);
+        if (data?.success && data?.data) {
+          // Handle nested data structure - check for flights array
+          const flightData = data.data.flights || data.data.data?.flights || data.data;
+          setFlights(Array.isArray(flightData) ? flightData : []);
+          console.log('Found flights:', Array.isArray(flightData) ? flightData.length : 0);
           console.log('Provider used:', data.provider, 'Fallback:', data.fallbackUsed);
         } else {
           throw new Error(data?.error || 'No flights found');

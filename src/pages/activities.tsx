@@ -7,10 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, Users, AlertTriangle } from "lucide-react";
 import { format as formatDate } from "date-fns";
+import { validateActivitySearch } from "@/utils/inputValidation";
+import { useToast } from "@/hooks/use-toast";
 
 const ActivitiesPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Get parameters from URL
   const destination = searchParams.get('destination') || 'sydney';
@@ -28,6 +31,19 @@ const ActivitiesPage = () => {
     const testActivitySearch = async () => {
       setLoading(true);
       setError(null);
+      
+      // Validate input before making API call
+      const validation = validateActivitySearch({ destination, date, participants });
+      if (!validation.isValid) {
+        setError(validation.error || 'Invalid search parameters');
+        setLoading(false);
+        toast({
+          title: "Invalid Search",
+          description: validation.error,
+          variant: "destructive"
+        });
+        return;
+      }
       
       try {
         console.log('Testing activity search with:', { destination, date, participants });
@@ -52,9 +68,11 @@ const ActivitiesPage = () => {
           throw new Error(functionError.message || 'Activity search failed');
         }
 
-        if (data?.success && data?.data?.data) {
-          setActivities(data.data.data);
-          console.log('Found activities:', data.data.data.length);
+        if (data?.success && data?.data) {
+          // Handle nested data structure - check for activities array
+          const activityData = data.data.data || data.data.activities || data.data;
+          setActivities(Array.isArray(activityData) ? activityData : []);
+          console.log('Found activities:', Array.isArray(activityData) ? activityData.length : 0);
         } else {
           throw new Error(data?.error || 'No activities found');
         }
