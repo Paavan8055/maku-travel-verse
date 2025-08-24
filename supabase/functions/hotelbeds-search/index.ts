@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
@@ -57,7 +58,7 @@ const searchHotels = async (params: HotelSearchParams) => {
     }
   };
 
-  const response = await fetch('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', {
+  const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-api/1.0/hotels`, {
     method: 'POST',
     headers: {
       'Api-key': apiKey,

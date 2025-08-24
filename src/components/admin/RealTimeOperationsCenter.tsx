@@ -16,6 +16,7 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { ProviderCredentialStatus } from './ProviderCredentialStatus';
 
 interface SystemMetrics {
   activeUsers: number;
@@ -282,6 +283,9 @@ export const RealTimeOperationsCenter: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Credential Status */}
+      <ProviderCredentialStatus />
 
       {/* Provider Health and Real-time Bookings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

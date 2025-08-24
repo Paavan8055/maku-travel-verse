@@ -53,8 +53,8 @@ export const useProviderRotation = () => {
       
       // More specific error messages based on error type
       const errorMessage = error instanceof Error && error.message.includes('Provider') 
-        ? "All search providers are currently unavailable. Please try again in a few minutes."
-        : "Search request failed. Please check your connection and try again.";
+        ? "Search providers are temporarily unavailable. Our team has been notified and is working to resolve this issue."
+        : "Unable to complete search. Please verify your search criteria and try again.";
         
       toast({
         title: "Search Error",
