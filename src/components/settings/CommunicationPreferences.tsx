@@ -56,17 +56,19 @@ export const CommunicationPreferences: React.FC = () => {
     if (!user) return;
 
     try {
-      // Using RPC call temporarily since types aren't updated yet
-      const { data, error } = await supabase.rpc('get_user_communication_preferences', {
-        p_user_id: user.id
+      const { data, error } = await supabase.functions.invoke('enhanced-notification-service?action=communication-preferences', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
       });
 
-      if (error && error.message !== 'No rows found') {
+      if (error) {
         console.error('Error fetching preferences:', error);
       }
 
-      if (data && data.length > 0) {
-        setSettings(data[0]);
+      if (data?.success && data.preferences) {
+        setSettings(data.preferences);
       } else {
         // Create default preferences
         const defaultSettings: CommunicationSettings = {
@@ -127,20 +129,28 @@ export const CommunicationPreferences: React.FC = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase.rpc('upsert_communication_preferences', {
-        p_user_id: user.id,
-        p_preferences: settings.preferences,
-        p_email_frequency: settings.email_frequency,
-        p_timezone: settings.timezone,
-        p_language: settings.language
+      const { data, error } = await supabase.functions.invoke('enhanced-notification-service?action=communication-preferences', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          preferences: settings.preferences,
+          email_frequency: settings.email_frequency,
+          timezone: settings.timezone,
+          language: settings.language
+        })
       });
 
       if (error) throw error;
 
-      toast({
-        title: 'Preferences Saved',
-        description: 'Your communication preferences have been updated successfully.'
-      });
+      if (data?.success) {
+        toast({
+          title: 'Preferences Saved',
+          description: 'Your communication preferences have been updated successfully.'
+        });
+      }
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast({

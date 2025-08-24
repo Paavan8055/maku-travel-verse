@@ -39,7 +39,7 @@ export const RealTimeBookingUpdates: React.FC = () => {
 
     fetchBookingUpdates();
 
-    // Subscribe to real-time booking updates - using direct SQL access temporarily
+    // Subscribe to real-time booking updates
     const channel = supabase
       .channel('booking_updates')
       .on(
@@ -75,17 +75,18 @@ export const RealTimeBookingUpdates: React.FC = () => {
     if (!user) return;
 
     try {
-      // Using RPC call to fetch data since types aren't updated yet
-      const { data, error } = await supabase.rpc('get_user_booking_updates', {
-        p_user_id: user.id
+      const { data, error } = await supabase.functions.invoke('enhanced-notification-service?action=booking-updates', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
       });
 
       if (error) {
         console.error('Error fetching booking updates:', error);
-        // Fallback to empty array
         setUpdates([]);
-      } else {
-        setUpdates(data || []);
+      } else if (data?.success) {
+        setUpdates(data.updates || []);
       }
     } catch (error) {
       console.error('Error fetching booking updates:', error);
