@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createHash } from "https://deno.land/std@0.190.0/crypto/crypto.ts";
+import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
 import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
@@ -16,12 +16,14 @@ interface HotelSearchParams {
   rooms?: number;
 }
 
-const generateHotelBedsSignature = (apiKey: string, secret: string, timestamp: number): string => {
+const generateHotelBedsSignature = async (apiKey: string, secret: string, timestamp: number): Promise<string> => {
   const stringToSign = apiKey + secret + timestamp;
   const encoder = new TextEncoder();
   const data = encoder.encode(stringToSign);
   
-  return createHash("sha256").update(data).toString("hex");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
 const searchHotels = async (params: HotelSearchParams) => {
@@ -33,7 +35,7 @@ const searchHotels = async (params: HotelSearchParams) => {
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const signature = generateHotelBedsSignature(apiKey, secret, timestamp);
+  const signature = await generateHotelBedsSignature(apiKey, secret, timestamp);
 
   const requestBody = {
     stay: {
@@ -90,18 +92,84 @@ serve(async (req) => {
 
     logger.info('HotelBeds hotel search:', { destination, checkIn, checkOut, guests, rooms });
 
-    // For demo, we'll use a destination code mapping
-    // In production, you'd have a proper destination mapping system
-    const destinationCodes: { [key: string]: string } = {
-      'bali': 'PMI',
-      'paris': 'PAR',
-      'london': 'LON',
-      'new york': 'NYC',
-      'tokyo': 'TYO',
-      'dubai': 'DXB'
+    // Enhanced destination code mapping
+    const getCityMapping = () => {
+      return {
+        // Major cities
+        'sydney': 'SYD',
+        'melbourne': 'MEL',
+        'brisbane': 'BNE',
+        'perth': 'PER',
+        'adelaide': 'ADL',
+        'canberra': 'CBR',
+        'paris': 'PAR',
+        'london': 'LON',
+        'new york': 'NYC',
+        'tokyo': 'TYO',
+        'singapore': 'SIN',
+        'hong kong': 'HKG',
+        'bangkok': 'BKK',
+        'dubai': 'DXB',
+        'bali': 'DPS',
+        'jakarta': 'CGK',
+        'kuala lumpur': 'KUL',
+        'manila': 'MNL',
+        'delhi': 'DEL',
+        'mumbai': 'BOM',
+        'istanbul': 'IST',
+        'rome': 'ROM',
+        'madrid': 'MAD',
+        'barcelona': 'BCN',
+        'amsterdam': 'AMS',
+        'frankfurt': 'FRA',
+        'zurich': 'ZUR',
+        'vienna': 'VIE',
+        'prague': 'PRG',
+        'budapest': 'BUD',
+        'warsaw': 'WAW',
+        'stockholm': 'STO',
+        'oslo': 'OSL',
+        'copenhagen': 'CPH',
+        'helsinki': 'HEL',
+        'moscow': 'MOW',
+        'cairo': 'CAI',
+        'johannesburg': 'JNB',
+        'cape town': 'CPT',
+        'casablanca': 'CAS',
+        'nairobi': 'NBO',
+        'los angeles': 'LAX',
+        'san francisco': 'SFO',
+        'chicago': 'CHI',
+        'miami': 'MIA',
+        'las vegas': 'LAS',
+        'toronto': 'YYZ',
+        'vancouver': 'YVR',
+        'montreal': 'YUL',
+        'mexico city': 'MEX',
+        'rio de janeiro': 'RIO',
+        'sao paulo': 'SAO',
+        'buenos aires': 'BUE',
+        'lima': 'LIM',
+        'bogota': 'BOG',
+        'santiago': 'SCL'
+      };
     };
 
-    const destCode = destinationCodes[destination.toLowerCase()] || 'PMI';
+    const cityMapping = getCityMapping();
+    const destCode = cityMapping[destination.toLowerCase()];
+    
+    if (!destCode) {
+      logger.warn('Destination not found in mapping:', destination);
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Destination "${destination}" is not supported. Please try a major city.`,
+        source: 'hotelbeds',
+        supportedDestinations: Object.keys(cityMapping).slice(0, 20) // Show some examples
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     const hotelResults = await searchHotels({
       destination: destCode,
