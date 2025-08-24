@@ -139,31 +139,22 @@ serve(async (req) => {
       }
     }
 
-    // Hotel search
+    // Hotel search - Use provider rotation for enhanced search capabilities
     if (type === 'hotel') {
-      if (providers.includes('amadeus')) {
-        searchPromises.push(
-          callEdgeFunction('amadeus-hotel-search', {
+      searchPromises.push(
+        callEdgeFunction('provider-rotation', {
+          searchType: 'hotel',
+          params: {
             destination: params.destination,
             checkIn: params.checkIn,
             checkOut: params.checkOut,
             guests: params.guests || 2,
-            rooms: params.rooms || 1
-          })
-        );
-      }
-
-      if (providers.includes('hotelbeds')) {
-        searchPromises.push(
-          callEdgeFunction('hotelbeds-search', {
-            destination: params.destination,
-            checkIn: params.checkIn,
-            checkOut: params.checkOut,
-            guests: params.guests || 2,
-            rooms: params.rooms || 1
-          })
-        );
-      }
+            rooms: params.rooms || 1,
+            currency: params.currency || 'AUD'
+          }
+        })
+      );
+    }
 
       if (providers.includes('travelport')) {
         searchPromises.push(

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { AIRPORTS } from "@/data/airports";
+import { useHotelBedsAutocomplete } from "@/hooks/useHotelBedsAutocomplete";
 import logger from '@/utils/logger';
 
 interface Destination {
@@ -43,6 +44,7 @@ export const DestinationAutocomplete = ({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const { searchDestinations: searchHotelBedsDestinations, isLoading: isHotelBedsLoading } = useHotelBedsAutocomplete();
 
   // Popular destinations for fallback
   const popularDestinations: Destination[] = [
@@ -104,31 +106,65 @@ export const DestinationAutocomplete = ({
         let results: Destination[] = [];
 
         try {
-          // Priority 1: Hotel search for hotel searchType
+          // Priority 1: Hotel search for hotel searchType - Try HotelBeds first, then Amadeus
           if (searchType === "hotel") {
+            // Try HotelBeds first for hotel search
             try {
-              const { data: hotelData } = await supabase.functions.invoke('amadeus-hotel-autocomplete', {
-                body: { query: q, limit: 8 }
-              });
-
-              if (hotelData?.success && hotelData.suggestions && Array.isArray(hotelData.suggestions)) {
-                const hotelResults = hotelData.suggestions.map((hotel: any) => ({
-                  id: hotel.hotelId || hotel.id,
-                  name: hotel.name,
-                  city: hotel.address?.cityName || '',
-                  country: hotel.address?.countryCode || '',
-                  code: hotel.hotelId || hotel.id,
-                  type: 'hotel' as const,
-                  coordinates: hotel.geoCode ? { 
-                    lat: parseFloat(hotel.geoCode.latitude), 
-                    lng: parseFloat(hotel.geoCode.longitude) 
-                  } : { lat: 0, lng: 0 }
+              const hotelBedsResults = await searchHotelBedsDestinations(q, 6);
+              if (hotelBedsResults.success && hotelBedsResults.suggestions.length > 0) {
+                const hbResults = hotelBedsResults.suggestions.map(suggestion => ({
+                  id: suggestion.id,
+                  name: suggestion.name,
+                  city: suggestion.name,
+                  country: suggestion.country || '',
+                  code: suggestion.code || suggestion.id,
+                  type: suggestion.type === 'hotel' ? 'hotel' as const : 'city' as const,
+                  coordinates: { lat: 0, lng: 0 },
+                  displayName: suggestion.displayName
                 }));
-                results = [...hotelResults];
-                console.log('Found hotel results:', results.length);
+                results = [...hbResults];
+                console.log('Found HotelBeds results:', results.length);
               }
-            } catch (hotelError) {
-              logger.warn('Hotel search failed, falling back to cities:', hotelError);
+            } catch (hbError) {
+              logger.warn('HotelBeds search failed, trying Amadeus:', hbError);
+            }
+
+            // Fallback to Amadeus if HotelBeds didn't return enough results
+            if (results.length < 3) {
+              try {
+                const { data: hotelData } = await supabase.functions.invoke('amadeus-hotel-autocomplete', {
+                  body: { query: q, limit: 8 }
+                });
+
+                if (hotelData?.success && hotelData.suggestions && Array.isArray(hotelData.suggestions)) {
+                  const amadeusResults = hotelData.suggestions.map((hotel: any) => ({
+                    id: hotel.hotelId || hotel.id,
+                    name: hotel.name,
+                    city: hotel.address?.cityName || '',
+                    country: hotel.address?.countryCode || '',
+                    code: hotel.hotelId || hotel.id,
+                    type: 'hotel' as const,
+                    coordinates: hotel.geoCode ? { 
+                      lat: parseFloat(hotel.geoCode.latitude), 
+                      lng: parseFloat(hotel.geoCode.longitude) 
+                    } : { lat: 0, lng: 0 }
+                  }));
+                  
+                  // Merge with HotelBeds results, avoiding duplicates
+                  amadeusResults.forEach((amadeus: Destination) => {
+                    const isDuplicate = results.some(existing => 
+                      existing.id === amadeus.id || 
+                      (existing.name.toLowerCase() === amadeus.name.toLowerCase() && existing.city === amadeus.city)
+                    );
+                    if (!isDuplicate) {
+                      results.push(amadeus);
+                    }
+                  });
+                  console.log('Added Amadeus hotel results, total:', results.length);
+                }
+              } catch (amadeusError) {
+                logger.warn('Amadeus hotel search failed:', amadeusError);
+              }
             }
           }
 
