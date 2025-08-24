@@ -132,70 +132,39 @@ export const useRealHotelSearch = () => {
     setError(null);
 
     try {
-      // Multi-provider rotation with fallback
-      const providers = ['unified', 'amadeus', 'sabre', 'hotelbeds'];
-      let lastError: any = null;
-
-      for (const provider of providers) {
-        try {
-          if (provider === 'unified') {
-            const unifiedResults = await unifiedApiClient.searchHotels(params);
-            setResults({
-              data: unifiedResults,
-              source: 'api',
-              provider: 'unified',
-              timestamp: new Date().toISOString()
-            });
-            
-            toast({
-              title: "Hotel search completed",
-              description: `Found ${unifiedResults.length} hotel options`,
-            });
-            return;
+      // Use provider rotation for intelligent provider selection
+      const { data, error } = await supabase.functions.invoke('provider-rotation', {
+        body: {
+          searchType: 'hotel',
+          params: {
+            destination: params.destination || params.cityCode,
+            checkIn: params.checkIn,
+            checkOut: params.checkOut,
+            adults: params.adults || 2,
+            children: params.children || 0,
+            rooms: params.rooms || 1,
+            currency: 'AUD'
           }
-
-          // Direct provider calls with error handling
-          const functionName = provider === 'amadeus' ? 'amadeus-hotel-search' :
-                              provider === 'sabre' ? 'sabre-hotel-search' :
-                              'hotelbeds-search';
-          
-          const { data, error } = await supabase.functions.invoke(functionName, {
-            body: {
-              destination: params.destination || params.cityCode,
-              checkInDate: params.checkIn,
-              checkOutDate: params.checkOut,
-              adults: params.adults || 2,
-              children: params.children || 0,
-              rooms: params.rooms || 1,
-              currency: 'AUD'
-            }
-          });
-
-          if (error) throw error;
-
-          if (data?.success && data?.hotels) {
-            setResults({
-              data: data.hotels,
-              source: data.source || 'api',
-              provider,
-              timestamp: new Date().toISOString()
-            });
-
-            toast({
-              title: "Hotel search completed",
-              description: `Found ${data.hotels.length} hotels via ${provider}`,
-            });
-            return;
-          }
-        } catch (providerError) {
-          logger.warn(`${provider} hotel search failed, trying next provider`, providerError);
-          lastError = providerError;
-          continue;
         }
-      }
+      });
 
-      // If all providers failed
-      throw lastError || new Error('All hotel search providers failed');
+      if (error) throw error;
+
+      if (data?.success && data?.hotels) {
+        setResults({
+          data: data.hotels,
+          source: data.source || 'api',
+          provider: data.provider || 'unknown',
+          timestamp: new Date().toISOString()
+        });
+
+        toast({
+          title: "Hotel search completed",
+          description: `Found ${data.hotels.length} hotels${data.provider ? ` via ${data.provider}` : ''}`,
+        });
+      } else {
+        throw new Error(data?.error || 'No hotels found');
+      }
 
     } catch (err: any) {
       const errorMessage = err.message || 'Hotel search failed';

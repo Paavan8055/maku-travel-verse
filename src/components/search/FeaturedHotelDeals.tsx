@@ -68,14 +68,17 @@ export function FeaturedHotelDeals({ onDealSelect }: FeaturedHotelDealsProps) {
             const dayAfter = new Date();
             dayAfter.setDate(dayAfter.getDate() + 2);
 
-            const { data, error } = await supabase.functions.invoke('amadeus-hotel-search', {
+            const { data, error } = await supabase.functions.invoke('provider-rotation', {
               body: {
-                destination,
-                checkIn: tomorrow.toISOString().split('T')[0],
-                checkOut: dayAfter.toISOString().split('T')[0],
-                guests: 2,
-                rooms: 1,
-                currency: 'USD'
+                searchType: 'hotel',
+                params: {
+                  destination,
+                  checkIn: tomorrow.toISOString().split('T')[0],
+                  checkOut: dayAfter.toISOString().split('T')[0],
+                  guests: 2,
+                  rooms: 1,
+                  currency: 'USD'
+                }
               }
             });
 
