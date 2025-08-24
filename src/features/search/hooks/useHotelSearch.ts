@@ -154,6 +154,8 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
   const searchHotels = useCallback(async (searchCriteria: typeof memoizedCriteria, signal: AbortSignal) => {
     try {
       dispatch({ type: 'SEARCH_START' });
+      
+      console.log('🔍 Starting hotel search with criteria:', searchCriteria);
 
         const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
         body: {
@@ -171,6 +173,8 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
 
       // Check if request was aborted
       if (signal.aborted) return;
+      
+      console.log('📡 Hotel search response:', { success: data?.success, error: functionError, data });
 
       // Enhanced error handling with specific user-friendly messages
       if (functionError) {

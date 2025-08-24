@@ -1,4 +1,5 @@
 import { DeploymentDiagnostics } from '@/components/admin/DeploymentDiagnostics';
+import { DeploymentTestPanel } from '@/components/admin/DeploymentTestPanel';
 
 export default function DeploymentTestPage() {
   return (
@@ -8,6 +9,7 @@ export default function DeploymentTestPage() {
         <p className="text-muted-foreground mb-8">
           Use this page to test Supabase Edge Functions deployment and verify the system is working correctly.
         </p>
+        <DeploymentTestPanel />
         <DeploymentDiagnostics />
       </div>
     </div>
