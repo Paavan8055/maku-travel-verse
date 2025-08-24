@@ -247,3 +247,6 @@ verify_jwt = false
 
 [functions.provider-rotation]
 verify_jwt = false
+
+[functions.hotelbeds-activities]
+verify_jwt = false
