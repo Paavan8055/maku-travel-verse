@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import logger from "../_shared/logger.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 interface DynamicOffer {
   route: string;
@@ -103,7 +104,7 @@ async function getHotelbedsDeals(): Promise<DynamicOffer[]> {
     for (const dest of destinations) {
       try {
         const searchResponse = await fetch(
-          'https://api.test.hotelbeds.com/hotel-api/1.0/hotels',
+          `${ENV_CONFIG.hotelbeds.baseUrl}/hotel-api/1.0/hotels`,
           {
             method: 'POST',
             headers: {

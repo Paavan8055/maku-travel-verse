@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import logger from "../_shared/simpleLogger.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -73,7 +74,7 @@ async function searchHotelbedsActivities(params: ActivitySearchParams): Promise<
   logger.info('HotelBeds Activities search request:', requestBody);
 
   // Fixed: Use correct HotelBeds test endpoint and headers
-  const response = await fetch('https://api.test.hotelbeds.com/activity-api/3.0/activities/search', {
+  const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/activity-api/3.0/activities/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

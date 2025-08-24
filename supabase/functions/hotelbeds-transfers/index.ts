@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import logger from "../_shared/logger.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,7 +76,7 @@ async function searchHotelbedsTransfers(params: TransferSearchParams): Promise<a
 
   logger.info('HotelBeds Transfers search request:', requestBody);
 
-  const response = await fetch('https://api.test.hotelbeds.com/transfer-api/1.0/availability', {
+  const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/transfer-api/1.0/availability`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
