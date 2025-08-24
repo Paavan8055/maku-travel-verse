@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Activity, Zap, Clock, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Activity, Zap, Clock, Users, X, Minimize2, Maximize2 } from 'lucide-react';
 
 interface PerformanceMetrics {
   loadTime: number;
@@ -37,6 +38,11 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
 }) => {
   const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  // Only show in development mode
+  const showInDev = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     const collectMetrics = async () => {
@@ -102,12 +108,12 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
     }
   };
 
-  if (!isVisible || !metrics) {
+  if (!isVisible || !metrics || !showInDev || isDismissed) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+    <div className="fixed bottom-4 right-4 z-30 max-w-sm">
       <Card className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -116,8 +122,27 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             <Badge variant="outline" className="text-xs">
               {componentName}
             </Badge>
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setIsMinimized(!isMinimized)}
+              >
+                {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setIsDismissed(true)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
+        {!isMinimized && (
         <CardContent className="space-y-3">
           {/* Core Web Vitals */}
           <div className="space-y-2">
@@ -183,6 +208,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             </div>
           </div>
         </CardContent>
+        )}
       </Card>
     </div>
   );

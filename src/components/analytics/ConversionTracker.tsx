@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Users, ShoppingCart, CreditCard, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, TrendingDown, Users, ShoppingCart, CreditCard, CheckCircle, X, Minimize2, Maximize2 } from 'lucide-react';
 
 interface ConversionMetrics {
   sessionId: string;
@@ -43,6 +44,11 @@ export const ConversionTracker: React.FC<ConversionTrackerProps> = ({
 }) => {
   const [metrics, setMetrics] = useState<ConversionMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  // Only show in development mode
+  const showInDev = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     const trackSession = async () => {
@@ -127,12 +133,12 @@ export const ConversionTracker: React.FC<ConversionTrackerProps> = ({
     return rate > 70 ? <TrendingUp className="h-3 w-3 text-green-600" /> : <TrendingDown className="h-3 w-3 text-red-600" />;
   };
 
-  if (!isVisible || !metrics || isLoading) {
+  if (!isVisible || !metrics || isLoading || !showInDev || isDismissed) {
     return null;
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 max-w-sm">
+    <div className="fixed top-4 left-4 z-40 max-w-sm">
       <Card className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -141,8 +147,27 @@ export const ConversionTracker: React.FC<ConversionTrackerProps> = ({
             <Badge variant="outline" className="text-xs">
               {metrics.abTestVariant?.toUpperCase()}
             </Badge>
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setIsMinimized(!isMinimized)}
+              >
+                {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setIsDismissed(true)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
+        {!isMinimized && (
         <CardContent className="space-y-3">
           {/* Overall conversion rate */}
           <div className="space-y-2">
@@ -209,6 +234,7 @@ export const ConversionTracker: React.FC<ConversionTrackerProps> = ({
             </div>
           </div>
         </CardContent>
+        )}
       </Card>
     </div>
   );
