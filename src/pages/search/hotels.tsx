@@ -159,21 +159,6 @@ const HotelSearchPage = () => {
             <HotelSearchBar />
           </div>
 
-        {/* Enhanced Header with Search Performance Optimizer */}
-        <SearchPerformanceOptimizer 
-          onSearch={(query) => {
-            if (query.length >= 2) {
-              const newParams = new URLSearchParams(searchParams);
-              newParams.set('destination', query);
-              newParams.set('searched', 'true');
-              window.location.href = `/search/hotels?${newParams.toString()}`;
-            }
-          }}
-          suggestions={['New York', 'Paris', 'Tokyo', 'London']}
-          recentSearches={['Miami', 'Barcelona']}
-          trendingSearches={['Dubai', 'Rome']}
-          className="mb-6"
-        />
         
         {/* Compact Advanced Features Toolbar */}
         <CompactSearchToolbar 
@@ -347,6 +332,21 @@ const HotelSearchPage = () => {
             
             {process.env.NODE_ENV === 'development' && (
               <div className="space-y-4 mb-6">
+                {/* Search Performance Optimizer - Development Tool */}
+                <SearchPerformanceOptimizer 
+                  onSearch={(query) => {
+                    if (query.length >= 2) {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.set('destination', query);
+                      newParams.set('searched', 'true');
+                      window.location.href = `/search/hotels?${newParams.toString()}`;
+                    }
+                  }}
+                  suggestions={['New York', 'Paris', 'Tokyo', 'London']}
+                  recentSearches={['Miami', 'Barcelona']}
+                  trendingSearches={['Dubai', 'Rome']}
+                  className="mb-4"
+                />
                 {/* API Optimization Component - Development Tool */}
                 <AmadeusOptimizer onApiStatusChange={setApiStatus} />
                 <HealthDebugPanel />
