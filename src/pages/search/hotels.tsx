@@ -45,6 +45,7 @@ import { LoyaltyProgramIntegration } from "@/components/loyalty/LoyaltyProgramIn
 import { CurrencyProvider } from "@/components/localization/MultiCurrencySupport";
 import HotelSearchBar from "@/components/search/HotelSearchBar";
 import { HealthDebugPanel } from "@/components/debug/HealthDebugPanel";
+import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -341,7 +342,12 @@ const HotelSearchPage = () => {
               onOptimizationSuggestion={(suggestion) => console.log('Optimization:', suggestion)}
             />
             
-            <HealthDebugPanel />
+            {process.env.NODE_ENV === 'development' && (
+              <div className="space-y-4 mb-6">
+                <HealthDebugPanel />
+                <ProviderRotationTestPanel />
+              </div>
+            )}
           </div>
         </MobileBookingOptimization>
       </PerformanceWrapper>
