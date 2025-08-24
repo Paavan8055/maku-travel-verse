@@ -1,83 +1,137 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import logger from '@/utils/logger';
+import { useToast } from '@/hooks/use-toast';
 
 interface EnvironmentConfig {
-  amadeus_base_url: string;
-  sabre_base_url: string;
-  hotelbeds_base_url: string;
-  stripe_mode: 'test' | 'live';
+  isProduction: boolean;
+  hotelbeds: {
+    baseUrl: string;
+    mtlsUrl: string;
+    cacheApiUrl: string;
+  };
+  amadeus: {
+    baseUrl: string;
+    tokenUrl: string;
+  };
+  sabre: {
+    baseUrl: string;
+    tokenUrl: string;
+  };
 }
 
 export const useEnvironmentConfig = () => {
   const [config, setConfig] = useState<EnvironmentConfig | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    loadEnvironmentConfig();
-  }, []);
-
-  const loadEnvironmentConfig = async () => {
+  const fetchConfig = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      // Determine environment (default to development)
-      const environment = import.meta.env.MODE === 'production' ? 'production' : 'development';
+      console.log('🔧 Fetching environment configuration...');
       
-      const { data, error: configError } = await supabase
-        .from('environment_configs')
-        .select('config_key, config_value')
-        .eq('environment', environment)
-        .eq('is_active', true);
+      const { data, error } = await supabase.functions.invoke('environment-config', {
+        body: { action: 'get_config' }
+      });
 
-      if (configError) {
-        throw new Error(`Failed to load environment config: ${configError.message}`);
+      if (error) {
+        throw error;
       }
 
-      if (!data || data.length === 0) {
-        logger.warn('No environment configuration found, using defaults');
-        // Use default configuration
-        setConfig({
-          amadeus_base_url: environment === 'production' 
-            ? 'https://api.amadeus.com' 
-            : 'https://test.api.amadeus.com',
-          sabre_base_url: environment === 'production'
-            ? 'https://api.havail.sabre.com'  
-            : 'https://api-crt.cert.havail.sabre.com',
-          hotelbeds_base_url: environment === 'production'
-            ? 'https://api.hotelbeds.com'
-            : 'https://api.test.hotelbeds.com',
-          stripe_mode: environment === 'production' ? 'live' : 'test'
-        });
-        return;
-      }
-
-      // Transform data into config object
-      const configMap = data.reduce((acc, item) => {
-        acc[item.config_key] = typeof item.config_value === 'string' 
-          ? JSON.parse(item.config_value) 
-          : item.config_value;
-        return acc;
-      }, {} as Record<string, any>);
-
-      setConfig(configMap as EnvironmentConfig);
-      logger.info('Environment configuration loaded', { environment, config: configMap });
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load environment configuration';
-      logger.error('Environment config error:', err);
-      setError(errorMessage);
+      console.log('🔧 Environment config received:', data);
+      setConfig(data);
+    } catch (error) {
+      console.error('Failed to fetch environment config:', error);
+      
+      // Fallback to test configuration
+      const fallbackConfig: EnvironmentConfig = {
+        isProduction: false,
+        hotelbeds: {
+          baseUrl: 'https://api.test.hotelbeds.com',
+          mtlsUrl: 'https://api.test.hotelbeds.com',
+          cacheApiUrl: 'https://api.test.hotelbeds.com/cache-api/1.0'
+        },
+        amadeus: {
+          baseUrl: 'https://test.api.amadeus.com',
+          tokenUrl: 'https://test.api.amadeus.com/v1/security/oauth2/token'
+        },
+        sabre: {
+          baseUrl: 'https://api-crt.cert.havail.sabre.com',
+          tokenUrl: 'https://api-crt.cert.havail.sabre.com/v2/auth/token'
+        }
+      };
+      
+      console.log('🔧 Using fallback test configuration');
+      setConfig(fallbackConfig);
+      
+      toast({
+        title: "Configuration Warning",
+        description: "Using test environment configuration",
+        variant: "default"
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const switchEnvironment = async (toProduction: boolean) => {
+    try {
+      console.log(`🔧 Switching to ${toProduction ? 'production' : 'test'} environment...`);
+      
+      const { data, error } = await supabase.functions.invoke('environment-config', {
+        body: { 
+          action: 'switch_environment',
+          environment: toProduction ? 'production' : 'test'
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setConfig(data);
+      
+      toast({
+        title: "Environment Switched",
+        description: `Now using ${toProduction ? 'production' : 'test'} environment`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Failed to switch environment:', error);
+      toast({
+        title: "Switch Failed",
+        description: "Failed to switch environment configuration",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const validateProductionReadiness = async () => {
+    try {
+      console.log('🔧 Validating production readiness...');
+      
+      const { data, error } = await supabase.functions.invoke('production-readiness', {
+        body: { action: 'validate' }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to validate production readiness:', error);
+      return { ready: false, issues: ['Failed to validate configuration'] };
+    }
+  };
+
+  useEffect(() => {
+    fetchConfig();
+  }, []);
+
   return {
     config,
     loading,
-    error,
-    reload: loadEnvironmentConfig
+    switchEnvironment,
+    validateProductionReadiness,
+    refresh: fetchConfig
   };
 };

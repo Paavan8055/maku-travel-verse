@@ -277,6 +277,7 @@ serve(async (req) => {
     });
 
     if (rateLimitCheck.data && !rateLimitCheck.data.allowed) {
+      logger.warn('[HOTELBEDS-SEARCH] Rate limit exceeded for identifier:', req.headers.get('x-forwarded-for') || 'anonymous');
       return new Response(
         JSON.stringify({ 
           error: 'Rate limit exceeded', 
