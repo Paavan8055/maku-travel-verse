@@ -19,7 +19,7 @@ import SearchHeaderBand from "@/components/search/SearchHeaderBand";
 import MemberPriceBanner from "@/components/search/MemberPriceBanner";
 import SortChips from "@/components/search/SortChips";
 import MapPreviewCard from "@/components/search/MapPreviewCard";
-import HotelSearchBar from "@/components/search/HotelSearchBar";
+
 import { PopularHotelsSection } from "@/components/search/PopularHotelsSection";
 import { FeaturedHotelDeals } from "@/components/search/FeaturedHotelDeals";
 import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
@@ -43,6 +43,8 @@ import { RevenueOptimizer } from "@/components/revenue/RevenueOptimizer";
 import { MultiPropertyBooking } from "@/components/enterprise/MultiPropertyBooking";
 import { LoyaltyProgramIntegration } from "@/components/loyalty/LoyaltyProgramIntegration";
 import { CurrencyProvider } from "@/components/localization/MultiCurrencySupport";
+import HotelSearchBar from "@/components/search/HotelSearchBar";
+import { HealthDebugPanel } from "@/components/debug/HealthDebugPanel";
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -338,6 +340,8 @@ const HotelSearchPage = () => {
               isVisible={process.env.NODE_ENV === 'development'}
               onOptimizationSuggestion={(suggestion) => console.log('Optimization:', suggestion)}
             />
+            
+            <HealthDebugPanel />
           </div>
         </MobileBookingOptimization>
       </PerformanceWrapper>

@@ -32,8 +32,8 @@ interface CircuitBreakerState {
 
 const CIRCUIT_BREAKER_THRESHOLD = 3;
 const CIRCUIT_BREAKER_TIMEOUT = 30000; // 30 seconds
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 5;
+const RATE_LIMIT_WINDOW = 300000; // 5 minutes
+const MAX_REQUESTS_PER_WINDOW = 3;
 
 export const useHealthMonitor = (options: {
   checkInterval?: number;
@@ -41,7 +41,7 @@ export const useHealthMonitor = (options: {
   onStatusChange?: (status: SystemHealth) => void;
 } = {}) => {
   const {
-    checkInterval = 5 * 60 * 1000, // 5 minutes - increased from too frequent checks
+    checkInterval = 10 * 60 * 1000, // 10 minutes - increased from too frequent checks
     enableAutoCheck = true,
     onStatusChange
   } = options;
@@ -244,6 +244,17 @@ export const useHealthMonitor = (options: {
     return await checkHealth();
   }, [checkHealth]);
 
+  const resetCircuitBreaker = useCallback(() => {
+    circuitBreaker.current = {
+      failures: 0,
+      lastFailure: null,
+      state: 'closed'
+    };
+    requestTimes.current = [];
+    localStorage.removeItem('lastKnownHealth');
+    console.log('Circuit breaker and rate limiter reset');
+  }, []);
+
   // Load cached health data on mount
   useEffect(() => {
     const cached = localStorage.getItem('lastKnownHealth');
@@ -319,6 +330,7 @@ export const useHealthMonitor = (options: {
     isUnhealthy: getOverallStatus() === 'unhealthy',
     // Circuit breaker status
     isCircuitBreakerOpen: circuitBreaker.current.state === 'open',
-    circuitBreakerState: circuitBreaker.current.state
+    circuitBreakerState: circuitBreaker.current.state,
+    resetCircuitBreaker
   };
 };
