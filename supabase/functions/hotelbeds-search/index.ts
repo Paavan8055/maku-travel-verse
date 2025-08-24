@@ -179,8 +179,22 @@ serve(async (req) => {
       rooms
     });
 
+    // Check if hotelResults has the expected structure
+    if (!hotelResults || !hotelResults.hotels || !Array.isArray(hotelResults.hotels)) {
+      logger.warn('No hotels found in HotelBeds response or invalid structure:', hotelResults);
+      return new Response(JSON.stringify({
+        success: true,
+        source: 'hotelbeds',
+        hotels: [],
+        searchCriteria: { destination, checkIn, checkOut, guests, rooms },
+        message: 'No hotels found for this destination and dates'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Transform HotelBeds response to our format
-    const transformedHotels = hotelResults.hotels?.map((hotel: any) => ({
+    const transformedHotels = hotelResults.hotels.map((hotel: any) => ({
       id: hotel.code.toString(),
       source: 'hotelbeds',
       name: hotel.name,

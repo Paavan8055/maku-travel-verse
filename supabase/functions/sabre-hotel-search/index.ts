@@ -246,8 +246,43 @@ Deno.serve(async (req) => {
       currency = 'USD'
     } = body;
 
+    // Map destination name to city code if needed
+    let resolvedCityCode = cityCode;
+    if (!cityCode || cityCode.length !== 3) {
+      // Try to resolve from common destination mapping
+      const cityMapping: Record<string, string> = {
+        'tokyo': 'TYO',
+        'singapore': 'SIN',
+        'sydney': 'SYD',
+        'melbourne': 'MEL',
+        'london': 'LON',
+        'paris': 'PAR',
+        'new york': 'NYC',
+        'bangkok': 'BKK',
+        'dubai': 'DXB'
+      };
+      
+      const mappedCode = cityMapping[cityCode?.toLowerCase() || ''];
+      if (mappedCode) {
+        resolvedCityCode = mappedCode;
+        logger.info(`Mapped destination "${cityCode}" to city code "${mappedCode}"`);
+      } else {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: `Invalid or unsupported destination: ${cityCode}. Please use a 3-letter city code or supported destination name.`,
+            supportedDestinations: Object.keys(cityMapping)
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    }
+
     // Validate required parameters
-    if (!cityCode || !checkIn || !checkOut) {
+    if (!resolvedCityCode || !checkIn || !checkOut) {
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -265,7 +300,7 @@ Deno.serve(async (req) => {
     
     logger.info('Searching hotels with Sabre...');
     const searchParams: HotelSearchParams = {
-      cityCode,
+      cityCode: resolvedCityCode,
       checkIn,
       checkOut,
       guests,
