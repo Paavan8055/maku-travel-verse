@@ -39,6 +39,7 @@ import TravelPreferencesPage from "./pages/travel-preferences";
 import InviteFriendsPage from "./pages/invite-friends";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAuth from "./pages/AdminAuth";
+import DeploymentTestPage from "./pages/admin/deployment-test";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -86,6 +87,11 @@ const App = () => (
                           <Route path="/admin/dashboard" element={
                             <AdminGuard>
                               <AdminDashboard />
+                            </AdminGuard>
+                          } />
+                          <Route path="/admin/deployment-test" element={
+                            <AdminGuard>
+                              <DeploymentTestPage />
                             </AdminGuard>
                           } />
                         </Routes>
