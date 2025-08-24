@@ -156,6 +156,7 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
       dispatch({ type: 'SEARCH_START' });
       
       console.log('🔍 Starting hotel search with criteria:', searchCriteria);
+      console.log('📡 Calling provider-rotation function...');
 
         const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
         body: {
@@ -169,6 +170,14 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
             hotelName: searchCriteria.hotelName
           }
         }
+      });
+      
+      console.log('📡 Provider rotation response received:', { 
+        hasData: !!data, 
+        hasError: !!functionError, 
+        provider: data?.provider,
+        fallbackUsed: data?.fallbackUsed,
+        success: data?.success 
       });
 
       // Check if request was aborted
@@ -328,9 +337,16 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
   useEffect(() => {
     // Only search if criteria is provided and has required fields
     if (!memoizedCriteria?.destination || !memoizedCriteria?.checkIn || !memoizedCriteria?.checkOut) {
+      console.log('❌ Hotel search skipped - missing criteria:', { 
+        hasCriteria: !!memoizedCriteria,
+        hasDestination: !!memoizedCriteria?.destination,
+        hasCheckIn: !!memoizedCriteria?.checkIn,
+        hasCheckOut: !!memoizedCriteria?.checkOut
+      });
       return;
     }
 
+    console.log('✅ Triggering hotel search with valid criteria:', memoizedCriteria);
     const controller = new AbortController();
     searchHotels(memoizedCriteria, controller.signal);
     

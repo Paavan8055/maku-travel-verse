@@ -31,10 +31,12 @@ export const useHotelBedsAutocomplete = () => {
     }
 
     setIsLoading(true);
+    console.log('🏨 HotelBeds autocomplete query:', query);
     try {
       const { data, error } = await supabase.functions.invoke('hotelbeds-autocomplete', {
         body: { query, limit }
       });
+      console.log('🏨 HotelBeds autocomplete response:', { hasData: !!data, hasError: !!error, suggestions: data?.suggestions?.length });
 
       if (error) {
         throw new Error(error.message);
