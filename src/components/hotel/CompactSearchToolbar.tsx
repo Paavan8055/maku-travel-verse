@@ -9,7 +9,6 @@ import { SmartLocationSearch } from "./SmartLocationSearch";
 import { AccessibilityFilters } from "./AccessibilityFilters";
 import { DateFlexibilityMatrix } from "./DateFlexibilityMatrix";
 import { RevenueAnalyticsDashboard } from "./RevenueAnalyticsDashboard";
-import { ABTestDashboard } from "@/components/testing/ABTestingFramework";
 
 interface CompactSearchToolbarProps {
   destination?: string;
@@ -39,7 +38,6 @@ export function CompactSearchToolbar({
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
   const [dateFlexOpen, setDateFlexOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-  const [abTestingOpen, setAbTestingOpen] = useState(false);
 
   return (
     <TooltipProvider>
@@ -154,22 +152,6 @@ export function CompactSearchToolbar({
           </PopoverContent>
         </Popover>
 
-        {/* A/B Testing */}
-        <Popover open={abTestingOpen} onOpenChange={setAbTestingOpen}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 w-9 p-0">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent>A/B Testing</TooltipContent>
-          </Tooltip>
-          <PopoverContent className="w-96" align="end">
-            <ABTestDashboard />
-          </PopoverContent>
-        </Popover>
 
       </div>
     </TooltipProvider>
