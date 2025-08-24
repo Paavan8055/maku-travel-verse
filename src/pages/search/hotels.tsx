@@ -39,7 +39,7 @@ import { AmadeusOptimizer } from "@/components/api/AmadeusOptimizer";
 import { SearchPerformanceOptimizer } from "@/components/search/SearchPerformanceOptimizer";
 import { PersonalizationEngine } from "@/components/personalization/PersonalizationEngine";
 import { RevenueOptimizer } from "@/components/revenue/RevenueOptimizer";
-import ABTestingFramework from "@/components/testing/ABTestingFramework";
+
 import { MultiPropertyBooking } from "@/components/enterprise/MultiPropertyBooking";
 import { LoyaltyProgramIntegration } from "@/components/loyalty/LoyaltyProgramIntegration";
 import { CurrencyProvider } from "@/components/localization/MultiCurrencySupport";
@@ -151,11 +151,13 @@ const HotelSearchPage = () => {
                 <SessionRecoveryBanner />
         
         <div className="container mx-auto px-4 py-8">
+          {/* Hotel Search Bar - Always visible at top */}
+          <div className="mb-6">
+            <HotelSearchBar />
+          </div>
+
           {/* API Optimization Component */}
           <AmadeusOptimizer onApiStatusChange={setApiStatus} />
-          
-          {/* A/B Testing Framework */}
-          <ABTestingFramework className="mb-4" />
           
           {/* Personalization Engine */}
           <PersonalizationEngine 
