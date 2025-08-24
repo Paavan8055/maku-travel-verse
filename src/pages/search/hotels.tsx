@@ -179,17 +179,17 @@ const HotelSearchPage = () => {
 
         {!hasSearched ? (
           <div className="space-y-8">
-            {/* Multi-Property Booking for Packages */}
-            <MultiPropertyBooking 
-              onPackageSelect={(pkg) => console.log('Package selected:', pkg)}
-            />
-            
             <PopularHotelsSection onHotelSelect={handleHotelSelect} />
             <FeaturedHotelDeals onDealSelect={handleDealSelect} />
             
             {/* Loyalty Program Integration */}
             <LoyaltyProgramIntegration 
               onPointsRedeem={(points) => console.log('Points redeemed:', points)}
+            />
+            
+            {/* Multi-Property Booking for Packages - Moved to bottom */}
+            <MultiPropertyBooking 
+              onPackageSelect={(pkg) => console.log('Package selected:', pkg)}
             />
           </div>
         ) : (
