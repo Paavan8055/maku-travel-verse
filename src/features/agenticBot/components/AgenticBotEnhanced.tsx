@@ -85,13 +85,16 @@ export const AgenticBotEnhanced: React.FC<AgenticBotEnhancedProps> = ({
       try {
         // Get real hotel data if search context is available
         if (searchContext?.destination) {
-          const { data: hotelData } = await supabase.functions.invoke('amadeus-hotel-search', {
+          const { data: hotelData } = await supabase.functions.invoke('provider-rotation', {
             body: {
-              cityCode: searchContext.destination,
-              checkInDate: searchContext.dates?.checkIn || new Date().toISOString().split('T')[0],
-              checkOutDate: searchContext.dates?.checkOut || new Date(Date.now() + 86400000).toISOString().split('T')[0],
-              adults: searchContext.guests || 2,
-              rooms: 1
+              searchType: 'hotel',
+              params: {
+                destination: searchContext.destination,
+                checkIn: searchContext.dates?.checkIn || new Date().toISOString().split('T')[0],
+                checkOut: searchContext.dates?.checkOut || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                adults: searchContext.guests || 2,
+                rooms: 1
+              }
             }
           });
           
