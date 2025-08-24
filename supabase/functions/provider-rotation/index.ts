@@ -196,9 +196,10 @@ serve(async (req) => {
         }
       } catch (error) {
         lastError = error;
+        logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
         logger.warn('[PROVIDER-ROTATION] Provider failed', { 
           providerId: provider.id, 
-          error: error.message 
+          error: `Provider ${provider.id} failed: ${error.message}` 
         });
         
         // Update provider failure metrics
@@ -320,7 +321,7 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   
   if (error) {
     logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
-    throw new Error(`Provider ${provider.id} failed: ${error.message}`);
+    throw new Error(`Provider ${provider.id} failed: Edge Function returned a non-2xx status code`);
   }
   
   // Standardize response format for different providers
