@@ -16,6 +16,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { Button } from "@/components/ui/button";
 import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
 import { BookingTestPanel } from "@/components/debug/BookingTestPanel";
+import { ProductionStatusIndicator } from "@/components/production/ProductionStatusIndicator";
 const Index = () => {
   return (
     <ErrorBoundary>
@@ -53,6 +54,9 @@ const Index = () => {
       <Footer />
         <ChatWidget userVertical="Solo" />
         <AgenticWidget />
+        
+        {/* Production Status - Always Visible */}
+        <ProductionStatusIndicator />
         </div>
       </PerformanceWrapper>
     </ErrorBoundary>
