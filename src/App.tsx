@@ -40,6 +40,7 @@ import InviteFriendsPage from "./pages/invite-friends";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAuth from "./pages/AdminAuth";
 import DeploymentTestPage from "./pages/admin/deployment-test";
+import DebugPage from "./pages/debug";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -94,6 +95,7 @@ const App = () => (
                               <DeploymentTestPage />
                             </AdminGuard>
                           } />
+                          <Route path="/debug" element={<DebugPage />} />
                         </Routes>
                       </BrowserRouter>
                       </TooltipProvider>

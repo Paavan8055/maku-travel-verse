@@ -111,7 +111,8 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
               returnDate: criteria.returnDate,
               passengers: criteria.passengers,
               travelClass: 'ECONOMY',
-              nonStop: false
+              nonStop: false,
+              currency: currencyCode
             }
           }
         });
