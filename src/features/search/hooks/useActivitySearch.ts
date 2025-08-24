@@ -66,12 +66,15 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
       setError(null);
 
       try {
-        // Use HotelBeds Activities API
-        const { data, error: functionError } = await supabase.functions.invoke('hotelbeds-activities', {
+        // Use Provider Rotation for Activities API
+        const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
           body: {
-            destination: criteria.destination,
-            date: criteria.date,
-            participants: criteria.participants
+            searchType: 'activity',
+            params: {
+              destination: criteria.destination,
+              date: criteria.date,
+              participants: criteria.participants
+            }
           }
         });
 
@@ -79,18 +82,31 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
           throw functionError;
         }
 
-        if (data?.success && data?.activities && Array.isArray(data.activities)) {
-          console.log("Activity search success:", data.activities.length, "activities found");
-          setActivities(data.activities);
+        if (data?.success) {
+          // Handle provider rotation response format
+          const activitiesData = data?.data || data?.activities || [];
+          
+          if (data.fallbackUsed) {
+            toast.info("Showing sample activities while we restore full service.");
+          }
+          
+          if (Array.isArray(activitiesData) && activitiesData.length > 0) {
+            console.log("Activity search success:", activitiesData.length, "activities found");
+            setActivities(activitiesData);
+          } else {
+            console.log("Activity search returned no data");
+            setActivities([]);
+            setError("No activities found for your search criteria. Please try a different destination or check back later.");
+          }
         } else {
-          console.log("Activity search returned no data");
+          console.log("Activity search failed");
           setActivities([]);
-          setError("No activities found for your search criteria. Please try a different destination or check back later.");
+          setError(data?.error || "No activities found for your search criteria. Please try a different destination or check back later.");
         }
         } catch (err) {
           logger.error("Activity search error:", err);
           const errorMessage = err instanceof Error ? err.message : "Failed to search activities";
-          setError(`HotelBeds API Error: ${errorMessage}. Please try a different destination or check our service status.`);
+          setError(`Provider API Error: ${errorMessage}. Please try a different destination or check our service status.`);
           toast.error("Activity search temporarily unavailable. Please try again in a few minutes.");
           setActivities([]);
         } finally {
