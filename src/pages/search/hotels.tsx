@@ -161,12 +161,6 @@ const HotelSearchPage = () => {
 
           {/* API Optimization Component */}
           <AmadeusOptimizer onApiStatusChange={setApiStatus} />
-          
-          {/* Personalization Engine */}
-          <PersonalizationEngine 
-            userPreferences={userPreferences}
-            onRecommendationClick={(rec) => console.log('Recommendation clicked:', rec)}
-          />
         {/* Enhanced Header with Search Performance Optimizer */}
         <SearchPerformanceOptimizer 
           onSearch={(query) => {
@@ -324,6 +318,17 @@ const HotelSearchPage = () => {
             <SmartRecommendations 
               currentLocation={destination}
               searchCriteria={{ checkIn, checkOut, guests }}
+              className="max-w-4xl mx-auto"
+            />
+          </div>
+        )}
+        
+        {/* Personalized for You - Bottom of Page */}
+        {hasSearched && filteredAndSortedHotels.length > 0 && (
+          <div className="mt-8">
+            <PersonalizationEngine 
+              userPreferences={userPreferences}
+              onRecommendationClick={(rec) => console.log('Recommendation clicked:', rec)}
               className="max-w-4xl mx-auto"
             />
           </div>
