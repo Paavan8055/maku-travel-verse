@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Star, Wifi, Car, Utensils, Waves, Shield, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RealBookingButton } from "@/components/RealBookingButton";
 import { RoomSelectionModal } from "@/components/booking";
+import { useHotelPhotos } from "@/hooks/useHotelPhotosEnhanced";
 
 interface Hotel {
   id: string;
@@ -47,6 +48,14 @@ interface HotelCardProps {
 export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
   const [showRoomSelection, setShowRoomSelection] = useState(false);
+  const { photos, fetchPhotos } = useHotelPhotos();
+
+  // Fetch photos when component mounts
+  useEffect(() => {
+    if (hotel.amadeus?.hotelId) {
+      fetchPhotos(hotel.amadeus.hotelId);
+    }
+  }, [hotel.amadeus?.hotelId, fetchPhotos]);
 
   const handleSelectHotel = () => {
     // Get current search parameters to preserve them
@@ -135,11 +144,11 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
           {/* Hotel Image */}
           <div className="w-64 h-48 relative overflow-hidden rounded-l-lg">
             <img
-              src={hotel.images?.[0] || '/assets/hotel-budget.jpg' || '/placeholder.svg'}
+              src={photos?.[0]?.url || hotel.images?.[0] || '/assets/hotel-budget.jpg' || '/placeholder.svg'}
               alt={hotel.name}
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = '/placeholder.svg';
+                e.currentTarget.src = photos?.[0]?.url ? '/assets/hotel-budget.jpg' : '/placeholder.svg';
               }}
             />
             {hotel.deals && (
