@@ -61,8 +61,8 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     responseTime: 0
   },
   {
-    id: 'amadeus-hotel',
-    name: 'Amadeus',
+    id: 'sabre-hotel',
+    name: 'Sabre',
     type: 'hotel',
     enabled: true,
     priority: 1,
@@ -91,8 +91,8 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     responseTime: 0
   },
   {
-    id: 'sabre-hotel',
-    name: 'Sabre',
+    id: 'amadeus-hotel',
+    name: 'Amadeus',
     type: 'hotel',
     enabled: true,
     priority: 3,
