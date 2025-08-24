@@ -34,13 +34,15 @@ interface ConversionTrackerProps {
   currentStep?: string;
   isVisible?: boolean;
   onOptimizationSuggestion?: (suggestion: string) => void;
+  forceShow?: boolean; // New prop to explicitly enable in dev
 }
 
 export const ConversionTracker: React.FC<ConversionTrackerProps> = ({
   sessionId = 'default',
   currentStep = 'search',
   isVisible = false,
-  onOptimizationSuggestion
+  onOptimizationSuggestion,
+  forceShow = false
 }) => {
   const [metrics, setMetrics] = useState<ConversionMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -133,7 +135,8 @@ export const ConversionTracker: React.FC<ConversionTrackerProps> = ({
     return rate > 70 ? <TrendingUp className="h-3 w-3 text-green-600" /> : <TrendingDown className="h-3 w-3 text-red-600" />;
   };
 
-  if (!isVisible || !metrics || isLoading || !showInDev || isDismissed) {
+  // Hide by default in development unless explicitly enabled
+  if (!isVisible || !metrics || isLoading || (!forceShow && showInDev) || isDismissed) {
     return null;
   }
 
