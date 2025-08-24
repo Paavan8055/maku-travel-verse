@@ -56,18 +56,17 @@ export const CommunicationPreferences: React.FC = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('communication_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      // Using RPC call temporarily since types aren't updated yet
+      const { data, error } = await supabase.rpc('get_user_communication_preferences', {
+        p_user_id: user.id
+      });
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error && error.message !== 'No rows found') {
+        console.error('Error fetching preferences:', error);
       }
 
-      if (data) {
-        setSettings(data);
+      if (data && data.length > 0) {
+        setSettings(data[0]);
       } else {
         // Create default preferences
         const defaultSettings: CommunicationSettings = {
@@ -128,13 +127,13 @@ export const CommunicationPreferences: React.FC = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('communication_preferences')
-        .upsert({
-          ...settings,
-          user_id: user.id,
-          updated_at: new Date().toISOString()
-        });
+      const { error } = await supabase.rpc('upsert_communication_preferences', {
+        p_user_id: user.id,
+        p_preferences: settings.preferences,
+        p_email_frequency: settings.email_frequency,
+        p_timezone: settings.timezone,
+        p_language: settings.language
+      });
 
       if (error) throw error;
 

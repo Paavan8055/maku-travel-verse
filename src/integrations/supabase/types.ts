@@ -414,6 +414,51 @@ export type Database = {
           },
         ]
       }
+      booking_updates: {
+        Row: {
+          booking_id: string
+          booking_reference: string
+          booking_type: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          status: string
+          title: string
+          update_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          booking_reference: string
+          booking_type: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          status: string
+          title: string
+          update_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          booking_reference?: string
+          booking_type?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          status?: string
+          title?: string
+          update_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_data: Json
@@ -524,6 +569,39 @@ export type Database = {
           name?: string
           raw?: Json | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      communication_preferences: {
+        Row: {
+          created_at: string
+          email_frequency: string
+          id: string
+          language: string
+          preferences: Json
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_frequency?: string
+          id?: string
+          language?: string
+          preferences?: Json
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_frequency?: string
+          id?: string
+          language?: string
+          preferences?: Json
+          timezone?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
