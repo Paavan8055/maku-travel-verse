@@ -96,42 +96,118 @@ function transformCheckratesResponse(checkratesData: any): any {
       images: hotel.images?.map((img: any) => ({
         path: img.path,
         order: img.order,
-        type: img.type
+        type: img.type,
+        imageTypeCode: img.imageTypeCode,
+        roomCode: img.roomCode,
+        roomType: img.roomType
       })) || [],
       rooms: hotel.rooms?.map((room: any) => ({
         code: room.code,
         name: room.name,
-        rates: room.rates?.map((rate: any) => ({
-          rateKey: rate.rateKey,
-          rateClass: rate.rateClass,
-          rateType: rate.rateType,
-          net: rate.net,
-          discount: rate.discount,
-          discountPCT: rate.discountPCT,
-          sellingRate: rate.sellingRate,
-          hotelSellingRate: rate.hotelSellingRate,
-          amount: rate.amount,
-          hotelCurrency: rate.hotelCurrency,
-          hotelMandatory: rate.hotelMandatory,
-          packaging: rate.packaging,
-          boardCode: rate.boardCode,
-          boardName: rate.boardName,
-          cancellationPolicies: rate.cancellationPolicies,
-          taxes: {
-            allIncluded: rate.taxes?.allIncluded,
-            taxScheme: rate.taxes?.taxScheme,
-            taxes: rate.taxes?.taxes || []
-          },
-          rateComments: rate.rateComments,
-          paymentType: rate.paymentType,
-          offers: rate.offers || [],
-          shiftRate: rate.shiftRate,
-          dailyRates: rate.dailyRates || []
-        })) || []
+        rates: room.rates?.map((rate: any) => {
+          // Enhanced pricing calculation
+          const netAmount = rate.net || 0;
+          const sellingRate = rate.sellingRate || 0;
+          const hotelSellingRate = rate.hotelSellingRate || 0;
+          const totalTaxes = rate.taxes?.taxes?.reduce((sum: number, tax: any) => sum + (tax.amount || 0), 0) || 0;
+          
+          return {
+            rateKey: rate.rateKey,
+            rateClass: rate.rateClass,
+            rateType: rate.rateType,
+            
+            // Enhanced pricing breakdown
+            pricing: {
+              net: netAmount,
+              selling: sellingRate,
+              hotelSelling: hotelSellingRate,
+              markup: sellingRate - netAmount,
+              markupPCT: netAmount > 0 ? ((sellingRate - netAmount) / netAmount) * 100 : 0,
+              commission: rate.commission || 0,
+              commissionVAT: rate.commissionVAT || 0,
+              totalTaxes: totalTaxes,
+              finalAmount: rate.allotment ? sellingRate + totalTaxes : sellingRate
+            },
+            
+            // Legacy fields for backward compatibility
+            net: netAmount,
+            discount: rate.discount,
+            discountPCT: rate.discountPCT,
+            sellingRate: sellingRate,
+            hotelSellingRate: hotelSellingRate,
+            amount: rate.amount,
+            hotelCurrency: rate.hotelCurrency,
+            hotelMandatory: rate.hotelMandatory,
+            packaging: rate.packaging,
+            boardCode: rate.boardCode,
+            boardName: rate.boardName,
+            
+            // Enhanced cancellation policies
+            cancellationPolicies: rate.cancellationPolicies?.map((policy: any) => ({
+              amount: policy.amount,
+              hotelAmount: policy.hotelAmount,
+              hotelCurrency: policy.hotelCurrency,
+              from: policy.from,
+              to: policy.to
+            })) || [],
+            
+            // Enhanced tax breakdown
+            taxes: {
+              allIncluded: rate.taxes?.allIncluded || false,
+              taxScheme: rate.taxes?.taxScheme,
+              total: totalTaxes,
+              breakdown: rate.taxes?.taxes?.map((tax: any) => ({
+                included: tax.included,
+                percent: tax.percent,
+                amount: tax.amount,
+                currency: tax.currency,
+                type: tax.type,
+                clientAmount: tax.clientAmount,
+                clientCurrency: tax.clientCurrency
+              })) || []
+            },
+            
+            // Rate details and policies
+            rateComments: rate.rateComments,
+            rateCommentsId: rate.rateCommentsId,
+            paymentType: rate.paymentType,
+            offers: rate.offers?.map((offer: any) => ({
+              code: offer.code,
+              name: offer.name,
+              amount: offer.amount
+            })) || [],
+            promotions: rate.promotions || [],
+            shiftRate: rate.shiftRate,
+            
+            // Daily rate breakdown
+            dailyRates: rate.dailyRates?.map((daily: any) => ({
+              offset: daily.offset,
+              dailyNet: daily.dailyNet,
+              dailySellingRate: daily.dailySellingRate
+            })) || [],
+            
+            // Room and occupancy details
+            rooms: rate.rooms,
+            adults: rate.adults,
+            children: rate.children,
+            allotment: rate.allotment,
+            paymentPolicies: rate.paymentPolicies || [],
+            resident: rate.resident
+          };
+        }) || []
       })) || []
     },
     totalResults: 1,
-    auditData: checkratesData.auditData
+    auditData: checkratesData.auditData,
+    
+    // Enhanced metadata
+    metadata: {
+      processTime: checkratesData.auditData?.processTime,
+      timestamp: checkratesData.auditData?.timestamp,
+      serverId: checkratesData.auditData?.serverId,
+      environment: checkratesData.auditData?.environment,
+      release: checkratesData.auditData?.release
+    }
   }
 }
 
