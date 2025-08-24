@@ -3,9 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import logger from "@/utils/logger";
+import { HotelBookingWorkflow, createHotelBookingWorkflow, type HotelBookingWorkflowParams } from "@/services/HotelBookingWorkflow";
 
 interface HotelBookingParams {
-  hotelOfferId: string;
+  hotelOfferId?: string;
+  hotelCode?: string;
+  hotelName?: string;
+  rateKey?: string;
+  provider?: 'hotelbeds' | 'amadeus';
   guestDetails: {
     firstName: string;
     lastName: string;
@@ -19,15 +24,32 @@ interface HotelBookingParams {
     checkOut: string;
     guests: number;
   };
+  rooms?: Array<{
+    rateKey: string;
+    type: string;
+    rate: string;
+    price: number;
+    paxes: Array<{
+      roomId: number;
+      type: 'AD' | 'CH';
+      age?: number;
+      name: string;
+      surname: string;
+      title?: string;
+    }>;
+  }>;
   paymentMethod?: string;
   specialRequests?: string;
-  useRealAmadeusBooking?: boolean; // Flag to use real Amadeus booking
+  useRealAmadeusBooking?: boolean;
+  useHotelBeds?: boolean;
 }
 
 interface HotelBookingResult {
   success: boolean;
   bookingId?: string;
   confirmationNumber?: string;
+  hotelbedsReference?: string;
+  amadeusPNR?: string;
   error?: string;
   redirectUrl?: string;
 }
@@ -40,10 +62,47 @@ export const useHotelBooking = () => {
     setIsLoading(true);
 
     try {
-      console.log('Creating hotel booking for offer:', params.hotelOfferId);
+      console.log('Creating hotel booking:', { 
+        provider: params.provider, 
+        hotelCode: params.hotelCode || params.hotelOfferId,
+        useHotelBeds: params.useHotelBeds,
+        useRealAmadeusBooking: params.useRealAmadeusBooking
+      });
 
+      // Use the new booking workflow if provider and required data is specified
+      if ((params.useHotelBeds || params.provider === 'hotelbeds') && params.hotelCode && params.rateKey && params.rooms) {
+        const workflow = createHotelBookingWorkflow();
+        
+        const workflowParams: HotelBookingWorkflowParams = {
+          provider: 'hotelbeds',
+          hotelCode: params.hotelCode,
+          hotelName: params.hotelName || 'Selected Hotel',
+          checkInDate: params.roomDetails.checkIn,
+          checkOutDate: params.roomDetails.checkOut,
+          rateKey: params.rateKey,
+          guests: [{
+            firstName: params.guestDetails.firstName,
+            lastName: params.guestDetails.lastName,
+            email: params.guestDetails.email,
+            phone: params.guestDetails.phone,
+            type: 'AD'
+          }],
+          rooms: params.rooms
+        };
+
+        const result = await workflow.executeHotelBedsWorkflow(workflowParams);
+        
+        return {
+          success: result.success,
+          bookingId: result.bookingId,
+          confirmationNumber: result.confirmationNumber,
+          hotelbedsReference: result.hotelbedsReference,
+          error: result.error,
+          redirectUrl: result.success ? `/booking-confirmation?bookingId=${result.bookingId}` : undefined
+        };
+      } 
       // Check if we should use real Amadeus booking
-      if (params.useRealAmadeusBooking) {
+      else if (params.useRealAmadeusBooking && params.hotelOfferId) {
         // Step 1: Confirm the price first
         const { data: priceConfirmation, error: priceError } = await supabase.functions.invoke('amadeus-price-confirm', {
           body: { offerId: params.hotelOfferId }
@@ -73,6 +132,7 @@ export const useHotelBooking = () => {
           success: true,
           bookingId: amadeusBooking.booking?.id,
           confirmationNumber: amadeusBooking.booking?.confirmationNumber,
+          amadeusPNR: amadeusBooking.booking?.pnr,
           redirectUrl: `/booking-confirmation?bookingId=${amadeusBooking.booking?.id}`
         };
       } else {
@@ -86,7 +146,7 @@ export const useHotelBooking = () => {
             bookingData: {
               hotelOfferId: params.hotelOfferId,
               hotel: {
-                name: selectedHotelData.hotelName || 'Selected Hotel',
+                name: selectedHotelData.hotelName || params.hotelName || 'Selected Hotel',
                 checkIn: params.roomDetails.checkIn,
                 checkOut: params.roomDetails.checkOut,
                 roomType: params.roomDetails.roomType,
