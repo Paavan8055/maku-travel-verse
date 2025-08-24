@@ -205,16 +205,38 @@ const HotelSearchPage = () => {
 
           {error && <Card>
               <CardContent className="p-6 text-center">
-                <p className="text-destructive">Error loading hotels: {error}</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Please try searching for a specific destination or check your search criteria.
-                </p>
-                {healthStatus && healthStatus.status !== 'healthy' && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    <strong>Service Status:</strong> Some of our booking services are currently experiencing issues. 
-                    Please try again in a few minutes.
+                <div className="space-y-4">
+                  <div className="text-6xl">⚠️</div>
+                  <h3 className="text-xl font-semibold">Unable to load hotels</h3>
+                  <p className="text-destructive">{error}</p>
+                  <p className="text-sm text-muted-foreground">
+                    This could be due to a network connectivity issue or our booking service being temporarily unavailable.
                   </p>
-                )}
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <button 
+                      onClick={() => window.location.reload()} 
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                      Try Again
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.delete('searched');
+                        window.location.href = `/search/hotels?${newParams.toString()}`;
+                      }}
+                      className="px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+                    >
+                      Modify Search
+                    </button>
+                  </div>
+                  {healthStatus && healthStatus.status !== 'healthy' && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      <strong>Service Status:</strong> Some of our booking services are currently experiencing issues. 
+                      Please try again in a few minutes.
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>}
 
