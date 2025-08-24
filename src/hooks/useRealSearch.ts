@@ -195,35 +195,35 @@ export const useRealActivitySearch = () => {
     setError(null);
 
     try {
-      // Call HotelBeds activities API via edge function
-      const { data: hotelBedsData, error: hotelBedsError } = await supabase.functions.invoke(
-        'hotelbeds-activities',
-        {
-          body: {
+      // Use provider rotation for activities with fallback
+      const { data, error: rotationError } = await supabase.functions.invoke('provider-rotation', {
+        body: {
+          searchType: 'activity',
+          params: {
             destination: params.destination || params.cityCode,
             dateFrom: params.checkIn,
             dateTo: params.checkOut,
             currency: 'AUD'
           }
         }
-      );
+      });
 
-      if (hotelBedsError) throw hotelBedsError;
+      if (rotationError) throw rotationError;
 
-      if (hotelBedsData?.success && hotelBedsData?.activities) {
+      if (data?.success && data?.data) {
         setResults({
-          data: hotelBedsData.activities,
-          source: hotelBedsData.source || 'api',
-          provider: 'hotelbeds',
+          data: data.data,
+          source: data.source || 'api',
+          provider: data.provider || 'unknown',
           timestamp: new Date().toISOString()
         });
 
         toast({
           title: "Activity search completed",
-          description: `Found ${hotelBedsData.activities.length} activities`,
+          description: `Found ${data.data.length} activities${data.provider ? ` via ${data.provider}` : ''}`,
         });
       } else {
-        throw new Error('No activities found');
+        throw new Error(data?.error || 'No activities found');
       }
 
     } catch (err: any) {
