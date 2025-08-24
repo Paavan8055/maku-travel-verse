@@ -235,3 +235,12 @@ enabled = false
 port = 54327
 vector_port = 54328
 backend = "postgres"
+
+[functions.comprehensive-health-monitor]
+verify_jwt = false
+
+[functions.booking-integrity-manager]
+verify_jwt = true
+
+[functions.enhanced-stripe-webhook]
+verify_jwt = false
