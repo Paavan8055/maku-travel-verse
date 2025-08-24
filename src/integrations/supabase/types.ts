@@ -1859,6 +1859,51 @@ export type Database = {
         }
         Relationships: []
       }
+      hotelbeds_monitoring: {
+        Row: {
+          booking_reference: string | null
+          correlation_id: string
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          event_type: string
+          function_name: string
+          hotel_code: string | null
+          id: string
+          metadata: Json | null
+          rate_key: string | null
+          status_code: number | null
+        }
+        Insert: {
+          booking_reference?: string | null
+          correlation_id: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type: string
+          function_name: string
+          hotel_code?: string | null
+          id?: string
+          metadata?: Json | null
+          rate_key?: string | null
+          status_code?: number | null
+        }
+        Update: {
+          booking_reference?: string | null
+          correlation_id?: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type?: string
+          function_name?: string
+          hotel_code?: string | null
+          id?: string
+          metadata?: Json | null
+          rate_key?: string | null
+          status_code?: number | null
+        }
+        Relationships: []
+      }
       hotels: {
         Row: {
           address: Json | null
