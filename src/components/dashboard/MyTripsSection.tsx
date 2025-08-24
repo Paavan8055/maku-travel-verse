@@ -21,7 +21,8 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Clock
+  Clock,
+  FileText
 } from 'lucide-react';
 
 // Use database types instead of Amadeus types for better compatibility
@@ -375,6 +376,10 @@ export const MyTripsSection: React.FC = () => {
                     <Button variant="outline" size="sm">
                       <Eye className="h-4 w-4 mr-2" />
                       View Details
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Download Voucher
                     </Button>
                     {hotel.status !== 'cancelled' && (
                       <Button 

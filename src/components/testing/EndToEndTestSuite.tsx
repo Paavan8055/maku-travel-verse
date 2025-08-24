@@ -44,37 +44,74 @@ export const EndToEndTestSuite = () => {
     const suite: TestSuite = {
       name: 'Booking Flow Tests',
       tests: [
+        { name: 'Provider Rotation Test', status: 'pending' },
         { name: 'Hotel Search', status: 'pending' },
-        { name: 'Hotel Selection', status: 'pending' },
-        { name: 'Guest Information', status: 'pending' },
+        { name: 'Flight Search', status: 'pending' },
+        { name: 'Activity Search', status: 'pending' },
         { name: 'Payment Processing', status: 'pending' },
-        { name: 'Booking Confirmation', status: 'pending' }
+        { name: 'Booking Creation', status: 'pending' },
+        { name: 'Email Confirmation', status: 'pending' },
+        { name: 'Voucher Generation', status: 'pending' }
       ],
       totalDuration: 0
     };
 
     setTestSuites(prev => [...prev, suite]);
 
+    // Test Provider Rotation
+    const rotationStart = Date.now();
+    updateTestResult('Booking Flow Tests', 'Provider Rotation Test', { status: 'running' });
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('test-provider-rotation');
+      
+      if (error) throw error;
+      
+      updateTestResult('Booking Flow Tests', 'Provider Rotation Test', { 
+        status: data?.success ? 'passed' : 'warning', 
+        duration: Date.now() - rotationStart,
+        details: { 
+          summary: data?.summary,
+          testResults: data?.testResults
+        }
+      });
+    } catch (error) {
+      updateTestResult('Booking Flow Tests', 'Provider Rotation Test', { 
+        status: 'failed', 
+        duration: Date.now() - rotationStart,
+        error: error instanceof Error ? error.message : 'Provider rotation test failed'
+      });
+    }
+
     // Test Hotel Search
     const searchStart = Date.now();
     updateTestResult('Booking Flow Tests', 'Hotel Search', { status: 'running' });
     
     try {
-      const { data, error } = await supabase.functions.invoke('amadeus-hotel-search', {
+      const { data, error } = await supabase.functions.invoke('provider-rotation', {
         body: {
-          destination: 'NYC',
-          checkIn: '2024-12-01',
-          checkOut: '2024-12-03',
-          adults: 2
+          searchType: 'hotel',
+          params: {
+            destination: 'Sydney',
+            checkIn: '2025-08-25',
+            checkOut: '2025-08-26',
+            guests: 2,
+            rooms: 1,
+            currency: 'AUD'
+          }
         }
       });
 
       if (error) throw error;
       
       updateTestResult('Booking Flow Tests', 'Hotel Search', { 
-        status: 'passed', 
+        status: data?.success ? 'passed' : 'warning', 
         duration: Date.now() - searchStart,
-        details: { resultCount: data?.length || 0 }
+        details: { 
+          provider: data?.provider || 'Unknown',
+          resultCount: data?.data?.length || 0,
+          fallbackUsed: data?.fallbackUsed || false
+        }
       });
     } catch (error) {
       updateTestResult('Booking Flow Tests', 'Hotel Search', { 

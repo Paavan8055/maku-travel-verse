@@ -7,6 +7,7 @@ import { EndToEndTestSuite } from '@/components/testing/EndToEndTestSuite';
 import { MobileTestingSuite } from '@/components/testing/MobileTestingSuite';
 import { PerformanceValidationDashboard } from '@/components/testing/PerformanceValidationDashboard';
 import { HealthCheckValidator } from '@/components/testing/HealthCheckValidator';
+import { ProductionValidationSuite } from '@/components/testing/ProductionValidationSuite';
 
 export default function Testing() {
   const [activeTab, setActiveTab] = useState('e2e');
