@@ -1,304 +1,382 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Activity, 
   AlertTriangle, 
   CheckCircle, 
-  Clock, 
-  Wifi, 
-  WifiOff, 
-  TrendingUp, 
-  TrendingDown,
+  XCircle, 
   RefreshCw,
-  Settings
+  Server,
+  Database,
+  CreditCard,
+  Plane,
+  Building,
+  MapPin
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 
-interface ProviderMetric {
-  provider_id: string;
-  success_rate: number;
-  avg_response_time: number;
-  total_requests: number;
-  last_success: string;
-  circuit_breaker_state: 'closed' | 'open' | 'half-open';
-}
-
-interface SystemMetrics {
-  total_requests_24h: number;
-  success_rate_24h: number;
-  avg_response_time_24h: number;
-  error_count_24h: number;
-  providers: ProviderMetric[];
-}
-
-export const ProductionDashboard: React.FC = () => {
-  const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    loadMetrics();
-    const interval = setInterval(loadMetrics, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadMetrics = async () => {
-    try {
-      setLoading(true);
-      
-      // Load provider metrics for the last 24 hours
-      const { data: providerMetrics, error } = await supabase
-        .from('provider_metrics')
-        .select('*')
-        .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-      if (error) throw error;
-
-      // Process metrics by provider
-      const providersMap = new Map<string, any>();
-      let totalRequests = 0;
-      let totalSuccesses = 0;
-      let totalResponseTime = 0;
-      let errorCount = 0;
-
-      providerMetrics?.forEach(metric => {
-        totalRequests++;
-        if (metric.success) totalSuccesses++;
-        else errorCount++;
-        totalResponseTime += metric.response_time;
-
-        if (!providersMap.has(metric.provider_id)) {
-          providersMap.set(metric.provider_id, {
-            provider_id: metric.provider_id,
-            successes: 0,
-            total: 0,
-            response_times: [],
-            last_success: null,
-            circuit_breaker_state: 'closed'
-          });
-        }
-
-        const provider = providersMap.get(metric.provider_id);
-        provider.total++;
-        if (metric.success) {
-          provider.successes++;
-          provider.last_success = metric.timestamp;
-        }
-        provider.response_times.push(metric.response_time);
-      });
-
-      // Calculate aggregated metrics
-      const providers: ProviderMetric[] = Array.from(providersMap.values()).map(p => ({
-        provider_id: p.provider_id,
-        success_rate: p.total > 0 ? (p.successes / p.total) * 100 : 0,
-        avg_response_time: p.response_times.length > 0 ? 
-          p.response_times.reduce((a, b) => a + b, 0) / p.response_times.length : 0,
-        total_requests: p.total,
-        last_success: p.last_success,
-        circuit_breaker_state: p.successes / p.total < 0.5 ? 'open' : 'closed'
-      }));
-
-      const systemMetrics: SystemMetrics = {
-        total_requests_24h: totalRequests,
-        success_rate_24h: totalRequests > 0 ? (totalSuccesses / totalRequests) * 100 : 0,
-        avg_response_time_24h: totalRequests > 0 ? totalResponseTime / totalRequests : 0,
-        error_count_24h: errorCount,
-        providers
-      };
-
-      setMetrics(systemMetrics);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Failed to load metrics:', error);
-    } finally {
-      setLoading(false);
-    }
+interface HealthStatus {
+  overall_status: 'healthy' | 'degraded' | 'down';
+  timestamp: string;
+  providers: {
+    [key: string]: {
+      overall_status: string;
+      [endpoint: string]: any;
+    };
   };
+}
 
-  const getProviderStatus = (provider: ProviderMetric) => {
-    if (provider.circuit_breaker_state === 'open') return 'down';
-    if (provider.success_rate >= 95) return 'healthy';
-    if (provider.success_rate >= 80) return 'degraded';
-    return 'unhealthy';
+interface ApiHealthRecord {
+  id: string;
+  provider: string;
+  endpoint: string;
+  status: string;
+  response_time_ms: number;
+  error_message: string | null;
+  checked_at: string;
+}
+
+interface BookingStatusRecord {
+  id: string;
+  booking_id: string;
+  previous_status: string;
+  new_status: string;
+  reason: string;
+  changed_at: string;
+  metadata: any;
+}
+
+export const ProductionDashboard = () => {
+  const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
+  const [apiHealth, setApiHealth] = useState<ApiHealthRecord[]>([]);
+  const [bookingHistory, setBookingHistory] = useState<BookingStatusRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'healthy':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'degraded':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'down':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Activity className="h-4 w-4 text-gray-500" />;
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-500';
-      case 'degraded': return 'text-yellow-500';
-      case 'unhealthy': 
-      case 'down': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'healthy':
+        return 'bg-green-100 text-green-800';
+      case 'degraded':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'down':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4" />;
-      case 'degraded': return <Clock className="h-4 w-4" />;
-      case 'unhealthy':
-      case 'down': return <AlertTriangle className="h-4 w-4" />;
-      default: return <WifiOff className="h-4 w-4" />;
+  const getProviderIcon = (provider: string) => {
+    switch (provider) {
+      case 'amadeus':
+        return <Plane className="h-4 w-4" />;
+      case 'hotelbeds':
+        return <Building className="h-4 w-4" />;
+      case 'stripe':
+        return <CreditCard className="h-4 w-4" />;
+      case 'supabase':
+        return <Database className="h-4 w-4" />;
+      default:
+        return <Server className="h-4 w-4" />;
     }
   };
 
-  if (!user) {
-    return (
-      <Alert>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Please log in to access the production dashboard.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+  const fetchHealthStatus = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('production-monitoring', {
+        body: { providers: ['amadeus', 'stripe', 'hotelbeds'] }
+      });
+
+      if (error) throw error;
+
+      setHealthStatus(data.results);
+      toast({
+        title: "Health check completed",
+        description: `System status: ${data.results.overall_status}`,
+      });
+    } catch (error) {
+      console.error('Health check failed:', error);
+      toast({
+        title: "Health check failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchApiHealthHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('api_health_monitoring')
+        .select('*')
+        .order('checked_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setApiHealth(data || []);
+    } catch (error) {
+      console.error('Failed to fetch API health history:', error);
+    }
+  };
+
+  const fetchBookingStatusHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('booking_status_history')
+        .select('*')
+        .order('changed_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setBookingHistory(data || []);
+    } catch (error) {
+      console.error('Failed to fetch booking status history:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchHealthStatus();
+    fetchApiHealthHistory();
+    fetchBookingStatusHistory();
+
+    // Set up real-time subscriptions
+    const healthSubscription = supabase
+      .channel('api-health-changes')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'api_health_monitoring'
+      }, () => {
+        fetchApiHealthHistory();
+      })
+      .subscribe();
+
+    const bookingSubscription = supabase
+      .channel('booking-status-changes')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'booking_status_history'
+      }, () => {
+        fetchBookingStatusHistory();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(healthSubscription);
+      supabase.removeChannel(bookingSubscription);
+    };
+  }, []);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Production Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Production Dashboard</h1>
           <p className="text-muted-foreground">
-            Monitor system health and API provider performance
+            Monitor system health, API status, and booking operations
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadMetrics}
-            disabled={loading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
-        </div>
+        <Button onClick={fetchHealthStatus} disabled={isLoading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh Status
+        </Button>
       </div>
 
-      {lastUpdated && (
-        <p className="text-sm text-muted-foreground">
-          Last updated: {lastUpdated.toLocaleTimeString()}
-        </p>
-      )}
-
-      {/* System Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics?.total_requests_24h.toLocaleString() || '0'}
-            </div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics?.success_rate_24h.toFixed(1)}%
-            </div>
-            <Progress value={metrics?.success_rate_24h || 0} className="mt-2" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(metrics?.avg_response_time_24h || 0)}ms
-            </div>
-            <p className="text-xs text-muted-foreground">Average latency</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Error Count</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-500">
-              {metrics?.error_count_24h || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Failed requests</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Provider Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>API Provider Status</CardTitle>
-          <CardDescription>
-            Real-time health status of all integrated API providers
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {metrics?.providers.map((provider) => {
-              const status = getProviderStatus(provider);
-              return (
-                <div key={provider.provider_id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={getStatusColor(status)}>
-                      {getStatusIcon(status)}
-                    </div>
-                    <div>
-                      <h3 className="font-medium capitalize">
-                        {provider.provider_id.replace('-', ' ')}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {provider.total_requests} requests • {Math.round(provider.avg_response_time)}ms avg
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-medium">{provider.success_rate.toFixed(1)}%</p>
-                      <p className="text-xs text-muted-foreground">Success rate</p>
-                    </div>
-                    <Badge variant={status === 'healthy' ? 'default' : status === 'degraded' ? 'secondary' : 'destructive'}>
-                      {status}
-                    </Badge>
-                  </div>
-                </div>
-              );
-            })}
+      {/* Overall System Status */}
+      {healthStatus && (
+        <Alert className={`${
+          healthStatus.overall_status === 'healthy' ? 'border-green-200 bg-green-50' :
+          healthStatus.overall_status === 'degraded' ? 'border-yellow-200 bg-yellow-50' :
+          'border-red-200 bg-red-50'
+        }`}>
+          <div className="flex items-center gap-2">
+            {getStatusIcon(healthStatus.overall_status)}
+            <AlertDescription className="flex-1">
+              <strong>System Status: {healthStatus.overall_status.toUpperCase()}</strong>
+              <span className="ml-2 text-sm text-muted-foreground">
+                Last checked: {new Date(healthStatus.timestamp).toLocaleString()}
+              </span>
+            </AlertDescription>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* System Alerts */}
-      {metrics && metrics.success_rate_24h < 95 && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            System success rate is below 95% ({metrics.success_rate_24h.toFixed(1)}%). 
-            Some providers may be experiencing issues.
-          </AlertDescription>
         </Alert>
       )}
+
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="api-health">API Health</TabsTrigger>
+          <TabsTrigger value="bookings">Booking Status</TabsTrigger>
+          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          {/* Provider Status Cards */}
+          {healthStatus && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(healthStatus.providers).map(([provider, data]) => (
+                <Card key={provider}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      {getProviderIcon(provider)}
+                      {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                    </CardTitle>
+                    <Badge className={getStatusColor(data.overall_status)}>
+                      {data.overall_status}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {Object.entries(data).map(([endpoint, details]) => {
+                        if (endpoint === 'overall_status' || typeof details !== 'object') return null;
+                        const endpointData = details as any;
+                        return (
+                          <div key={endpoint} className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{endpoint}</span>
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(endpointData.status)}
+                              {endpointData.responseTime && (
+                                <span className="text-xs text-muted-foreground">
+                                  {endpointData.responseTime}ms
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="api-health" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>API Health History</CardTitle>
+              <CardDescription>Recent API endpoint health checks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {apiHealth.map((record) => (
+                  <div key={record.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                    <div className="flex items-center gap-3">
+                      {getProviderIcon(record.provider)}
+                      <div>
+                        <p className="font-medium">{record.provider} - {record.endpoint}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(record.checked_at).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(record.status)}>
+                        {record.status}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {record.response_time_ms}ms
+                      </span>
+                      {record.error_message && (
+                        <span className="text-sm text-red-500 max-w-xs truncate">
+                          {record.error_message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {apiHealth.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    No API health records found
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="bookings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Booking Status Changes</CardTitle>
+              <CardDescription>Recent booking status transitions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {bookingHistory.map((record) => (
+                  <div key={record.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                    <div>
+                      <p className="font-medium">
+                        Booking {record.metadata?.booking_reference || record.booking_id}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(record.changed_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{record.previous_status}</Badge>
+                      <span>→</span>
+                      <Badge className={
+                        record.new_status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        record.new_status === 'failed' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }>
+                        {record.new_status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                {bookingHistory.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    No booking status changes found
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="webhooks" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Webhook Processing</CardTitle>
+              <CardDescription>Webhook event processing status and logs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Webhook monitoring will be displayed here once webhook events are processed.
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Configure Stripe webhooks to point to: /production-webhook-handler
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
