@@ -289,7 +289,7 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   
   // Map provider ID to function name
   const functionMap: Record<string, string> = {
-    'amadeus-flight': 'amadeus-flight-offers',
+    'amadeus-flight': 'amadeus-flight-search',
     'sabre-flight': 'sabre-flight-search',
     'amadeus-hotel': 'amadeus-hotel-offers',
     'hotelbeds-hotel': 'hotelbeds-search',
