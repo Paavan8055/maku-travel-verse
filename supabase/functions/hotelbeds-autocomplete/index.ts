@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import logger from "../_shared/logger.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +18,7 @@ type Suggestion = {
   displayName?: string;
 };
 
-const CONTENT_BASE = "https://api.test.hotelbeds.com/hotel-content-api/1.0";
+const CONTENT_BASE = `${ENV_CONFIG.hotelbeds.baseUrl}/hotel-content-api/1.0`;
 
 // Web Crypto SHA-256 signature generation
 const generateHotelBedsSignature = async (apiKey: string, secret: string, timestamp: number): Promise<string> => {

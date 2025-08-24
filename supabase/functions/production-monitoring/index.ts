@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,7 +39,7 @@ const PROVIDER_ENDPOINTS: ProviderEndpoint[] = [
   {
     provider: 'hotelbeds',
     endpoint: 'activities',
-    url: 'https://api.test.hotelbeds.com/activity-api/3.0/activities/countries'
+    url: `${ENV_CONFIG.hotelbeds.baseUrl}/activity-api/3.0/activities/countries`
   },
   {
     provider: 'stripe',
@@ -126,7 +127,7 @@ async function checkHotelBedsAPI(): Promise<{ status: string; responseTime: numb
     }
 
     // Simple test call to countries endpoint
-    const response = await fetch('https://api.test.hotelbeds.com/activity-api/3.0/activities/countries', {
+    const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/activity-api/3.0/activities/countries`, {
       method: 'GET',
       headers: {
         'Api-key': apiKey,
