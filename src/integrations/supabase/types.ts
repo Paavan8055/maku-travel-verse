@@ -414,6 +414,50 @@ export type Database = {
           },
         ]
       }
+      booking_status_history: {
+        Row: {
+          booking_id: string
+          changed_at: string
+          changed_by: string | null
+          error_details: Json | null
+          id: string
+          metadata: Json | null
+          new_status: string
+          previous_status: string
+          reason: string | null
+        }
+        Insert: {
+          booking_id: string
+          changed_at?: string
+          changed_by?: string | null
+          error_details?: Json | null
+          id?: string
+          metadata?: Json | null
+          new_status: string
+          previous_status: string
+          reason?: string | null
+        }
+        Update: {
+          booking_id?: string
+          changed_at?: string
+          changed_by?: string | null
+          error_details?: Json | null
+          id?: string
+          metadata?: Json | null
+          new_status?: string
+          previous_status?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_status_history_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_updates: {
         Row: {
           booking_id: string
