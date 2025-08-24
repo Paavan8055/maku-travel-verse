@@ -206,19 +206,19 @@ serve(async (req) => {
       }
     }
 
-    // All providers failed, return fallback data
+    // All providers failed, return empty results with error message
     logger.error('[PROVIDER-ROTATION] All providers failed', { lastError: lastError?.message });
     
     return new Response(JSON.stringify({
-      success: true,
+      success: false,
       data: await getFallbackData(searchType),
-      provider: 'Fallback Data',
-      providerId: 'fallback',
-      fallbackUsed: true,
-      error: `All providers failed. Last error: ${lastError?.message}`
+      provider: 'None Available',
+      providerId: 'none',
+      fallbackUsed: false,
+      error: `All providers are temporarily unavailable. Please try again later.`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200
+      status: 503
     });
 
   } catch (error) {
@@ -291,7 +291,7 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   const functionMap: Record<string, string> = {
     'amadeus-flight': 'amadeus-flight-search',
     'sabre-flight': 'sabre-flight-search',
-    'amadeus-hotel': 'amadeus-hotel-offers',
+    'amadeus-hotel': 'amadeus-hotel-search',
     'hotelbeds-hotel': 'hotelbeds-search',
     'sabre-hotel': 'sabre-hotel-search',
     'amadeus-activity': 'amadeus-activity-search',
@@ -341,59 +341,30 @@ async function updateProviderMetrics(
 }
 
 async function getFallbackData(searchType: string): Promise<any> {
-  // Return sample/demo data based on search type
+  // Return empty results - no demo data per user request
   switch (searchType) {
     case 'flight':
       return {
-        offers: [
-          {
-            id: 'fallback-flight-1',
-            price: { total: '299.00', currency: 'AUD' },
-            itineraries: [{
-              segments: [{
-                departure: { iataCode: 'SYD', at: '2025-12-01T09:00:00' },
-                arrival: { iataCode: 'MEL', at: '2025-12-01T10:30:00' },
-                carrierCode: 'JQ',
-                number: '123'
-              }]
-            }],
-            fallback: true
-          }
-        ],
-        meta: { fallbackData: true }
+        flights: [],
+        meta: { error: 'All flight providers are temporarily unavailable. Please try again later.' }
       };
     
     case 'hotel':
       return {
-        offers: [
-          {
-            id: 'fallback-hotel-1',
-            name: 'Sample Hotel',
-            price: { total: '150.00', currency: 'AUD' },
-            location: { city: 'Melbourne', country: 'Australia' },
-            rating: 4,
-            fallback: true
-          }
-        ],
-        meta: { fallbackData: true }
+        hotels: [],
+        meta: { error: 'All hotel providers are temporarily unavailable. Please try again later.' }
       };
     
     case 'activity':
       return {
-        offers: [
-          {
-            id: 'fallback-activity-1',
-            name: 'City Walking Tour',
-            price: { total: '45.00', currency: 'AUD' },
-            duration: '3 hours',
-            rating: 4.5,
-            fallback: true
-          }
-        ],
-        meta: { fallbackData: true }
+        activities: [],
+        meta: { error: 'All activity providers are temporarily unavailable. Please try again later.' }
       };
     
     default:
-      return { offers: [], meta: { fallbackData: true } };
+      return { 
+        data: [], 
+        meta: { error: 'Service temporarily unavailable. Please try again later.' } 
+      };
   }
 }
