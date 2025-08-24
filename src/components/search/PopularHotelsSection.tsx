@@ -75,7 +75,7 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
                 reviews: Math.floor(Math.random() * 2000) + 500,
                 price: Math.round(hotel.pricePerNight || hotel.totalPrice || 200).toString(),
                 originalPrice: hotel.pricePerNight ? Math.round(hotel.pricePerNight * 1.2).toString() : undefined,
-                image: hotel.images?.[0] || '/assets/hotel-budget.jpg',
+                image: hotel.images?.[0] || '/assets/hotel-business.jpg',
                 amenities: hotel.amenities?.slice(0, 4) || ['WiFi', 'Pool', 'Spa', 'Restaurant'],
                 discount: Math.random() > 0.6 ? 'Best Rate' : undefined
               }));
@@ -171,7 +171,11 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = '/assets/hotel-budget.jpg';
+                  if (target.src.includes('/assets/hotel-business.jpg')) {
+                    target.src = '/placeholder.svg';
+                  } else if (!target.src.includes('/assets/')) {
+                    target.src = '/assets/hotel-business.jpg';
+                  }
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
