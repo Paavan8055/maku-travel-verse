@@ -60,8 +60,11 @@ export class SabreClient extends BaseSupplierClient {
 
       const tokenUrl = `${this.config.baseUrl}/v2/auth/token`;
       
-      // Sabre uses Base64 encoded client credentials
-      const credentials = Buffer.from(`${this.credentials.clientId}:${this.credentials.clientSecret}`).toString('base64');
+      // Fixed: Use Deno-compatible base64 encoding instead of Node.js Buffer
+      const credentialsString = `${this.credentials.clientId}:${this.credentials.clientSecret}`;
+      const encoder = new TextEncoder();
+      const credentialsBytes = encoder.encode(credentialsString);
+      const credentials = btoa(String.fromCharCode(...credentialsBytes));
 
       const response = await fetch(tokenUrl, {
         method: 'POST',
@@ -93,9 +96,12 @@ export class SabreClient extends BaseSupplierClient {
     } catch (error) {
       logger.error('Failed to get Sabre access token:', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        correlationId
+        correlationId,
+        baseUrl: this.config.baseUrl,
+        clientIdExists: !!this.credentials.clientId,
+        clientSecretExists: !!this.credentials.clientSecret
       });
-      throw error;
+      throw new Error(`Sabre authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

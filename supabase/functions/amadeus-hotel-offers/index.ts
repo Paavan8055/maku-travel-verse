@@ -189,8 +189,10 @@ serve(async (req) => {
     // Parse potential add-ons from offer data
     offers.forEach((offer: any) => {
       // Check for breakfast in rate family or room description
+      // Fix: description is an object with text property, not a string
+      const roomDescription = offer.room?.description?.text || offer.room?.description || '';
       const hasBreakfast = offer.rateFamilyEstimated?.type?.includes('BREAKFAST') || 
-                          offer.room?.description?.toLowerCase().includes('breakfast');
+                          (typeof roomDescription === 'string' && roomDescription.toLowerCase().includes('breakfast'));
       
       if (hasBreakfast && !ancillaryServices.find(s => s.id === 'breakfast')) {
         ancillaryServices.push({
@@ -252,7 +254,7 @@ serve(async (req) => {
       room: {
         type: offer.room?.type,
         typeEstimated: offer.room?.typeEstimated,
-        description: offer.room?.description,
+        description: offer.room?.description?.text || offer.room?.description || '',
         capacity: offer.guests?.adults || adults
       },
       guests: offer.guests,

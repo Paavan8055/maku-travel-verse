@@ -15,22 +15,27 @@ interface ActivitySearchParams {
 }
 
 // Generate HMAC SHA256 signature for HotelBeds API
+// Fixed: Use correct HotelBeds signature algorithm (SHA-256 hex without HMAC)
 async function generateSignature(apiKey: string, secret: string, timestamp: number): Promise<string> {
+  // HotelBeds uses: SHA256(APIKey + Secret + timestamp)
   const message = apiKey + secret + timestamp;
   const encoder = new TextEncoder();
   const data = encoder.encode(message);
   
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
+  // Use crypto.subtle.digest for SHA-256 (not HMAC)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   
-  const signature = await crypto.subtle.sign('HMAC', key, data);
-  const hashArray = Array.from(new Uint8Array(signature));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  logger.info('HotelBeds signature generation:', {
+    apiKeyLength: apiKey.length,
+    secretLength: secret.length,
+    timestamp,
+    messageLength: message.length,
+    signature: signature.substring(0, 10) + '...' // Log first 10 chars for debugging
+  });
+  
+  return signature;
 }
 
 async function searchHotelbedsActivities(params: ActivitySearchParams): Promise<any> {
@@ -67,12 +72,13 @@ async function searchHotelbedsActivities(params: ActivitySearchParams): Promise<
 
   logger.info('HotelBeds Activities search request:', requestBody);
 
-  const response = await fetch('https://api.test.hotelbeds.com/activity-api/3.0/activities', {
+  // Fixed: Use correct HotelBeds test endpoint and headers
+  const response = await fetch('https://api.test.hotelbeds.com/activity-api/3.0/activities/search', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Api-Key': apiKey,
-      'X-Signature': signature,
+      'Api-key': apiKey, // Fixed: lowercase 'k' in Api-key
+      'X-signature': signature, // Fixed: lowercase 's' in X-signature  
       'Accept': 'application/json',
       'Accept-Encoding': 'gzip'
     },
