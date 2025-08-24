@@ -141,6 +141,14 @@ serve(async (req) => {
 
     // Hotel search - Use provider rotation for enhanced search capabilities
     if (type === 'hotel') {
+      logger.info('[UNIFIED-SEARCH] Hotel search using provider-rotation with params:', {
+        destination: params.destination,
+        checkIn: params.checkIn,
+        checkOut: params.checkOut,
+        guests: params.guests || 2,
+        rooms: params.rooms || 1
+      });
+      
       searchPromises.push(
         callEdgeFunction('provider-rotation', {
           searchType: 'hotel',

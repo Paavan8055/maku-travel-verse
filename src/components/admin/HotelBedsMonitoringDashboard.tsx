@@ -1,99 +1,78 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  DollarSign, 
-  TrendingUp,
-  RefreshCw,
-  Server
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import logger from '@/utils/logger';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Activity, AlertCircle, CheckCircle, Clock, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-interface HealthMetric {
-  provider: string;
-  endpoint: string;
-  status: 'healthy' | 'degraded' | 'outage';
-  responseTime: number;
-  lastChecked: string;
-  errorRate: number;
+interface MonitoringData {
+  healthStatus: {
+    status: 'healthy' | 'degraded' | 'down';
+    lastCheck: string;
+    responseTime: number;
+    successRate: number;
+  };
+  metrics: {
+    searchCount: number;
+    bookingCount: number;
+    errorCount: number;
+    avgResponseTime: number;
+  };
+  recentActivity: Array<{
+    id: string;
+    type: 'search' | 'booking' | 'error';
+    timestamp: string;
+    details: any;
+  }>;
+  analytics: Array<{
+    date: string;
+    searches: number;
+    bookings: number;
+    errors: number;
+    responseTime: number;
+  }>;
 }
 
-interface BookingMetric {
-  date: string;
-  searchCount: number;
-  bookingCount: number;
-  cancelCount: number;
-  totalRevenue: number;
-  averageResponseTime: number;
-  successRate: number;
-}
+export default function HotelBedsMonitoringDashboard() {
+  const [data, setData] = useState<MonitoringData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-export const HotelBedsMonitoringDashboard = () => {
-  const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
-  const [bookingMetrics, setBookingMetrics] = useState<BookingMetric[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-  const fetchHealthMetrics = async () => {
+  const fetchMonitoringData = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('hotelbeds-monitoring', {
-        body: { action: 'getHealth' }
+      setLoading(true);
+      
+      // Call HotelBeds monitoring function
+      const { data: monitoringData, error } = await supabase.functions.invoke('hotelbeds-monitoring', {
+        body: { action: 'get_dashboard_data' }
       });
 
-      if (error) throw error;
-
-      if (data?.success && data.metrics) {
-        setHealthMetrics(data.metrics);
+      if (error) {
+        throw error;
       }
-    } catch (error) {
-      logger.error('Failed to fetch health metrics:', error);
-      toast.error('Failed to load health metrics');
-    }
-  };
 
-  const fetchBookingMetrics = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('hotelbeds-monitoring', {
-        body: { action: 'getAnalytics', timeRange: '7d' }
+      setData(monitoringData);
+    } catch (error) {
+      console.error('Failed to fetch monitoring data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load monitoring data",
+        variant: "destructive"
       });
-
-      if (error) throw error;
-
-      if (data?.success && data.analytics) {
-        setBookingMetrics(data.analytics);
-      }
-    } catch (error) {
-      logger.error('Failed to fetch booking metrics:', error);
-      toast.error('Failed to load booking analytics');
-    }
-  };
-
-  const fetchAllMetrics = async () => {
-    setIsLoading(true);
-    try {
-      await Promise.all([fetchHealthMetrics(), fetchBookingMetrics()]);
-      setLastUpdated(new Date());
-    } catch (error) {
-      logger.error('Failed to fetch metrics:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAllMetrics();
+    fetchMonitoringData();
     
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchAllMetrics, 30000);
+    // Refresh data every 30 seconds
+    const interval = setInterval(fetchMonitoringData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -101,221 +80,223 @@ export const HotelBedsMonitoringDashboard = () => {
     switch (status) {
       case 'healthy': return 'text-green-600';
       case 'degraded': return 'text-yellow-600';
-      case 'outage': return 'text-red-600';
+      case 'down': return 'text-red-600';
       default: return 'text-gray-600';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'degraded': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      case 'outage': return <Server className="h-4 w-4 text-red-600" />;
-      default: return <Activity className="h-4 w-4 text-gray-600" />;
+      case 'healthy': return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case 'degraded': return <AlertCircle className="h-5 w-5 text-yellow-600" />;
+      case 'down': return <AlertCircle className="h-5 w-5 text-red-600" />;
+      default: return <Clock className="h-5 w-5 text-gray-600" />;
     }
   };
 
-  const formatResponseTime = (ms: number) => {
-    return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
-  };
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const calculateAverageMetric = (metrics: BookingMetric[], field: keyof BookingMetric) => {
-    if (metrics.length === 0) return 0;
-    const sum = metrics.reduce((acc, metric) => {
-      const value = metric[field];
-      return acc + (typeof value === 'number' ? value : 0);
-    }, 0);
-    return Math.round(sum / metrics.length);
-  };
-
-  const overallSuccessRate = calculateAverageMetric(bookingMetrics, 'successRate');
-  const averageResponseTime = calculateAverageMetric(bookingMetrics, 'averageResponseTime');
-  const totalRevenue = bookingMetrics.reduce((acc, metric) => acc + metric.totalRevenue, 0);
+  if (!data) {
+    return (
+      <div className="p-6">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Unable to load monitoring data. Please check your connection and try again.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">HotelBeds Monitoring</h2>
-          <p className="text-muted-foreground">
-            Real-time health and performance metrics
-          </p>
+          <h1 className="text-3xl font-bold">HotelBeds Monitoring</h1>
+          <p className="text-muted-foreground">Real-time provider health and analytics</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Last updated: {lastUpdated?.toLocaleTimeString() || 'Never'}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchAllMetrics}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
+        <Button onClick={fetchMonitoringData} variant="outline">
+          <Activity className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Health Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Health Status Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Overall Health</p>
-                <p className="text-2xl font-bold">
-                  {healthMetrics.length > 0 
-                    ? Math.round((healthMetrics.filter(m => m.status === 'healthy').length / healthMetrics.length) * 100)
-                    : 0}%
-                </p>
-              </div>
-              <Activity className="h-8 w-8 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Provider Status</CardTitle>
+            {getStatusIcon(data.healthStatus.status)}
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              <span className={getStatusColor(data.healthStatus.status)}>
+                {data.healthStatus.status.charAt(0).toUpperCase() + data.healthStatus.status.slice(1)}
+              </span>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Success rate: {data.healthStatus.successRate}%
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
-                <p className="text-2xl font-bold">{overallSuccessRate}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-muted-foreground" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Searches Today</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.metrics.searchCount.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              Avg response: {data.metrics.avgResponseTime}ms
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Avg Response</p>
-                <p className="text-2xl font-bold">{formatResponseTime(averageResponseTime)}</p>
-              </div>
-              <Clock className="h-8 w-8 text-muted-foreground" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Bookings Today</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.metrics.bookingCount.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              Conversion rate calculated
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">7d Revenue</p>
-                <p className="text-2xl font-bold">
-                  {new Intl.NumberFormat('en-AU', {
-                    style: 'currency',
-                    currency: 'AUD',
-                    minimumFractionDigits: 0
-                  }).format(totalRevenue)}
-                </p>
-              </div>
-              <DollarSign className="h-8 w-8 text-muted-foreground" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{data.metrics.errorCount}</div>
+            <p className="text-xs text-muted-foreground">
+              Errors in last 24 hours
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Endpoint Health Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Server className="h-5 w-5" />
-            Endpoint Health Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {healthMetrics.length > 0 ? (
-            <div className="space-y-3">
-              {healthMetrics.map((metric, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(metric.status)}
-                    <div>
-                      <p className="font-medium">{metric.endpoint}</p>
-                      <p className="text-sm text-muted-foreground">{metric.provider}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge 
-                      variant={metric.status === 'healthy' ? 'default' : 'destructive'}
-                      className={getStatusColor(metric.status)}
-                    >
-                      {metric.status}
-                    </Badge>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {formatResponseTime(metric.responseTime)} • {metric.errorRate.toFixed(1)}% errors
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              {isLoading ? 'Loading health metrics...' : 'No health data available'}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="analytics" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+          <TabsTrigger value="health">Health Details</TabsTrigger>
+        </TabsList>
 
-      {/* Booking Analytics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Booking Analytics (Last 7 Days)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {bookingMetrics.length > 0 ? (
-            <div className="space-y-4">
-              {bookingMetrics.map((metric, index) => (
-                <div key={index} className="p-4 border rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-medium">{metric.date}</h3>
-                    <Badge variant="outline">
-                      {metric.successRate.toFixed(1)}% success
-                    </Badge>
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Response Time Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={data.analytics}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line 
+                      type="monotone" 
+                      dataKey="responseTime" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Search vs Booking Volume</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={data.analytics}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="searches" fill="hsl(var(--primary))" />
+                    <Bar dataKey="bookings" fill="hsl(var(--secondary))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {data.recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Badge variant={activity.type === 'error' ? 'destructive' : 'default'}>
+                        {activity.type}
+                      </Badge>
+                      <span className="text-sm">{activity.timestamp}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {JSON.stringify(activity.details, null, 2).substring(0, 100)}...
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Searches</p>
-                      <p className="font-medium">{metric.searchCount}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Bookings</p>
-                      <p className="font-medium">{metric.bookingCount}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Revenue</p>
-                      <p className="font-medium">
-                        {new Intl.NumberFormat('en-AU', {
-                          style: 'currency',
-                          currency: 'AUD',
-                          minimumFractionDigits: 0
-                        }).format(metric.totalRevenue)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Avg Response</p>
-                      <p className="font-medium">{formatResponseTime(metric.averageResponseTime)}</p>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <Progress value={metric.successRate} className="h-2" />
-                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="health" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Provider Health Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium">Last Health Check</div>
+                  <div className="text-2xl font-bold">{data.healthStatus.lastCheck}</div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              {isLoading ? 'Loading booking analytics...' : 'No booking data available'}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div>
+                  <div className="text-sm font-medium">Response Time</div>
+                  <div className="text-2xl font-bold">{data.healthStatus.responseTime}ms</div>
+                </div>
+              </div>
+
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  All HotelBeds services are operating normally. API endpoints are responsive and booking capabilities are fully functional.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
+}

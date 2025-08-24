@@ -1,135 +1,138 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { ENV_CONFIG, validateProductionReadiness, getMTLSConfig } from '../_shared/config.ts'
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { ENV_CONFIG, validateProductionReadiness, validateProviderCredentials, getMTLSConfig } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface ReadinessCheck {
+  ready: boolean;
+  issues: string[];
+  warnings: string[];
+  checks: {
+    credentials: boolean;
+    mtls: boolean;
+    environment: boolean;
+    endpoints: boolean;
+  };
 }
 
-interface ProductionReadinessResponse {
-  ready: boolean
-  environment: string
-  issues: string[]
-  configuration: {
-    hotelbeds: {
-      baseUrl: string
-      mtlsEnabled: boolean
-      credentialsConfigured: boolean
+const performReadinessCheck = (): ReadinessCheck => {
+  const issues: string[] = [];
+  const warnings: string[] = [];
+  
+  // Check provider credentials
+  const credentialsCheck = {
+    hotelbeds: validateProviderCredentials('hotelbeds'),
+    amadeus: validateProviderCredentials('amadeus'),
+    sabre: validateProviderCredentials('sabre')
+  };
+  
+  if (!credentialsCheck.hotelbeds) {
+    issues.push('HotelBeds credentials not configured');
+  }
+  if (!credentialsCheck.amadeus) {
+    warnings.push('Amadeus credentials not configured');
+  }
+  if (!credentialsCheck.sabre) {
+    warnings.push('Sabre credentials not configured');
+  }
+  
+  // Check mTLS configuration
+  const mtlsConfig = getMTLSConfig();
+  if (ENV_CONFIG.isProduction && !mtlsConfig.enabled) {
+    issues.push('mTLS certificates not configured for production');
+  }
+  
+  // Check environment configuration
+  if (!ENV_CONFIG.isProduction) {
+    warnings.push('Using test environment - switch to production for live bookings');
+  }
+  
+  // Check Stripe configuration
+  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+  if (!stripeKey) {
+    issues.push('Stripe secret key not configured');
+  } else if (stripeKey.startsWith('sk_test_') && ENV_CONFIG.isProduction) {
+    warnings.push('Using Stripe test keys in production environment');
+  }
+  
+  // Check endpoint configurations
+  const endpointIssues = [];
+  if (ENV_CONFIG.isProduction) {
+    if (!ENV_CONFIG.hotelbeds.baseUrl.includes('api.hotelbeds.com')) {
+      endpointIssues.push('HotelBeds production endpoint not configured');
     }
-    stripe: {
-      configured: boolean
-    }
-    general: {
-      isProduction: boolean
+    if (!ENV_CONFIG.amadeus.baseUrl.includes('api.amadeus.com')) {
+      endpointIssues.push('Amadeus production endpoint not configured');
     }
   }
-  healthChecks: {
-    database: boolean
-    apis: boolean
-  }
-}
+  
+  return {
+    ready: issues.length === 0,
+    issues,
+    warnings,
+    checks: {
+      credentials: credentialsCheck.hotelbeds && credentialsCheck.amadeus,
+      mtls: ENV_CONFIG.isProduction ? mtlsConfig.enabled : true,
+      environment: ENV_CONFIG.isProduction,
+      endpoints: endpointIssues.length === 0
+    }
+  };
+};
 
-async function checkApiHealth(): Promise<boolean> {
-  try {
-    // Test basic connectivity to HotelBeds
-    const apiKey = Deno.env.get('HOTELBEDS_API_KEY')
-    if (!apiKey) return false
-    
-    return true
-  } catch {
-    return false
-  }
-}
-
-Deno.serve(async (req) => {
-  // Handle CORS preflight requests
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const { action } = await req.json();
 
-    if (req.method !== 'GET') {
-      return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    console.log('[PRODUCTION-READINESS] Performing readiness check');
+
+    if (action === 'validate') {
+      const readinessCheck = performReadinessCheck();
+      
+      console.log('[PRODUCTION-READINESS] Check results:', {
+        ready: readinessCheck.ready,
+        issueCount: readinessCheck.issues.length,
+        warningCount: readinessCheck.warnings.length
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        readiness: readinessCheck,
+        environment: {
+          current: ENV_CONFIG.isProduction ? 'production' : 'test',
+          hotelbeds: ENV_CONFIG.hotelbeds,
+          amadeus: ENV_CONFIG.amadeus,
+          sabre: ENV_CONFIG.sabre
+        },
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
-    // Check production readiness
-    const readinessCheck = validateProductionReadiness()
-    const mtlsConfig = getMTLSConfig()
-    const apiHealth = await checkApiHealth()
-
-    // Test database connectivity
-    const { error: dbError } = await supabase.from('system_logs').select('id').limit(1)
-    const dbHealthy = !dbError
-
-    const response: ProductionReadinessResponse = {
-      ready: readinessCheck.ready,
-      environment: ENV_CONFIG.isProduction ? 'production' : 'test',
-      issues: readinessCheck.issues,
-      configuration: {
-        hotelbeds: {
-          baseUrl: ENV_CONFIG.hotelbeds.baseUrl,
-          mtlsEnabled: mtlsConfig.enabled,
-          credentialsConfigured: !!(Deno.env.get('HOTELBEDS_API_KEY') && Deno.env.get('HOTELBEDS_SECRET'))
-        },
-        stripe: {
-          configured: !!Deno.env.get('STRIPE_SECRET_KEY')
-        },
-        general: {
-          isProduction: ENV_CONFIG.isProduction
-        }
-      },
-      healthChecks: {
-        database: dbHealthy,
-        apis: apiHealth
-      }
-    }
-
-    // Log the readiness check
-    await supabase.functions.invoke('log-system-event', {
-      body: {
-        correlation_id: crypto.randomUUID(),
-        service_name: 'production-readiness',
-        log_level: 'info',
-        message: `Production readiness check completed`,
-        metadata: {
-          ready: response.ready,
-          environment: response.environment,
-          issueCount: response.issues.length,
-          issues: response.issues
-        }
-      }
-    })
-
-    return new Response(
-      JSON.stringify(response),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    return new Response(JSON.stringify({
+      error: 'Invalid action',
+      availableActions: ['validate']
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
 
   } catch (error) {
-    console.error('Production readiness check error:', error)
-
-    const errorResponse = {
-      ready: false,
-      error: error.message || 'Failed to check production readiness'
-    }
-
-    return new Response(
-      JSON.stringify(errorResponse),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    console.error('[PRODUCTION-READINESS] Error:', error);
+    
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
-})
+});
