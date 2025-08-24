@@ -3745,9 +3745,37 @@ export type Database = {
         Args: { p_partner_id: string }
         Returns: Json
       }
+      get_user_booking_updates: {
+        Args: { p_user_id: string }
+        Returns: {
+          booking_id: string
+          booking_reference: string
+          booking_type: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json
+          status: string
+          title: string
+          update_type: string
+        }[]
+      }
       get_user_bookings: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_user_communication_preferences: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string
+          email_frequency: string
+          id: string
+          language: string
+          preferences: Json
+          timezone: string
+          updated_at: string
+          user_id: string
+        }[]
       }
       get_user_fund_balance: {
         Args: { p_user_id: string }
@@ -3874,6 +3902,16 @@ export type Database = {
           p_pickup: string
           p_search_key: string
           p_ttl: string
+        }
+        Returns: string
+      }
+      upsert_communication_preferences: {
+        Args: {
+          p_email_frequency: string
+          p_language: string
+          p_preferences: Json
+          p_timezone: string
+          p_user_id: string
         }
         Returns: string
       }
