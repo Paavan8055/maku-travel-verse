@@ -256,3 +256,12 @@ verify_jwt = false
 
 [functions.credential-test]
 verify_jwt = false
+
+[functions.hotelbeds-checkrates]
+verify_jwt = true
+
+[functions.hotelbeds-booking]
+verify_jwt = true
+
+[functions.hotelbeds-reconfirmation]
+verify_jwt = false
