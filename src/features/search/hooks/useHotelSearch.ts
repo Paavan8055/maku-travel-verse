@@ -63,7 +63,7 @@ const transformAmadeusHotel = (amadeusHotel: any): Hotel => {
     name: amadeusHotel.name || 'Hotel',
     description: amadeusHotel.description || 'Hotel accommodation',
     address: amadeusHotel.location?.address || amadeusHotel.address || 'Location not available',
-    images: amadeusHotel.images && amadeusHotel.images.length > 0 ? amadeusHotel.images : ['/placeholder.svg'],
+    images: amadeusHotel.images && amadeusHotel.images.length > 0 ? amadeusHotel.images : [],
     starRating: amadeusHotel.starRating || amadeusHotel.rating || 0,
     rating: amadeusHotel.guestRating || 0,
     reviewCount: amadeusHotel.reviewCount || 0,
