@@ -321,23 +321,36 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   
   if (error) {
     logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
-    throw new Error(`Provider ${provider.id} failed: Edge Function returned a non-2xx status code`);
+    throw new Error(`Provider ${provider.id} failed: ${error.message || 'Edge Function returned a non-2xx status code'}`);
+  }
+  
+  // Validate response data
+  if (!data) {
+    logger.warn(`[PROVIDER-ROTATION] Provider ${provider.id} returned no data`);
+    throw new Error(`Provider ${provider.id} returned empty response`);
   }
   
   // Standardize response format for different providers
   let standardizedData;
-  if (data?.flights) {
+  if (data?.data && Array.isArray(data.data)) {
+    // Standard format: { success: true, data: [...] }
+    standardizedData = data.data;
+  } else if (data?.flights) {
     // Amadeus flight search returns { flights: [...] }
-    standardizedData = { flights: data.flights };
+    standardizedData = data.flights;
   } else if (data?.hotels) {
     // Hotel search returns { hotels: [...] }
-    standardizedData = { hotels: data.hotels };
+    standardizedData = data.hotels;
   } else if (data?.activities) {
     // Activity search returns { activities: [...] }
-    standardizedData = { activities: data.activities };
+    standardizedData = data.activities;
+  } else if (Array.isArray(data)) {
+    // Direct array response
+    standardizedData = data;
   } else {
     // Fallback to original data structure
     standardizedData = data;
+    logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
   }
   
   return {

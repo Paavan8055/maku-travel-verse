@@ -131,8 +131,8 @@ export const FlightResultsHarmonized: React.FC<FlightResultsHarmonizedProps> = (
         const sabreOffers = sabreResult.value.data.flightOffers || [];
         
         // Harmonize Sabre format to match Amadeus structure
-        const harmonizedSabreOffers = sabreOffers.map((offer: any) => ({
-          id: `sabre_${offer.id || Math.random().toString(36)}`,
+        const harmonizedSabreOffers = sabreOffers.map((offer: any, index: number) => ({
+          id: `sabre_${offer.id || offer.flightNumber || `flight-${index}`}`,
           supplier: 'sabre' as const,
           price: {
             total: offer.price?.total || offer.totalFare || '0',

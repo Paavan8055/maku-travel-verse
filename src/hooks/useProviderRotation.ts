@@ -36,22 +36,29 @@ export const useProviderRotation = () => {
         throw new Error(error.message);
       }
 
-      // Show user-friendly message if fallback data is used
+      // Show specific provider status messages
       if (data.fallbackUsed) {
         toast({
           title: "Service Notice",
-          description: `We're experiencing temporary issues with our search providers. Showing sample data while we restore full service.`,
+          description: `Search completed with limited providers available. Results may be fewer than usual.`,
           variant: "default"
         });
+      } else if (data.provider) {
+        console.log(`Search completed using ${data.provider} provider in ${data.responseTime}ms`);
       }
 
       return data;
     } catch (error) {
       console.error('Provider rotation failed:', error);
       
+      // More specific error messages based on error type
+      const errorMessage = error instanceof Error && error.message.includes('Provider') 
+        ? "All search providers are currently unavailable. Please try again in a few minutes."
+        : "Search request failed. Please check your connection and try again.";
+        
       toast({
         title: "Search Error",
-        description: "Unable to search at this time. Please try again later.",
+        description: errorMessage,
         variant: "destructive"
       });
 
