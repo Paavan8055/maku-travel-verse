@@ -1,47 +1,36 @@
-// Simple console-based logger for Supabase Edge Runtime compatibility
-interface LogEntry {
-  level: string;
-  message: string;
-  data?: any;
-  timestamp: string;
+// Simple logger for Supabase Edge Functions (identical to logger.ts for compatibility)
+interface LogLevel {
+  INFO: 'info';
+  WARN: 'warn';
+  ERROR: 'error';
+  DEBUG: 'debug';
 }
 
-class SimpleLogger {
-  private formatLog(level: string, message: string, data?: any): LogEntry {
-    return {
-      level,
-      message,
-      data,
-      timestamp: new Date().toISOString()
-    };
-  }
+class Logger {
+  private logLevel: 'info' | 'warn' | 'error' | 'debug' = 'info';
 
-  private output(logEntry: LogEntry): void {
-    const logString = `[${logEntry.level.toUpperCase()}] ${logEntry.message}`;
-    
-    if (logEntry.data) {
-      console.log(logString, logEntry.data);
-    } else {
-      console.log(logString);
-    }
-  }
-
-  debug(message: string, data?: any): void {
-    this.output(this.formatLog('debug', message, data));
+  private formatMessage(level: string, message: string, data?: any): void {
+    const timestamp = new Date().toISOString();
+    const logData = data ? ` ${JSON.stringify(data)}` : '';
+    console[level as keyof Console](`[${timestamp}] [${level.toUpperCase()}] ${message}${logData}`);
   }
 
   info(message: string, data?: any): void {
-    this.output(this.formatLog('info', message, data));
+    this.formatMessage('info', message, data);
   }
 
   warn(message: string, data?: any): void {
-    this.output(this.formatLog('warn', message, data));
+    this.formatMessage('warn', message, data);
   }
 
   error(message: string, data?: any): void {
-    this.output(this.formatLog('error', message, data));
+    this.formatMessage('error', message, data);
+  }
+
+  debug(message: string, data?: any): void {
+    this.formatMessage('debug', message, data);
   }
 }
 
-const logger = new SimpleLogger();
+const logger = new Logger();
 export default logger;
