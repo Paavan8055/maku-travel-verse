@@ -159,8 +159,6 @@ const HotelSearchPage = () => {
             <HotelSearchBar />
           </div>
 
-          {/* API Optimization Component */}
-          <AmadeusOptimizer onApiStatusChange={setApiStatus} />
         {/* Enhanced Header with Search Performance Optimizer */}
         <SearchPerformanceOptimizer 
           onSearch={(query) => {
@@ -349,6 +347,8 @@ const HotelSearchPage = () => {
             
             {process.env.NODE_ENV === 'development' && (
               <div className="space-y-4 mb-6">
+                {/* API Optimization Component - Development Tool */}
+                <AmadeusOptimizer onApiStatusChange={setApiStatus} />
                 <HealthDebugPanel />
                 <ProviderRotationTestPanel />
               </div>
