@@ -268,3 +268,9 @@ verify_jwt = false
 
 [functions.hotelbeds-content]
 verify_jwt = true
+
+[functions.hotelbeds-monitoring]
+verify_jwt = false
+
+[functions.hotelbeds-cancel-booking]
+verify_jwt = true
