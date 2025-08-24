@@ -265,3 +265,6 @@ verify_jwt = true
 
 [functions.hotelbeds-reconfirmation]
 verify_jwt = false
+
+[functions.hotelbeds-content]
+verify_jwt = true
