@@ -295,6 +295,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_health_logs: {
+        Row: {
+          checked_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          provider: string
+          response_time_ms: number | null
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          provider: string
+          response_time_ms?: number | null
+          status: string
+        }
+        Update: {
+          checked_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          provider?: string
+          response_time_ms?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       booking_access_audit: {
         Row: {
           access_method: string | null
@@ -457,6 +487,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      booking_transactions: {
+        Row: {
+          booking_data: Json
+          booking_id: string
+          created_at: string
+          currency: string
+          failure_reason: string | null
+          provider_booking_id: string | null
+          rollback_required: boolean | null
+          status: string
+          stripe_payment_intent_id: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          booking_data: Json
+          booking_id: string
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          provider_booking_id?: string | null
+          rollback_required?: boolean | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          booking_data?: Json
+          booking_id?: string
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          provider_booking_id?: string | null
+          rollback_required?: boolean | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       booking_updates: {
         Row: {
@@ -685,6 +757,45 @@ export type Database = {
           response_data?: Json | null
           status?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      critical_alerts: {
+        Row: {
+          alert_type: string
+          booking_id: string | null
+          created_at: string
+          id: string
+          message: string
+          requires_manual_action: boolean | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+        }
+        Insert: {
+          alert_type: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          requires_manual_action?: boolean | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Update: {
+          alert_type?: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          requires_manual_action?: boolean | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
         }
         Relationships: []
       }
