@@ -181,8 +181,16 @@ serve(async (req) => {
     });
 
     // Check if hotelResults has the expected structure
-    if (!hotelResults || !hotelResults.hotels || !Array.isArray(hotelResults.hotels)) {
-      logger.warn('No hotels found in HotelBeds response or invalid structure:', hotelResults);
+    // HotelBeds response has nested structure: { hotels: { hotels: [...] } }
+    const hotelsArray = hotelResults?.hotels?.hotels;
+    if (!hotelResults || !hotelResults.hotels || !Array.isArray(hotelsArray)) {
+      logger.warn('No hotels found in HotelBeds response or invalid structure:', {
+        hasResults: !!hotelResults,
+        hasHotelsObject: !!hotelResults?.hotels,
+        hotelsTotal: hotelResults?.hotels?.total,
+        hotelsArrayLength: Array.isArray(hotelsArray) ? hotelsArray.length : 'not array',
+        auditData: hotelResults?.auditData
+      });
       return new Response(JSON.stringify({
         success: true,
         source: 'hotelbeds',
@@ -195,7 +203,7 @@ serve(async (req) => {
     }
 
     // Transform HotelBeds response to our format
-    const transformedHotels = hotelResults.hotels.map((hotel: any) => ({
+    const transformedHotels = hotelsArray.map((hotel: any) => ({
       id: hotel.code.toString(),
       source: 'hotelbeds',
       name: hotel.name,
@@ -212,9 +220,9 @@ serve(async (req) => {
       images: hotel.images?.map((img: any) => img.path) || [],
       amenities: hotel.facilities?.map((f: any) => f.description) || [],
       distance: null, // Distance calculation requires destination coordinates
-      coordinates: hotel.coordinates ? {
-        latitude: hotel.coordinates.latitude,
-        longitude: hotel.coordinates.longitude
+      coordinates: (hotel.latitude && hotel.longitude) ? {
+        latitude: parseFloat(hotel.latitude),
+        longitude: parseFloat(hotel.longitude)
       } : null,
       rooms: [{
         type: 'Standard Room',
