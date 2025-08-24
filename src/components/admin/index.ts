@@ -5,3 +5,4 @@ export { RealTimeOperationsCenter } from './RealTimeOperationsCenter';
 export { SecurityMonitoring } from './SecurityMonitoring';
 export { UserManagement } from './UserManagement';
 export { ProductionMonitoringDashboard } from './ProductionMonitoringDashboard';
+export { EnhancedProductionDashboard } from './EnhancedProductionDashboard';
