@@ -154,7 +154,6 @@ serve(async (req) => {
           }
         })
       );
-    }
 
       if (providers.includes('travelport')) {
         searchPromises.push(
