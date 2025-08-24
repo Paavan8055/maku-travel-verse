@@ -155,14 +155,17 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
     try {
       dispatch({ type: 'SEARCH_START' });
 
-        const { data, error: functionError } = await supabase.functions.invoke('amadeus-hotel-search', {
+        const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
         body: {
-          destination: searchCriteria.destination,
-          checkIn: searchCriteria.checkIn, // FIXED: Use checkIn not checkInDate
-          checkOut: searchCriteria.checkOut, // FIXED: Use checkOut not checkOutDate
-          guests: searchCriteria.guests,
-          rooms: 1,
-          hotelName: searchCriteria.hotelName
+          searchType: 'hotel',
+          params: {
+            destination: searchCriteria.destination,
+            checkIn: searchCriteria.checkIn,
+            checkOut: searchCriteria.checkOut,
+            guests: searchCriteria.guests,
+            rooms: 1,
+            hotelName: searchCriteria.hotelName
+          }
         }
       });
 
@@ -246,8 +249,10 @@ export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
           // PHASE 2: Use only real Amadeus data
           const transformedHotels = data.hotels.map(transformAmadeusHotel);
           
-          // Show success notification for live data
-          if (data.meta?.dataSource === 'amadeus_live') {
+          // Show fallback notification if provider rotation used fallback data
+          if (data.fallbackUsed) {
+            toast.info("Showing sample hotels while we restore full service.");
+          } else if (data.meta?.dataSource === 'amadeus_live') {
             toast.success(`Found ${transformedHotels.length} hotels with live pricing`);
           }
           
