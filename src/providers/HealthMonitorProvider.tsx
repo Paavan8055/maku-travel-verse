@@ -48,7 +48,7 @@ export const HealthMonitorProvider = ({ children }: { children: ReactNode }) => 
 
   useEffect(() => {
     checkHealth();
-    const interval = setInterval(checkHealth, 30000); // Check every 30 seconds
+    const interval = setInterval(checkHealth, 5 * 60 * 1000); // Check every 5 minutes
     return () => clearInterval(interval);
   }, []);
 
