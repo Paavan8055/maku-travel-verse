@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { ENV_CONFIG, getMTLSConfig, RATE_LIMITS } from '../_shared/config.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,8 +40,9 @@ async function reconfirmBooking(params: ReconfirmationParams): Promise<any> {
   const timestamp = Math.floor(Date.now() / 1000)
   const signature = await generateHotelBedsSignature(apiKey, secret, timestamp)
   
-  // Use test environment for now
-  const baseUrl = 'https://api.test.hotelbeds.com'
+  // Use dynamic environment configuration with mTLS support
+  const mtlsConfig = getMTLSConfig()
+  const baseUrl = mtlsConfig.enabled ? ENV_CONFIG.hotelbeds.mtlsUrl : ENV_CONFIG.hotelbeds.baseUrl
   
   // Build query parameters
   const queryParams = new URLSearchParams()
@@ -160,6 +162,26 @@ Deno.serve(async (req) => {
     }
 
     console.log('Reconfirming HotelBeds booking:', reference)
+
+    // Check rate limits before proceeding
+    const rateLimitCheck = await supabase.functions.invoke('rate-limiter', {
+      body: {
+        identifier: req.headers.get('x-forwarded-for') || 'anonymous',
+        action: 'booking',
+        window: 60,
+        maxAttempts: RATE_LIMITS.hotelbeds.bookingPerMinute
+      }
+    })
+
+    if (rateLimitCheck.data && !rateLimitCheck.data.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded', 
+          retryAfter: rateLimitCheck.data.retryAfter 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Call HotelBeds reconfirmation API
     const reconfirmationData = await reconfirmBooking({

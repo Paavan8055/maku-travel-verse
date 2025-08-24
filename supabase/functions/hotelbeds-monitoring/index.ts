@@ -1,205 +1,241 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.54.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { ENV_CONFIG, RATE_LIMITS } from '../_shared/config.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface MonitoringEvent {
-  type: 'booking_success' | 'booking_failure' | 'search_success' | 'search_failure' | 'rate_limit_hit' | 'api_error';
-  hotelbedsFunction: string;
-  correlationId: string;
-  duration?: number;
-  statusCode?: number;
-  errorMessage?: string;
-  bookingReference?: string;
-  hotelCode?: string;
-  rateKey?: string;
-  metadata?: any;
 }
 
-async function logMonitoringEvent(event: MonitoringEvent, supabase: any): Promise<void> {
-  try {
-    const { error } = await supabase
-      .from('hotelbeds_monitoring')
-      .insert({
-        event_type: event.type,
-        function_name: event.hotelbedsFunction,
-        correlation_id: event.correlationId,
-        duration_ms: event.duration,
-        status_code: event.statusCode,
-        error_message: event.errorMessage,
-        booking_reference: event.bookingReference,
-        hotel_code: event.hotelCode,
-        rate_key: event.rateKey,
-        metadata: event.metadata || {},
-        created_at: new Date().toISOString()
-      });
-
-    if (error) {
-      console.error('Failed to log monitoring event:', error);
-    }
-  } catch (error) {
-    console.error('Error logging monitoring event:', error);
+interface MonitoringEntry {
+  endpoint: string
+  responseTime: number
+  statusCode: number
+  success: boolean
+  errorMessage?: string
+  rateLimit?: {
+    current: number
+    limit: number
+    window: number
   }
+  timestamp: string
 }
 
-async function checkSystemHealth(supabase: any): Promise<any> {
-  try {
-    // Check recent error rates
-    const { data: recentEvents, error } = await supabase
-      .from('hotelbeds_monitoring')
-      .select('event_type, created_at')
-      .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Last 5 minutes
-      .order('created_at', { ascending: false });
+async function logToMonitoring(entry: MonitoringEntry): Promise<void> {
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
 
-    if (error) throw error;
-
-    const totalEvents = recentEvents?.length || 0;
-    const errorEvents = recentEvents?.filter(e => e.event_type.includes('failure') || e.event_type.includes('error')).length || 0;
-    const errorRate = totalEvents > 0 ? (errorEvents / totalEvents) * 100 : 0;
-
-    // Check average response times
-    const { data: performanceData, error: perfError } = await supabase
-      .from('hotelbeds_monitoring')
-      .select('duration_ms')
-      .not('duration_ms', 'is', null)
-      .gte('created_at', new Date(Date.now() - 15 * 60 * 1000).toISOString()) // Last 15 minutes
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (perfError) throw perfError;
-
-    const avgResponseTime = performanceData?.length > 0 
-      ? performanceData.reduce((sum, item) => sum + (item.duration_ms || 0), 0) / performanceData.length 
-      : 0;
-
-    return {
-      status: errorRate > 50 ? 'critical' : errorRate > 20 ? 'warning' : 'healthy',
-      errorRate: Math.round(errorRate * 100) / 100,
-      avgResponseTime: Math.round(avgResponseTime),
-      totalEvents,
-      errorEvents,
-      timestamp: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error('Health check failed:', error);
-    return {
-      status: 'unknown',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    };
-  }
+  await supabase.from('hotelbeds_monitoring').insert({
+    endpoint: entry.endpoint,
+    response_time_ms: entry.responseTime,
+    status_code: entry.statusCode,
+    success: entry.success,
+    error_message: entry.errorMessage,
+    rate_limit_data: entry.rateLimit ? {
+      current: entry.rateLimit.current,
+      limit: entry.rateLimit.limit,
+      window: entry.rateLimit.window
+    } : null,
+    created_at: new Date().toISOString()
+  })
 }
 
-async function getBookingAnalytics(supabase: any, timeframe: string = '24h'): Promise<any> {
-  try {
-    let hoursBack = 24;
-    switch (timeframe) {
-      case '1h': hoursBack = 1; break;
-      case '6h': hoursBack = 6; break;
-      case '24h': hoursBack = 24; break;
-      case '7d': hoursBack = 168; break;
-      default: hoursBack = 24;
+async function testHotelBedsEndpoint(endpoint: string, testData: any = null): Promise<MonitoringEntry> {
+  const startTime = Date.now()
+  const apiKey = Deno.env.get('HOTELBEDS_API_KEY')
+  const secret = Deno.env.get('HOTELBEDS_SECRET')
+  
+  if (!apiKey || !secret) {
+    return {
+      endpoint,
+      responseTime: Date.now() - startTime,
+      statusCode: 500,
+      success: false,
+      errorMessage: 'HotelBeds credentials not configured',
+      timestamp: new Date().toISOString()
     }
+  }
 
-    const { data: bookingEvents, error } = await supabase
-      .from('hotelbeds_monitoring')
-      .select('event_type, booking_reference, metadata, created_at')
-      .in('event_type', ['booking_success', 'booking_failure'])
-      .gte('created_at', new Date(Date.now() - hoursBack * 60 * 60 * 1000).toISOString())
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    const successfulBookings = bookingEvents?.filter(e => e.event_type === 'booking_success') || [];
-    const failedBookings = bookingEvents?.filter(e => e.event_type === 'booking_failure') || [];
+  try {
+    const timestamp = Math.floor(Date.now() / 1000)
     
-    const totalValue = successfulBookings.reduce((sum, booking) => {
-      const amount = booking.metadata?.totalAmount || 0;
-      return sum + amount;
-    }, 0);
+    // Generate signature (simplified version)
+    const stringToSign = apiKey + secret + timestamp
+    const encoder = new TextEncoder()
+    const data = encoder.encode(stringToSign)
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    const headers = {
+      'Api-key': apiKey,
+      'X-Signature': signature,
+      'Accept': 'application/json',
+      'Accept-Encoding': 'gzip'
+    }
+
+    let url = `${ENV_CONFIG.hotelbeds.baseUrl}${endpoint}`
+    let fetchOptions: RequestInit = {
+      method: 'GET',
+      headers
+    }
+
+    // Handle different endpoint types
+    if (testData) {
+      fetchOptions.method = 'POST'
+      fetchOptions.headers = { ...headers, 'Content-Type': 'application/json' }
+      fetchOptions.body = JSON.stringify(testData)
+    }
+
+    const response = await fetch(url, fetchOptions)
+    const responseTime = Date.now() - startTime
 
     return {
-      timeframe,
-      totalBookings: bookingEvents?.length || 0,
-      successfulBookings: successfulBookings.length,
-      failedBookings: failedBookings.length,
-      successRate: bookingEvents?.length > 0 ? (successfulBookings.length / bookingEvents.length) * 100 : 0,
-      totalValue,
-      currency: 'EUR', // Default currency
+      endpoint,
+      responseTime,
+      statusCode: response.status,
+      success: response.ok,
+      errorMessage: response.ok ? undefined : await response.text(),
       timestamp: new Date().toISOString()
-    };
+    }
+
   } catch (error) {
-    console.error('Analytics query failed:', error);
     return {
-      error: error.message,
+      endpoint,
+      responseTime: Date.now() - startTime,
+      statusCode: 500,
+      success: false,
+      errorMessage: error.message,
       timestamp: new Date().toISOString()
-    };
+    }
   }
 }
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    const url = new URL(req.url);
-    const action = url.searchParams.get('action') || 'health';
+    if (req.method === 'GET') {
+      // Return monitoring dashboard data
+      const { data: recentLogs, error } = await supabase
+        .from('hotelbeds_monitoring')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100)
 
-    switch (action) {
-      case 'log': {
-        if (req.method !== 'POST') {
-          return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-            status: 405,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
+      if (error) {
+        throw new Error(`Failed to fetch monitoring data: ${error.message}`)
+      }
+
+      // Calculate summary statistics
+      const summary = {
+        totalRequests: recentLogs.length,
+        successRate: recentLogs.length > 0 ? 
+          (recentLogs.filter(log => log.success).length / recentLogs.length) * 100 : 0,
+        avgResponseTime: recentLogs.length > 0 ? 
+          recentLogs.reduce((sum, log) => sum + log.response_time_ms, 0) / recentLogs.length : 0,
+        errorRate: recentLogs.length > 0 ? 
+          (recentLogs.filter(log => !log.success).length / recentLogs.length) * 100 : 0,
+        lastHour: recentLogs.filter(log => 
+          new Date(log.created_at).getTime() > Date.now() - 3600000
+        ).length
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          summary,
+          recentLogs: recentLogs.slice(0, 20), // Most recent 20 logs
+          environment: ENV_CONFIG.isProduction ? 'production' : 'test',
+          baseUrl: ENV_CONFIG.hotelbeds.baseUrl
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
+      )
+    }
 
-        const event: MonitoringEvent = await req.json();
-        await logMonitoringEvent(event, supabase);
+    if (req.method === 'POST') {
+      // Run monitoring tests
+      const { endpoint, testData } = await req.json()
 
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+      if (endpoint) {
+        // Test specific endpoint
+        const result = await testHotelBedsEndpoint(endpoint, testData)
+        await logToMonitoring(result)
 
-      case 'health': {
-        const healthData = await checkSystemHealth(supabase);
-        return new Response(JSON.stringify(healthData), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+        return new Response(
+          JSON.stringify({ success: true, result }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      } else {
+        // Run comprehensive monitoring suite
+        const testEndpoints = [
+          { path: '/hotel-content-api/1.0/types/countries', data: null },
+          { path: '/hotel-api/1.0/status', data: null }
+        ]
 
-      case 'analytics': {
-        const timeframe = url.searchParams.get('timeframe') || '24h';
-        const analyticsData = await getBookingAnalytics(supabase, timeframe);
-        return new Response(JSON.stringify(analyticsData), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+        const results = await Promise.all(
+          testEndpoints.map(({ path, data }) => testHotelBedsEndpoint(path, data))
+        )
 
-      default: {
-        return new Response(JSON.stringify({ error: 'Invalid action' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        // Log all results
+        await Promise.all(results.map(result => logToMonitoring(result)))
+
+        const overallSuccess = results.every(r => r.success)
+        const avgResponseTime = results.reduce((sum, r) => sum + r.responseTime, 0) / results.length
+
+        return new Response(
+          JSON.stringify({
+            success: overallSuccess,
+            results,
+            summary: {
+              overallHealth: overallSuccess ? 'healthy' : 'degraded',
+              avgResponseTime,
+              testedEndpoints: results.length,
+              failedEndpoints: results.filter(r => !r.success).length
+            }
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
     }
+
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
   } catch (error) {
-    console.error('Monitoring function error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    console.error('HotelBeds monitoring error:', error)
+
+    const errorResponse = {
+      success: false,
+      error: error.message || 'Failed to run monitoring checks'
+    }
+
+    return new Response(
+      JSON.stringify(errorResponse),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   }
-});
+})

@@ -1,275 +1,275 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { ENV_CONFIG, validateProductionReadiness, getMTLSConfig } from '../_shared/config.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface ServiceEndpoint {
-  name: string;
-  url: string;
-  method: 'GET' | 'POST';
-  headers?: Record<string, string>;
-  body?: any;
-  timeout: number;
-  expectedStatus?: number[];
 }
 
 interface HealthCheckResult {
-  service: string;
-  endpoint: string;
-  status: 'healthy' | 'degraded' | 'unhealthy';
-  responseTime: number;
-  error?: string;
-  timestamp: string;
+  service: string
+  status: 'healthy' | 'degraded' | 'outage'
+  responseTime?: number
+  lastChecked: string
+  error?: string
+  details?: any
 }
 
-interface SystemHealth {
-  overall_status: 'healthy' | 'degraded' | 'critical';
-  timestamp: string;
-  services: Record<string, HealthCheckResult[]>;
-  summary: {
-    total_endpoints: number;
-    healthy_endpoints: number;
-    degraded_endpoints: number;
-    unhealthy_endpoints: number;
-    average_response_time: number;
-  };
-}
-
-const CRITICAL_ENDPOINTS: ServiceEndpoint[] = [
-  {
-    name: 'amadeus-auth',
-    url: 'https://test.api.amadeus.com/v1/security/oauth2/token',
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=client_credentials&client_id=${Deno.env.get('AMADEUS_CLIENT_ID')}&client_secret=${Deno.env.get('AMADEUS_CLIENT_SECRET')}`,
-    timeout: 10000,
-    expectedStatus: [200]
-  },
-  {
-    name: 'amadeus-hotels',
-    url: 'https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=NYC&radius=5&radiusUnit=KM',
-    method: 'GET',
-    timeout: 15000,
-    expectedStatus: [200]
-  },
-  {
-    name: 'hotelbeds-health',
-    url: 'https://api.test.hotelbeds.com/activity-api/3.0/activities/search',
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Api-key': Deno.env.get('HOTELBEDS_API_KEY') || '',
-      'Accept': 'application/json'
-    },
-    timeout: 15000,
-    expectedStatus: [200, 400, 403] // 403 might be expected for test data
-  },
-  {
-    name: 'sabre-auth',
-    url: 'https://api.test.sabre.com/v2/auth/token',
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    timeout: 10000,
-    expectedStatus: [200]
-  },
-  {
-    name: 'stripe-health',
-    url: 'https://api.stripe.com/v1/charges?limit=1',
-    method: 'GET',
-    headers: { 'Authorization': `Bearer ${Deno.env.get('STRIPE_SECRET_KEY')}` },
-    timeout: 10000,
-    expectedStatus: [200]
-  }
-];
-
-async function checkEndpoint(endpoint: ServiceEndpoint): Promise<HealthCheckResult> {
-  const startTime = performance.now();
-  
+async function checkSupabaseHealth(): Promise<HealthCheckResult> {
+  const startTime = Date.now()
   try {
-    // Handle auth tokens for Amadeus and Sabre
-    let headers = { ...endpoint.headers };
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { error } = await supabase.from('system_logs').select('id').limit(1)
     
-    if (endpoint.name === 'amadeus-hotels') {
-      try {
-        // Get Amadeus token first
-        const tokenResponse = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `grant_type=client_credentials&client_id=${Deno.env.get('AMADEUS_CLIENT_ID')}&client_secret=${Deno.env.get('AMADEUS_CLIENT_SECRET')}`,
-        });
-        
-        if (tokenResponse.ok) {
-          const tokenData = await tokenResponse.json();
-          headers['Authorization'] = `Bearer ${tokenData.access_token}`;
-        }
-      } catch (e) {
-        console.warn('Failed to get Amadeus token for health check:', e);
+    return {
+      service: 'supabase',
+      status: error ? 'degraded' : 'healthy',
+      responseTime: Date.now() - startTime,
+      lastChecked: new Date().toISOString(),
+      error: error?.message,
+      details: {
+        url: Deno.env.get('SUPABASE_URL'),
+        hasServiceRole: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
       }
     }
-    
-    if (endpoint.name === 'hotelbeds-health') {
-      // Generate HotelBeds signature
-      const apiKey = Deno.env.get('HOTELBEDS_API_KEY') || '';
-      const secret = Deno.env.get('HOTELBEDS_SECRET') || '';
-      const timestamp = Math.floor(Date.now() / 1000);
-      
-      const message = apiKey + secret + timestamp;
-      const encoder = new TextEncoder();
-      const data = encoder.encode(message);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      
-      headers['X-signature'] = signature;
-      endpoint.body = {
-        language: "en",
-        from: new Date().toISOString().split('T')[0],
-        to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        destination: { code: "NYC", type: "ZONE" },
-        occupancy: [{ rooms: 1, adults: 2, children: 0 }],
-        pagination: { itemsPerPage: 1, page: 1 }
-      };
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), endpoint.timeout);
-
-    const response = await fetch(endpoint.url, {
-      method: endpoint.method,
-      headers,
-      body: endpoint.body ? (typeof endpoint.body === 'string' ? endpoint.body : JSON.stringify(endpoint.body)) : undefined,
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-    const responseTime = performance.now() - startTime;
-
-    const expectedStatus = endpoint.expectedStatus || [200];
-    const isHealthy = expectedStatus.includes(response.status);
-    
-    return {
-      service: endpoint.name.split('-')[0],
-      endpoint: endpoint.name,
-      status: isHealthy ? 'healthy' : (response.status >= 500 ? 'unhealthy' : 'degraded'),
-      responseTime: Math.round(responseTime),
-      error: isHealthy ? undefined : `HTTP ${response.status}: ${response.statusText}`,
-      timestamp: new Date().toISOString(),
-    };
-
   } catch (error) {
-    const responseTime = performance.now() - startTime;
-    
     return {
-      service: endpoint.name.split('-')[0],
-      endpoint: endpoint.name,
-      status: 'unhealthy',
-      responseTime: Math.round(responseTime),
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString(),
-    };
-  }
-}
-
-async function runHealthChecks(): Promise<SystemHealth> {
-  console.log('Starting comprehensive health checks...');
-  
-  // Run all health checks in parallel for efficiency
-  const healthPromises = CRITICAL_ENDPOINTS.map(endpoint => checkEndpoint(endpoint));
-  const results = await Promise.all(healthPromises);
-
-  // Group results by service
-  const services: Record<string, HealthCheckResult[]> = {};
-  results.forEach(result => {
-    if (!services[result.service]) {
-      services[result.service] = [];
+      service: 'supabase',
+      status: 'outage',
+      responseTime: Date.now() - startTime,
+      lastChecked: new Date().toISOString(),
+      error: error.message
     }
-    services[result.service].push(result);
-  });
-
-  // Calculate summary metrics
-  const totalEndpoints = results.length;
-  const healthyEndpoints = results.filter(r => r.status === 'healthy').length;
-  const degradedEndpoints = results.filter(r => r.status === 'degraded').length;
-  const unhealthyEndpoints = results.filter(r => r.status === 'unhealthy').length;
-  const averageResponseTime = Math.round(results.reduce((sum, r) => sum + r.responseTime, 0) / totalEndpoints);
-
-  // Determine overall status
-  let overallStatus: 'healthy' | 'degraded' | 'critical' = 'healthy';
-  if (unhealthyEndpoints > totalEndpoints * 0.5) {
-    overallStatus = 'critical';
-  } else if (unhealthyEndpoints > 0 || degradedEndpoints > totalEndpoints * 0.3) {
-    overallStatus = 'degraded';
   }
-
-  const systemHealth: SystemHealth = {
-    overall_status: overallStatus,
-    timestamp: new Date().toISOString(),
-    services,
-    summary: {
-      total_endpoints: totalEndpoints,
-      healthy_endpoints: healthyEndpoints,
-      degraded_endpoints: degradedEndpoints,
-      unhealthy_endpoints: unhealthyEndpoints,
-      average_response_time: averageResponseTime,
-    },
-  };
-
-  console.log('Health check completed:', systemHealth.summary);
-  return systemHealth;
 }
 
-serve(async (req) => {
+async function checkHotelBedsHealth(): Promise<HealthCheckResult> {
+  const startTime = Date.now()
+  try {
+    const apiKey = Deno.env.get('HOTELBEDS_API_KEY')
+    const secret = Deno.env.get('HOTELBEDS_SECRET')
+    
+    if (!apiKey || !secret) {
+      return {
+        service: 'hotelbeds',
+        status: 'outage',
+        responseTime: Date.now() - startTime,
+        lastChecked: new Date().toISOString(),
+        error: 'HotelBeds credentials not configured'
+      }
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000)
+    const stringToSign = apiKey + secret + timestamp
+    const encoder = new TextEncoder()
+    const data = encoder.encode(stringToSign)
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-content-api/1.0/types/countries`, {
+      method: 'GET',
+      headers: {
+        'Api-key': apiKey,
+        'X-Signature': signature,
+        'Accept': 'application/json'
+      }
+    })
+
+    const responseTime = Date.now() - startTime
+    
+    if (response.ok) {
+      return {
+        service: 'hotelbeds',
+        status: 'healthy',
+        responseTime,
+        lastChecked: new Date().toISOString(),
+        details: {
+          baseUrl: ENV_CONFIG.hotelbeds.baseUrl,
+          environment: ENV_CONFIG.isProduction ? 'production' : 'test'
+        }
+      }
+    } else {
+      return {
+        service: 'hotelbeds',
+        status: response.status >= 500 ? 'outage' : 'degraded',
+        responseTime,
+        lastChecked: new Date().toISOString(),
+        error: `HTTP ${response.status}: ${response.statusText}`
+      }
+    }
+  } catch (error) {
+    return {
+      service: 'hotelbeds',
+      status: 'outage',
+      responseTime: Date.now() - startTime,
+      lastChecked: new Date().toISOString(),
+      error: error.message
+    }
+  }
+}
+
+async function checkStripeHealth(): Promise<HealthCheckResult> {
+  const startTime = Date.now()
+  try {
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    
+    if (!stripeKey) {
+      return {
+        service: 'stripe',
+        status: 'outage',
+        responseTime: Date.now() - startTime,
+        lastChecked: new Date().toISOString(),
+        error: 'Stripe secret key not configured'
+      }
+    }
+
+    // Simple Stripe account check
+    const response = await fetch('https://api.stripe.com/v1/account', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${stripeKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+
+    const responseTime = Date.now() - startTime
+    
+    if (response.ok) {
+      const data = await response.json()
+      return {
+        service: 'stripe',
+        status: 'healthy',
+        responseTime,
+        lastChecked: new Date().toISOString(),
+        details: {
+          country: data.country,
+          chargesEnabled: data.charges_enabled,
+          payoutsEnabled: data.payouts_enabled
+        }
+      }
+    } else {
+      return {
+        service: 'stripe',
+        status: response.status >= 500 ? 'outage' : 'degraded',
+        responseTime,
+        lastChecked: new Date().toISOString(),
+        error: `HTTP ${response.status}: ${response.statusText}`
+      }
+    }
+  } catch (error) {
+    return {
+      service: 'stripe',
+      status: 'outage',
+      responseTime: Date.now() - startTime,
+      lastChecked: new Date().toISOString(),
+      error: error.message
+    }
+  }
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const healthStatus = await runHealthChecks();
-    
-    // Store health check results in Supabase for historical tracking
-    try {
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
-
-      await supabase.functions.invoke('health-check', {
-        body: { 
-          status: healthStatus.overall_status,
-          details: healthStatus,
-          timestamp: healthStatus.timestamp 
-        }
-      });
-    } catch (storageError) {
-      console.warn('Failed to store health check results:', storageError);
+    if (req.method !== 'GET') {
+      return new Response(
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    return new Response(JSON.stringify(healthStatus), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    // Run all health checks in parallel
+    const [supabaseHealth, hotelbedsHealth, stripeHealth] = await Promise.all([
+      checkSupabaseHealth(),
+      checkHotelBedsHealth(),
+      checkStripeHealth()
+    ])
+
+    // Determine overall system health
+    const allServices = [supabaseHealth, hotelbedsHealth, stripeHealth]
+    const healthyServices = allServices.filter(s => s.status === 'healthy').length
+    const degradedServices = allServices.filter(s => s.status === 'degraded').length
+    const outageServices = allServices.filter(s => s.status === 'outage').length
+
+    let overallStatus: 'healthy' | 'degraded' | 'outage'
+    if (outageServices > 0) {
+      overallStatus = 'outage'
+    } else if (degradedServices > 0) {
+      overallStatus = 'degraded'
+    } else {
+      overallStatus = 'healthy'
+    }
+
+    // Get production readiness information
+    const productionReadiness = validateProductionReadiness()
+    const mtlsConfig = getMTLSConfig()
+
+    const healthReport = {
+      overall: {
+        status: overallStatus,
+        timestamp: new Date().toISOString(),
+        environment: ENV_CONFIG.isProduction ? 'production' : 'test'
+      },
+      services: {
+        supabase: supabaseHealth,
+        hotelbeds: hotelbedsHealth,
+        stripe: stripeHealth
+      },
+      summary: {
+        total: allServices.length,
+        healthy: healthyServices,
+        degraded: degradedServices,
+        outage: outageServices,
+        avgResponseTime: allServices.reduce((sum, s) => sum + (s.responseTime || 0), 0) / allServices.length
+      },
+      productionReadiness: {
+        ready: productionReadiness.ready,
+        issues: productionReadiness.issues,
+        mtlsEnabled: mtlsConfig.enabled,
+        environment: ENV_CONFIG.isProduction ? 'production' : 'test'
+      }
+    }
+
+    return new Response(
+      JSON.stringify(healthReport),
+      { 
+        status: overallStatus === 'healthy' ? 200 : 503, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
 
   } catch (error) {
-    console.error('Health check system error:', error);
-    
-    return new Response(JSON.stringify({
-      overall_status: 'critical',
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Health check system failure',
+    console.error('Comprehensive health check error:', error)
+
+    const errorResponse = {
+      overall: {
+        status: 'outage',
+        timestamp: new Date().toISOString(),
+        error: error.message
+      },
       services: {},
       summary: {
-        total_endpoints: 0,
-        healthy_endpoints: 0,
-        degraded_endpoints: 0,
-        unhealthy_endpoints: 0,
-        average_response_time: 0,
+        total: 0,
+        healthy: 0,
+        degraded: 0,
+        outage: 1
       }
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
-    });
+    }
+
+    return new Response(
+      JSON.stringify(errorResponse),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   }
-});
+})
