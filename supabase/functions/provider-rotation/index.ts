@@ -303,19 +303,45 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     throw new Error(`Unknown provider function: ${provider.id}`);
   }
   
+  logger.info(`[PROVIDER-ROTATION] Calling ${functionName} with params:`, params);
+  
   const { data, error } = await supabase.functions.invoke(functionName, {
     body: params
   });
   
   const responseTime = Date.now() - startTime;
   
+  logger.info(`[PROVIDER-ROTATION] ${functionName} response:`, { 
+    success: !error, 
+    responseTime, 
+    dataType: typeof data,
+    hasFlights: data?.flights?.length || 0
+  });
+  
   if (error) {
+    logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
     throw new Error(`Provider ${provider.id} failed: ${error.message}`);
+  }
+  
+  // Standardize response format for different providers
+  let standardizedData;
+  if (data?.flights) {
+    // Amadeus flight search returns { flights: [...] }
+    standardizedData = { flights: data.flights };
+  } else if (data?.hotels) {
+    // Hotel search returns { hotels: [...] }
+    standardizedData = { hotels: data.hotels };
+  } else if (data?.activities) {
+    // Activity search returns { activities: [...] }
+    standardizedData = { activities: data.activities };
+  } else {
+    // Fallback to original data structure
+    standardizedData = data;
   }
   
   return {
     success: true,
-    data,
+    data: standardizedData,
     responseTime
   };
 }
