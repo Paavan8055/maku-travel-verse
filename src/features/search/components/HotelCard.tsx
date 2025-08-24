@@ -135,9 +135,12 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
           {/* Hotel Image */}
           <div className="w-64 h-48 relative overflow-hidden rounded-l-lg">
             <img
-              src="/placeholder.svg"
+              src={hotel.images?.[0] || '/assets/hotel-budget.jpg' || '/placeholder.svg'}
               alt={hotel.name}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder.svg';
+              }}
             />
             {hotel.deals && (
               <div className="absolute top-3 left-3">
