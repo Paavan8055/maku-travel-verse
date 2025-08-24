@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Star, Wifi, Car, Utensils, Waves } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { HotelBedsDetails } from "@/components/hotel/HotelBedsDetails";
 import { toast } from "sonner";
 import logger from "@/utils/logger";
 
@@ -35,11 +36,23 @@ export const HotelDetails = () => {
 
   // Extract search parameters
   const hotelId = searchParams.get("hotelId") || "";
+  const provider = searchParams.get("provider");
   const checkIn = searchParams.get("checkIn") || "";
   const checkOut = searchParams.get("checkOut") || "";
   const adults = parseInt(searchParams.get("adults") || "2");
   const children = parseInt(searchParams.get("children") || "0");
   const rooms = parseInt(searchParams.get("rooms") || "1");
+
+  // Helper function to detect HotelBeds hotel IDs
+  const isHotelBedsHotelId = (id: string): boolean => {
+    // HotelBeds hotel codes are typically numeric
+    return /^\d+$/.test(id);
+  };
+
+  // If this is a HotelBeds hotel, use the HotelBeds component
+  if (provider === 'hotelbeds' || (hotelId && isHotelBedsHotelId(hotelId))) {
+    return <HotelBedsDetails />;
+  }
 
   // State for hotel details from Amadeus
   const [hotel, setHotel] = useState<any>(null);
