@@ -40,59 +40,24 @@ export const useRealBooking = () => {
     setError(null);
 
     try {
-      let edgeFunctionName = '';
-      let requestBody: any = {};
-
-      switch (params.type) {
-        case 'flight':
-          edgeFunctionName = 'create-flight-booking';
-          requestBody = {
-            offerId: params.offerId,
-            offerData: params.offerData,
-            passengers: params.passengers || [],
-            customerInfo: params.customerInfo,
-            paymentMethod: params.paymentMethod || 'stripe'
-          };
-          break;
-
-        case 'hotel':
-          edgeFunctionName = 'create-hotel-booking';
-          requestBody = {
-            offerId: params.offerId,
-            offerData: params.offerData,
-            guests: params.guests || [],
-            customerInfo: params.customerInfo,
-            paymentMethod: params.paymentMethod || 'stripe'
-          };
-          break;
-
-        case 'activity':
-          edgeFunctionName = 'create-activity-booking';
-          requestBody = {
-            activityCode: params.offerId,
-            activityData: params.offerData,
-            participants: params.passengers || params.guests || [],
-            customerInfo: params.customerInfo,
-            paymentMethod: params.paymentMethod || 'stripe'
-          };
-          break;
-
-        case 'car':
-          edgeFunctionName = 'create-car-booking';
-          requestBody = {
-            offerId: params.offerId,
-            offerData: params.offerData,
-            driverInfo: params.customerInfo,
-            paymentMethod: params.paymentMethod || 'stripe'
-          };
-          break;
-
-        default:
-          throw new Error(`Unsupported booking type: ${params.type}`);
-      }
+      // Use the new production booking manager for all booking types
+      const requestBody = {
+        bookingType: params.type,
+        bookingData: {
+          offerId: params.offerId,
+          offerData: params.offerData,
+          passengers: params.passengers || [],
+          guests: params.guests || [],
+          customerInfo: params.customerInfo
+        },
+        customerInfo: params.customerInfo,
+        amount: params.offerData?.price?.total || 0,
+        currency: params.offerData?.price?.currency || 'AUD',
+        useRealProvider: true // Set to true for production, false for testing
+      };
 
       const { data, error: bookingError } = await supabase.functions.invoke(
-        edgeFunctionName,
+        'production-booking-manager',
         { body: requestBody }
       );
 
