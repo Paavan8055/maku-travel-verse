@@ -100,16 +100,19 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
         const currencyCode = detectFlightCurrency(criteria.origin, criteria.destination);
         console.log(`useFlightSearch: Using currency ${currencyCode} for route ${criteria.origin}-${criteria.destination}`);
 
-        // Use Amadeus Flight Search API for real-time results
-        const { data, error: functionError } = await supabase.functions.invoke('amadeus-flight-search', {
+        // Use provider rotation for multi-provider flight search with Sabre fallback
+        const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
           body: {
-            origin: criteria.origin,
-            destination: criteria.destination,
-            departureDate: criteria.departureDate,
-            returnDate: criteria.returnDate,
-            passengers: criteria.passengers,
-            travelClass: 'ECONOMY',
-            nonStop: false
+            searchType: 'flight',
+            params: {
+              origin: criteria.origin,
+              destination: criteria.destination,
+              departureDate: criteria.departureDate,
+              returnDate: criteria.returnDate,
+              passengers: criteria.passengers,
+              travelClass: 'ECONOMY',
+              nonStop: false
+            }
           }
         });
 
@@ -117,19 +120,21 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           throw functionError;
         }
 
-        if (data?.success && data?.flights && Array.isArray(data.flights)) {
-          console.log("useFlightSearch: API success, transforming", data.flights.length, "flights");
+        if (data?.success && data?.data?.flights && Array.isArray(data.data.flights)) {
+          const flights = data.data.flights;
+          console.log("useFlightSearch: Provider rotation success, transforming", flights.length, "flights");
+          console.log("Used provider:", data.provider, "Fallback used:", data.fallbackUsed);
           
-          if (data.flights.length === 0) {
-            console.log("useFlightSearch: No flights found in API response");
+          if (flights.length === 0) {
+            console.log("useFlightSearch: No flights found in provider response");
             setFlights([]);
             setError("No flights found for your search criteria. Please try different dates or destinations.");
             return;
           }
           
-          console.log("Raw Amadeus flights:", data.flights.length);
+          console.log("Raw provider flights:", flights.length);
           
-          const transformedFlights = data.flights.map((flight: any, index: number) => {
+          const transformedFlights = flights.map((flight: any, index: number) => {
             console.log(`Processing flight ${index + 1}:`, {
               flightId: flight.id,
               airline: flight.airline?.name,

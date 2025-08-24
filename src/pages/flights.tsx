@@ -48,14 +48,17 @@ const FlightsPage = () => {
         // Import supabase client
         const { supabase } = await import('@/integrations/supabase/client');
         
-        const { data, error: functionError } = await supabase.functions.invoke('amadeus-flight-search', {
+        const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
           body: {
-            origin: searchCriteria.origin,
-            destination: searchCriteria.destination,
-            departureDate: searchCriteria.departureDate,
-            passengers: searchCriteria.passengers,
-            travelClass: 'ECONOMY',
-            nonStop: false
+            searchType: 'flight',
+            params: {
+              origin: searchCriteria.origin,
+              destination: searchCriteria.destination,
+              departureDate: searchCriteria.departureDate,
+              passengers: searchCriteria.passengers,
+              travelClass: 'ECONOMY',
+              nonStop: false
+            }
           }
         });
 
@@ -65,9 +68,10 @@ const FlightsPage = () => {
           throw new Error(functionError.message || 'Flight search failed');
         }
 
-        if (data?.success && data?.flights) {
-          setFlights(data.flights);
-          console.log('Found flights:', data.flights.length);
+        if (data?.success && data?.data?.flights) {
+          setFlights(data.data.flights);
+          console.log('Found flights:', data.data.flights.length);
+          console.log('Provider used:', data.provider, 'Fallback:', data.fallbackUsed);
         } else {
           throw new Error(data?.error || 'No flights found');
         }
