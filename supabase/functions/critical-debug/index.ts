@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,78 +11,131 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
   try {
-    console.log('=== CRITICAL DEBUG FUNCTION CALLED ===');
+    console.log('🔧 CRITICAL DEBUG: Testing real hotel search params...');
     
-    // Test environment variables
-    const amadeusClientId = Deno.env.get('AMADEUS_CLIENT_ID');
-    const amadeusSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
-    const hotelbedsKey = Deno.env.get('HOTELBEDS_API_KEY');
-    const hotelbedsSecret = Deno.env.get('HOTELBEDS_SECRET');
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    
-    console.log('Environment check:', {
-      amadeus_client_id: amadeusClientId ? `Present (${amadeusClientId.substring(0, 4)}...)` : 'MISSING',
-      amadeus_secret: amadeusSecret ? `Present (${amadeusSecret.substring(0, 4)}...)` : 'MISSING',
-      hotelbeds_key: hotelbedsKey ? `Present (${hotelbedsKey.substring(0, 4)}...)` : 'MISSING',
-      hotelbeds_secret: hotelbedsSecret ? `Present (${hotelbedsSecret.substring(0, 4)}...)` : 'MISSING',
-      stripe_key: stripeKey ? `Present (${stripeKey.substring(0, 4)}...)` : 'MISSING'
-    });
-
-    // Test Amadeus API connectivity
-    let amadeusTest = 'Not tested';
-    if (amadeusClientId && amadeusSecret) {
-      try {
-        const tokenResponse = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            grant_type: 'client_credentials',
-            client_id: amadeusClientId,
-            client_secret: amadeusSecret,
-          }),
-        });
-        amadeusTest = tokenResponse.ok ? 'SUCCESS' : `FAILED: ${tokenResponse.status}`;
-      } catch (error) {
-        amadeusTest = `ERROR: ${error.message}`;
-      }
-    } else {
-      amadeusTest = 'SKIPPED: Missing credentials';
-    }
-
-    const result = {
-      success: true,
-      message: 'Critical debug function is working!',
-      timestamp: new Date().toISOString(),
-      environment_status: {
-        amadeus_client_id: amadeusClientId ? 'Present' : 'MISSING',
-        amadeus_secret: amadeusSecret ? 'Present' : 'MISSING',
-        hotelbeds_key: hotelbedsKey ? 'Present' : 'MISSING',
-        hotelbeds_secret: hotelbedsSecret ? 'Present' : 'MISSING',
-        stripe_key: stripeKey ? 'Present' : 'MISSING'
-      },
-      amadeus_api_test: amadeusTest,
-      deployment_status: 'DEPLOYED AND CALLABLE'
+    const testParams = {
+      destination: 'Sydney',
+      destinationCode: 'SYD',
+      cityIata: 'SYD',
+      checkIn: '2025-08-25',
+      checkOut: '2025-08-26',
+      guests: 2,
+      rooms: 1,
+      adults: 2,
+      children: 0
     };
 
-    console.log('=== DEBUG RESULT ===', result);
+    console.log('Testing parameters:', testParams);
 
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
+    // Test 1: Provider Rotation
+    console.log('🔄 Testing provider-rotation function...');
+    const rotationTest = await supabase.functions.invoke('provider-rotation', {
+      body: {
+        searchType: 'hotel',
+        params: testParams
+      }
+    });
+
+    console.log('Provider Rotation Result:', {
+      success: !rotationTest.error,
+      error: rotationTest.error?.message,
+      data: rotationTest.data
+    });
+
+    // Test 2: Direct Amadeus Test
+    console.log('🏨 Testing amadeus-hotel-search directly...');
+    const amadeusTest = await supabase.functions.invoke('amadeus-hotel-search', {
+      body: testParams
+    });
+
+    console.log('Amadeus Direct Result:', {
+      success: !amadeusTest.error,
+      error: amadeusTest.error?.message,
+      dataKeys: amadeusTest.data ? Object.keys(amadeusTest.data) : null
+    });
+
+    // Test 3: Direct HotelBeds Test
+    console.log('🛏️ Testing hotelbeds-search directly...');
+    const hotelbedsTest = await supabase.functions.invoke('hotelbeds-search', {
+      body: testParams
+    });
+
+    console.log('HotelBeds Direct Result:', {
+      success: !hotelbedsTest.error,
+      error: hotelbedsTest.error?.message,
+      dataKeys: hotelbedsTest.data ? Object.keys(hotelbedsTest.data) : null
+    });
+
+    // Test 4: Check API credentials
+    console.log('🔑 Checking API credentials...');
+    const credentials = {
+      AMADEUS_CLIENT_ID: !!Deno.env.get('AMADEUS_CLIENT_ID'),
+      AMADEUS_CLIENT_SECRET: !!Deno.env.get('AMADEUS_CLIENT_SECRET'),
+      HOTELBEDS_API_KEY: !!Deno.env.get('HOTELBEDS_API_KEY'),
+      HOTELBEDS_SECRET: !!Deno.env.get('HOTELBEDS_SECRET'),
+      SUPABASE_URL: !!Deno.env.get('SUPABASE_URL'),
+      SUPABASE_SERVICE_ROLE_KEY: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    };
+
+    console.log('Credentials Status:', credentials);
+
+    // Test 5: Check provider configs in DB
+    const { data: providers } = await supabase
+      .from('provider_configs')
+      .select('*')
+      .eq('type', 'hotel')
+      .eq('enabled', true);
+
+    console.log('Active Hotel Providers:', providers?.length || 0);
+
+    return new Response(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      testResults: {
+        providerRotation: {
+          success: !rotationTest.error,
+          error: rotationTest.error?.message,
+          data: rotationTest.data
+        },
+        amadeusDirectTest: {
+          success: !amadeusTest.error,
+          error: amadeusTest.error?.message,
+          hasData: !!amadeusTest.data
+        },
+        hotelbedsDirectTest: {
+          success: !hotelbedsTest.error,
+          error: hotelbedsTest.error?.message,
+          hasData: !!hotelbedsTest.data
+        },
+        credentials,
+        activeProviders: providers?.length || 0
+      },
+      recommendations: [
+        'Check if all provider edge functions are deployed correctly',
+        'Verify API credentials are valid and not expired',
+        'Ensure provider endpoints are accessible from Supabase',
+        'Check if rate limits are being hit on external APIs'
+      ]
+    }, null, 2), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('=== CRITICAL DEBUG ERROR ===', error);
+    console.error('❌ Critical debug failed:', error);
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
       timestamp: new Date().toISOString(),
-      deployment_status: 'DEPLOYED BUT ERRORING'
+      error: error.message,
+      stack: error.stack
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
+      status: 500
     });
   }
 });
