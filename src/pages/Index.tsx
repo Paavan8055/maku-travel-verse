@@ -14,6 +14,8 @@ import TestModeIndicator from "@/components/TestModeIndicator";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { Button } from "@/components/ui/button";
+import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
+import { BookingTestPanel } from "@/components/debug/BookingTestPanel";
 const Index = () => {
   return (
     <ErrorBoundary>
@@ -29,39 +31,22 @@ const Index = () => {
           <FeaturedListings />
           {/* Debug Section - Only visible in development */}
           {process.env.NODE_ENV === 'development' && (
-            <div className="max-w-4xl mx-auto px-6 py-12">
+            <div className="max-w-4xl mx-auto px-6 py-12 space-y-8">
               <ProductionDiagnostics />
               <PaymentDebugger />
-              <div className="mt-8 text-center space-y-2">
-                <div className="text-lg font-semibold mb-4">🧪 Test All Booking Flows</div>
-                <div className="grid grid-cols-3 gap-4">
-                  <Button 
-                    onClick={() => window.location.href = '/hotels?destination=sydney&checkIn=2025-08-24&checkOut=2025-08-25&guests=2'}
-                    variant="outline"
-                  >
-                    🏨 Test Hotels
-                  </Button>
-                  <Button 
-                    onClick={() => window.location.href = '/flights?origin=LAX&destination=SYD&departureDate=2025-08-24&passengers=2'}
-                    variant="outline"
-                  >
-                    ✈️ Test Flights
-                  </Button>
-                  <Button 
-                    onClick={() => window.location.href = '/activities?destination=sydney&date=2025-08-24&participants=2'}
-                    variant="outline"
-                  >
-                    🎯 Test Activities
-                  </Button>
-                </div>
-                <Button 
-                  onClick={() => window.location.href = '/hotel-checkout-test'}
-                  variant="default"
-                  className="mt-4"
-                >
-                  💳 Complete Hotel Payment Test
-                </Button>
-              </div>
+              <ProviderRotationTestPanel />
+              <BookingTestPanel 
+                onTestHotelBooking={() => window.location.href = '/search/hotels?destination=Sydney&checkIn=' + 
+                  new Date(Date.now() + 86400000).toISOString().split('T')[0] + 
+                  '&checkOut=' + new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0] + 
+                  '&adults=2&rooms=1&test=true'}
+                onTestFlightBooking={() => window.location.href = '/search/flights?origin=SYD&destination=MEL&departure=' +
+                  new Date(Date.now() + 86400000).toISOString().split('T')[0] + 
+                  '&adults=1&test=true'}
+                onTestActivityBooking={() => window.location.href = '/search/activities?destination=Sydney&date=' +
+                  new Date(Date.now() + 86400000).toISOString().split('T')[0] + 
+                  '&participants=2&test=true'}
+              />
             </div>
           )}
       
