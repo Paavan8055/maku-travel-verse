@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
+import { AuthGuard } from "@/features/auth/components/AuthGuard";
+import { AdminGuard } from "@/features/auth/components/AdminGuard";
 import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
 import { SearchProvider } from "@/features/search/context/SearchContext";
 import { HealthMonitorProvider } from "@/providers/HealthMonitorProvider";
@@ -35,6 +37,8 @@ import BookingsPage from "./pages/bookings";
 import TravelFundPage from "./pages/travel-fund";
 import TravelPreferencesPage from "./pages/travel-preferences";
 import InviteFriendsPage from "./pages/invite-friends";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminAuth from "./pages/AdminAuth";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -78,6 +82,12 @@ const App = () => (
                           <Route path="/travel-fund" element={<TravelFundPage />} />
                           <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
                           <Route path="/invite-friends" element={<InviteFriendsPage />} />
+                          <Route path="/admin" element={<AdminAuth />} />
+                          <Route path="/admin/dashboard" element={
+                            <AdminGuard>
+                              <AdminDashboard />
+                            </AdminGuard>
+                          } />
                         </Routes>
                       </BrowserRouter>
                       </TooltipProvider>

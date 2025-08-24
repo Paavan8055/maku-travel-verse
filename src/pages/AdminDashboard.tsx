@@ -10,6 +10,7 @@ import { ProductionMonitoringDashboard } from '@/components/admin/ProductionMoni
 import { RealTimeMetricsDashboard } from '@/components/admin/RealTimeMetricsDashboard';
 import { CorrelationTracker } from '@/components/admin/CorrelationTracker';
 import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide';
+import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -17,7 +18,8 @@ import {
   CreditCard, 
   TrendingUp,
   RefreshCw,
-  Shield
+  Shield,
+  TestTube
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -114,6 +116,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="realtime">Real-Time</TabsTrigger>
             <TabsTrigger value="correlation">Correlation</TabsTrigger>
+            <TabsTrigger value="abtesting">A/B Testing</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
@@ -158,6 +161,20 @@ const AdminDashboard = () => {
           
           <TabsContent value="correlation">
             <CorrelationTracker />
+          </TabsContent>
+          
+          <TabsContent value="abtesting">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TestTube className="h-5 w-5" />
+                  A/B Testing Dashboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ABTestDashboard />
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="users">
