@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Mic, MapPin, Accessibility, Calendar, BarChart3, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { SmartLocationSearch } from "./SmartLocationSearch";
 import { AccessibilityFilters } from "./AccessibilityFilters";
 import { DateFlexibilityMatrix } from "./DateFlexibilityMatrix";
 import { RevenueAnalyticsDashboard } from "./RevenueAnalyticsDashboard";
-import { ABTestingFramework } from "./ABTestingFramework";
+import { ABTestDashboard } from "@/components/testing/ABTestingFramework";
 
 interface CompactSearchToolbarProps {
   destination?: string;
@@ -166,7 +167,7 @@ export function CompactSearchToolbar({
             <TooltipContent>A/B Testing</TooltipContent>
           </Tooltip>
           <PopoverContent className="w-96" align="end">
-            <ABTestingFramework />
+            <ABTestDashboard />
           </PopoverContent>
         </Popover>
 
