@@ -55,8 +55,6 @@ const Index = () => {
         <ChatWidget userVertical="Solo" />
         <AgenticWidget />
         
-        {/* Production Status - Always Visible */}
-        <ProductionStatusIndicator />
         </div>
       </PerformanceWrapper>
     </ErrorBoundary>

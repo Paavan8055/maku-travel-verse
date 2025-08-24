@@ -253,3 +253,6 @@ verify_jwt = false
 
 [functions.hotelbeds-activities]
 verify_jwt = false
+
+[functions.credential-test]
+verify_jwt = false

@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 // Simple logger fallback to avoid import errors
 const logger = {
@@ -47,7 +48,7 @@ async function getAmadeusAccessToken(): Promise<string> {
   logger.info('🔐 Attempting Amadeus authentication...');
 
   try {
-    const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+    const response = await fetch(ENV_CONFIG.amadeus.tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -77,11 +78,11 @@ async function getAmadeusAccessToken(): Promise<string> {
 
 // Step 1: Get hotel list from city  
 async function getHotelList(accessToken: string, cityCode: string, latitude?: number, longitude?: number): Promise<any> {
-  let url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city`;
+  let url = `${ENV_CONFIG.amadeus.baseUrl}/v1/reference-data/locations/hotels/by-city`;
   const params = new URLSearchParams({ cityCode });
   
   if (latitude && longitude) {
-    url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode`;
+    url = `${ENV_CONFIG.amadeus.baseUrl}/v1/reference-data/locations/hotels/by-geocode`;
     params.set('latitude', latitude.toString());
     params.set('longitude', longitude.toString());
     params.set('radius', '20');
@@ -110,7 +111,7 @@ async function getHotelList(accessToken: string, cityCode: string, latitude?: nu
 
 // Step 2: Get offers for specific hotels
 async function getHotelOffers(accessToken: string, hotelIds: string[], context: SearchContext): Promise<any> {
-  const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers`;
+  const url = `${ENV_CONFIG.amadeus.baseUrl}/v3/shopping/hotel-offers`;
   
   logger.info('Getting hotel offers for hotels:', hotelIds.slice(0, 5));
 
@@ -244,7 +245,7 @@ async function resolveCity(destination: string, accessToken: string): Promise<{ 
   // Try Amadeus location search
   try {
     const response = await fetch(
-      `https://test.api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(destination)}&subType=CITY`,
+      `${ENV_CONFIG.amadeus.baseUrl}/v1/reference-data/locations?keyword=${encodeURIComponent(destination)}&subType=CITY`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,

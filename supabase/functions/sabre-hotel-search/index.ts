@@ -1,3 +1,5 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
@@ -27,7 +29,6 @@ interface HotelSearchParams {
 async function getSabreAccessToken(): Promise<string> {
   const clientId = Deno.env.get('SABRE_CLIENT_ID');
   const clientSecret = Deno.env.get('SABRE_CLIENT_SECRET');
-  const baseUrl = Deno.env.get('SABRE_BASE_URL') || 'https://api.sabre.com';
 
   if (!clientId || !clientSecret) {
     throw new Error('Missing Sabre API credentials');
@@ -35,7 +36,7 @@ async function getSabreAccessToken(): Promise<string> {
 
   const credentials = btoa(`${clientId}:${clientSecret}`);
 
-  const response = await fetch(`${baseUrl}/v2/auth/token`, {
+  const response = await fetch(ENV_CONFIG.sabre.tokenUrl, {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${credentials}`,
@@ -56,7 +57,6 @@ async function getSabreAccessToken(): Promise<string> {
 
 // Search hotels using Sabre API
 async function searchHotels(params: HotelSearchParams, accessToken: string): Promise<any> {
-  const baseUrl = Deno.env.get('SABRE_BASE_URL') || 'https://api.sabre.com';
   
   const requestBody = {
     "GetHotelAvailRQ": {
@@ -98,7 +98,7 @@ async function searchHotels(params: HotelSearchParams, accessToken: string): Pro
     }
   };
 
-  const response = await fetch(`${baseUrl}/v3.0.0/get/hotelavail`, {
+  const response = await fetch(`${ENV_CONFIG.sabre.baseUrl}/v3.0.0/get/hotelavail`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -227,7 +227,7 @@ function transformSabreHotelResponse(sabreData: any): any[] {
   }
 }
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
