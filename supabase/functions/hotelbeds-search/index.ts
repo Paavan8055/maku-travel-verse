@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
-import { ENV_CONFIG } from "../_shared/config.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { ENV_CONFIG, RATE_LIMITS } from "../_shared/config.ts";
 import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
@@ -27,24 +28,53 @@ const generateHotelBedsSignature = async (apiKey: string, secret: string, timest
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
-// Enhanced pricing extraction with tax breakdown
+// Enhanced pricing extraction with tax breakdown - consistent with booking/checkrates
 const extractPricingDetails = (hotel: any) => {
+  const netAmount = hotel.minRate || 0;
+  const sellingRate = hotel.sellingRate || hotel.minRate || 0;
+  const hotelSellingRate = hotel.hotelSellingRate || 0;
+  const totalTaxes = hotel.taxes?.taxes?.reduce((sum: number, tax: any) => sum + (tax.amount || 0), 0) || 0;
+  
   const pricing = {
-    netAmount: hotel.minRate || 0,
-    sellingRate: hotel.sellingRate || hotel.minRate || 0,
-    hotelSellingRate: hotel.hotelSellingRate,
+    // Core pricing
+    netAmount,
+    sellingRate,
+    hotelSellingRate,
+    markup: sellingRate - netAmount,
+    markupPCT: netAmount > 0 ? ((sellingRate - netAmount) / netAmount) * 100 : 0,
+    
+    // Enhanced pricing breakdown consistent with checkrates/booking
+    finalAmount: sellingRate + totalTaxes,
+    
+    // Tax information
+    taxesIncluded: hotel.taxes?.allIncluded || false,
+    taxBreakdown: hotel.taxes?.taxes?.map((tax: any) => ({
+      included: tax.included,
+      percent: tax.percent,
+      amount: tax.amount,
+      currency: tax.currency,
+      type: tax.type,
+      clientAmount: tax.clientAmount,
+      clientCurrency: tax.clientCurrency
+    })) || [],
+    totalTaxes,
+    
+    // Commission and rates
+    commission: hotel.commission || 0,
+    commissionVAT: hotel.commissionVAT || 0,
+    
+    // Additional pricing data
     currency: hotel.currency || 'USD',
     rateType: hotel.rateType || 'PUBLIC',
     packaging: hotel.packaging || false,
     commissionable: hotel.commissionable || false,
-    taxesIncluded: hotel.taxes?.allIncluded || false,
-    taxBreakdown: hotel.taxes?.taxes || [],
-    totalTaxes: hotel.taxes?.taxes?.reduce((sum: number, tax: any) => sum + (tax.amount || 0), 0) || 0,
-    commission: hotel.commission || 0,
     rateComments: hotel.rateComments || '',
     offers: hotel.offers || [],
     discount: hotel.discount || 0,
-    discountPCT: hotel.discountPCT || 0
+    discountPCT: hotel.discountPCT || 0,
+    
+    // Free cancellation indicator
+    hasFreeCancellation: hotel.cancellationPolicies?.length === 0 || hotel.cancellationPolicies?.some((p: any) => p.amount === 0)
   };
   
   return pricing;
@@ -228,6 +258,32 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
+    }
+
+    // Create Supabase client for rate limiting
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Check rate limits before proceeding
+    const rateLimitCheck = await supabase.functions.invoke('rate-limiter', {
+      body: {
+        identifier: req.headers.get('x-forwarded-for') || 'anonymous',
+        action: 'search',
+        window: 60,
+        maxAttempts: RATE_LIMITS.hotelbeds.searchPerMinute
+      }
+    });
+
+    if (rateLimitCheck.data && !rateLimitCheck.data.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded', 
+          retryAfter: rateLimitCheck.data.retryAfter 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const hotelResults = await searchHotels({

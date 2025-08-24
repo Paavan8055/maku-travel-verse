@@ -1,5 +1,14 @@
 project_id = "iomeddeasarntjhqzndu"
 
+[functions.production-readiness]
+verify_jwt = false
+
+[functions.hotelbeds-monitoring]
+verify_jwt = false
+
+[functions.comprehensive-health-monitor]
+verify_jwt = false
+
 [api]
 enabled = true
 port = 54321

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { ENV_CONFIG, RATE_LIMITS } from '../_shared/config.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,8 +47,8 @@ async function checkHotelRates(params: CheckratesParams): Promise<any> {
   const timestamp = Math.floor(Date.now() / 1000)
   const signature = await generateHotelBedsSignature(apiKey, secret, timestamp)
   
-  // Use test environment for now
-  const baseUrl = 'https://api.test.hotelbeds.com'
+  // Use dynamic environment configuration
+  const baseUrl = ENV_CONFIG.hotelbeds.baseUrl
   
   const requestBody = {
     rooms: params.rooms,
@@ -242,6 +243,26 @@ Deno.serve(async (req) => {
     }
 
     console.log('Checking rates for hotel:', hotelCode, 'with rateKey:', rateKey)
+
+    // Check rate limits before proceeding
+    const rateLimitCheck = await supabase.functions.invoke('rate-limiter', {
+      body: {
+        identifier: req.headers.get('x-forwarded-for') || 'anonymous',
+        action: 'search',
+        window: 60,
+        maxAttempts: RATE_LIMITS.hotelbeds.searchPerMinute
+      }
+    })
+
+    if (rateLimitCheck.data && !rateLimitCheck.data.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded', 
+          retryAfter: rateLimitCheck.data.retryAfter 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Call HotelBeds checkrates API
     const checkratesData = await checkHotelRates({
