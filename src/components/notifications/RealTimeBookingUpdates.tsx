@@ -39,7 +39,7 @@ export const RealTimeBookingUpdates: React.FC = () => {
 
     fetchBookingUpdates();
 
-    // Subscribe to real-time booking updates
+    // Subscribe to real-time booking updates - using direct SQL access temporarily
     const channel = supabase
       .channel('booking_updates')
       .on(
@@ -75,17 +75,21 @@ export const RealTimeBookingUpdates: React.FC = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('booking_updates')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      // Using RPC call to fetch data since types aren't updated yet
+      const { data, error } = await supabase.rpc('get_user_booking_updates', {
+        p_user_id: user.id
+      });
 
-      if (error) throw error;
-      setUpdates(data || []);
+      if (error) {
+        console.error('Error fetching booking updates:', error);
+        // Fallback to empty array
+        setUpdates([]);
+      } else {
+        setUpdates(data || []);
+      }
     } catch (error) {
       console.error('Error fetching booking updates:', error);
+      setUpdates([]);
     } finally {
       setLoading(false);
     }
