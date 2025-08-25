@@ -60,22 +60,21 @@ export const useRealFlightSearch = () => {
             return;
           }
 
-          // Direct provider calls with error handling
-          const functionName = provider === 'amadeus' ? 'amadeus-flight-search' : 'sabre-flight-search';
-          
-          const { data, error } = await supabase.functions.invoke(functionName, {
+          // Use provider rotation system for all searches
+          const { data, error } = await supabase.functions.invoke('provider-rotation', {
             body: {
-              origin: params.origin?.toUpperCase(),
-              destination: params.destination?.toUpperCase(),
-              departure_date: params.departureDate, // Use snake_case for API consistency
-              return_date: params.returnDate,
-              passengers: params.adults || 1,
-              adults: params.adults || 1,
-              children: params.children || 0,
-              infants: params.infants || 0,
-              cabin: 'ECONOMY',
-              travelClass: 'ECONOMY',
-              currency: 'AUD'
+              searchType: 'flight',
+              params: {
+                originLocationCode: params.origin?.toUpperCase(),
+                destinationLocationCode: params.destination?.toUpperCase(),
+                departureDate: params.departureDate,
+                returnDate: params.returnDate,
+                adults: params.adults || 1,
+                children: params.children || 0,
+                infants: params.infants || 0,
+                travelClass: 'ECONOMY',
+                currency: 'AUD'
+              }
             }
           });
 

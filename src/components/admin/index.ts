@@ -6,3 +6,5 @@ export { SecurityMonitoring } from './SecurityMonitoring';
 export { UserManagement } from './UserManagement';
 export { ProductionMonitoringDashboard } from './ProductionMonitoringDashboard';
 export { EnhancedProductionDashboard } from './EnhancedProductionDashboard';
+export { SearchStatusDashboard } from './SearchStatusDashboard';
+export { EnhancedHealthDashboard } from './EnhancedHealthDashboard';

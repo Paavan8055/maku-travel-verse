@@ -39,15 +39,18 @@ export const ProductionDiagnostics = () => {
         hotelTest = `FAILED: ${error instanceof Error ? error.message : 'Unknown error'}`;
       }
 
-      // Test flight search function
+      // Test flight search via provider rotation
       let flightTest = 'Not tested';
       try {
-        const { data: flightData, error: flightError } = await supabase.functions.invoke('amadeus-flight-search', {
+        const { data: flightData, error: flightError } = await supabase.functions.invoke('provider-rotation', {
           body: {
-            origin: 'SYD',
-            destination: 'MEL',
-            departureDate: '2025-12-01',
-            passengers: 1
+            searchType: 'flight',
+            params: {
+              originLocationCode: 'SYD',
+              destinationLocationCode: 'MEL',
+              departureDate: '2025-12-01',
+              passengers: 1
+            }
           }
         });
         flightTest = flightError ? `ERROR: ${flightError.message}` : 'SUCCESS';
