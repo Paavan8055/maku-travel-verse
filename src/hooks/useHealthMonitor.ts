@@ -179,9 +179,17 @@ export const useHealthMonitor = (options: {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('health-check');
+      // Run both health check and quota monitor in parallel for comprehensive monitoring
+      const [healthResponse, quotaResponse] = await Promise.allSettled([
+        supabase.functions.invoke('health-check'),
+        supabase.functions.invoke('provider-quota-monitor')
+      ]);
       
-      if (error) {
+      // Process health check response
+      if (healthResponse.status === 'rejected' || healthResponse.value.error) {
+        const error = healthResponse.status === 'rejected' 
+          ? healthResponse.reason 
+          : healthResponse.value.error;
         onFailure(error);
         handleError({
           error,
@@ -194,7 +202,28 @@ export const useHealthMonitor = (options: {
         return null;
       }
 
-      const healthData = data as SystemHealth;
+      const healthData = healthResponse.value.data as SystemHealth;
+      
+      // Enhance health data with quota information if available
+      if (quotaResponse.status === 'fulfilled' && quotaResponse.value.data?.success) {
+        const quotaData = quotaResponse.value.data;
+        
+        // Add quota health to the system health
+        (healthData as any).quotaHealth = {
+          status: quotaData.criticalProviders.length > 0 ? 'critical' :
+                  quotaData.warnings.length > 0 ? 'warning' : 'healthy',
+          criticalProviders: quotaData.criticalProviders.length,
+          warnings: quotaData.warnings.length,
+          totalProviders: quotaData.quotas.length,
+          lastUpdated: Date.now()
+        };
+        
+        // Adjust overall status based on quota health
+        if (quotaData.criticalProviders.length > 0 && healthData.status === 'healthy') {
+          healthData.status = 'degraded';
+        }
+      }
+      
       onSuccess(healthData);
       return healthData;
     } catch (error) {
