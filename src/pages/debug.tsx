@@ -3,7 +3,7 @@ import { ProviderTestPanel } from "@/components/debug/ProviderTestPanel";
 import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
 import { DirectProviderTest } from "@/components/debug/DirectProviderTest";
 import HotelBedsMonitoringDashboard from "@/components/admin/HotelBedsMonitoringDashboard";
-import { HotelBedsCredentialTest } from "@/components/admin/HotelBedsCredentialTest";
+import { CredentialTestSuite } from "@/components/admin/CredentialTestSuite";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const DebugPage = () => {
@@ -41,7 +41,7 @@ const DebugPage = () => {
             </TabsContent>
             
             <TabsContent value="credentials">
-              <HotelBedsCredentialTest />
+              <CredentialTestSuite />
             </TabsContent>
             
             <TabsContent value="monitoring">

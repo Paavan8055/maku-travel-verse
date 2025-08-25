@@ -65,14 +65,16 @@ export const useRealFlightSearch = () => {
           
           const { data, error } = await supabase.functions.invoke(functionName, {
             body: {
-              origin: params.origin,
-              destination: params.destination,
-              departureDate: params.departureDate,
-              returnDate: params.returnDate,
+              origin: params.origin?.toUpperCase(),
+              destination: params.destination?.toUpperCase(),
+              departure_date: params.departureDate, // Use snake_case for API consistency
+              return_date: params.returnDate,
+              passengers: params.adults || 1,
               adults: params.adults || 1,
               children: params.children || 0,
               infants: params.infants || 0,
               cabin: 'ECONOMY',
+              travelClass: 'ECONOMY',
               currency: 'AUD'
             }
           });
