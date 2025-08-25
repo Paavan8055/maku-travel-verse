@@ -47,6 +47,17 @@ const InviteFriendsPage = createLazyRoute(() => import("./pages/invite-friends")
 const AdminDashboard = createLazyRoute(() => import("./pages/AdminDashboard"));
 const AdminAuth = createLazyRoute(() => import("./pages/AdminAuth"));
 const DeploymentTestPage = createLazyRoute(() => import("./pages/admin/deployment-test"));
+const AdminLayout = createLazyRoute(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
+const AdminOverviewPage = createLazyRoute(() => import("./pages/admin/dashboard/overview"));
+const AdminRealtimePage = createLazyRoute(() => import("./pages/admin/dashboard/realtime"));
+const AdminAlertsPage = createLazyRoute(() => import("./pages/admin/dashboard/alerts"));
+const AdminHealthPage = createLazyRoute(() => import("./pages/admin/monitoring/health"));
+const AdminProvidersPage = createLazyRoute(() => import("./pages/admin/monitoring/providers"));
+const AdminCorrelationPage = createLazyRoute(() => import("./pages/admin/monitoring/correlation"));
+const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations/bookings"));
+const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/users"));
+const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
+const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
 const DebugPage = createLazyRoute(() => import("./pages/debug"));
 const HotelSelectionPage = createLazyRoute(() => import("./pages/booking/hotel-selection").then(m => ({ default: m.default })));
 
@@ -119,16 +130,33 @@ const App = () => (
                                       <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
                                       <Route path="/invite-friends" element={<InviteFriendsPage />} />
                                       <Route path="/admin" element={<AdminAuth />} />
-                                      <Route path="/admin/dashboard" element={
+                                      <Route path="/admin/*" element={
                                         <AdminGuard>
-                                          <AdminDashboard />
+                                          <AdminLayout />
                                         </AdminGuard>
-                                      } />
-                                      <Route path="/admin/deployment-test" element={
-                                        <AdminGuard>
-                                          <DeploymentTestPage />
-                                        </AdminGuard>
-                                      } />
+                                      }>
+                                        {/* Dashboard Routes */}
+                                        <Route index element={<AdminOverviewPage />} />
+                                        <Route path="dashboard" element={<AdminOverviewPage />} />
+                                        <Route path="dashboard/realtime" element={<AdminRealtimePage />} />
+                                        <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
+                                        
+                                        {/* Monitoring Routes */}
+                                        <Route path="monitoring/health" element={<AdminHealthPage />} />
+                                        <Route path="monitoring/providers" element={<AdminProvidersPage />} />
+                                        <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
+                                        
+                                        {/* Operations Routes */}
+                                        <Route path="operations/bookings" element={<AdminBookingsPage />} />
+                                        <Route path="operations/users" element={<AdminUsersPage />} />
+                                        <Route path="operations/testing" element={<AdminTestingPage />} />
+                                        
+                                        {/* Security Routes */}
+                                        <Route path="security/access" element={<AdminSecurityPage />} />
+                                        
+                                        {/* Legacy Routes for backward compatibility */}
+                                        <Route path="deployment-test" element={<DeploymentTestPage />} />
+                                      </Route>
                                       <Route path="/debug" element={
                                         <DebugGuard>
                                           <DebugPage />
