@@ -1,3 +1,5 @@
+import React from 'react';
+
 // SEO utilities for MAKU.Travel - Following enterprise SEO best practices
 
 export interface SEOMetadata {
@@ -187,7 +189,7 @@ export const injectSEOMetadata = (metadata: SEOMetadata) => {
 
   // Schema.org structured data
   if (metadata.schemaOrg) {
-    let schemaScript = document.querySelector('script[type="application/ld+json"]');
+    let schemaScript = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement;
     if (schemaScript) {
       schemaScript.textContent = JSON.stringify(metadata.schemaOrg);
     } else {

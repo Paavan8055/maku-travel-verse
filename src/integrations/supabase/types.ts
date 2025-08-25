@@ -721,6 +721,42 @@ export type Database = {
         }
         Relationships: []
       }
+      conversion_events: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          event_name: string
+          id: string
+          page_url: string
+          properties: Json | null
+          session_id: string
+          user_id: string | null
+          value: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          event_name: string
+          id?: string
+          page_url: string
+          properties?: Json | null
+          session_id: string
+          user_id?: string | null
+          value?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          event_name?: string
+          id?: string
+          page_url?: string
+          properties?: Json | null
+          session_id?: string
+          user_id?: string | null
+          value?: number | null
+        }
+        Relationships: []
+      }
       correlation_tracking: {
         Row: {
           completed_at: string | null
@@ -1590,6 +1626,36 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      funnel_steps: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          session_id: string
+          step_name: string
+          step_order: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          session_id: string
+          step_name: string
+          step_order: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          session_id?: string
+          step_name?: string
+          step_order?: number
+          user_id?: string | null
+        }
+        Relationships: []
       }
       gift_card_redemptions: {
         Row: {
@@ -3292,6 +3358,48 @@ export type Database = {
         }
         Relationships: []
       }
+      session_analytics: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          first_activity: string | null
+          funnel_progress: number | null
+          id: string
+          last_activity: string | null
+          session_id: string
+          total_events: number | null
+          total_value: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          first_activity?: string | null
+          funnel_progress?: number | null
+          id?: string
+          last_activity?: string | null
+          session_id: string
+          total_events?: number | null
+          total_value?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          first_activity?: string | null
+          funnel_progress?: number | null
+          id?: string
+          last_activity?: string | null
+          session_id?: string
+          total_events?: number | null
+          total_value?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       system_logs: {
         Row: {
           correlation_id: string | null
@@ -4104,6 +4212,14 @@ export type Database = {
           p_ttl: string
         }
         Returns: string
+      }
+      update_session_funnel_progress: {
+        Args: {
+          p_session_id: string
+          p_step_order: number
+          p_timestamp: string
+        }
+        Returns: undefined
       }
       upsert_communication_preferences: {
         Args: {
