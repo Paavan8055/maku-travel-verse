@@ -13,3 +13,5 @@ export { AdminBreadcrumb } from './AdminBreadcrumb';
 export { UnifiedHealthDashboard } from './UnifiedHealthDashboard';
 export { CorrelationTracker } from './CorrelationTracker';
 export { OperationalDashboard } from './OperationalDashboard';
+export { EnhancedBookingOperations } from './EnhancedBookingOperations';
+export { NotificationCenter } from './NotificationCenter';
