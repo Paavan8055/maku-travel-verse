@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { ENV_CONFIG, RATE_LIMITS } from "../_shared/config.ts";
+import { ENV_CONFIG, RATE_LIMITS, getHotelBedsCredentials } from "../_shared/config.ts";
 import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
@@ -116,11 +116,10 @@ const makeResilientRequest = async (url: string, options: RequestInit, maxRetrie
 };
 
 const searchHotels = async (params: HotelSearchParams) => {
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
-  const secret = Deno.env.get('HOTELBEDS_SECRET');
+  const { apiKey, secret } = getHotelBedsCredentials('hotel');
   
   if (!apiKey || !secret) {
-    throw new Error('HotelBeds credentials not configured');
+    throw new Error('HotelBeds hotel API credentials not configured');
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
@@ -323,14 +322,15 @@ serve(async (req) => {
       const pricing = extractPricingDetails(hotel);
       
       // Get enriched content if available
+      const { apiKey, secret } = getHotelBedsCredentials('hotel');
       let enrichedContent = null;
       try {
         const contentResponse = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-content-api/1.0/hotels?codes=${hotel.code}&language=ENG`, {
           headers: {
-            'Api-key': Deno.env.get('HOTELBEDS_API_KEY'),
+            'Api-key': apiKey,
             'X-Signature': await generateHotelBedsSignature(
-              Deno.env.get('HOTELBEDS_API_KEY'),
-              Deno.env.get('HOTELBEDS_SECRET'),
+              apiKey,
+              secret,
               Math.floor(Date.now() / 1000)
             ),
             'Accept': 'application/json'
