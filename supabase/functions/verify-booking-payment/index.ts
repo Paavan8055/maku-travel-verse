@@ -223,6 +223,37 @@ serve(async (req) => {
       logger.error('Failed to update booking status:', updateError);
     }
 
+    // Create provider booking confirmation (enhance existing booking)
+    let providerConfirmation = null;
+    
+    try {
+      // Call verify-payment-and-complete-booking for provider integration
+      const { data: providerResult, error: providerError } = await supabaseClient.functions.invoke(
+        'verify-payment-and-complete-booking',
+        {
+          body: {
+            payment_intent_id: paymentDetails.stripe_payment_intent_id,
+            booking_id: bookingId
+          }
+        }
+      );
+
+      if (providerResult && providerResult.success) {
+        providerConfirmation = {
+          confirmation_number: providerResult.confirmation_number,
+          supplier_reference: providerResult.supplier_reference,
+          status: providerResult.status
+        };
+        logger.info(`Provider booking confirmed: ${providerResult.confirmation_number}`);
+      } else if (providerError) {
+        logger.warn('Provider booking failed:', providerError);
+        // Continue with payment confirmation even if provider fails
+      }
+    } catch (providerError) {
+      logger.warn('Provider integration error:', providerError);
+      // Continue with payment confirmation even if provider fails
+    }
+
     // Send confirmation email
     try {
       await sendConfirmationEmail(booking, bookingId, supabaseClient);
@@ -234,9 +265,19 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        booking_reference: booking.booking_reference,
-        status: 'confirmed',
-        payment_verified: true
+        booking: {
+          id: booking.id,
+          booking_reference: booking.booking_reference,
+          status: 'confirmed',
+          total_amount: booking.total_amount,
+          currency: booking.currency,
+          booking_type: booking.booking_type,
+          booking_data: booking.booking_data,
+          created_at: booking.created_at,
+          provider_confirmation: providerConfirmation
+        },
+        payment_verified: true,
+        provider_confirmed: !!providerConfirmation
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
