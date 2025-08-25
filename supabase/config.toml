@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.comprehensive-health-monitor]
 verify_jwt = false
 
+[functions.amadeus-hotel-photos]
+verify_jwt = false
+
 [api]
 enabled = true
 port = 54321
