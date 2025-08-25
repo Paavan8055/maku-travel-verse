@@ -173,6 +173,8 @@ serve(async (req) => {
 
     // Try providers in order until one succeeds
     let lastError: any = null;
+    let credentialErrors: string[] = [];
+    
     for (const provider of providers) {
       try {
         logger.info('[PROVIDER-ROTATION] Trying provider', { providerId: provider.id });
@@ -194,26 +196,43 @@ serve(async (req) => {
             provider: provider.name,
             providerId: provider.id,
             responseTime: result.responseTime,
-            fallbackUsed: false
+            fallbackUsed: false,
+            ...(credentialErrors.length > 0 && { 
+              warnings: [`Some providers unavailable: ${credentialErrors.join(', ')}`] 
+            })
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
       } catch (error) {
         lastError = error;
-        logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
-        logger.warn('[PROVIDER-ROTATION] Provider failed', { 
-          providerId: provider.id, 
-          error: `Provider ${provider.id} failed: ${error.message}` 
-        });
+        const errorMessage = error.message || 'Unknown error';
+        
+        // Track credential-related errors separately
+        if (errorMessage.includes('403') || errorMessage.includes('401') || 
+            errorMessage.includes('credentials') || errorMessage.includes('authentication')) {
+          credentialErrors.push(`${provider.name}: credential issue`);
+          logger.warn(`[PROVIDER-ROTATION] Provider ${provider.id} has credential issues:`, errorMessage);
+        } else {
+          logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
+        }
         
         // Update provider failure metrics
         await updateProviderMetrics(supabase, provider.id, false, 5000);
       }
     }
 
-    // All providers failed, return empty results with error message
-    logger.error('[PROVIDER-ROTATION] All providers failed', { lastError: lastError?.message });
+    // All providers failed, return detailed error information
+    logger.error('[PROVIDER-ROTATION] All providers failed', { 
+      lastError: lastError?.message,
+      credentialErrors: credentialErrors.length,
+      totalProviders: providers.length
+    });
+    
+    let errorMessage = 'All providers are temporarily unavailable. Please try again later.';
+    if (credentialErrors.length > 0) {
+      errorMessage = `Service temporarily unavailable. ${credentialErrors.length} provider(s) have credential issues. Please contact support.`;
+    }
     
     return new Response(JSON.stringify({
       success: false,
@@ -221,10 +240,15 @@ serve(async (req) => {
       provider: 'None Available',
       providerId: 'none',
       fallbackUsed: false,
-      error: `All providers are temporarily unavailable. Please try again later.`
+      error: errorMessage,
+      details: {
+        providersAttempted: providers.length,
+        credentialIssues: credentialErrors.length,
+        lastError: lastError?.message || 'Unknown error'
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 503
+      status: credentialErrors.length > 0 ? 503 : 502
     });
 
   } catch (error) {
@@ -351,12 +375,27 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     success: !error, 
     responseTime, 
     dataType: typeof data,
-    hasFlights: data?.flights?.length || 0
+    hasData: !!data,
+    errorMessage: error?.message || null
   });
   
   if (error) {
     logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
-    throw new Error(`Provider ${provider.id} failed: ${error.message || 'Edge Function returned a non-2xx status code'}`);
+    
+    // Enhanced error handling for credential issues
+    const errorMessage = error.message || 'Unknown error';
+    
+    if (errorMessage.includes('403') || errorMessage.includes('access denied') || errorMessage.includes('Forbidden')) {
+      throw new Error(`Provider ${provider.id} credentials are invalid or insufficient (403 Forbidden)`);
+    } else if (errorMessage.includes('401') || errorMessage.includes('authentication failed')) {
+      throw new Error(`Provider ${provider.id} authentication failed (401 Unauthorized)`);
+    } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+      throw new Error(`Provider ${provider.id} rate limit exceeded (429)`);
+    } else if (errorMessage.includes('not configured') || errorMessage.includes('credentials')) {
+      throw new Error(`Provider ${provider.id} credentials not properly configured`);
+    } else {
+      throw new Error(`Provider ${provider.id} failed: ${errorMessage}`);
+    }
   }
   
   // Validate response data
