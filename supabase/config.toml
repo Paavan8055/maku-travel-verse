@@ -257,6 +257,9 @@ verify_jwt = false
 [functions.configure-auth-security]
 verify_jwt = false
 
+[functions.production-booking-manager]
+verify_jwt = false
+
 [functions.booking-integrity-manager]
 verify_jwt = true
 

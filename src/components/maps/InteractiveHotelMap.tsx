@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, DollarSign, Star, Navigation } from 'lucide-react';
+import { MapPin, DollarSign, Star, Navigation, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Hotel {
   id: string;
@@ -34,15 +35,33 @@ export const InteractiveHotelMap = ({
 }: InteractiveHotelMapProps) => {
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: -33.8688, lng: 151.2093 }); // Sydney default
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Geocode destination to get coordinates
   useEffect(() => {
-    if (destination) {
-      // Simple geocoding approximation for demo
-      const coordinates = getDestinationCoordinates(destination);
-      setMapCenter(coordinates);
-    }
+    const initializeMap = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        if (destination) {
+          // Simple geocoding approximation for demo
+          const coordinates = getDestinationCoordinates(destination);
+          setMapCenter(coordinates);
+          
+          // Simulate loading time for realistic UX
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (err) {
+        setError('Failed to load map for destination');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initializeMap();
   }, [destination]);
 
   const getDestinationCoordinates = (dest: string) => {
@@ -85,8 +104,28 @@ export const InteractiveHotelMap = ({
     return '0.5'; // Fallback
   };
 
+  if (error) {
+    return (
+      <div className={`relative w-full h-96 bg-secondary/10 rounded-lg overflow-hidden ${className}`}>
+        <Alert className="m-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative w-full h-96 bg-secondary/10 rounded-lg overflow-hidden ${className}`}>
+      {/* Loading State */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-20">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="text-sm">Loading map...</span>
+          </div>
+        </div>
+      )}
+      
       {/* Map Container */}
       <div ref={mapRef} className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5">
         {/* Map Background Pattern */}
