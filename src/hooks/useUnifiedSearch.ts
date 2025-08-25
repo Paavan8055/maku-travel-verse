@@ -114,11 +114,11 @@ export const useHotelSearch = () => {
         body: {
           searchType: 'hotel',
           params: {
-            cityCode: params.cityCode || params.destination,
-            checkInDate: params.checkInDate || params.checkIn,
-            checkOutDate: params.checkOutDate || params.checkOut,
+            cityCode: params.cityCode,
+            checkInDate: params.checkInDate,
+            checkOutDate: params.checkOutDate,
             adults: params.adults || 1,
-            roomQuantity: params.roomQuantity || params.rooms || 1,
+            roomQuantity: params.roomQuantity || 1,
             currency: params.currency || 'AUD'
           }
         },
@@ -255,10 +255,7 @@ export const useActivitySearch = () => {
           params: {
             latitude: params.latitude,
             longitude: params.longitude,
-            radius: params.radius || 20,
-            destination: params.cityIata || params.destination,
-            date: params.from || params.date,
-            participants: params.participants || 2
+            radius: params.radius || 20
           }
         },
       });
