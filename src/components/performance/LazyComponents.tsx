@@ -14,7 +14,7 @@ export const LazyInteractiveHotelMap = lazy(() =>
 
 export const LazyPerformanceMonitor = lazy(() => 
   import('@/components/performance/PerformanceMonitor').then(module => ({ 
-    default: module.default 
+    default: module.PerformanceMonitor 
   }))
 );
 
