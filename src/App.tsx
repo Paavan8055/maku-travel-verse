@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
-import { AdminGuard } from "@/features/auth/components/AdminGuard";
+import { AdminGuard, DebugGuard } from "@/components/auth/RoleGuard";
 import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
 import { SearchProvider } from "@/features/search/context/SearchContext";
 import { HealthMonitorProvider } from "@/providers/HealthMonitorProvider";
@@ -129,7 +129,11 @@ const App = () => (
                                           <DeploymentTestPage />
                                         </AdminGuard>
                                       } />
-                                      <Route path="/debug" element={<DebugPage />} />
+                                      <Route path="/debug" element={
+                                        <DebugGuard>
+                                          <DebugPage />
+                                        </DebugGuard>
+                                      } />
                                       <Route path="/booking/hotel-selection" element={<HotelSelectionPage />} />
                                     </Routes>
                                   </BrowserRouter>
