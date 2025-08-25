@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RealBookingButton } from "@/components/RealBookingButton";
 import { RoomSelectionModal } from "@/components/booking";
-import { useHotelPhotos } from "@/hooks/useHotelPhotosEnhanced";
+import { useHotelImagesEnhanced } from "@/hooks/useHotelImagesEnhanced";
 
 interface Hotel {
   id: string;
@@ -48,14 +48,16 @@ interface HotelCardProps {
 export const HotelCard = ({ hotel }: HotelCardProps) => {
   const navigate = useNavigate();
   const [showRoomSelection, setShowRoomSelection] = useState(false);
-  const { photos, fetchPhotos } = useHotelPhotos();
+  const { images, fetchImages } = useHotelImagesEnhanced();
 
-  // Fetch photos when component mounts
+  // Fetch images when component mounts
   useEffect(() => {
-    if (hotel.amadeus?.hotelId) {
-      fetchPhotos(hotel.amadeus.hotelId);
+    if (hotel.amadeus?.hotelId || hotel.id) {
+      // Use HotelBeds hotel code for better image quality
+      const hotelCode = hotel.id; // Assume hotel.id is the HotelBeds code
+      fetchImages(hotelCode);
     }
-  }, [hotel.amadeus?.hotelId, fetchPhotos]);
+  }, [hotel.id, hotel.amadeus?.hotelId, fetchImages]);
 
   const handleSelectHotel = () => {
     // Get current search parameters to preserve them
@@ -144,11 +146,11 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
           {/* Hotel Image */}
           <div className="w-64 h-48 relative overflow-hidden rounded-l-lg">
             <img
-              src={photos?.[0]?.url || hotel.images?.[0] || '/assets/hotel-budget.jpg' || '/placeholder.svg'}
+              src={images?.[0]?.url || hotel.images?.[0] || '/placeholder.svg'}
               alt={hotel.name}
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = photos?.[0]?.url ? '/assets/hotel-budget.jpg' : '/placeholder.svg';
+                e.currentTarget.src = '/placeholder.svg';
               }}
             />
             {hotel.deals && (

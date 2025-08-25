@@ -74,7 +74,7 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     circuitBreaker: {
       failureCount: 0,
       lastFailure: null,
-      timeout: 30000,
+      timeout: 45000,
       state: 'closed'
     },
     healthScore: 100,

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import { SearchErrorBoundary } from "@/components/error-boundaries/SearchErrorBoundary";
+import { SearchErrorBoundary } from "@/components/error/SearchErrorBoundary";
 import { HotelCard } from "@/features/search/components/HotelCard";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { HotelCardSkeleton } from "@/components/booking/HotelCardSkeleton";
@@ -142,7 +142,7 @@ const HotelSearchPage = () => {
   return (
     <CurrencyProvider>
       <AccessibilityProvider>
-        <SearchErrorBoundary fallbackMessage="Hotel search is temporarily unavailable. Please try again later.">
+        <SearchErrorBoundary searchType="hotel">
         <ErrorBoundary>
           <PerformanceWrapper componentName="HotelSearchPage">
             <MobileBookingOptimization 
