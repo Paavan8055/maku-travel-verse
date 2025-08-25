@@ -254,6 +254,9 @@ backend = "postgres"
 [functions.comprehensive-health-monitor]
 verify_jwt = false
 
+[functions.configure-auth-security]
+verify_jwt = false
+
 [functions.booking-integrity-manager]
 verify_jwt = true
 

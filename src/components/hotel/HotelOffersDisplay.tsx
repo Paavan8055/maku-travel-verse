@@ -8,6 +8,7 @@ import { useHotelOffers } from '@/hooks/useHotelOffers';
 import { useHotelPhotos } from '@/hooks/useHotelPhotos';
 import { useHotelBooking } from '@/features/booking/hooks/useHotelBooking';
 import { useNavigate } from 'react-router-dom';
+import { useBookingStore } from '@/store/bookingStore';
 
 interface HotelOffersDisplayProps {
   hotelId: string;
@@ -57,16 +58,16 @@ export const HotelOffersDisplay = ({
     // Find the selected offer to store its details
     const selectedOffer = offers.find(offer => offer.id === offerId);
     
-    // Store offer details for the booking flow
-    sessionStorage.setItem('selectedHotelOffer', JSON.stringify(selectedOffer));
-    sessionStorage.setItem('selectedHotelPrice', price);
-    sessionStorage.setItem('hotelBookingSelections', JSON.stringify({
+    // Use Zustand store instead of sessionStorage
+    const { setHotelBooking } = useBookingStore.getState();
+    
+    const hotelData = {
       hotelId: hotelId,
-      hotelName: hotelName,
-      offerId: offerId,
-      roomType: selectedOffer?.room?.typeEstimated?.category || 'Standard Room',
-      boardType: 'Room Only'
-    }));
+      name: hotelName,
+      ...hotel
+    };
+    
+    setHotelBooking(selectedOffer, hotelData, [], 0);
 
     // Navigate to guest details page
     const params = new URLSearchParams({

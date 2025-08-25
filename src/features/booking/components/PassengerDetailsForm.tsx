@@ -12,6 +12,7 @@ import { Sparkles, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { autofillService } from "@/lib/autofillService";
+import { useBookingStore } from "@/store/bookingStore";
 import logger from "@/utils/logger";
 
 // Schema for hotel guest details
@@ -56,20 +57,13 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Load existing data from sessionStorage on mount
+  // Load existing data from Zustand store on mount  
   const getInitialData = () => {
-    try {
-      const savedData = sessionStorage.getItem('passengerInfo');
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        return { ...parsed, ...initial }; // initial props take precedence
-      }
-    } catch (error) {
-      logger.error('Error loading saved passenger data:', error);
-    }
+    const { passengerInfo } = useBookingStore.getState();
     return {
       title: "MR",
       acknowledge: false,
+      ...passengerInfo,
       ...initial
     };
   };
@@ -149,7 +143,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   useEffect(() => {
     // Save form data to sessionStorage whenever it changes
     if (isValid && all) {
-      sessionStorage.setItem('passengerInfo', JSON.stringify(all));
+      useBookingStore.getState().setPassengerInfo(all);
     }
     onChange?.(isValid ? all : null, isValid);
   }, [all, isValid, onChange]);
