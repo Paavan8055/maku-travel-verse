@@ -316,11 +316,13 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                         offerId: selectedOffer.id
                       });
                       
-                      // Store detailed offer and add-ons for checkout
-                      sessionStorage.setItem('selectedHotelOffer', JSON.stringify(selectedOffer));
-                      sessionStorage.setItem('selectedHotelData', JSON.stringify(hotelData));
-                      sessionStorage.setItem('selectedAddOns', JSON.stringify(selectedAddOns || []));
-                      sessionStorage.setItem('addOnsTotal', addOnsTotal.toString());
+                      // Store detailed offer and add-ons using Zustand store
+                      useBookingStore.getState().setHotelBooking(
+                        selectedOffer,
+                        hotelData,
+                        selectedAddOns || [],
+                        addOnsTotal
+                      );
                       
                       navigate(`/hotel-checkout?${params.toString()}`);
                     }}

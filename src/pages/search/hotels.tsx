@@ -305,15 +305,30 @@ const HotelSearchPage = () => {
             </div>}
 
           {!loading && !error && viewMode === "map" && (
-            <InteractiveHotelMap 
-              hotels={filteredAndSortedHotels}
-              destination={destination}
-              onHotelSelect={(hotel) => {
-                const newParams = new URLSearchParams(searchParams);
-                newParams.set('hotelName', hotel.name);
-                window.location.href = `/search/hotels?${newParams.toString()}`;
-              }}
-            />
+            <div className="space-y-4">
+              <InteractiveHotelMap 
+                hotels={filteredAndSortedHotels}
+                destination={destination}
+                onHotelSelect={(hotel) => {
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set('hotelName', hotel.name);
+                  window.location.href = `/search/hotels?${newParams.toString()}`;
+                }}
+              />
+              {filteredAndSortedHotels.length === 0 && (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <div className="space-y-4">
+                      <div className="text-6xl">🗺️</div>
+                      <h3 className="text-xl font-semibold">No hotels to display on map</h3>
+                      <p className="text-muted-foreground">
+                        Try adjusting your search criteria to find hotels in this area.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
           </SearchResultsLayout>
         )}
