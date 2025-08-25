@@ -10,3 +10,4 @@ export { SearchStatusDashboard } from './SearchStatusDashboard';
 export { EnhancedHealthDashboard } from './EnhancedHealthDashboard';
 export { AdminLayout, AdminSidebar, AdminHeader } from './AdminLayout';
 export { AdminBreadcrumb } from './AdminBreadcrumb';
+export { UnifiedHealthDashboard } from './UnifiedHealthDashboard';
