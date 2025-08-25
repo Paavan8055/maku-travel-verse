@@ -33,7 +33,7 @@ import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import OneClickBooking from "@/features/bookingEnhancements/components/OneClickBooking";
 import MobileBookingOptimization from "@/components/mobile/MobileBookingOptimization";
 import AccessibilityProvider from "@/components/accessibility/AccessibilityProvider";
-import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
+import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import SmartUpselling from "@/components/conversion/SmartUpselling";
 import ConversionTracker from "@/components/analytics/ConversionTracker";
 import { AmadeusOptimizer } from "@/components/api/AmadeusOptimizer";
@@ -357,10 +357,9 @@ const HotelSearchPage = () => {
             </div>
             
             {/* Performance and Analytics Monitors */}
-            <PerformanceMonitor 
-              isVisible={process.env.NODE_ENV === 'development'} 
-              componentName="HotelSearchPage" 
-            />
+            <PerformanceMonitor>
+              <div></div>
+            </PerformanceMonitor>
             <ConversionTracker 
               sessionId={`search-${Date.now()}`}
               currentStep={hasSearched ? 'results' : 'search'}
