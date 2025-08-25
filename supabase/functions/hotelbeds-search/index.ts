@@ -122,6 +122,14 @@ const searchHotels = async (params: HotelSearchParams) => {
     throw new Error('HotelBeds hotel API credentials not configured');
   }
 
+  // Log credential info for debugging (without exposing actual keys)
+  logger.info('[HOTELBEDS-SEARCH] Using credentials:', {
+    apiKeyLength: apiKey.length,
+    secretLength: secret.length,
+    usingServiceSpecific: !!Deno.env.get('HOTELBEDS_HOTEL_API_KEY'),
+    timestamp: Math.floor(Date.now() / 1000)
+  });
+
   const timestamp = Math.floor(Date.now() / 1000);
   const signature = await generateHotelBedsSignature(apiKey, secret, timestamp);
 
@@ -145,6 +153,9 @@ const searchHotels = async (params: HotelSearchParams) => {
     }
   };
 
+  logger.info('[HOTELBEDS-SEARCH] Making request to:', `${ENV_CONFIG.hotelbeds.baseUrl}/hotel-api/1.0/hotels`);
+  logger.info('[HOTELBEDS-SEARCH] Request body:', requestBody);
+
   const response = await makeResilientRequest(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-api/1.0/hotels`, {
     method: 'POST',
     headers: {
@@ -158,7 +169,24 @@ const searchHotels = async (params: HotelSearchParams) => {
   });
 
   if (!response.ok) {
-    throw new Error(`HotelBeds search failed: ${response.statusText}`);
+    const errorText = await response.text();
+    logger.error('[HOTELBEDS-SEARCH] API Error:', {
+      status: response.status,
+      statusText: response.statusText,
+      errorBody: errorText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
+    // Handle specific error types
+    if (response.status === 403) {
+      throw new Error(`HotelBeds API access denied (403). Please verify your hotel API credentials are correct and have proper permissions.`);
+    } else if (response.status === 401) {
+      throw new Error(`HotelBeds API authentication failed (401). Please check your API key and signature.`);
+    } else if (response.status === 429) {
+      throw new Error(`HotelBeds API rate limit exceeded (429). Please try again later.`);
+    } else {
+      throw new Error(`HotelBeds search failed (${response.status}): ${response.statusText} - ${errorText}`);
+    }
   }
 
   return await response.json();
@@ -449,13 +477,37 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error('HotelBeds search error:', error);
+    logger.error('[HOTELBEDS-SEARCH] Search error:', error);
+    
+    // Determine appropriate HTTP status based on error type
+    let status = 500;
+    let errorMessage = error.message;
+    
+    if (error.message.includes('403') || error.message.includes('access denied')) {
+      status = 403;
+      errorMessage = 'HotelBeds API credentials are invalid or insufficient. Please check your hotel API key and secret.';
+    } else if (error.message.includes('401') || error.message.includes('authentication')) {
+      status = 401;
+      errorMessage = 'HotelBeds API authentication failed. Please verify your credentials.';
+    } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+      status = 429;
+      errorMessage = 'HotelBeds API rate limit exceeded. Please try again later.';
+    } else if (error.message.includes('not configured')) {
+      status = 503;
+      errorMessage = 'HotelBeds hotel API credentials not configured. Please contact administrator.';
+    }
+
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
-      source: 'hotelbeds'
+      error: errorMessage,
+      source: 'hotelbeds',
+      details: {
+        originalError: error.message,
+        credentialsConfigured: !!(Deno.env.get('HOTELBEDS_HOTEL_API_KEY') || Deno.env.get('HOTELBEDS_API_KEY')),
+        usingServiceSpecific: !!Deno.env.get('HOTELBEDS_HOTEL_API_KEY')
+      }
     }), {
-      status: 500,
+      status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

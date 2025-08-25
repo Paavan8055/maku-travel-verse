@@ -298,3 +298,6 @@ verify_jwt = false
 
 [functions.test-provider-rotation]
 verify_jwt = false
+
+[functions.hotelbeds-credential-test]
+verify_jwt = false
