@@ -26,51 +26,83 @@ export const useApiHealth = () => {
     try {
       setLoading(true);
       
-      // Test activities API with minimal request
+      // Test provider rotation system with minimal requests
+      // This tests the actual production flow including quota management and fallbacks
+      
+      // Test activities via provider rotation
       let activitiesAvailable = true;
       try {
-        const { data: activitiesTest, error: activitiesError } = await supabase.functions.invoke('amadeus-activity-search', {
+        const { data: activitiesTest, error: activitiesError } = await supabase.functions.invoke('provider-rotation', {
           body: {
-            destination: 'sydney',
-            date: new Date().toISOString().split('T')[0],
-            participants: 2
+            searchType: 'activity',
+            params: {
+              destination: 'sydney',
+              date: new Date().toISOString().split('T')[0],
+              participants: 1,
+              radius: 10
+            }
           }
         });
         
-        // If we get an auth error or service unavailable, mark as unavailable
-        if (activitiesError || !activitiesTest) {
+        if (activitiesError || !activitiesTest || !activitiesTest.success) {
           activitiesAvailable = false;
-          logger.warn('Activities API unavailable:', activitiesError);
+          logger.warn('Activities rotation unavailable:', activitiesError || activitiesTest?.error);
         }
       } catch (error) {
         activitiesAvailable = false;
-        logger.error('Activities API health check failed:', error);
+        logger.error('Activities rotation health check failed:', error);
       }
 
-      // Test hotels API (simpler check)
+      // Test hotels via provider rotation
       let hotelsAvailable = true;
       try {
-        const { data: hotelsTest, error: hotelsError } = await supabase.functions.invoke('amadeus-hotel-search', {
+        const { data: hotelsTest, error: hotelsError } = await supabase.functions.invoke('provider-rotation', {
           body: {
-            destination: 'sydney',
-            checkIn: new Date().toISOString().split('T')[0],
-            checkOut: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
-            adults: 1
+            searchType: 'hotel',
+            params: {
+              cityCode: 'SYD',
+              checkInDate: new Date().toISOString().split('T')[0],
+              checkOutDate: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
+              adults: 1,
+              roomQuantity: 1
+            }
           }
         });
         
-        if (hotelsError) {
+        if (hotelsError || !hotelsTest || !hotelsTest.success) {
           hotelsAvailable = false;
-          logger.warn('Hotels API might be unavailable:', hotelsError);
+          logger.warn('Hotels rotation unavailable:', hotelsError || hotelsTest?.error);
         }
       } catch (error) {
         hotelsAvailable = false;
-        logger.error('Hotels API health check failed:', error);
+        logger.error('Hotels rotation health check failed:', error);
       }
 
-      // For flights, assume available if we have the edge function
-      // (we can expand this check later)
-      const flightsAvailable = true;
+      // Test flights via provider rotation
+      let flightsAvailable = true;
+      try {
+        const { data: flightsTest, error: flightsError } = await supabase.functions.invoke('provider-rotation', {
+          body: {
+            searchType: 'flight',
+            params: {
+              originLocationCode: 'SYD',
+              destinationLocationCode: 'MEL',
+              departureDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+              adults: 1
+            }
+          }
+        });
+        
+        if (flightsError || !flightsTest || !flightsTest.success) {
+          flightsAvailable = false;
+          logger.warn('Flights rotation unavailable:', flightsError || flightsTest?.error);
+        }
+      } catch (error) {
+        flightsAvailable = false;
+        logger.error('Flights rotation health check failed:', error);
+      }
+
+      // Test transfers (basic availability check)
       const transfersAvailable = true;
 
       setApiHealth({

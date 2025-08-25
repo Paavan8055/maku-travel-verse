@@ -83,10 +83,11 @@ export const FlightResultsHarmonized: React.FC<FlightResultsHarmonizedProps> = (
     try {
       logger.info('Searching flights with harmonized results', searchParams);
 
-      // Search both Amadeus and Sabre simultaneously
-      const [amadeusResult, sabreResult] = await Promise.allSettled([
-        supabase.functions.invoke('amadeus-flight-search', {
-          body: {
+      // Use provider rotation system for better reliability and quota management
+      const { data, error } = await supabase.functions.invoke('provider-rotation', {
+        body: {
+          searchType: 'flight',
+          params: {
             originLocationCode: searchParams.origin,
             destinationLocationCode: searchParams.destination,
             departureDate: searchParams.departureDate,
@@ -96,85 +97,22 @@ export const FlightResultsHarmonized: React.FC<FlightResultsHarmonizedProps> = (
             infants: searchParams.infants || 0,
             travelClass: searchParams.travelClass || 'ECONOMY'
           }
-        }),
-        supabase.functions.invoke('sabre-flight-search', {
-          body: {
-            origin: searchParams.origin,
-            destination: searchParams.destination,
-            departureDate: searchParams.departureDate,
-            returnDate: searchParams.returnDate,
-            passengerCount: searchParams.adults + (searchParams.children || 0),
-            cabinClass: searchParams.travelClass || 'Economy'
-          }
-        })
-      ]);
+        }
+      });
 
-      const harmonizedResults: FlightOffer[] = [];
+      if (error) throw error;
 
-      // Process Amadeus results
-      if (amadeusResult.status === 'fulfilled' && amadeusResult.value.data?.success) {
-        const amadeusOffers = amadeusResult.value.data.flightOffers || [];
-        
-        harmonizedResults.push(...amadeusOffers.map((offer: any) => ({
+      if (data?.success && data.data?.flights) {
+        const flights = data.data.flights.map((offer: any) => ({
           ...offer,
-          supplier: 'amadeus' as const,
-          id: `amadeus_${offer.id}`
-        })));
-        
-        logger.info(`Added ${amadeusOffers.length} Amadeus flight offers`);
-      } else {
-        logger.warn('Amadeus flight search failed:', amadeusResult.status === 'rejected' ? amadeusResult.reason : amadeusResult.value);
-      }
-
-      // Process Sabre results  
-      if (sabreResult.status === 'fulfilled' && sabreResult.value.data?.success) {
-        const sabreOffers = sabreResult.value.data.flightOffers || [];
-        
-        // Harmonize Sabre format to match Amadeus structure
-        const harmonizedSabreOffers = sabreOffers.map((offer: any, index: number) => ({
-          id: `sabre_${offer.id || offer.flightNumber || `flight-${index}`}`,
-          supplier: 'sabre' as const,
-          price: {
-            total: offer.price?.total || offer.totalFare || '0',
-            currency: offer.price?.currency || offer.currency || 'USD',
-            base: offer.price?.base || offer.baseFare,
-            taxes: offer.price?.taxes || offer.taxes
-          },
-          itineraries: offer.itineraries || offer.segments ? [{
-            duration: offer.duration || offer.totalTravelTime || 'PT0H0M',
-            segments: Array.isArray(offer.segments) ? offer.segments.map((segment: any) => ({
-              departure: {
-                iataCode: segment.departure?.iataCode || segment.origin,
-                terminal: segment.departure?.terminal,
-                at: segment.departure?.at || segment.departureTime
-              },
-              arrival: {
-                iataCode: segment.arrival?.iataCode || segment.destination,
-                terminal: segment.arrival?.terminal,
-                at: segment.arrival?.at || segment.arrivalTime
-              },
-              carrierCode: segment.carrierCode || segment.airline,
-              number: segment.number || segment.flightNumber,
-              aircraft: segment.aircraft,
-              duration: segment.duration || 'PT0H0M'
-            })) : []
-          }] : [],
-          numberOfBookableSeats: offer.numberOfBookableSeats || offer.availableSeats,
-          fareDetailsBySegment: offer.fareDetailsBySegment,
-          validatingAirlineCodes: offer.validatingAirlineCodes || (offer.airline ? [offer.airline] : [])
+          supplier: data.provider || 'rotation',
+          id: `rotation_${offer.id || Math.random().toString(36).substr(2, 9)}`
         }));
         
-        harmonizedResults.push(...harmonizedSabreOffers);
-        logger.info(`Added ${harmonizedSabreOffers.length} Sabre flight offers`);
+        setResults(flights);
+        logger.info(`Provider rotation returned ${flights.length} flight offers from ${data.provider}`);
       } else {
-        logger.warn('Sabre flight search failed:', sabreResult.status === 'rejected' ? sabreResult.reason : sabreResult.value);
-      }
-
-      if (harmonizedResults.length === 0) {
-        setError('No flights found from any supplier. Please try different search criteria.');
-      } else {
-        setResults(harmonizedResults);
-        logger.info(`Total harmonized results: ${harmonizedResults.length}`);
+        setError(data?.error || 'No flights found. Please try different search criteria.');
       }
 
     } catch (error) {

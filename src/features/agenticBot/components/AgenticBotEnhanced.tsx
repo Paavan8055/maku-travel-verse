@@ -111,11 +111,14 @@ export const AgenticBotEnhanced: React.FC<AgenticBotEnhancedProps> = ({
     if (userMessage.toLowerCase().includes('activity') || userMessage.toLowerCase().includes('things to do')) {
       try {
         if (searchContext?.destination) {
-          const { data: activityData } = await supabase.functions.invoke('amadeus-activity-search', {
+          const { data: activityData } = await supabase.functions.invoke('provider-rotation', {
             body: {
-              latitude: searchContext.location?.lat || 0,
-              longitude: searchContext.location?.lng || 0,
-              radius: 50
+              searchType: 'activity',
+              params: {
+                latitude: searchContext.location?.lat || 0,
+                longitude: searchContext.location?.lng || 0,
+                radius: 50
+              }
             }
           });
           

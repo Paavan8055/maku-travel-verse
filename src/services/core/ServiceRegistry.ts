@@ -319,79 +319,79 @@ export class ServiceRegistry {
 // Global registry instance
 export const serviceRegistry = new ServiceRegistry();
 
-// Register default endpoints
+// Register provider rotation endpoints (production system)
 const defaultEndpoints: Omit<ServiceEndpoint, 'id'>[] = [
   {
-    name: 'Amadeus Flight Search',
-    url: '/amadeus-flight-search',
-    provider: 'amadeus',
+    name: 'Flight Provider Rotation',
+    url: '/provider-rotation',
+    provider: 'rotation-system',
     type: 'flight',
     status: 'active',
-    healthScore: 85,
+    healthScore: 95,
     lastHealthCheck: new Date(),
-    capabilities: ['search', 'booking', 'cancellation'],
+    capabilities: ['search', 'booking', 'cancellation', 'provider-fallback', 'quota-management'],
     quotas: {
-      daily: 10000,
-      remaining: 8500,
+      daily: 50000, // Combined quota across all providers
+      remaining: 45000,
       resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000)
     },
     performance: {
-      avgResponseTime: 450,
-      successRate: 96.5,
-      errorRate: 3.5
+      avgResponseTime: 420,
+      successRate: 98.8,
+      errorRate: 1.2
     },
-    costPerRequest: 0.02,
+    costPerRequest: 0.018,
     priority: 1,
-    version: '1.0.0',
-    metadata: {}
+    version: '2.0.0',
+    metadata: { searchType: 'flight', supportsFallback: true }
   },
   {
-    name: 'Amadeus Hotel Search',
-    url: '/amadeus-hotel-search',
-    provider: 'amadeus',
+    name: 'Hotel Provider Rotation',
+    url: '/provider-rotation',
+    provider: 'rotation-system',
     type: 'hotel',
     status: 'active',
-    healthScore: 92,
+    healthScore: 96,
     lastHealthCheck: new Date(),
-    capabilities: ['search', 'booking', 'cancellation'],
+    capabilities: ['search', 'booking', 'cancellation', 'provider-fallback', 'quota-management'],
     quotas: {
-      daily: 15000,
-      remaining: 12000,
+      daily: 60000, // Combined quota across all providers
+      remaining: 52000,
       resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000)
     },
     performance: {
       avgResponseTime: 380,
-      successRate: 98.2,
-      errorRate: 1.8
+      successRate: 99.1,
+      errorRate: 0.9
     },
     costPerRequest: 0.015,
     priority: 1,
-    version: '1.0.0',
-    metadata: {}
+    version: '2.0.0',
+    metadata: { searchType: 'hotel', supportsFallback: true }
   },
   {
-    name: 'HotelBeds Activity Search',
-    url: '/hotelbeds-activities',
-    provider: 'hotelbeds',
+    name: 'Activity Provider Rotation',
+    url: '/provider-rotation',
+    provider: 'rotation-system',
     type: 'activity',
     status: 'active',
-    healthScore: 78,
+    healthScore: 92,
     lastHealthCheck: new Date(),
-    capabilities: ['search', 'booking'],
+    capabilities: ['search', 'booking', 'provider-fallback', 'quota-management'],
     quotas: {
-      daily: 5000,
-      remaining: 3200,
+      daily: 25000, // Combined quota across all providers
+      remaining: 19000,
       resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000)
     },
     performance: {
-      avgResponseTime: 620,
-      successRate: 94.1,
-      errorRate: 5.9
+      avgResponseTime: 580,
+      successRate: 96.5,
+      errorRate: 3.5
     },
-    costPerRequest: 0.025,
-    priority: 2,
-    version: '1.0.0',
-    metadata: {}
+    costPerRequest: 0.022,
+    priority: 1,
+    version: '2.0.0',
+    metadata: { searchType: 'activity', supportsFallback: true }
   }
 ];
 

@@ -4,7 +4,7 @@ import {
   Search, 
   MapPin, 
   Clock, 
-  Trending, 
+  TrendingUp, 
   Star, 
   Filter,
   SortAsc,
@@ -81,7 +81,7 @@ export const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
           id: `trending-${index}`,
           text: search,
           type: 'trending' as const,
-          icon: <Trending className="h-4 w-4" />
+          icon: <TrendingUp className="h-4 w-4" />
         }))
       ];
     }
@@ -147,7 +147,7 @@ export const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
       case 'hotel': return <Star className="h-4 w-4" />;
       case 'activity': return <Star className="h-4 w-4" />;
       case 'recent': return <Clock className="h-4 w-4" />;
-      case 'trending': return <Trending className="h-4 w-4" />;
+      case 'trending': return <TrendingUp className="h-4 w-4" />;
       default: return <Search className="h-4 w-4" />;
     }
   };

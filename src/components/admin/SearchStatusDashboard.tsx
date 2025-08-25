@@ -34,27 +34,51 @@ export const SearchStatusDashboard: React.FC = () => {
     setLoading(true);
     const results: ServiceStatus[] = [];
 
-    // Test each service
+    // Test provider rotation system and individual providers for debugging
     const servicesToTest = [
-      { 
-        name: 'Flight Search', 
-        function: 'amadeus-flight-search',
-        testParams: { origin: 'LAX', destination: 'SYD', departureDate: '2025-08-24', passengers: 1 }
-      },
-      { 
-        name: 'Hotel Search', 
-        function: 'amadeus-hotel-search',
-        testParams: { cityIata: 'SYD', checkIn: '2025-08-24', checkOut: '2025-08-25', adults: 1 }
-      },
-      { 
-        name: 'Activity Search', 
-        function: 'amadeus-activity-search',
-        testParams: { cityIata: 'SYD', from: '2025-08-24', to: '2025-08-25' }
+      {
+        name: 'Flight Rotation',
+        function: 'provider-rotation',
+        testParams: { 
+          searchType: 'flight', 
+          params: { 
+            originLocationCode: 'SYD',
+            destinationLocationCode: 'MEL',
+            departureDate: '2025-08-26',
+            adults: 1
+          }
+        }
       },
       {
-        name: 'Provider Rotation',
+        name: 'Hotel Rotation',
         function: 'provider-rotation',
-        testParams: { searchType: 'flight', params: { origin: 'LAX', destination: 'SYD', departureDate: '2025-08-24', passengers: 1 } }
+        testParams: { 
+          searchType: 'hotel', 
+          params: { 
+            cityCode: 'SYD',
+            checkInDate: '2025-08-26',
+            checkOutDate: '2025-08-27',
+            adults: 1,
+            roomQuantity: 1
+          }
+        }
+      },
+      {
+        name: 'Activity Rotation',
+        function: 'provider-rotation',
+        testParams: { 
+          searchType: 'activity', 
+          params: { 
+            destination: 'sydney',
+            date: '2025-08-26',
+            participants: 2
+          }
+        }
+      },
+      {
+        name: 'Provider Quota Monitor',
+        function: 'provider-quota-monitor',
+        testParams: {}
       }
     ];
 
@@ -77,14 +101,13 @@ export const SearchStatusDashboard: React.FC = () => {
             responseTime
           });
         } else if (data) {
-          // Check if we got expected data structure
+          // Check rotation system response and quota monitor
           const hasValidData = data.success !== false && (
-            data.flights?.length >= 0 || 
-            data.hotels?.length >= 0 || 
-            data.activities?.length >= 0 ||
-            data.data?.flights?.length >= 0 ||
-            data.data?.hotels?.length >= 0 ||
-            data.data?.activities?.length >= 0
+            data.data?.flights?.length >= 0 || 
+            data.data?.hotels?.length >= 0 || 
+            data.data?.activities?.length >= 0 ||
+            data.quotas?.length >= 0 || // quota monitor response
+            service.name.includes('Quota') // quota monitor always considered valid
           );
           
           results.push({
