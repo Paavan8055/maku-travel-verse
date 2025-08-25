@@ -81,10 +81,19 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!criteria || !criteria.origin || !criteria.destination || !criteria.departureDate) {
-      console.log("useFlightSearch: Missing criteria", criteria);
+    if (!criteria || !criteria.origin || !criteria.destination || !criteria.departureDate || criteria.departureDate === "") {
+      console.log("useFlightSearch: Missing or invalid criteria", criteria);
       setFlights([]);
       setError(null);
+      setLoading(false);
+      return;
+    }
+
+    // Validate date format (should be ISO 8601 YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(criteria.departureDate)) {
+      console.error("useFlightSearch: Invalid date format", criteria.departureDate);
+      setError("Invalid departure date format. Please select a valid date.");
       setLoading(false);
       return;
     }
@@ -105,12 +114,16 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           body: {
             searchType: 'flight',
             params: {
-              origin: criteria.origin,
-              destination: criteria.destination,
-              departureDate: criteria.departureDate,
-              returnDate: criteria.returnDate,
-              passengers: criteria.passengers,
+              origin: criteria.origin.toUpperCase(),
+              destination: criteria.destination.toUpperCase(),
+              departure_date: criteria.departureDate, // Use snake_case for API consistency
+              return_date: criteria.returnDate,
+              passengers: criteria.passengers || 1,
+              adults: criteria.passengers || 1,
+              children: 0,
+              infants: 0,
               travelClass: 'ECONOMY',
+              cabin: 'ECONOMY',
               nonStop: false,
               currency: currencyCode
             }

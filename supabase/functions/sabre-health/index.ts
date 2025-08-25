@@ -11,8 +11,9 @@ serve(async (req) => {
   }
 
   try {
-    const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
-    const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
+    const clientId = Deno.env.get('SABRE_CLIENT_ID');
+    const clientSecret = Deno.env.get('SABRE_CLIENT_SECRET');
+    const baseUrl = Deno.env.get('SABRE_BASE_URL') || 'https://api-crt.cert.havail.sabre.com';
     
     // Test authentication
     const authStartTime = Date.now();
@@ -21,21 +22,20 @@ serve(async (req) => {
     if (!clientId || !clientSecret) {
       authResult = {
         success: false,
-        message: 'Amadeus credentials not configured',
+        message: 'Sabre credentials not configured',
         responseTime: 0
       };
     } else {
       try {
-        const tokenResponse = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+        const credentials = btoa(`${clientId}:${clientSecret}`);
+        
+        const tokenResponse = await fetch(`${baseUrl}/v2/auth/token`, {
           method: 'POST',
           headers: {
+            'Authorization': `Basic ${credentials}`,
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: new URLSearchParams({
-            grant_type: 'client_credentials',
-            client_id: clientId,
-            client_secret: clientSecret,
-          }),
+          body: 'grant_type=client_credentials',
         });
 
         const authResponseTime = Date.now() - authStartTime;
@@ -64,22 +64,20 @@ serve(async (req) => {
       }
     }
 
-    // Test API endpoints availability (lightweight check)
+    // Test API endpoints availability
     const flightSearch = {
-      success: authResult.success,
-      message: authResult.success ? 'Flight search API available' : 'Cannot test without valid authentication',
-      responseTime: undefined
+      available: authResult.success,
+      message: authResult.success ? 'Flight search API available' : 'Cannot test without valid authentication'
     };
 
     const hotelSearch = {
-      success: authResult.success,
-      message: authResult.success ? 'Hotel search API available' : 'Cannot test without valid authentication',
-      responseTime: undefined
+      available: authResult.success,
+      message: authResult.success ? 'Hotel search API available' : 'Cannot test without valid authentication'
     };
 
     const result = {
       success: authResult.success,
-      provider: 'amadeus',
+      provider: 'sabre',
       auth: authResult,
       flightSearch,
       hotelSearch,
@@ -95,11 +93,11 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Amadeus health check error:', error);
+    console.error('Sabre health check error:', error);
     
     return new Response(JSON.stringify({
       success: false,
-      provider: 'amadeus',
+      provider: 'sabre',
       error: error.message,
       timestamp: new Date().toISOString()
     }), {
