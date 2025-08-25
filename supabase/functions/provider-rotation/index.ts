@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import logger from "../_shared/logger.ts";
+import { 
+  validateProviderCredentials, 
+  validateHotelBedsCredentials,
+  getAvailableHotelBedsServices 
+} from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -251,7 +256,9 @@ async function getAvailableProviders(
       .order('priority');
     
     if (dbProviders && dbProviders.length > 0) {
-      return dbProviders.map((p: any) => ({
+      // Filter providers based on credential availability
+      const validProviders = dbProviders.filter((p: any) => isProviderCredentialsValid(p.id));
+      return validProviders.map((p: any) => ({
         ...p,
         circuitBreaker: p.circuit_breaker || {
           failureCount: 0,
@@ -265,11 +272,39 @@ async function getAvailableProviders(
     logger.warn('[PROVIDER-ROTATION] Failed to load providers from DB, using defaults', { error: error.message });
   }
   
-  // Fallback to default providers
+  // Fallback to default providers with credential filtering
   return DEFAULT_PROVIDERS
     .filter(p => p.type === searchType && p.enabled && !excludedProviders.includes(p.id))
     .filter(p => isCircuitBreakerClosed(p))
+    .filter(p => isProviderCredentialsValid(p.id))
     .sort((a, b) => a.priority - b.priority);
+}
+
+// Check if a provider has valid credentials
+function isProviderCredentialsValid(providerId: string): boolean {
+  switch (providerId) {
+    case 'amadeus-flight':
+    case 'amadeus-hotel':
+    case 'amadeus-activity':
+      return validateProviderCredentials('amadeus');
+    
+    case 'sabre-flight':
+    case 'sabre-hotel':
+      return validateProviderCredentials('sabre');
+    
+    case 'hotelbeds-hotel':
+      return validateHotelBedsCredentials('hotel');
+    
+    case 'hotelbeds-activity':
+      return validateHotelBedsCredentials('activity');
+    
+    case 'hotelbeds-transfer':
+      return validateHotelBedsCredentials('transfer');
+    
+    default:
+      logger.warn(`[PROVIDER-ROTATION] Unknown provider ID: ${providerId}`);
+      return false;
+  }
 }
 
 function isCircuitBreakerClosed(provider: ProviderConfig): boolean {

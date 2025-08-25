@@ -59,7 +59,7 @@ export const ENV_CONFIG = getEnvironmentConfig();
 // Helper to check if we're in production mode
 export const isProductionMode = () => ENV_CONFIG.isProduction;
 
-// Credential validation helper
+// Credential validation helper - supports service-specific credentials
 export function validateProviderCredentials(provider: 'amadeus' | 'sabre' | 'hotelbeds'): boolean {
   switch (provider) {
     case 'amadeus':
@@ -67,10 +67,47 @@ export function validateProviderCredentials(provider: 'amadeus' | 'sabre' | 'hot
     case 'sabre':
       return !!(Deno.env.get('SABRE_CLIENT_ID') && Deno.env.get('SABRE_CLIENT_SECRET'));
     case 'hotelbeds':
+      // Fallback to generic credentials if service-specific ones aren't available
       return !!(Deno.env.get('HOTELBEDS_API_KEY') && Deno.env.get('HOTELBEDS_SECRET'));
     default:
       return false;
   }
+}
+
+// Service-specific credential validation for HotelBeds APIs
+export function validateHotelBedsCredentials(service: 'hotel' | 'activity' | 'transfer'): boolean {
+  const serviceCredentials = getHotelBedsCredentials(service);
+  return !!(serviceCredentials.apiKey && serviceCredentials.secret);
+}
+
+// Get service-specific HotelBeds credentials with fallback to generic ones
+export function getHotelBedsCredentials(service: 'hotel' | 'activity' | 'transfer'): { apiKey: string | undefined; secret: string | undefined } {
+  const serviceMap = {
+    hotel: { 
+      apiKey: 'HOTELBEDS_HOTEL_API_KEY', 
+      secret: 'HOTELBEDS_HOTEL_SECRET' 
+    },
+    activity: { 
+      apiKey: 'HOTELBEDS_ACTIVITY_API_KEY', 
+      secret: 'HOTELBEDS_ACTIVITY_SECRET' 
+    },
+    transfer: { 
+      apiKey: 'HOTELBEDS_TRANSFER_API_KEY', 
+      secret: 'HOTELBEDS_TRANSFER_SECRET' 
+    }
+  };
+
+  const serviceKeys = serviceMap[service];
+  let apiKey = Deno.env.get(serviceKeys.apiKey);
+  let secret = Deno.env.get(serviceKeys.secret);
+
+  // Fallback to generic credentials if service-specific ones aren't available
+  if (!apiKey || !secret) {
+    apiKey = Deno.env.get('HOTELBEDS_API_KEY');
+    secret = Deno.env.get('HOTELBEDS_SECRET');
+  }
+
+  return { apiKey, secret };
 }
 
 // Rate limiting configuration
@@ -95,13 +132,23 @@ export function getMTLSConfig(): { enabled: boolean; certPath?: string; keyPath?
   };
 }
 
-// Production readiness checks
+// Production readiness checks with service-specific validation
 export function validateProductionReadiness(): { ready: boolean; issues: string[] } {
   const issues: string[] = [];
   
   if (ENV_CONFIG.isProduction) {
+    // Check generic HotelBeds credentials
     if (!validateProviderCredentials('hotelbeds')) {
       issues.push('HotelBeds production credentials not configured');
+    }
+    
+    // Check service-specific HotelBeds credentials
+    if (!validateHotelBedsCredentials('hotel')) {
+      issues.push('HotelBeds hotel API credentials not configured');
+    }
+    
+    if (!validateHotelBedsCredentials('activity')) {
+      issues.push('HotelBeds activity API credentials not configured');
     }
     
     const mtlsConfig = getMTLSConfig();
@@ -118,4 +165,23 @@ export function validateProductionReadiness(): { ready: boolean; issues: string[
     ready: issues.length === 0,
     issues
   };
+}
+
+// Get all available HotelBeds services based on credentials
+export function getAvailableHotelBedsServices(): string[] {
+  const services: string[] = [];
+  
+  if (validateHotelBedsCredentials('hotel')) {
+    services.push('hotel');
+  }
+  
+  if (validateHotelBedsCredentials('activity')) {
+    services.push('activity');
+  }
+  
+  if (validateHotelBedsCredentials('transfer')) {
+    services.push('transfer');
+  }
+  
+  return services;
 }

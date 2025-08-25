@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import logger from "../_shared/simpleLogger.ts";
-import { ENV_CONFIG } from "../_shared/config.ts";
+import { ENV_CONFIG, getHotelBedsCredentials } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,17 +40,17 @@ async function generateSignature(apiKey: string, secret: string, timestamp: numb
 }
 
 async function searchHotelbedsActivities(params: ActivitySearchParams): Promise<any> {
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
-  const secret = Deno.env.get('HOTELBEDS_SECRET');
+  const { apiKey, secret } = getHotelBedsCredentials('activity');
   
   logger.info('HotelBeds activities credentials check:', {
     apiKeyExists: !!apiKey,
-    secretExists: !!secret
+    secretExists: !!secret,
+    usingServiceSpecific: !!Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY')
   });
   
   if (!apiKey || !secret) {
     logger.error('HotelBeds activities credentials missing');
-    throw new Error('HotelBeds credentials not configured');
+    throw new Error('HotelBeds activity API credentials not configured');
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
