@@ -61,8 +61,8 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     responseTime: 0
   },
   {
-    id: 'sabre-hotel',
-    name: 'Sabre',
+    id: 'hotelbeds-hotel',
+    name: 'HotelBeds',
     type: 'hotel',
     enabled: true,
     priority: 1,
@@ -76,8 +76,8 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     responseTime: 0
   },
   {
-    id: 'hotelbeds-hotel',
-    name: 'HotelBeds',
+    id: 'sabre-hotel',
+    name: 'Sabre',
     type: 'hotel',
     enabled: true,
     priority: 2,

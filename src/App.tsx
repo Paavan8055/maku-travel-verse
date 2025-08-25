@@ -41,6 +41,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminAuth from "./pages/AdminAuth";
 import DeploymentTestPage from "./pages/admin/deployment-test";
 import DebugPage from "./pages/debug";
+import HotelSelectionPage from "./pages/booking/hotel-selection";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -95,7 +96,8 @@ const App = () => (
                               <DeploymentTestPage />
                             </AdminGuard>
                           } />
-                          <Route path="/debug" element={<DebugPage />} />
+          <Route path="/debug" element={<DebugPage />} />
+          <Route path="/booking/hotel-selection" element={<HotelSelectionPage />} />
                         </Routes>
                       </BrowserRouter>
                       </TooltipProvider>

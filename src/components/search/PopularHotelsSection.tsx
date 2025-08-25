@@ -58,7 +58,7 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
                   checkOut: dayAfter.toISOString().split('T')[0],
                   guests: 2,
                   rooms: 1,
-                  currency: 'USD'
+                  currency: 'AUD'
                 }
               }
             });
@@ -68,20 +68,41 @@ export function PopularHotelsSection({ onHotelSelect }: PopularHotelsSectionProp
               continue;
             }
 
-            if (data?.success && data?.hotels) {
-              // Take top 3 hotels from each destination
-              const destinationHotels = data.hotels.slice(0, 3).map((hotel: any) => ({
-                id: hotel.id,
-                name: hotel.name,
-                location: destination,
-                rating: hotel.rating || 4.0,
-                reviews: Math.floor(Math.random() * 2000) + 500,
-                price: Math.round(hotel.pricePerNight || hotel.totalPrice || 200).toString(),
-                originalPrice: hotel.pricePerNight ? Math.round(hotel.pricePerNight * 1.2).toString() : undefined,
-                image: hotel.images?.[0] || '/assets/hotel-business.jpg',
-                amenities: hotel.amenities?.slice(0, 4) || ['WiFi', 'Pool', 'Spa', 'Restaurant'],
-                discount: Math.random() > 0.6 ? 'Best Rate' : undefined
-              }));
+            if (data?.success && data?.data && Array.isArray(data.data)) {
+              // Take top 3 hotels from each destination with enhanced image handling
+              const destinationHotels = await Promise.all(
+                data.data.slice(0, 3).map(async (hotel: any) => {
+                  let imageUrl = hotel.images?.[0] || '/assets/hotel-business.jpg';
+                  
+                  // For Amadeus hotels without images, try to fetch photos
+                  if (!hotel.images?.length && hotel.source === 'amadeus') {
+                    try {
+                      const { data: photosData } = await supabase.functions.invoke('amadeus-hotel-photos', {
+                        body: { hotelId: hotel.id }
+                      });
+                      if (photosData?.success && photosData.photos?.length > 0) {
+                        imageUrl = photosData.photos[0].url;
+                      }
+                    } catch (photoError) {
+                      logger.warn(`Failed to fetch photos for hotel ${hotel.id}:`, photoError);
+                    }
+                  }
+                  
+                  return {
+                    id: hotel.id,
+                    name: hotel.name,
+                    location: destination,
+                    rating: hotel.rating || hotel.starRating || 4.0,
+                    reviews: hotel.reviewCount || Math.floor(Math.random() * 2000) + 500,
+                    price: Math.round(hotel.pricePerNight || hotel.totalPrice || 200).toString(),
+                    originalPrice: hotel.pricePerNight ? Math.round(hotel.pricePerNight * 1.2).toString() : undefined,
+                    image: imageUrl,
+                    amenities: hotel.amenities?.slice(0, 4) || ['WiFi', 'Pool', 'Spa', 'Restaurant'],
+                    discount: Math.random() > 0.6 ? 'Best Rate' : undefined,
+                    provider: data.provider || 'Unknown'
+                  };
+                })
+              );
 
               allHotels.push(...destinationHotels);
             }
