@@ -3155,6 +3155,7 @@ export type Database = {
       provider_configs: {
         Row: {
           circuit_breaker: Json
+          circuit_breaker_state: string | null
           created_at: string
           enabled: boolean
           health_score: number
@@ -3167,6 +3168,7 @@ export type Database = {
         }
         Insert: {
           circuit_breaker?: Json
+          circuit_breaker_state?: string | null
           created_at?: string
           enabled?: boolean
           health_score?: number
@@ -3179,6 +3181,7 @@ export type Database = {
         }
         Update: {
           circuit_breaker?: Json
+          circuit_breaker_state?: string | null
           created_at?: string
           enabled?: boolean
           health_score?: number
@@ -3188,6 +3191,48 @@ export type Database = {
           response_time?: number
           type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_health: {
+        Row: {
+          circuit_breaker_opened_at: string | null
+          created_at: string
+          error_message: string | null
+          failure_count: number | null
+          id: string
+          last_checked: string
+          last_reset_at: string | null
+          metadata: Json | null
+          provider: string
+          response_time_ms: number | null
+          status: string
+        }
+        Insert: {
+          circuit_breaker_opened_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          failure_count?: number | null
+          id?: string
+          last_checked?: string
+          last_reset_at?: string | null
+          metadata?: Json | null
+          provider: string
+          response_time_ms?: number | null
+          status: string
+        }
+        Update: {
+          circuit_breaker_opened_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          failure_count?: number | null
+          id?: string
+          last_checked?: string
+          last_reset_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          response_time_ms?: number | null
+          status?: string
         }
         Relationships: []
       }
@@ -3442,6 +3487,48 @@ export type Database = {
           total_value?: number | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      system_health_snapshots: {
+        Row: {
+          circuit_breakers_open: string[] | null
+          created_at: string
+          critical_quota_providers: string[] | null
+          degraded_providers: number
+          healthy_providers: number
+          id: string
+          outage_providers: number
+          overall_status: string
+          recommendations: string[] | null
+          timestamp: string
+          total_providers: number
+        }
+        Insert: {
+          circuit_breakers_open?: string[] | null
+          created_at?: string
+          critical_quota_providers?: string[] | null
+          degraded_providers?: number
+          healthy_providers?: number
+          id?: string
+          outage_providers?: number
+          overall_status: string
+          recommendations?: string[] | null
+          timestamp?: string
+          total_providers?: number
+        }
+        Update: {
+          circuit_breakers_open?: string[] | null
+          created_at?: string
+          critical_quota_providers?: string[] | null
+          degraded_providers?: number
+          healthy_providers?: number
+          id?: string
+          outage_providers?: number
+          overall_status?: string
+          recommendations?: string[] | null
+          timestamp?: string
+          total_providers?: number
         }
         Relationships: []
       }
@@ -4005,6 +4092,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_guest_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_health_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
