@@ -48,7 +48,7 @@ const AdminDashboard = createLazyRoute(() => import("./pages/AdminDashboard"));
 const AdminAuth = createLazyRoute(() => import("./pages/AdminAuth"));
 const DeploymentTestPage = createLazyRoute(() => import("./pages/admin/deployment-test"));
 const DebugPage = createLazyRoute(() => import("./pages/debug"));
-const HotelSelectionPage = createLazyRoute(() => import("./pages/booking/hotel-selection"));
+const HotelSelectionPage = createLazyRoute(() => import("./pages/booking/hotel-selection").then(m => ({ default: m.default })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
