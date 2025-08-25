@@ -8,3 +8,5 @@ export { ProductionMonitoringDashboard } from './ProductionMonitoringDashboard';
 export { EnhancedProductionDashboard } from './EnhancedProductionDashboard';
 export { SearchStatusDashboard } from './SearchStatusDashboard';
 export { EnhancedHealthDashboard } from './EnhancedHealthDashboard';
+export { AdminLayout, AdminSidebar, AdminHeader } from './AdminLayout';
+export { AdminBreadcrumb } from './AdminBreadcrumb';
