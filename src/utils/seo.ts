@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 // SEO utilities for MAKU.Travel - Following enterprise SEO best practices
 
@@ -193,17 +193,17 @@ export const injectSEOMetadata = (metadata: SEOMetadata) => {
     if (schemaScript) {
       schemaScript.textContent = JSON.stringify(metadata.schemaOrg);
     } else {
-      schemaScript = document.createElement('script');
-      schemaScript.type = 'application/ld+json';
-      schemaScript.textContent = JSON.stringify(metadata.schemaOrg);
-      document.head.appendChild(schemaScript);
+      const newSchemaScript = document.createElement('script') as HTMLScriptElement;
+      newSchemaScript.type = 'application/ld+json';
+      newSchemaScript.textContent = JSON.stringify(metadata.schemaOrg);
+      document.head.appendChild(newSchemaScript);
     }
   }
 };
 
 // React Hook for SEO
 export const useSEO = (page: string, data?: any) => {
-  React.useEffect(() => {
+  useEffect(() => {
     const metadata = generateSEOMetadata(page, data);
     injectSEOMetadata(metadata);
 
