@@ -1,217 +1,157 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Activity, Zap, Clock, Users, X, Minimize2, Maximize2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import logger from '@/utils/logger';
 
 interface PerformanceMetrics {
-  loadTime: number;
-  renderTime: number;
-  memoryUsage: number;
-  coreWebVitals: {
-    fcp: number; // First Contentful Paint
-    lcp: number; // Largest Contentful Paint
-    cls: number; // Cumulative Layout Shift
-    fid: number; // First Input Delay
-  };
-  apiResponseTimes: {
-    average: number;
-    p95: number;
-    failures: number;
-  };
-  userMetrics: {
-    bounceRate: number;
-    conversionRate: number;
-    pageViews: number;
+  navigation?: PerformanceNavigationTiming;
+  paint?: PerformanceEntry[];
+  resources?: PerformanceResourceTiming[];
+  vitals?: {
+    lcp: number | null; // Largest Contentful Paint
+    fid: number | null; // First Input Delay
+    cls: number | null; // Cumulative Layout Shift
+    fcp: number | null; // First Contentful Paint
+    ttfb: number | null; // Time to First Byte
   };
 }
 
 interface PerformanceMonitorProps {
-  isVisible?: boolean;
-  componentName?: string;
+  children: React.ReactNode;
 }
 
-export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
-  isVisible = false,
-  componentName = "Unknown"
-}) => {
-  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDismissed, setIsDismissed] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+export const PerformanceMonitor = ({ children }: PerformanceMonitorProps) => {
+  const [metrics, setMetrics] = useState<PerformanceMetrics>({});
+  const location = useLocation();
 
-  // Only show in development mode
-  const showInDev = process.env.NODE_ENV === 'development';
-
+  // Monitor Core Web Vitals
   useEffect(() => {
-    const collectMetrics = async () => {
-      try {
-        // Core Web Vitals
-        const observer = new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          // Process performance entries
-        });
-        
-        observer.observe({ entryTypes: ['measure', 'navigation', 'paint'] });
+    const vitals = {
+      lcp: null as number | null,
+      fid: null as number | null,
+      cls: null as number | null,
+      fcp: null as number | null,
+      ttfb: null as number | null,
+    };
 
-        // Simulate metrics collection (replace with real implementation)
-        const mockMetrics: PerformanceMetrics = {
-          loadTime: Math.random() * 2000 + 500,
-          renderTime: Math.random() * 100 + 50,
-          memoryUsage: Math.random() * 50 + 10,
-          coreWebVitals: {
-            fcp: Math.random() * 1000 + 500,
-            lcp: Math.random() * 2000 + 1000,
-            cls: Math.random() * 0.1,
-            fid: Math.random() * 50 + 10
-          },
-          apiResponseTimes: {
-            average: Math.random() * 500 + 200,
-            p95: Math.random() * 1000 + 500,
-            failures: Math.floor(Math.random() * 5)
-          },
-          userMetrics: {
-            bounceRate: Math.random() * 30 + 20,
-            conversionRate: Math.random() * 10 + 2,
-            pageViews: Math.floor(Math.random() * 1000 + 100)
-          }
-        };
-
-        setMetrics(mockMetrics);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error collecting performance metrics:', error);
-        setIsLoading(false);
+    // Largest Contentful Paint
+    const observeLCP = () => {
+      if ('PerformanceObserver' in window) {
+        try {
+          const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            if (entries.length > 0) {
+              vitals.lcp = entries[entries.length - 1].startTime;
+              setMetrics(prev => ({ ...prev, vitals }));
+            }
+          });
+          observer.observe({ entryTypes: ['largest-contentful-paint'] });
+          
+          // Clean up observer after 10 seconds
+          setTimeout(() => observer.disconnect(), 10000);
+        } catch (error) {
+          logger.warn('LCP observation failed:', error);
+        }
       }
     };
 
-    collectMetrics();
+    // First Input Delay
+    const observeFID = () => {
+      if ('PerformanceObserver' in window) {
+        try {
+          const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            entries.forEach((entry: any) => {
+              if (entry.name === 'first-input') {
+                vitals.fid = entry.processingStart - entry.startTime;
+                setMetrics(prev => ({ ...prev, vitals }));
+              }
+            });
+          });
+          observer.observe({ entryTypes: ['first-input'] });
+        } catch (error) {
+          logger.warn('FID observation failed:', error);
+        }
+      }
+    };
 
-    // Update metrics every 10 seconds
-    const interval = setInterval(collectMetrics, 10000);
-    return () => clearInterval(interval);
-  }, [componentName]);
+    // Time to First Byte
+    const measureTTFB = () => {
+      if ('performance' in window && 'getEntriesByType' in performance) {
+        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        if (navigation) {
+          vitals.ttfb = navigation.responseStart - navigation.requestStart;
+          setMetrics(prev => ({ ...prev, vitals }));
+        }
+      }
+    };
 
-  const getPerformanceScore = (value: number, thresholds: [number, number]): 'good' | 'needs-improvement' | 'poor' => {
-    if (value <= thresholds[0]) return 'good';
-    if (value <= thresholds[1]) return 'needs-improvement';
-    return 'poor';
-  };
+    // Start observations
+    observeLCP();
+    observeFID();
+    measureTTFB();
 
-  const getScoreColor = (score: string) => {
-    switch (score) {
-      case 'good': return 'text-green-600';
-      case 'needs-improvement': return 'text-yellow-600';
-      case 'poor': return 'text-red-600';
-      default: return 'text-muted-foreground';
+    return () => {
+      // Cleanup is handled by individual observers
+    };
+  }, []);
+
+  // Monitor navigation performance
+  useEffect(() => {
+    const collectNavigationMetrics = () => {
+      if ('performance' in window) {
+        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const paint = performance.getEntriesByType('paint');
+        const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+
+        setMetrics(prev => ({
+          ...prev,
+          navigation,
+          paint,
+          resources: resources.slice(-50) // Keep last 50 resources
+        }));
+      }
+    };
+
+    // Collect metrics when the page is fully loaded
+    if (document.readyState === 'complete') {
+      collectNavigationMetrics();
+    } else {
+      window.addEventListener('load', collectNavigationMetrics);
+      return () => window.removeEventListener('load', collectNavigationMetrics);
     }
-  };
+  }, []);
 
-  if (!isVisible || !metrics || !showInDev || isDismissed) {
-    return null;
-  }
+  // Report performance metrics
+  useEffect(() => {
+    const reportMetrics = () => {
+      if (metrics.vitals && Object.values(metrics.vitals).some(v => v !== null)) {
+        const performanceData = {
+          url: window.location.href,
+          timestamp: Date.now(),
+          vitals: metrics.vitals,
+        };
 
-  return (
-    <div className="fixed bottom-4 right-4 z-30 max-w-sm">
-      <Card className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Performance Monitor
-            <Badge variant="outline" className="text-xs">
-              {componentName}
-            </Badge>
-            <div className="ml-auto flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setIsMinimized(!isMinimized)}
-              >
-                {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setIsDismissed(true)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        {!isMinimized && (
-        <CardContent className="space-y-3">
-          {/* Core Web Vitals */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground">Core Web Vitals</h4>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex justify-between">
-                <span>FCP:</span>
-                <span className={getScoreColor(getPerformanceScore(metrics.coreWebVitals.fcp, [1800, 3000]))}>
-                  {metrics.coreWebVitals.fcp.toFixed(0)}ms
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>LCP:</span>
-                <span className={getScoreColor(getPerformanceScore(metrics.coreWebVitals.lcp, [2500, 4000]))}>
-                  {metrics.coreWebVitals.lcp.toFixed(0)}ms
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>CLS:</span>
-                <span className={getScoreColor(getPerformanceScore(metrics.coreWebVitals.cls, [0.1, 0.25]))}>
-                  {metrics.coreWebVitals.cls.toFixed(3)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>FID:</span>
-                <span className={getScoreColor(getPerformanceScore(metrics.coreWebVitals.fid, [100, 300]))}>
-                  {metrics.coreWebVitals.fid.toFixed(0)}ms
-                </span>
-              </div>
-            </div>
-          </div>
+        // Log performance data
+        logger.info('Performance metrics:', performanceData);
 
-          {/* API Performance */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <Zap className="h-3 w-3" />
-              API Performance
-            </h4>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Avg Response:</span>
-                <span>{metrics.apiResponseTimes.average.toFixed(0)}ms</span>
-              </div>
-              <Progress value={(1000 - metrics.apiResponseTimes.average) / 10} className="h-1" />
-            </div>
-          </div>
+        // Send to analytics if available
+        if ((window as any).gtag) {
+          (window as any).gtag('event', 'performance_measurement', {
+            custom_parameter: performanceData,
+            lcp: metrics.vitals.lcp,
+            fid: metrics.vitals.fid,
+            cls: metrics.vitals.cls,
+            fcp: metrics.vitals.fcp,
+            ttfb: metrics.vitals.ttfb
+          });
+        }
+      }
+    };
 
-          {/* User Metrics */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              Conversion
-            </h4>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex justify-between">
-                <span>Bounce:</span>
-                <span>{metrics.userMetrics.bounceRate.toFixed(1)}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Convert:</span>
-                <span>{metrics.userMetrics.conversionRate.toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-        )}
-      </Card>
-    </div>
-  );
+    // Report metrics after 5 seconds
+    const timer = setTimeout(reportMetrics, 5000);
+    return () => clearTimeout(timer);
+  }, [metrics]);
+
+  return <>{children}</>;
 };
-
-export default PerformanceMonitor;
