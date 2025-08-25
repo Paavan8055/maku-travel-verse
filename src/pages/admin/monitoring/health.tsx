@@ -1,16 +1,16 @@
 import React from 'react';
-import { EnhancedHealthDashboard } from '@/components/admin/EnhancedHealthDashboard';
+import { UnifiedHealthDashboard } from '@/components/admin/UnifiedHealthDashboard';
 
 const AdminHealthPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">System Health</h1>
+        <h1 className="text-3xl font-bold">Unified System Health</h1>
         <p className="text-muted-foreground">
-          Real-time monitoring of provider rotation, quota management, and system health
+          Comprehensive provider health, quota management, and circuit breaker monitoring
         </p>
       </div>
-      <EnhancedHealthDashboard />
+      <UnifiedHealthDashboard />
     </div>
   );
 };
