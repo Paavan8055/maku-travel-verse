@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingState } from "@/components/ui/enhanced-loading";
 import logger from "@/utils/logger";
+import { useBookingStore } from "@/store/bookingStore";
 
 // Dynamic Stripe loading
 let stripePromise: Promise<Stripe | null> | null = null;
@@ -67,15 +68,9 @@ function PaymentInner() {
         let createBookingFunction = '';
         let bookingParams: any = {};
 
-        // For payment flow, we need to get customer details from session storage
-        let customerInfo = null;
-        try {
-          const guestInfo = sessionStorage.getItem('guestInfo');
-          const passengerInfo = sessionStorage.getItem('passengerInfo');
-          customerInfo = guestInfo ? JSON.parse(guestInfo) : (passengerInfo ? JSON.parse(passengerInfo) : null);
-        } catch (e) {
-          console.warn('Failed to parse customer info from session storage');
-        }
+        // Get customer details from Zustand store
+        const { guestInfo, passengerInfo } = useBookingStore.getState();
+        const customerInfo = guestInfo || passengerInfo;
 
         // Determine which booking function to call based on booking type
         if (bookingType === 'hotel') {
@@ -97,14 +92,8 @@ function PaymentInner() {
           // For flights, create a generic payment intent with all flight data
           createBookingFunction = 'create-payment-intent';
           
-          // Get passenger details from session storage
-          let passengerInfo = null;
-          try {
-            const storedPassenger = sessionStorage.getItem('passengerInfo');
-            passengerInfo = storedPassenger ? JSON.parse(storedPassenger) : null;
-          } catch (e) {
-            console.warn('Failed to parse passenger info from session storage');
-          }
+          // Get passenger details from Zustand store
+          const { passengerInfo } = useBookingStore.getState();
           
           bookingParams = {
             booking_type: 'flight',
