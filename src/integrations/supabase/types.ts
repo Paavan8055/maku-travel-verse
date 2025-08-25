@@ -3221,6 +3221,51 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_quotas: {
+        Row: {
+          created_at: string
+          id: string
+          last_checked: string
+          percentage_used: number
+          provider_id: string
+          provider_name: string
+          quota_limit: number
+          quota_used: number
+          reset_time: string | null
+          service_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_checked?: string
+          percentage_used?: number
+          provider_id: string
+          provider_name: string
+          quota_limit?: number
+          quota_used?: number
+          reset_time?: string | null
+          service_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_checked?: string
+          percentage_used?: number
+          provider_id?: string
+          provider_name?: string
+          quota_limit?: number
+          quota_used?: number
+          reset_time?: string | null
+          service_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           booking_id: string | null
@@ -4052,6 +4097,16 @@ export type Database = {
       get_partner_dashboard_data: {
         Args: { p_partner_id: string }
         Returns: Json
+      }
+      get_quota_aware_providers: {
+        Args: { p_excluded_providers?: string[]; p_search_type: string }
+        Returns: {
+          percentage_used: number
+          priority: number
+          provider_id: string
+          provider_name: string
+          quota_status: string
+        }[]
       }
       get_user_booking_updates: {
         Args: { p_user_id: string }
