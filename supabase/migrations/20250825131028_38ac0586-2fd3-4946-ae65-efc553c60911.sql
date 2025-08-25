@@ -1,0 +1,17 @@
+-- Fix function search path security issues
+ALTER FUNCTION public.update_updated_at_column() SET search_path TO 'public';
+ALTER FUNCTION public.update_updated_at_notifications() SET search_path TO 'public';
+ALTER FUNCTION public.update_updated_at_communication_preferences() SET search_path TO 'public';
+ALTER FUNCTION public.update_updated_at_booking_updates() SET search_path TO 'public';
+ALTER FUNCTION public.update_gift_card_updated_at() SET search_path TO 'public';
+ALTER FUNCTION public.update_fund_balance() SET search_path TO 'public';
+ALTER FUNCTION public.track_booking_status_change() SET search_path TO 'public';
+ALTER FUNCTION public.trigger_anonymize_guest_booking() SET search_path TO 'public';
+ALTER FUNCTION public.initialize_user_loyalty() SET search_path TO 'public';
+ALTER FUNCTION public.handle_new_user() SET search_path TO 'public';
+ALTER FUNCTION public.auto_anonymize_old_guest_bookings() SET search_path TO 'public';
+ALTER FUNCTION public.cleanup_guest_data() SET search_path TO 'public';
+ALTER FUNCTION public.cleanup_expired_guest_tokens() SET search_path TO 'public';
+ALTER FUNCTION public.check_document_expiry() SET search_path TO 'public';
+ALTER FUNCTION public.check_bookmark_limit() SET search_path TO 'public';
+ALTER FUNCTION public.update_partner_analytics() SET search_path TO 'public';

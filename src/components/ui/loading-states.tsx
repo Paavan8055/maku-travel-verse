@@ -21,6 +21,20 @@ export const LoadingState = ({ message = "Loading...", className }: LoadingState
   </div>
 );
 
+export const LoadingSpinner = ({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) => {
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6', 
+    lg: 'h-8 w-8'
+  };
+  
+  return (
+    <div className={`flex items-center justify-center ${className}`}>
+      <Loader2 className={`animate-spin ${sizeClasses[size]}`} />
+    </div>
+  );
+};
+
 export const ErrorState = ({ 
   title = "Something went wrong", 
   message = "Please try again or contact support if the issue persists",

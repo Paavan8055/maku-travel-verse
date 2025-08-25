@@ -69,14 +69,8 @@ export default function BookingConfirmation() {
           }
         }
 
-        // Final fallback: Use session storage for demo
-        const sessionBooking = sessionStorage.getItem('lastBooking');
-        if (sessionBooking) {
-          setBooking(JSON.parse(sessionBooking));
-          return;
-        }
-
-        throw new Error('Booking not found');
+        // No booking found through available methods
+        throw new Error('Booking not found. Please check your booking reference and email.');
       } catch (err: any) {
         logger.error('Booking confirmation error:', err);
         setError(err.message || 'Failed to load booking details');
