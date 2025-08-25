@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { RealBookingButton } from "@/components/RealBookingButton";
 import { RoomSelectionModal } from "@/components/booking";
 import { useHotelImagesEnhanced } from "@/hooks/useHotelImagesEnhanced";
+import { useBookingStore } from "@/store/bookingStore";
 
 interface Hotel {
   id: string;

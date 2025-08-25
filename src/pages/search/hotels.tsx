@@ -19,6 +19,7 @@ import SearchHeaderBand from "@/components/search/SearchHeaderBand";
 import MemberPriceBanner from "@/components/search/MemberPriceBanner";
 import SortChips from "@/components/search/SortChips";
 import MapPreviewCard from "@/components/search/MapPreviewCard";
+import { InteractiveHotelMap } from "@/components/maps/InteractiveHotelMap";
 
 import { PopularHotelsSection } from "@/components/search/PopularHotelsSection";
 import { FeaturedHotelDeals } from "@/components/search/FeaturedHotelDeals";
@@ -303,17 +304,17 @@ const HotelSearchPage = () => {
                 </Card>}
             </div>}
 
-          {!loading && !error && viewMode === "map" && <Card>
-              <CardContent className="p-8 text-center">
-                <div className="space-y-4">
-                  <div className="text-6xl">🗺️</div>
-                  <h3 className="text-xl font-semibold">Map View</h3>
-                  <p className="text-muted-foreground">
-                    Interactive map with price pins coming soon! For now, switch back to list view to see all hotels.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>}
+          {!loading && !error && viewMode === "map" && (
+            <InteractiveHotelMap 
+              hotels={filteredAndSortedHotels}
+              destination={destination}
+              onHotelSelect={(hotel) => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('hotelName', hotel.name);
+                window.location.href = `/search/hotels?${newParams.toString()}`;
+              }}
+            />
+          )}
           </SearchResultsLayout>
         )}
         
