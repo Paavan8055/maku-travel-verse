@@ -1,5 +1,5 @@
+
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import logger from '@/utils/logger';
 
 interface PerformanceMetrics {
@@ -21,7 +21,6 @@ interface PerformanceMonitorProps {
 
 export const PerformanceMonitor = ({ children }: PerformanceMonitorProps) => {
   const [metrics, setMetrics] = useState<PerformanceMetrics>({});
-  const location = useLocation();
 
   // Monitor Core Web Vitals
   useEffect(() => {
