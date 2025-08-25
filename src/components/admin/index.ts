@@ -15,3 +15,11 @@ export { CorrelationTracker } from './CorrelationTracker';
 export { OperationalDashboard } from './OperationalDashboard';
 export { EnhancedBookingOperations } from './EnhancedBookingOperations';
 export { NotificationCenter } from './NotificationCenter';
+
+// Phase 4 & 5 exports
+export { ProviderPerformanceAnalytics } from '../analytics/ProviderPerformanceAnalytics';
+export { PredictiveMonitoring } from '../analytics/PredictiveMonitoring';
+export { BusinessIntelligenceDashboard } from '../analytics/BusinessIntelligenceDashboard';
+export { DataExportManager } from '../analytics/DataExportManager';
+export { BrandingCustomizer } from '../theme/BrandingCustomizer';
+export { KeyboardShortcutsManager } from '../power-user/KeyboardShortcutsManager';
