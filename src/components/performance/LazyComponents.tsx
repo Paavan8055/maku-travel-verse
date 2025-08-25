@@ -3,9 +3,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Lazy load heavy components for better performance
 export const LazyAdminDashboard = lazy(() => 
-  import('@/components/admin/AdminDashboard').then(module => ({ 
-    default: module.AdminDashboard 
-  }))
+  import('@/components/admin/AdminDashboard')
 );
 
 export const LazyInteractiveHotelMap = lazy(() => 
