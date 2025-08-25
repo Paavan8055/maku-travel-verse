@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import { ProviderTestPanel } from "@/components/debug/ProviderTestPanel";
 import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
+import { DirectProviderTest } from "@/components/debug/DirectProviderTest";
 import HotelBedsMonitoringDashboard from "@/components/admin/HotelBedsMonitoringDashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -18,14 +19,19 @@ const DebugPage = () => {
           </div>
           
           <Tabs defaultValue="provider-test" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="provider-test">Provider Tests</TabsTrigger>
+              <TabsTrigger value="direct-test">Direct Test</TabsTrigger>
               <TabsTrigger value="rotation-test">Rotation Tests</TabsTrigger>
               <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
             </TabsList>
             
             <TabsContent value="provider-test">
               <ProviderTestPanel />
+            </TabsContent>
+            
+            <TabsContent value="direct-test">
+              <DirectProviderTest />
             </TabsContent>
             
             <TabsContent value="rotation-test">
