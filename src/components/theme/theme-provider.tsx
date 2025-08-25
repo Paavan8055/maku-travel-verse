@@ -18,7 +18,7 @@ const ThemeProviderContext = React.createContext<ThemeProviderState | undefined>
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
+  defaultTheme = 'light',
   storageKey = 'maku-ui-theme',
   ...props
 }: ThemeProviderProps) {
