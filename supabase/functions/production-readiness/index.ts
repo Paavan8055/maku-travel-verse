@@ -1,138 +1,173 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { ENV_CONFIG, validateProductionReadiness, validateProviderCredentials, getMTLSConfig } from "../_shared/config.ts";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
 interface ReadinessCheck {
-  ready: boolean;
-  issues: string[];
-  warnings: string[];
-  checks: {
-    credentials: boolean;
-    mtls: boolean;
-    environment: boolean;
-    endpoints: boolean;
+  name: string;
+  status: 'pass' | 'fail' | 'warn';
+  message: string;
+  details?: any;
+}
+
+interface ProductionReadinessResponse {
+  success: boolean;
+  overall_status: 'ready' | 'not_ready' | 'warnings';
+  checks: ReadinessCheck[];
+  summary: {
+    passed: number;
+    failed: number;
+    warnings: number;
+    total: number;
   };
 }
 
-const performReadinessCheck = (): ReadinessCheck => {
-  const issues: string[] = [];
-  const warnings: string[] = [];
-  
-  // Check provider credentials
-  const credentialsCheck = {
-    hotelbeds: validateProviderCredentials('hotelbeds'),
-    amadeus: validateProviderCredentials('amadeus'),
-    sabre: validateProviderCredentials('sabre')
-  };
-  
-  if (!credentialsCheck.hotelbeds) {
-    issues.push('HotelBeds credentials not configured');
-  }
-  if (!credentialsCheck.amadeus) {
-    warnings.push('Amadeus credentials not configured');
-  }
-  if (!credentialsCheck.sabre) {
-    warnings.push('Sabre credentials not configured');
-  }
-  
-  // Check mTLS configuration
-  const mtlsConfig = getMTLSConfig();
-  if (ENV_CONFIG.isProduction && !mtlsConfig.enabled) {
-    issues.push('mTLS certificates not configured for production');
-  }
-  
-  // Check environment configuration
-  if (!ENV_CONFIG.isProduction) {
-    warnings.push('Using test environment - switch to production for live bookings');
-  }
-  
-  // Check Stripe configuration
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-  if (!stripeKey) {
-    issues.push('Stripe secret key not configured');
-  } else if (stripeKey.startsWith('sk_test_') && ENV_CONFIG.isProduction) {
-    warnings.push('Using Stripe test keys in production environment');
-  }
-  
-  // Check endpoint configurations
-  const endpointIssues = [];
-  if (ENV_CONFIG.isProduction) {
-    if (!ENV_CONFIG.hotelbeds.baseUrl.includes('api.hotelbeds.com')) {
-      endpointIssues.push('HotelBeds production endpoint not configured');
-    }
-    if (!ENV_CONFIG.amadeus.baseUrl.includes('api.amadeus.com')) {
-      endpointIssues.push('Amadeus production endpoint not configured');
-    }
-  }
-  
-  return {
-    ready: issues.length === 0,
-    issues,
-    warnings,
-    checks: {
-      credentials: credentialsCheck.hotelbeds && credentialsCheck.amadeus,
-      mtls: ENV_CONFIG.isProduction ? mtlsConfig.enabled : true,
-      environment: ENV_CONFIG.isProduction,
-      endpoints: endpointIssues.length === 0
-    }
-  };
-};
-
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { action } = await req.json();
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    console.log('[PRODUCTION-READINESS] Performing readiness check');
+    console.log('Starting production readiness checks...');
 
-    if (action === 'validate') {
-      const readinessCheck = performReadinessCheck();
-      
-      console.log('[PRODUCTION-READINESS] Check results:', {
-        ready: readinessCheck.ready,
-        issueCount: readinessCheck.issues.length,
-        warningCount: readinessCheck.warnings.length
+    const checks: ReadinessCheck[] = [];
+
+    // 1. Check environment variables
+    const requiredEnvs = [
+      'SUPABASE_URL',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'SUPABASE_ANON_KEY',
+      'STRIPE_SECRET_KEY',
+      'AMADEUS_CLIENT_ID',
+      'AMADEUS_CLIENT_SECRET'
+    ];
+
+    const missingEnvs = requiredEnvs.filter(env => !Deno.env.get(env));
+    checks.push({
+      name: 'Environment Variables',
+      status: missingEnvs.length === 0 ? 'pass' : 'fail',
+      message: missingEnvs.length === 0 
+        ? 'All required environment variables are set'
+        : `Missing environment variables: ${missingEnvs.join(', ')}`,
+      details: { missing: missingEnvs, total: requiredEnvs.length }
+    });
+
+    // 2. Check database connectivity
+    try {
+      const { data, error } = await supabase.from('bookings').select('count').limit(1);
+      checks.push({
+        name: 'Database Connectivity',
+        status: error ? 'fail' : 'pass',
+        message: error ? `Database error: ${error.message}` : 'Database is accessible',
+        details: error ? { error: error.message } : null
       });
-
-      return new Response(JSON.stringify({
-        success: true,
-        readiness: readinessCheck,
-        environment: {
-          current: ENV_CONFIG.isProduction ? 'production' : 'test',
-          hotelbeds: ENV_CONFIG.hotelbeds,
-          amadeus: ENV_CONFIG.amadeus,
-          sabre: ENV_CONFIG.sabre
-        },
-        timestamp: new Date().toISOString()
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    } catch (error) {
+      checks.push({
+        name: 'Database Connectivity',
+        status: 'fail',
+        message: `Database connection failed: ${error.message}`,
+        details: { error: error.message }
       });
     }
 
-    return new Response(JSON.stringify({
-      error: 'Invalid action',
-      availableActions: ['validate']
-    }), {
-      status: 400,
+    // 3. Check provider configurations
+    try {
+      const { data: providers, error } = await supabase
+        .from('provider_configs')
+        .select('*')
+        .eq('enabled', true);
+
+      const enabledCount = providers?.length || 0;
+      checks.push({
+        name: 'Provider Configurations',
+        status: enabledCount > 0 ? 'pass' : 'warn',
+        message: enabledCount > 0 
+          ? `${enabledCount} providers are enabled and configured`
+          : 'No providers are enabled',
+        details: { enabled_providers: enabledCount }
+      });
+    } catch (error) {
+      checks.push({
+        name: 'Provider Configurations',
+        status: 'fail',
+        message: `Failed to check provider configs: ${error.message}`,
+        details: { error: error.message }
+      });
+    }
+
+    // 4. Check admin user setup
+    try {
+      const { data: admins, error } = await supabase
+        .from('admin_users')
+        .select('count')
+        .eq('is_active', true);
+
+      const adminCount = admins?.length || 0;
+      checks.push({
+        name: 'Admin Users',
+        status: adminCount > 0 ? 'pass' : 'warn',
+        message: adminCount > 0 
+          ? `${adminCount} admin users are configured`
+          : 'No admin users configured',
+        details: { admin_count: adminCount }
+      });
+    } catch (error) {
+      checks.push({
+        name: 'Admin Users',
+        status: 'fail',
+        message: `Failed to check admin users: ${error.message}`,
+        details: { error: error.message }
+      });
+    }
+
+    // Calculate summary
+    const summary = {
+      passed: checks.filter(c => c.status === 'pass').length,
+      failed: checks.filter(c => c.status === 'fail').length,
+      warnings: checks.filter(c => c.status === 'warn').length,
+      total: checks.length
+    };
+
+    const overall_status = summary.failed > 0 ? 'not_ready' : 
+                          summary.warnings > 0 ? 'warnings' : 'ready';
+
+    const response: ProductionReadinessResponse = {
+      success: true,
+      overall_status,
+      checks,
+      summary
+    };
+
+    console.log(`Production readiness check completed: ${overall_status}`);
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('[PRODUCTION-READINESS] Error:', error);
+    console.error('Production readiness check failed:', error);
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      overall_status: 'not_ready',
+      checks: [{
+        name: 'System Check',
+        status: 'fail',
+        message: `Production readiness check failed: ${error.message}`,
+        details: { error: error.message }
+      }],
+      summary: { passed: 0, failed: 1, warnings: 0, total: 1 }
     }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
     });
   }
 });
