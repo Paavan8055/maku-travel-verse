@@ -198,7 +198,7 @@ function PaymentInner() {
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?booking_id=${bookingData?.booking_id}&type=${bookingType}`,
+          return_url: `${window.location.origin}/booking-success?booking_id=${bookingData?.booking_id}&type=${bookingType}`,
         },
       });
 

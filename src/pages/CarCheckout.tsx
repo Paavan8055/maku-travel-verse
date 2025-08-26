@@ -157,7 +157,7 @@ const CheckoutInner: React.FC = () => {
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?type=car`,
+          return_url: `${window.location.origin}/booking-success?type=car`,
         },
       });
 

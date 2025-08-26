@@ -39,6 +39,9 @@ const FlightCheckoutPage = createLazyRoute(() => import("./pages/FlightCheckout"
 const ActivityCheckoutPage = createLazyRoute(() => import("./pages/ActivityCheckout"));
 const BookingConfirmationPage = createLazyRoute(() => import("./pages/BookingConfirmation"));
 const BookingDetailsPage = createLazyRoute(() => import("./pages/BookingDetails"));
+const BookingSuccessPage = createLazyRoute(() => import("./pages/BookingSuccess"));
+const BookingFailurePage = createLazyRoute(() => import("./pages/BookingFailure"));
+const PaymentSuccessPage = createLazyRoute(() => import("./pages/PaymentSuccess"));
 const DashboardPage = createLazyRoute(() => import("./pages/Dashboard"));
 const SettingsPage = createLazyRoute(() => import("./pages/settings"));
 const ProfilePage = createLazyRoute(() => import("./pages/profile"));
@@ -127,8 +130,11 @@ const App = () => (
                                        <Route path="/hotel-checkout" element={<HotelCheckoutPage />} />
                                        <Route path="/flight-checkout" element={<FlightCheckoutPage />} />
                                        <Route path="/activity-checkout" element={<ActivityCheckoutPage />} />
-                                       <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-                                       <Route path="/booking/:id" element={<BookingDetailsPage />} />
+                                        <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+                                        <Route path="/booking-success" element={<BookingSuccessPage />} />
+                                        <Route path="/booking-failure" element={<BookingFailurePage />} />
+                                        <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                                        <Route path="/booking/:id" element={<BookingDetailsPage />} />
                                        <Route path="/dashboard" element={<DashboardPage />} />
                                        <Route path="/settings" element={<SettingsPage />} />
                                        <Route path="/profile" element={<ProfilePage />} />
