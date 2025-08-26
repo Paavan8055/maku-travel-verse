@@ -194,6 +194,36 @@ export function validateCoreSecrets(): { valid: boolean; missing: string[] } {
   };
 }
 
+// Production readiness validation
+export const validateProductionReadiness = () => {
+  const required = [
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'AMADEUS_CLIENT_ID',
+    'AMADEUS_CLIENT_SECRET',
+    'STRIPE_SECRET_KEY'
+  ];
+  
+  const missing = required.filter(key => !ENV_CONFIG[key as keyof typeof ENV_CONFIG]);
+  
+  if (missing.length > 0) {
+    logger.error('Missing required environment variables:', missing);
+    return false;
+  }
+  
+  logger.info('✅ Production readiness check passed');
+  return true;
+};
+
+// MTLS configuration for secure provider connections
+export const getMTLSConfig = () => {
+  return {
+    rejectUnauthorized: Deno.env.get('NODE_ENV') === 'production',
+    timeout: 30000,
+    retries: 3
+  };
+};
+
 // Emergency configuration check
 export function performEmergencyConfigCheck(): boolean {
   const coreSecrets = validateCoreSecrets();
