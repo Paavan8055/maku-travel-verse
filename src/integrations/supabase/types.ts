@@ -4299,6 +4299,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: boolean
       }
+      is_emergency_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_secure_admin: {
         Args: { _user_id: string }
         Returns: boolean
