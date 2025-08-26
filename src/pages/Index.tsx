@@ -14,7 +14,7 @@ import TestModeIndicator from "@/components/TestModeIndicator";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { Button } from "@/components/ui/button";
-import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
+
 import { BookingTestPanel } from "@/components/debug/BookingTestPanel";
 import { ProductionStatusIndicator } from "@/components/production/ProductionStatusIndicator";
 import { PriceAlertManager } from "@/components/PriceAlertManager";
@@ -44,7 +44,7 @@ const Index = () => {
             <div className="max-w-4xl mx-auto px-6 py-12 space-y-8">
               <ProductionDiagnostics />
               <PaymentDebugger />
-              <ProviderRotationTestPanel />
+              
               <BookingTestPanel 
                 onTestHotelBooking={() => window.location.href = '/search/hotels?destination=Sydney&checkIn=' + 
                   new Date(Date.now() + 86400000).toISOString().split('T')[0] + 

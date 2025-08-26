@@ -46,7 +46,7 @@ import { LoyaltyProgramIntegration } from "@/components/loyalty/LoyaltyProgramIn
 import { CurrencyProvider } from "@/components/localization/MultiCurrencySupport";
 import HotelSearchBar from "@/components/search/HotelSearchBar";
 import { HealthDebugPanel } from "@/components/debug/HealthDebugPanel";
-import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
+
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
@@ -387,7 +387,7 @@ const HotelSearchPage = () => {
                 {/* API Optimization Component - Development Tool */}
                 <AmadeusOptimizer onApiStatusChange={setApiStatus} />
                 <HealthDebugPanel />
-                <ProviderRotationTestPanel />
+                
               </div>
             )}
           </div>
