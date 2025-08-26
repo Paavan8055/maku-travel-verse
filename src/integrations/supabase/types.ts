@@ -3202,6 +3202,7 @@ export type Database = {
       }
       provider_configs: {
         Row: {
+          base_url: string | null
           circuit_breaker: Json
           circuit_breaker_state: string | null
           created_at: string
@@ -3215,6 +3216,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          base_url?: string | null
           circuit_breaker?: Json
           circuit_breaker_state?: string | null
           created_at?: string
@@ -3228,6 +3230,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          base_url?: string | null
           circuit_breaker?: Json
           circuit_breaker_state?: string | null
           created_at?: string
@@ -3246,6 +3249,7 @@ export type Database = {
         Row: {
           circuit_breaker_opened_at: string | null
           created_at: string
+          error_count: number | null
           error_message: string | null
           failure_count: number | null
           id: string
@@ -3259,6 +3263,7 @@ export type Database = {
         Insert: {
           circuit_breaker_opened_at?: string | null
           created_at?: string
+          error_count?: number | null
           error_message?: string | null
           failure_count?: number | null
           id?: string
@@ -3272,6 +3277,7 @@ export type Database = {
         Update: {
           circuit_breaker_opened_at?: string | null
           created_at?: string
+          error_count?: number | null
           error_message?: string | null
           failure_count?: number | null
           id?: string
