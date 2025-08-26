@@ -16,6 +16,8 @@ interface QuotaStatus {
   resetTime?: number;
   status: 'healthy' | 'warning' | 'critical' | 'exceeded';
   lastChecked: number;
+  errorType?: string;
+  isActualQuotaLimit: boolean;
 }
 
 interface ProviderQuotaResponse {
@@ -26,7 +28,7 @@ interface ProviderQuotaResponse {
   recommendedActions: string[];
 }
 
-// Provider-specific quota checking functions
+// Enhanced quota checking with proper error classification
 async function checkAmadeusQuota(): Promise<QuotaStatus[]> {
   const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
   const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
@@ -34,12 +36,14 @@ async function checkAmadeusQuota(): Promise<QuotaStatus[]> {
   if (!clientId || !clientSecret) {
     return [{
       provider: 'amadeus',
-      service: 'general',
+      service: 'api_calls',
       quotaUsed: 0,
-      quotaLimit: 0,
-      percentageUsed: 100,
-      status: 'critical',
-      lastChecked: Date.now()
+      quotaLimit: 1000,
+      percentageUsed: 0,
+      status: 'healthy',
+      lastChecked: Date.now(),
+      errorType: 'missing_credentials',
+      isActualQuotaLimit: false
     }];
   }
 
@@ -54,26 +58,63 @@ async function checkAmadeusQuota(): Promise<QuotaStatus[]> {
     });
 
     if (!authResponse.ok) {
-      throw new Error(`Auth failed: ${authResponse.status}`);
+      // Distinguish between auth errors and quota errors
+      if (authResponse.status === 429) {
+        logger.warn('[QUOTA-MONITOR] Amadeus auth rate limited - actual quota issue');
+        return [{
+          provider: 'amadeus',
+          service: 'api_calls',
+          quotaUsed: 1000,
+          quotaLimit: 1000,
+          percentageUsed: 100,
+          status: 'exceeded',
+          lastChecked: Date.now(),
+          errorType: 'rate_limit',
+          isActualQuotaLimit: true
+        }];
+      } else {
+        logger.warn(`[QUOTA-MONITOR] Amadeus auth failed with ${authResponse.status} - not a quota issue`);
+        return [{
+          provider: 'amadeus',
+          service: 'api_calls',
+          quotaUsed: 0,
+          quotaLimit: 1000,
+          percentageUsed: 0,
+          status: 'healthy',
+          lastChecked: Date.now(),
+          errorType: 'auth_error',
+          isActualQuotaLimit: false
+        }];
+      }
     }
 
     const authData = await authResponse.json();
     
-    // Make a test request to check quota headers
+    // Make a test request to check actual quota headers
     const testResponse = await fetch('https://test.api.amadeus.com/v1/reference-data/locations?keyword=SYD&subType=CITY', {
       headers: {
         'Authorization': `Bearer ${authData.access_token}`,
       },
     });
 
+    // Parse actual rate limit headers from Amadeus
     const quotaLimit = parseInt(testResponse.headers.get('X-RateLimit-Limit') || '1000');
-    const quotaRemaining = parseInt(testResponse.headers.get('X-RateLimit-Remaining') || '0');
-    const quotaUsed = quotaLimit - quotaRemaining;
+    const quotaRemaining = parseInt(testResponse.headers.get('X-RateLimit-Remaining') || '900');
+    const quotaUsed = Math.max(0, quotaLimit - quotaRemaining);
     const percentageUsed = (quotaUsed / quotaLimit) * 100;
 
     let status: QuotaStatus['status'] = 'healthy';
-    if (percentageUsed > 90) status = 'critical';
-    else if (percentageUsed > 75) status = 'warning';
+    let isActualQuotaLimit = false;
+
+    if (testResponse.status === 429) {
+      status = 'exceeded';
+      isActualQuotaLimit = true;
+      logger.warn('[QUOTA-MONITOR] Amadeus actual quota exceeded');
+    } else if (percentageUsed > 90) {
+      status = 'critical';
+    } else if (percentageUsed > 75) {
+      status = 'warning';
+    }
 
     return [{
       provider: 'amadeus',
@@ -82,35 +123,40 @@ async function checkAmadeusQuota(): Promise<QuotaStatus[]> {
       quotaLimit,
       percentageUsed,
       status,
-      lastChecked: Date.now()
+      lastChecked: Date.now(),
+      isActualQuotaLimit
     }];
   } catch (error) {
-    logger.error('[QUOTA-MONITOR] Amadeus quota check failed:', error);
+    logger.warn('[QUOTA-MONITOR] Amadeus quota check network error (not quota issue):', error);
     return [{
       provider: 'amadeus',
       service: 'api_calls',
-      quotaUsed: 999,
+      quotaUsed: 0,
       quotaLimit: 1000,
-      percentageUsed: 99.9,
-      status: 'critical',
-      lastChecked: Date.now()
+      percentageUsed: 0,
+      status: 'healthy',
+      lastChecked: Date.now(),
+      errorType: 'network_error',
+      isActualQuotaLimit: false
     }];
   }
 }
 
 async function checkHotelBedsQuota(): Promise<QuotaStatus[]> {
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
-  const secret = Deno.env.get('HOTELBEDS_SECRET');
+  const apiKey = Deno.env.get('HOTELBEDS_API_KEY') || Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
+  const secret = Deno.env.get('HOTELBEDS_SECRET') || Deno.env.get('HOTELBEDS_HOTEL_SECRET');
   
   if (!apiKey || !secret) {
     return [{
       provider: 'hotelbeds',
-      service: 'general',
+      service: 'api_calls',
       quotaUsed: 0,
-      quotaLimit: 0,
-      percentageUsed: 100,
-      status: 'critical',
-      lastChecked: Date.now()
+      quotaLimit: 10000,
+      percentageUsed: 0,
+      status: 'healthy',
+      lastChecked: Date.now(),
+      errorType: 'missing_credentials',
+      isActualQuotaLimit: false
     }];
   }
 
@@ -124,7 +170,7 @@ async function checkHotelBedsQuota(): Promise<QuotaStatus[]> {
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
-    // Test HotelBeds API with quota monitoring
+    // Test HotelBeds API
     const response = await fetch('https://api.test.hotelbeds.com/hotel-content-api/1.0/types/countries', {
       headers: {
         'Api-key': apiKey,
@@ -133,21 +179,22 @@ async function checkHotelBedsQuota(): Promise<QuotaStatus[]> {
       },
     });
 
-    // HotelBeds doesn't provide standard quota headers, so we estimate based on response
     const quotaLimit = 10000; // Typical daily limit
     let quotaUsed = 0;
     let status: QuotaStatus['status'] = 'healthy';
+    let isActualQuotaLimit = false;
 
     if (response.status === 429) {
-      quotaUsed = quotaLimit;
       status = 'exceeded';
-    } else if (response.status === 403) {
-      status = 'critical';
-      quotaUsed = quotaLimit * 0.95;
+      quotaUsed = quotaLimit;
+      isActualQuotaLimit = true;
+      logger.warn('[QUOTA-MONITOR] HotelBeds actual quota exceeded');
     } else if (response.ok) {
-      // Estimate usage based on response time
-      const responseTime = Date.now();
-      quotaUsed = Math.min(quotaLimit * 0.3, quotaLimit); // Conservative estimate
+      // Only estimate minimal usage when API is working normally
+      quotaUsed = Math.min(quotaLimit * 0.1, 500); // Very conservative estimate
+    } else {
+      // For other errors (401, 403, 500, etc.), don't assume quota issues
+      logger.warn(`[QUOTA-MONITOR] HotelBeds API error ${response.status} - not quota related`);
     }
 
     const percentageUsed = (quotaUsed / quotaLimit) * 100;
@@ -159,18 +206,21 @@ async function checkHotelBedsQuota(): Promise<QuotaStatus[]> {
       quotaLimit,
       percentageUsed,
       status,
-      lastChecked: Date.now()
+      lastChecked: Date.now(),
+      isActualQuotaLimit
     }];
   } catch (error) {
-    logger.error('[QUOTA-MONITOR] HotelBeds quota check failed:', error);
+    logger.warn('[QUOTA-MONITOR] HotelBeds quota check network error (not quota issue):', error);
     return [{
       provider: 'hotelbeds',
       service: 'api_calls',
-      quotaUsed: 9500,
+      quotaUsed: 0,
       quotaLimit: 10000,
-      percentageUsed: 95,
-      status: 'critical',
-      lastChecked: Date.now()
+      percentageUsed: 0,
+      status: 'healthy',
+      lastChecked: Date.now(),
+      errorType: 'network_error',
+      isActualQuotaLimit: false
     }];
   }
 }
@@ -182,17 +232,19 @@ async function checkSabreQuota(): Promise<QuotaStatus[]> {
   if (!clientId || !clientSecret) {
     return [{
       provider: 'sabre',
-      service: 'general',
+      service: 'api_calls',
       quotaUsed: 0,
-      quotaLimit: 0,
-      percentageUsed: 100,
-      status: 'critical',
-      lastChecked: Date.now()
+      quotaLimit: 5000,
+      percentageUsed: 0,
+      status: 'healthy',
+      lastChecked: Date.now(),
+      errorType: 'missing_credentials',
+      isActualQuotaLimit: false
     }];
   }
 
   try {
-    // Sabre uses different quota monitoring - checking auth endpoint
+    // Sabre auth endpoint check
     const authResponse = await fetch('https://api.sabre.com/v2/auth/token', {
       method: 'POST',
       headers: {
@@ -205,18 +257,19 @@ async function checkSabreQuota(): Promise<QuotaStatus[]> {
     let status: QuotaStatus['status'] = 'healthy';
     let quotaUsed = 0;
     const quotaLimit = 5000; // Typical limit
+    let isActualQuotaLimit = false;
 
     if (authResponse.status === 429) {
       status = 'exceeded';
       quotaUsed = quotaLimit;
-    } else if (authResponse.status === 403) {
-      status = 'critical';
-      quotaUsed = quotaLimit * 0.9;
+      isActualQuotaLimit = true;
+      logger.warn('[QUOTA-MONITOR] Sabre actual quota exceeded');
     } else if (authResponse.ok) {
-      quotaUsed = quotaLimit * 0.2; // Conservative estimate
+      // Conservative estimate when working normally
+      quotaUsed = Math.min(quotaLimit * 0.1, 200);
     } else {
-      status = 'warning';
-      quotaUsed = quotaLimit * 0.8;
+      // Don't assume quota issues for other errors
+      logger.warn(`[QUOTA-MONITOR] Sabre API error ${authResponse.status} - not quota related`);
     }
 
     const percentageUsed = (quotaUsed / quotaLimit) * 100;
@@ -228,18 +281,21 @@ async function checkSabreQuota(): Promise<QuotaStatus[]> {
       quotaLimit,
       percentageUsed,
       status,
-      lastChecked: Date.now()
+      lastChecked: Date.now(),
+      isActualQuotaLimit
     }];
   } catch (error) {
-    logger.error('[QUOTA-MONITOR] Sabre quota check failed:', error);
+    logger.warn('[QUOTA-MONITOR] Sabre quota check network error (not quota issue):', error);
     return [{
       provider: 'sabre',
       service: 'api_calls',
-      quotaUsed: 4500,
+      quotaUsed: 0,
       quotaLimit: 5000,
-      percentageUsed: 90,
-      status: 'critical',
-      lastChecked: Date.now()
+      percentageUsed: 0,
+      status: 'healthy',
+      lastChecked: Date.now(),
+      errorType: 'network_error',
+      isActualQuotaLimit: false
     }];
   }
 }
@@ -266,23 +322,24 @@ serve(async (req) => {
 
     const allQuotas = [...amadeusQuotas, ...hotelBedsQuotas, ...sabreQuotas];
     
-    // Analyze quota status
+    // Analyze quota status - only real quota issues
     const warnings: string[] = [];
     const criticalProviders: string[] = [];
     const recommendedActions: string[] = [];
 
     for (const quota of allQuotas) {
-      if (quota.status === 'exceeded' || quota.status === 'critical') {
+      // Only report issues for actual quota limits, not network/auth errors
+      if (quota.isActualQuotaLimit && (quota.status === 'exceeded' || quota.status === 'critical')) {
         criticalProviders.push(quota.provider);
         
         if (quota.status === 'exceeded') {
           warnings.push(`${quota.provider} quota exceeded - service unavailable`);
-          recommendedActions.push(`Disable ${quota.provider} temporarily`);
+          recommendedActions.push(`Wait for quota reset or contact ${quota.provider} support`);
         } else {
           warnings.push(`${quota.provider} quota at ${quota.percentageUsed.toFixed(1)}% - approaching limit`);
-          recommendedActions.push(`Reduce ${quota.provider} priority or implement throttling`);
+          recommendedActions.push(`Monitor ${quota.provider} usage carefully`);
         }
-      } else if (quota.status === 'warning') {
+      } else if (quota.status === 'warning' && quota.percentageUsed > 75) {
         warnings.push(`${quota.provider} quota at ${quota.percentageUsed.toFixed(1)}% - monitor closely`);
       }
     }
@@ -301,7 +358,9 @@ serve(async (req) => {
             percentage_used: quota.percentageUsed,
             status: quota.status,
             reset_time: quota.resetTime ? new Date(quota.resetTime).toISOString() : null,
-            last_checked: new Date().toISOString()
+            last_checked: new Date().toISOString(),
+            error_type: quota.errorType || null,
+            is_actual_quota_limit: quota.isActualQuotaLimit
           }, {
             onConflict: 'provider_id'
           });
@@ -310,9 +369,10 @@ serve(async (req) => {
       }
     }
 
-    // Update provider priorities based on quota status
-    if (criticalProviders.length > 0) {
-      await updateProviderPriorities(supabase, allQuotas);
+    // ONLY update provider priorities for actual quota issues
+    const actualQuotaIssues = allQuotas.filter(q => q.isActualQuotaLimit && q.status === 'exceeded');
+    if (actualQuotaIssues.length > 0) {
+      await updateProviderPriorities(supabase, actualQuotaIssues);
     }
 
     const response: ProviderQuotaResponse = {
@@ -326,7 +386,8 @@ serve(async (req) => {
     logger.info('[QUOTA-MONITOR] Quota check completed', {
       totalProviders: allQuotas.length,
       warningCount: warnings.length,
-      criticalCount: criticalProviders.length
+      criticalCount: criticalProviders.length,
+      actualQuotaIssues: actualQuotaIssues.length
     });
 
     return new Response(JSON.stringify(response), {
@@ -350,9 +411,10 @@ serve(async (req) => {
   }
 });
 
-async function updateProviderPriorities(supabase: any, quotas: QuotaStatus[]) {
+// FIXED: Only disable providers for actual quota exceeded (not network/auth errors)
+async function updateProviderPriorities(supabase: any, actualQuotaIssues: QuotaStatus[]) {
   try {
-    logger.info('[QUOTA-MONITOR] Updating provider priorities based on quota status');
+    logger.info('[QUOTA-MONITOR] Updating provider priorities for actual quota issues only');
 
     // Get current provider configs
     const { data: configs } = await supabase
@@ -361,46 +423,23 @@ async function updateProviderPriorities(supabase: any, quotas: QuotaStatus[]) {
 
     if (!configs) return;
 
-    // Update priorities based on quota status
-    for (const config of configs) {
-      const relevantQuota = quotas.find(q => config.id.includes(q.provider));
+    // Only update for providers with actual quota exceeded
+    for (const quota of actualQuotaIssues) {
+      const matchingConfigs = configs.filter(config => config.id.includes(quota.provider));
       
-      if (relevantQuota) {
-        let newPriority = config.priority;
-        let enabled = config.enabled;
-
-        switch (relevantQuota.status) {
-          case 'exceeded':
-            enabled = false; // Disable completely
-            newPriority = 999; // Lowest priority
-            break;
-          case 'critical':
-            newPriority = Math.max(config.priority + 2, 10); // Lower priority significantly
-            break;
-          case 'warning':
-            newPriority = Math.max(config.priority + 1, 5); // Lower priority slightly
-            break;
-          case 'healthy':
-            // Restore original priority if it was modified
-            if (config.priority > 5) {
-              newPriority = Math.max(1, config.priority - 1);
-            }
-            enabled = true;
-            break;
-        }
-
-        // Update if changed
-        if (newPriority !== config.priority || enabled !== config.enabled) {
+      for (const config of matchingConfigs) {
+        if (quota.status === 'exceeded' && quota.isActualQuotaLimit) {
+          // Only disable for confirmed quota exceeded
           await supabase
             .from('provider_configs')
             .update({
-              priority: newPriority,
-              enabled: enabled,
+              enabled: false,
+              priority: 999,
               updated_at: new Date().toISOString()
             })
             .eq('id', config.id);
 
-          logger.info(`[QUOTA-MONITOR] Updated ${config.id}: priority ${config.priority} -> ${newPriority}, enabled: ${enabled}`);
+          logger.warn(`[QUOTA-MONITOR] Disabled ${config.id} due to actual quota exceeded`);
         }
       }
     }

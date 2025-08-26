@@ -3323,7 +3323,9 @@ export type Database = {
       provider_quotas: {
         Row: {
           created_at: string
+          error_type: string | null
           id: string
+          is_actual_quota_limit: boolean | null
           last_checked: string
           percentage_used: number
           provider_id: string
@@ -3337,7 +3339,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          error_type?: string | null
           id?: string
+          is_actual_quota_limit?: boolean | null
           last_checked?: string
           percentage_used?: number
           provider_id: string
@@ -3351,7 +3355,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          error_type?: string | null
           id?: string
+          is_actual_quota_limit?: boolean | null
           last_checked?: string
           percentage_used?: number
           provider_id?: string
