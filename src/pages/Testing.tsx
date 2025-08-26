@@ -23,7 +23,7 @@ export default function Testing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="e2e" className="flex items-center gap-2">
               <TestTube className="h-4 w-4" />
               E2E Tests
@@ -39,6 +39,10 @@ export default function Testing() {
             <TabsTrigger value="health" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
               Health Check
+            </TabsTrigger>
+            <TabsTrigger value="production" className="flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              Production
             </TabsTrigger>
           </TabsList>
 
@@ -114,6 +118,25 @@ export default function Testing() {
               </CardHeader>
               <CardContent>
                 <HealthCheckValidator />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="production" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TestTube className="h-5 w-5" />
+                  Production Validation
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Badge variant="outline">Edge Functions</Badge>
+                  <Badge variant="outline">Provider Status</Badge>
+                  <Badge variant="outline">Critical Path</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ProductionValidationSuite />
               </CardContent>
             </Card>
           </TabsContent>
