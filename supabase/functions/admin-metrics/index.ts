@@ -1,4 +1,5 @@
 
+
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -20,7 +21,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get user from auth header and verify admin status
+    // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -44,19 +45,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify admin status
-    const { data: isAdmin, error: adminError } = await supabaseClient.rpc('is_secure_admin', {
-      user_id: user.id
+    // Verify admin status using the same method as the frontend
+    const { data: isAdmin, error: adminError } = await anonClient.rpc('is_admin', {
+      user_id_param: user.id
     });
 
     if (adminError || !isAdmin) {
+      console.log('Admin check failed:', { adminError, isAdmin, userId: user.id });
       return new Response(
         JSON.stringify({ error: 'Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Fetching admin metrics for user:', user.id);
+    console.log('✅ Admin access verified for user:', user.id);
 
     // Check cache first
     const { data: cachedMetrics } = await supabaseClient
@@ -187,3 +189,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+
