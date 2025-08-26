@@ -102,26 +102,47 @@ const AdminOverviewPage = () => {
         <CardContent className="space-y-4">
           <p>Welcome to the MAKU Travel admin dashboard. Monitor system health and key metrics here.</p>
           
-          {metrics?.recentBookings && metrics.recentBookings.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-2">Recent Bookings</h3>
-              <div className="space-y-2">
-                {metrics.recentBookings.slice(0, 5).map((booking: any) => (
-                  <div key={booking.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                    <div>
-                      <span className="font-mono text-sm">{booking.booking_reference}</span>
-                      <span className="ml-2 text-sm text-muted-foreground">
-                        {booking.booking_type}
-                      </span>
+          {(() => {
+            // Defensive programming: ensure recentBookings is an array
+            const bookingsArray = Array.isArray(metrics?.recentBookings) 
+              ? metrics.recentBookings 
+              : (typeof metrics?.recentBookings === 'string' 
+                  ? (() => {
+                      try {
+                        return JSON.parse(metrics.recentBookings);
+                      } catch {
+                        return [];
+                      }
+                    })()
+                  : []
+                );
+            
+            return bookingsArray.length > 0 ? (
+              <div>
+                <h3 className="font-semibold mb-2">Recent Bookings</h3>
+                <div className="space-y-2">
+                  {bookingsArray.slice(0, 5).map((booking: any, index: number) => (
+                    <div key={booking.id || index} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                      <div>
+                        <span className="font-mono text-sm">{booking.booking_reference || 'N/A'}</span>
+                        <span className="ml-2 text-sm text-muted-foreground">
+                          {booking.booking_type || 'Unknown'}
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        {booking.currency || 'USD'} {booking.total_amount || '0.00'}
+                      </div>
                     </div>
-                    <div className="text-sm">
-                      {booking.currency} {booking.total_amount}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div>
+                <h3 className="font-semibold mb-2">Recent Bookings</h3>
+                <p className="text-muted-foreground">No recent bookings found.</p>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>

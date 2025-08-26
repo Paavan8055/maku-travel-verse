@@ -72,10 +72,23 @@ Deno.serve(async (req) => {
 
     if (cachedMetrics) {
       console.log('✅ Returning cached admin metrics');
+      // Ensure cached data has proper types
+      const cachedData = cachedMetrics.metric_value;
+      const processedData = {
+        ...cachedData,
+        recentBookings: Array.isArray(cachedData.recentBookings) 
+          ? cachedData.recentBookings 
+          : (typeof cachedData.recentBookings === 'string' ? JSON.parse(cachedData.recentBookings) : []),
+        totalBookings: Number(cachedData.totalBookings) || 0,
+        totalRevenue: Number(cachedData.totalRevenue) || 0,
+        totalUsers: Number(cachedData.totalUsers) || 0,
+        activeProperties: Number(cachedData.activeProperties) || 0
+      };
+      
       return new Response(
         JSON.stringify({
           success: true,
-          data: cachedMetrics.metric_value
+          data: processedData
         }),
         {
           status: 200,
@@ -142,16 +155,23 @@ Deno.serve(async (req) => {
       .from('user_documents')
       .select('document_type', { count: 'exact' });
 
+    // Ensure all data types are consistent
     const metrics = {
-      totalBookings: bookingsCount || 0,
-      totalRevenue: revenue,
-      totalUsers: totalUsers?.users?.length || 0,
-      activeProperties: propertiesCount || 0,
-      recentBookings: recentBookings || [],
-      notificationCount: notificationStats?.length || 0,
-      documentCount: documentStats?.length || 0,
+      totalBookings: Number(bookingsCount) || 0,
+      totalRevenue: Number(revenue) || 0,
+      totalUsers: Number(totalUsers?.users?.length) || 0,
+      activeProperties: Number(propertiesCount) || 0,
+      recentBookings: Array.isArray(recentBookings) ? recentBookings : [],
+      notificationCount: Number(notificationStats?.length) || 0,
+      documentCount: Number(documentStats?.length) || 0,
       lastUpdated: new Date().toISOString()
     };
+
+    console.log('✅ Metrics prepared:', {
+      totalBookings: metrics.totalBookings,
+      recentBookingsType: typeof metrics.recentBookings,
+      recentBookingsLength: metrics.recentBookings.length
+    });
 
     // Cache the metrics
     await supabaseClient
