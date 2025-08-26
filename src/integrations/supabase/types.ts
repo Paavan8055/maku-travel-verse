@@ -295,6 +295,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_configuration: {
+        Row: {
+          config_data: Json
+          created_at: string | null
+          environment: string
+          id: string
+          is_active: boolean | null
+          provider: string
+          updated_at: string | null
+        }
+        Insert: {
+          config_data?: Json
+          created_at?: string | null
+          environment?: string
+          id?: string
+          is_active?: boolean | null
+          provider: string
+          updated_at?: string | null
+        }
+        Update: {
+          config_data?: Json
+          created_at?: string | null
+          environment?: string
+          id?: string
+          is_active?: boolean | null
+          provider?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       api_health_logs: {
         Row: {
           checked_at: string
