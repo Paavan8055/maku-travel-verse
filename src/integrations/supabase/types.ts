@@ -3056,33 +3056,45 @@ export type Database = {
       }
       price_alerts: {
         Row: {
-          created_at: string | null
-          destination: string
+          created_at: string
+          current_price: number
           id: string
-          is_active: boolean | null
-          max_price: number | null
-          travel_dates_end: string | null
-          travel_dates_start: string | null
+          is_active: boolean
+          last_checked: string | null
+          last_triggered: string | null
+          notification_method: string
+          search_criteria: Json
+          target_price: number
+          threshold_percentage: number
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
-          destination: string
+          created_at?: string
+          current_price: number
           id?: string
-          is_active?: boolean | null
-          max_price?: number | null
-          travel_dates_end?: string | null
-          travel_dates_start?: string | null
+          is_active?: boolean
+          last_checked?: string | null
+          last_triggered?: string | null
+          notification_method?: string
+          search_criteria: Json
+          target_price: number
+          threshold_percentage?: number
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
-          destination?: string
+          created_at?: string
+          current_price?: number
           id?: string
-          is_active?: boolean | null
-          max_price?: number | null
-          travel_dates_end?: string | null
-          travel_dates_start?: string | null
+          is_active?: boolean
+          last_checked?: string | null
+          last_triggered?: string | null
+          notification_method?: string
+          search_criteria?: Json
+          target_price?: number
+          threshold_percentage?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
