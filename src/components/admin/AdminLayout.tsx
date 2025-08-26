@@ -75,6 +75,7 @@ const adminMenuItems = [
       { title: 'Booking Management', url: '/admin/operations/bookings', icon: BookOpen },
       { title: 'User Management', url: '/admin/operations/users', icon: Users },
       { title: 'Test Suite', url: '/admin/operations/testing', icon: TestTube },
+      { title: 'System Diagnostics', url: '/admin/diagnostics', icon: Activity },
       { title: 'Search Analytics', url: '/admin/operations/search', icon: Search },
     ],
   },
