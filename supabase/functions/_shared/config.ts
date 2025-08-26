@@ -26,23 +26,38 @@ export const ENV_CONFIG = {
   // Email
   RESEND_API_KEY: Deno.env.get('RESEND_API_KEY'),
 
-  // Provider API URLs
+  // Provider API URLs - Production environment check
   amadeus: {
-    tokenUrl: "https://test.api.amadeus.com/v1/security/oauth2/token",
-    baseUrl: "https://test.api.amadeus.com"
+    tokenUrl: Deno.env.get('NODE_ENV') === 'production' 
+      ? "https://api.amadeus.com/v1/security/oauth2/token"
+      : "https://test.api.amadeus.com/v1/security/oauth2/token",
+    baseUrl: Deno.env.get('NODE_ENV') === 'production'
+      ? "https://api.amadeus.com"
+      : "https://test.api.amadeus.com"
   },
   sabre: {
-    tokenUrl: "https://api-crt.cert.havail.sabre.com/v2/auth/token",
-    baseUrl: "https://api-crt.cert.havail.sabre.com"
+    tokenUrl: Deno.env.get('NODE_ENV') === 'production'
+      ? "https://api.sabre.com/v2/auth/token"
+      : "https://api-crt.cert.havail.sabre.com/v2/auth/token",
+    baseUrl: Deno.env.get('NODE_ENV') === 'production'
+      ? "https://api.sabre.com"
+      : "https://api-crt.cert.havail.sabre.com"
   },
   hotelbeds: {
     hotel: {
-      baseUrl: "https://api.test.hotelbeds.com"
+      baseUrl: Deno.env.get('NODE_ENV') === 'production'
+        ? "https://api.hotelbeds.com"
+        : "https://api.test.hotelbeds.com"
     },
     activity: {
-      baseUrl: "https://api.test.hotelbeds.com"
+      baseUrl: Deno.env.get('NODE_ENV') === 'production'
+        ? "https://api.hotelbeds.com"
+        : "https://api.test.hotelbeds.com"
     }
-  }
+  },
+  
+  // Environment flags
+  isProduction: Deno.env.get('NODE_ENV') === 'production'
 };
 
 // Rate limiting configuration
