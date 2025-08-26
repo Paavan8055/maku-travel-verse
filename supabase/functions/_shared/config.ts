@@ -53,6 +53,39 @@ export const config = {
   }
 };
 
+// NEW: Environment-specific configuration that Edge Functions expect
+export const ENV_CONFIG = {
+  amadeus: {
+    baseUrl: 'https://test.api.amadeus.com',
+    tokenUrl: 'https://test.api.amadeus.com/v1/security/oauth2/token'
+  },
+  sabre: {
+    baseUrl: 'https://api-crt.cert.havail.sabre.com',
+    tokenUrl: 'https://api-crt.cert.havail.sabre.com/v2/auth/token'
+  },
+  hotelbeds: {
+    baseUrl: 'https://api.test.hotelbeds.com',
+    mtlsUrl: 'https://api.test.hotelbeds.com',
+    cacheApiUrl: 'https://api.test.hotelbeds.com/cache-api/1.0'
+  }
+};
+
+// Rate limiting configuration for specific providers
+export const RATE_LIMITS = {
+  amadeus: {
+    searchPerMinute: 30,
+    bookingPerMinute: 10
+  },
+  sabre: {
+    searchPerMinute: 20,
+    bookingPerMinute: 5
+  },
+  hotelbeds: {
+    searchPerMinute: 25,
+    bookingPerMinute: 8
+  }
+};
+
 // Provider validation functions
 export function validateProviderCredentials(provider: string): boolean {
   switch (provider) {
@@ -60,6 +93,8 @@ export function validateProviderCredentials(provider: string): boolean {
       return !!(Deno.env.get('AMADEUS_CLIENT_ID') && Deno.env.get('AMADEUS_CLIENT_SECRET'));
     case 'sabre':
       return !!(Deno.env.get('SABRE_CLIENT_ID') && Deno.env.get('SABRE_CLIENT_SECRET'));
+    case 'hotelbeds':
+      return validateHotelBedsCredentials();
     case 'stripe':
       return !!(Deno.env.get('STRIPE_SECRET_KEY') && Deno.env.get('STRIPE_PUBLISHABLE_KEY'));
     default:

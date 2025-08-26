@@ -133,8 +133,10 @@ async function checkProviderHealth(
       .limit(1)
       .single();
     
-    // Validate credentials
-    const credentialsValid = validateProviderCredentials(config.id);
+    // Validate credentials based on provider type
+    const credentialsValid = config.id.includes('hotelbeds') ? 
+      validateHotelBedsCredentials() : 
+      validateProviderCredentials(config.id);
     
     // Perform actual health check based on provider type
     const healthResult = await performProviderHealthCheck(config.id);
@@ -174,7 +176,9 @@ async function checkProviderHealth(
     failureCount,
     quotaStatus: quota?.status || 'unknown',
     quotaPercentage: quota?.percentage_used || 0,
-    credentialsValid: validateProviderCredentials(config.id),
+    credentialsValid: config.id.includes('hotelbeds') ? 
+      validateHotelBedsCredentials() : 
+      validateProviderCredentials(config.id),
     serviceTypes: getProviderServiceTypes(config.id)
   };
 }
