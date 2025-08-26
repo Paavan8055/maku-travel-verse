@@ -9,6 +9,8 @@ const corsHeaders = {
 
 interface BookingConfirmationRequest {
   bookingId: string;
+  customerEmail: string;
+  bookingType: 'flight' | 'hotel' | 'activity' | 'transfer';
 }
 
 const supabase = createClient(
@@ -24,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { bookingId }: BookingConfirmationRequest = await req.json();
+    const { bookingId, customerEmail, bookingType }: BookingConfirmationRequest = await req.json();
     console.log(`[BOOKING-CONFIRMATION] Processing booking ID: ${bookingId}`);
 
     // Fetch booking details
@@ -42,13 +44,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Booking not found');
     }
 
-    // Extract customer email from booking data
-    const customerEmail = booking.booking_data?.customerInfo?.email || 
-                         booking.booking_data?.customer?.email ||
-                         booking.booking_data?.email;
+    // Use provided email or extract from booking data
+    const emailToUse = customerEmail || 
+                       booking.booking_data?.customerInfo?.email || 
+                       booking.booking_data?.customer?.email ||
+                       booking.booking_data?.email;
 
-    if (!customerEmail) {
-      console.error('[BOOKING-CONFIRMATION] No customer email found in booking');
+    if (!emailToUse) {
+      console.error('[BOOKING-CONFIRMATION] No customer email found');
       throw new Error('Customer email not found');
     }
 
@@ -56,12 +59,12 @@ const handler = async (req: Request): Promise<Response> => {
     const emailContent = generateEmailContent(booking);
     const subject = `Booking Confirmation - ${booking.booking_reference}`;
 
-    console.log(`[BOOKING-CONFIRMATION] Sending email to: ${customerEmail}`);
+    console.log(`[BOOKING-CONFIRMATION] Sending email to: ${emailToUse}`);
 
     // Send confirmation email
     const emailResponse = await resend.emails.send({
       from: "MAKU Travel <bookings@maku.travel>",
-      to: [customerEmail],
+      to: [emailToUse],
       subject: subject,
       html: emailContent.html,
     });
@@ -85,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
         booking_reference: booking.booking_reference,
         update_type: 'confirmation_sent',
         title: 'Booking Confirmed',
-        message: `Confirmation email sent to ${customerEmail}`,
+        message: `Confirmation email sent to ${emailToUse}`,
         status: 'completed',
         booking_type: booking.booking_type,
         metadata: {
