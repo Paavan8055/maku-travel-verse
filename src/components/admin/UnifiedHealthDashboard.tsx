@@ -242,7 +242,7 @@ export const UnifiedHealthDashboard: React.FC = () => {
 
         <TabsContent value="providers">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {healthData?.providers?.map((provider) => (
+            {healthData?.providers?.length > 0 ? healthData.providers.map((provider) => (
               <Card key={provider.providerId}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center justify-between text-base">
@@ -266,11 +266,11 @@ export const UnifiedHealthDashboard: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Services:</span>
                     <div className="flex gap-1">
-                      {provider.serviceTypes.map((service) => (
+                      {provider.serviceTypes?.map((service) => (
                         <Badge key={service} variant="outline" className="text-xs">
                           {service}
                         </Badge>
-                      ))}
+                      )) || <Badge variant="outline" className="text-xs">Unknown</Badge>}
                     </div>
                   </div>
                   
@@ -284,13 +284,17 @@ export const UnifiedHealthDashboard: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                No provider data available
+              </div>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="quotas">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {healthData?.providers?.map((provider) => (
+            {healthData?.providers?.length > 0 ? healthData.providers.map((provider) => (
               <Card key={provider.providerId}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center justify-between text-base">
@@ -322,13 +326,17 @@ export const UnifiedHealthDashboard: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                No quota data available
+              </div>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="circuit-breakers">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {healthData?.providers?.map((provider) => (
+            {healthData?.providers?.length > 0 ? healthData.providers.map((provider) => (
               <Card key={provider.providerId}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center justify-between text-base">
@@ -362,7 +370,11 @@ export const UnifiedHealthDashboard: React.FC = () => {
                   )}
                 </CardContent>
               </Card>
-            ))}
+            )) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                No circuit breaker data available
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -377,7 +389,7 @@ export const UnifiedHealthDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {healthData?.providers?.map((provider) => (
+                  {healthData?.providers?.length > 0 ? healthData.providers.map((provider) => (
                     <div key={provider.providerId} className="flex justify-between items-center">
                       <span className="text-sm">{provider.providerName}:</span>
                       <div className="flex items-center gap-2">
@@ -393,7 +405,11 @@ export const UnifiedHealthDashboard: React.FC = () => {
                         <span className="text-sm font-mono w-16 text-right">{provider.responseTime}ms</span>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No performance data available
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -404,7 +420,7 @@ export const UnifiedHealthDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {healthData?.summary?.criticalQuotaProviders.length > 0 && (
+                  {healthData?.summary?.criticalQuotaProviders?.length > 0 && (
                     <Alert variant="destructive">
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
@@ -413,7 +429,7 @@ export const UnifiedHealthDashboard: React.FC = () => {
                     </Alert>
                   )}
                   
-                  {healthData?.summary?.circuitBreakersOpen.length > 0 && (
+                  {healthData?.summary?.circuitBreakersOpen?.length > 0 && (
                     <Alert variant="destructive">
                       <XCircle className="h-4 w-4" />
                       <AlertDescription>
@@ -422,25 +438,25 @@ export const UnifiedHealthDashboard: React.FC = () => {
                     </Alert>
                   )}
                   
-                  {healthData?.summary?.outageProviders > 0 && (
+                  {(healthData?.summary?.outageProviders || 0) > 0 && (
                     <Alert variant="destructive">
                       <XCircle className="h-4 w-4" />
                       <AlertDescription>
-                        {healthData.summary.outageProviders} provider(s) experiencing outages
+                        {healthData?.summary?.outageProviders || 0} provider(s) experiencing outages
                       </AlertDescription>
                     </Alert>
                   )}
                   
-                  {healthData?.summary?.criticalQuotaProviders.length === 0 && 
-                   healthData?.summary?.circuitBreakersOpen.length === 0 && 
-                   healthData?.summary?.outageProviders === 0 && (
-                    <Alert>
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        All systems operating normally
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                  {(!healthData?.summary?.criticalQuotaProviders?.length || healthData.summary.criticalQuotaProviders.length === 0) && 
+                   (!healthData?.summary?.circuitBreakersOpen?.length || healthData.summary.circuitBreakersOpen.length === 0) && 
+                   (!healthData?.summary?.outageProviders || healthData.summary.outageProviders === 0) && (
+                     <Alert>
+                       <CheckCircle className="h-4 w-4" />
+                       <AlertDescription>
+                         All systems operating normally
+                       </AlertDescription>
+                     </Alert>
+                   )}
                 </div>
               </CardContent>
             </Card>
