@@ -1627,6 +1627,24 @@ export type Database = {
           },
         ]
       }
+      funds: {
+        Row: {
+          balance: number | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       funnel_steps: {
         Row: {
           created_at: string | null
@@ -2073,6 +2091,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      itineraries: {
+        Row: {
+          data: Json | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       local_insights: {
         Row: {
