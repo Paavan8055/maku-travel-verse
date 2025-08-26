@@ -23,6 +23,7 @@ import "./App.css";
 
 // Lazy load pages for better performance
 const Index = createLazyRoute(() => import("./pages/Index"));
+const Auth = createLazyRoute(() => import("./pages/Auth"));
 const FlightsPage = createLazyRoute(() => import("./pages/flights"));
 const ActivitiesPage = createLazyRoute(() => import("./pages/activities"));
 const HotelSearchPage = createLazyRoute(() => import("./pages/search/hotels"));
@@ -57,6 +58,7 @@ const AdminCorrelationPage = createLazyRoute(() => import("./pages/admin/monitor
 const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations/bookings"));
 const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/users"));
 const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
+const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnostics"));
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
 const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
 
@@ -105,32 +107,33 @@ const App = () => (
                                   <Toaster />
                                   <Sonner />
                                   
-                                  <BrowserRouter>
-                                    <Routes>
-                                      <Route path="/" element={<Index />} />
-                                      <Route path="/flights" element={<FlightsPage />} />
-                                      <Route path="/activities" element={<ActivitiesPage />} />
-                                      <Route path="/hotels" element={<HotelSearchPage />} />
-                                      <Route path="/search" element={<UnifiedSearchPage />} />
-                                      <Route path="/search/hotels" element={<HotelSearchPage />} />
-                                      <Route path="/search/flights" element={<FlightSearchPage />} />
-                                      <Route path="/search/activities" element={<ActivitySearchPage />} />
-                                      <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
-                                      <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
-                                      <Route path="/activity-booking-review" element={<ActivityBookingReviewPage />} />
-                                      <Route path="/hotel-checkout" element={<HotelCheckoutPage />} />
-                                      <Route path="/flight-checkout" element={<FlightCheckoutPage />} />
-                                      <Route path="/activity-checkout" element={<ActivityCheckoutPage />} />
-                                      <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-                                      <Route path="/booking/:id" element={<BookingDetailsPage />} />
-                                      <Route path="/dashboard" element={<DashboardPage />} />
-                                      <Route path="/settings" element={<SettingsPage />} />
-                                      <Route path="/profile" element={<ProfilePage />} />
-                                      <Route path="/bookings" element={<BookingsPage />} />
-                                      <Route path="/travel-fund" element={<TravelFundPage />} />
-                                      <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
-                                      <Route path="/invite-friends" element={<InviteFriendsPage />} />
-                                      <Route path="/admin" element={<AdminAuth />} />
+                                   <BrowserRouter>
+                                     <Routes>
+                                       <Route path="/" element={<Index />} />
+                                       <Route path="/auth" element={<Auth />} />
+                                       <Route path="/flights" element={<FlightsPage />} />
+                                       <Route path="/activities" element={<ActivitiesPage />} />
+                                       <Route path="/hotels" element={<HotelSearchPage />} />
+                                       <Route path="/search" element={<UnifiedSearchPage />} />
+                                       <Route path="/search/hotels" element={<HotelSearchPage />} />
+                                       <Route path="/search/flights" element={<FlightSearchPage />} />
+                                       <Route path="/search/activities" element={<ActivitySearchPage />} />
+                                       <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
+                                       <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
+                                       <Route path="/activity-booking-review" element={<ActivityBookingReviewPage />} />
+                                       <Route path="/hotel-checkout" element={<HotelCheckoutPage />} />
+                                       <Route path="/flight-checkout" element={<FlightCheckoutPage />} />
+                                       <Route path="/activity-checkout" element={<ActivityCheckoutPage />} />
+                                       <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+                                       <Route path="/booking/:id" element={<BookingDetailsPage />} />
+                                       <Route path="/dashboard" element={<DashboardPage />} />
+                                       <Route path="/settings" element={<SettingsPage />} />
+                                       <Route path="/profile" element={<ProfilePage />} />
+                                       <Route path="/bookings" element={<BookingsPage />} />
+                                       <Route path="/travel-fund" element={<TravelFundPage />} />
+                                       <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
+                                       <Route path="/invite-friends" element={<InviteFriendsPage />} />
+                                       <Route path="/admin" element={<AdminAuth />} />
                                       <Route path="/admin/*" element={
                                         <AdminGuard>
                                           <AdminLayout />
@@ -147,10 +150,11 @@ const App = () => (
                                         <Route path="monitoring/providers" element={<AdminProvidersPage />} />
                                         <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
                                         
-                                        {/* Operations Routes */}
-                                        <Route path="operations/bookings" element={<AdminBookingsPage />} />
-                                        <Route path="operations/users" element={<AdminUsersPage />} />
-                                        <Route path="operations/testing" element={<AdminTestingPage />} />
+                                         {/* Operations Routes */}
+                                         <Route path="operations/bookings" element={<AdminBookingsPage />} />
+                                         <Route path="operations/users" element={<AdminUsersPage />} />
+                                         <Route path="operations/testing" element={<AdminTestingPage />} />
+                                         <Route path="diagnostics" element={<AdminDiagnosticsPage />} />
                                         
                         {/* Security Routes */}
                         <Route path="security/access" element={<AdminSecurityPage />} />
