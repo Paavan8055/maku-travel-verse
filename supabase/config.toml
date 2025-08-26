@@ -319,3 +319,18 @@ verify_jwt = false
 
 [functions.hotelbeds-credential-test]
 verify_jwt = false
+
+[functions.sabre-flight-booking]
+verify_jwt = true
+
+[functions.sabre-pnr-management]
+verify_jwt = true
+
+[functions.sabre-seat-selection]
+verify_jwt = true
+
+[functions.sabre-air-extras]
+verify_jwt = true
+
+[functions.sabre-travel-alerts]
+verify_jwt = true

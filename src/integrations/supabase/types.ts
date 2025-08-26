@@ -226,6 +226,71 @@ export type Database = {
         }
         Relationships: []
       }
+      air_extras: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          extra_code: string
+          extra_type: string
+          flight_segment_id: string | null
+          id: string
+          metadata: Json | null
+          passenger_id: string
+          pnr_id: string | null
+          quantity: number | null
+          sabre_confirmation_code: string | null
+          status: string | null
+          total_price: number
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          extra_code: string
+          extra_type: string
+          flight_segment_id?: string | null
+          id?: string
+          metadata?: Json | null
+          passenger_id: string
+          pnr_id?: string | null
+          quantity?: number | null
+          sabre_confirmation_code?: string | null
+          status?: string | null
+          total_price: number
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          extra_code?: string
+          extra_type?: string
+          flight_segment_id?: string | null
+          id?: string
+          metadata?: Json | null
+          passenger_id?: string
+          pnr_id?: string | null
+          quantity?: number | null
+          sabre_confirmation_code?: string | null
+          status?: string | null
+          total_price?: number
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "air_extras_pnr_id_fkey"
+            columns: ["pnr_id"]
+            isOneToOne: false
+            referencedRelation: "pnr_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       airlines: {
         Row: {
           business_name: string | null
@@ -1388,6 +1453,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      flight_change_requests: {
+        Row: {
+          change_fee: number | null
+          change_type: string
+          created_at: string | null
+          currency: string | null
+          fare_difference: number | null
+          id: string
+          metadata: Json | null
+          original_flight_data: Json
+          pnr_id: string | null
+          processed_at: string | null
+          reason: string | null
+          requested_flight_data: Json
+          sabre_change_reference: string | null
+          status: string | null
+          total_cost: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          change_fee?: number | null
+          change_type: string
+          created_at?: string | null
+          currency?: string | null
+          fare_difference?: number | null
+          id?: string
+          metadata?: Json | null
+          original_flight_data: Json
+          pnr_id?: string | null
+          processed_at?: string | null
+          reason?: string | null
+          requested_flight_data: Json
+          sabre_change_reference?: string | null
+          status?: string | null
+          total_cost?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          change_fee?: number | null
+          change_type?: string
+          created_at?: string | null
+          currency?: string | null
+          fare_difference?: number | null
+          id?: string
+          metadata?: Json | null
+          original_flight_data?: Json
+          pnr_id?: string | null
+          processed_at?: string | null
+          reason?: string | null
+          requested_flight_data?: Json
+          sabre_change_reference?: string | null
+          status?: string | null
+          total_cost?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_change_requests_pnr_id_fkey"
+            columns: ["pnr_id"]
+            isOneToOne: false
+            referencedRelation: "pnr_records"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       flight_offers_cache: {
         Row: {
@@ -3051,6 +3184,59 @@ export type Database = {
         }
         Relationships: []
       }
+      pnr_records: {
+        Row: {
+          booking_id: string | null
+          booking_status: string
+          created_at: string | null
+          expires_at: string | null
+          flight_segments: Json
+          id: string
+          metadata: Json | null
+          passenger_data: Json
+          pnr_locator: string
+          sabre_record_locator: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          booking_status?: string
+          created_at?: string | null
+          expires_at?: string | null
+          flight_segments?: Json
+          id?: string
+          metadata?: Json | null
+          passenger_data?: Json
+          pnr_locator: string
+          sabre_record_locator?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          booking_status?: string
+          created_at?: string | null
+          expires_at?: string | null
+          flight_segments?: Json
+          id?: string
+          metadata?: Json | null
+          passenger_data?: Json
+          pnr_locator?: string
+          sabre_record_locator?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pnr_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       points_transactions: {
         Row: {
           booking_id: string | null
@@ -3505,6 +3691,59 @@ export type Database = {
         }
         Relationships: []
       }
+      seat_assignments: {
+        Row: {
+          cabin_class: string | null
+          created_at: string | null
+          currency: string | null
+          fee_amount: number | null
+          flight_segment_id: string
+          id: string
+          passenger_id: string
+          pnr_id: string | null
+          seat_number: string
+          seat_type: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cabin_class?: string | null
+          created_at?: string | null
+          currency?: string | null
+          fee_amount?: number | null
+          flight_segment_id: string
+          id?: string
+          passenger_id: string
+          pnr_id?: string | null
+          seat_number: string
+          seat_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cabin_class?: string | null
+          created_at?: string | null
+          currency?: string | null
+          fee_amount?: number | null
+          flight_segment_id?: string
+          id?: string
+          passenger_id?: string
+          pnr_id?: string | null
+          seat_number?: string
+          seat_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seat_assignments_pnr_id_fkey"
+            columns: ["pnr_id"]
+            isOneToOne: false
+            referencedRelation: "pnr_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_events: {
         Row: {
           created_at: string | null
@@ -3755,6 +3994,68 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          alert_type: string
+          created_at: string | null
+          expires_at: string | null
+          flight_segment_id: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          original_data: Json | null
+          pnr_id: string | null
+          severity: string | null
+          title: string
+          updated_data: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          alert_type: string
+          created_at?: string | null
+          expires_at?: string | null
+          flight_segment_id?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          original_data?: Json | null
+          pnr_id?: string | null
+          severity?: string | null
+          title: string
+          updated_data?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          alert_type?: string
+          created_at?: string | null
+          expires_at?: string | null
+          flight_segment_id?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          original_data?: Json | null
+          pnr_id?: string | null
+          severity?: string | null
+          title?: string
+          updated_data?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_alerts_pnr_id_fkey"
+            columns: ["pnr_id"]
+            isOneToOne: false
+            referencedRelation: "pnr_records"
             referencedColumns: ["id"]
           },
         ]
