@@ -237,7 +237,27 @@ export const UnifiedTestSuite: React.FC = () => {
                       </div>
 
                       <div className="flex gap-2 mt-4">
-                        <Button size="sm" variant="outline" className="flex-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={async () => {
+                            console.log('Running individual test:', scenario.name);
+                            try {
+                              const { data, error } = await supabase.functions.invoke('deployment-validator', {
+                                body: {
+                                  singleTest: true,
+                                  scenario: scenario,
+                                  correlationId: correlationId.getCurrentId()
+                                },
+                                headers: correlationId.getHeaders()
+                              });
+                              console.log('Test result:', data || error);
+                            } catch (err) {
+                              console.error('Test failed:', err);
+                            }
+                          }}
+                        >
                           <Play className="h-3 w-3 mr-1" />
                           Run
                         </Button>
