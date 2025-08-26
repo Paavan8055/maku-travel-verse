@@ -54,6 +54,7 @@ const AdminRealtimePage = createLazyRoute(() => import("./pages/admin/dashboard/
 const AdminAlertsPage = createLazyRoute(() => import("./pages/admin/dashboard/alerts"));
 const AdminHealthPage = createLazyRoute(() => import("./pages/admin/monitoring/health"));
 const AdminProvidersPage = createLazyRoute(() => import("./pages/admin/monitoring/providers"));
+const AdminQuotasPage = createLazyRoute(() => import("./pages/admin/monitoring/quotas"));
 const AdminCorrelationPage = createLazyRoute(() => import("./pages/admin/monitoring/correlation"));
 const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations/bookings"));
 const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/users"));
@@ -145,10 +146,11 @@ const App = () => (
                                         <Route path="dashboard/realtime" element={<AdminRealtimePage />} />
                                         <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
                                         
-                                        {/* Monitoring Routes */}
-                                        <Route path="monitoring/health" element={<AdminHealthPage />} />
-                                        <Route path="monitoring/providers" element={<AdminProvidersPage />} />
-                                        <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
+                        {/* Monitoring Routes */}
+                        <Route path="monitoring/health" element={<AdminHealthPage />} />
+                        <Route path="monitoring/providers" element={<AdminProvidersPage />} />
+                        <Route path="monitoring/quotas" element={<AdminQuotasPage />} />
+                        <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
                                         
                                          {/* Operations Routes */}
                                          <Route path="operations/bookings" element={<AdminBookingsPage />} />

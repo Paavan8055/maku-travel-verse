@@ -171,7 +171,7 @@ async function checkProviderHealth(
     providerName: config.name,
     status,
     responseTime,
-    lastChecked: timestamp,
+    lastChecked: Date.now(),
     circuitBreakerState: determineCircuitBreakerState(config.id, status, failureCount),
     failureCount,
     quotaStatus: quota?.status || 'unknown',
