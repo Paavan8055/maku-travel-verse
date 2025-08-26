@@ -337,3 +337,18 @@ verify_jwt = true
 
 [functions.sabre-flight-exchange]
 verify_jwt = true
+
+[functions.sabre-flight-price]
+verify_jwt = false
+
+[functions.sabre-air-ticket]
+verify_jwt = false
+
+[functions.sabre-activities]
+verify_jwt = false
+
+[functions.sabre-hotel-content]
+verify_jwt = false
+
+[functions.hotelbeds-image-content]
+verify_jwt = false
