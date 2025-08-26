@@ -164,10 +164,13 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         success: false,
         error: 'No available providers',
-        fallbackData: await getFallbackData(searchType)
+        data: await getFallbackData(searchType),
+        provider: 'Fallback',
+        providerId: 'fallback',
+        fallbackUsed: true
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 503
+        status: 200
       });
     }
 
@@ -181,13 +184,14 @@ serve(async (req) => {
         
         const result = await callProvider(supabase, provider, params);
         
-        if (result.success) {
+        if (result.success && result.data && (!Array.isArray(result.data) || result.data.length > 0)) {
           // Update provider success metrics
           await updateProviderMetrics(supabase, provider.id, true, result.responseTime);
           
           logger.info('[PROVIDER-ROTATION] Provider succeeded', { 
             providerId: provider.id, 
-            responseTime: result.responseTime 
+            responseTime: result.responseTime,
+            dataCount: Array.isArray(result.data) ? result.data.length : 1
           });
           
           return new Response(JSON.stringify({
@@ -222,17 +226,12 @@ serve(async (req) => {
       }
     }
 
-    // All providers failed, return detailed error information
-    logger.error('[PROVIDER-ROTATION] All providers failed', { 
+    // All providers failed, return fallback data with success=false for UI handling
+    logger.warn('[PROVIDER-ROTATION] All providers failed, returning fallback data', { 
       lastError: lastError?.message,
       credentialErrors: credentialErrors.length,
       totalProviders: providers.length
     });
-    
-    let errorMessage = 'All providers are temporarily unavailable. Please try again later.';
-    if (credentialErrors.length > 0) {
-      errorMessage = `Service temporarily unavailable. ${credentialErrors.length} provider(s) have credential issues. Please contact support.`;
-    }
     
     return new Response(JSON.stringify({
       success: false,
@@ -240,7 +239,7 @@ serve(async (req) => {
       provider: 'None Available',
       providerId: 'none',
       fallbackUsed: false,
-      error: errorMessage,
+      error: 'All providers are temporarily unavailable. Please try again later.',
       details: {
         providersAttempted: providers.length,
         credentialIssues: credentialErrors.length,
@@ -248,7 +247,7 @@ serve(async (req) => {
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: credentialErrors.length > 0 ? 503 : 502
+      status: 502
     });
 
   } catch (error) {
@@ -256,7 +255,11 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: error.message,
+      data: await getFallbackData('flight'), // Default fallback
+      provider: 'Error',
+      providerId: 'error',
+      fallbackUsed: true
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
@@ -352,31 +355,20 @@ function isProviderCredentialsValid(providerId: string): boolean {
       case 'amadeus-flight':
       case 'amadeus-hotel':
       case 'amadeus-activity':
-        const amadeusClientId = Deno.env.get('AMADEUS_CLIENT_ID');
-        const amadeusClientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
-        return !!(amadeusClientId && amadeusClientSecret);
+        return validateProviderCredentials('amadeus');
       
       case 'sabre-flight':
       case 'sabre-hotel':
-        const sabreClientId = Deno.env.get('SABRE_CLIENT_ID');
-        const sabreClientSecret = Deno.env.get('SABRE_CLIENT_SECRET');
-        return !!(sabreClientId && sabreClientSecret);
+        return validateProviderCredentials('sabre');
       
       case 'hotelbeds-hotel':
-        const hotelbedsApiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
-        const hotelbedsSecret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
-        return !!(hotelbedsApiKey && hotelbedsSecret);
+        return validateHotelBedsCredentials('hotel');
       
       case 'hotelbeds-activity':
-        const activityApiKey = Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY');
-        const activitySecret = Deno.env.get('HOTELBEDS_ACTIVITY_SECRET');
-        return !!(activityApiKey && activitySecret);
+        return validateHotelBedsCredentials('activity');
       
       case 'hotelbeds-transfer':
-        // HotelBeds transfer uses same credentials as hotel
-        const transferApiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
-        const transferSecret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
-        return !!(transferApiKey && transferSecret);
+        return validateHotelBedsCredentials('hotel');
       
       default:
         logger.warn(`[PROVIDER-ROTATION] Unknown provider ID: ${providerId}`);
@@ -438,21 +430,7 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   
   if (error) {
     logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
-    
-    // Enhanced error handling for credential issues
-    const errorMessage = error.message || 'Unknown error';
-    
-    if (errorMessage.includes('403') || errorMessage.includes('access denied') || errorMessage.includes('Forbidden')) {
-      throw new Error(`Provider ${provider.id} credentials are invalid or insufficient (403 Forbidden)`);
-    } else if (errorMessage.includes('401') || errorMessage.includes('authentication failed')) {
-      throw new Error(`Provider ${provider.id} authentication failed (401 Unauthorized)`);
-    } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
-      throw new Error(`Provider ${provider.id} rate limit exceeded (429)`);
-    } else if (errorMessage.includes('not configured') || errorMessage.includes('credentials')) {
-      throw new Error(`Provider ${provider.id} credentials not properly configured`);
-    } else {
-      throw new Error(`Provider ${provider.id} failed: ${errorMessage}`);
-    }
+    throw new Error(`Provider ${provider.id} failed: ${error.message}`);
   }
   
   // Validate response data
@@ -464,22 +442,16 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   // Standardize response format for different providers
   let standardizedData;
   if (data?.data && Array.isArray(data.data)) {
-    // Standard format: { success: true, data: [...] }
     standardizedData = data.data;
   } else if (data?.flights) {
-    // Amadeus flight search returns { flights: [...] }
     standardizedData = data.flights;
   } else if (data?.hotels) {
-    // Hotel search returns { hotels: [...] }
     standardizedData = data.hotels;
   } else if (data?.activities) {
-    // Activity search returns { activities: [...] }
     standardizedData = data.activities;
   } else if (Array.isArray(data)) {
-    // Direct array response
     standardizedData = data;
   } else {
-    // Fallback to original data structure
     standardizedData = data;
     logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
   }
@@ -498,113 +470,87 @@ async function updateProviderMetrics(
   responseTime: number
 ) {
   try {
-    await supabase
-      .from('provider_metrics')
-      .insert({
-        provider_id: providerId,
-        success,
-        response_time: responseTime,
-        timestamp: new Date().toISOString()
+    const { error } = await supabase
+      .from('provider_health')
+      .upsert({
+        provider: providerId,
+        status: success ? 'healthy' : 'unhealthy',
+        last_checked: new Date().toISOString(),
+        response_time_ms: responseTime,
+        error_count: success ? 0 : 1
+      }, {
+        onConflict: 'provider'
       });
+
+    if (error) {
+      logger.warn(`[PROVIDER-ROTATION] Failed to update metrics for ${providerId}:`, error);
+    }
   } catch (error) {
-    logger.warn('[PROVIDER-ROTATION] Failed to update metrics', { providerId, error: error.message });
+    logger.warn(`[PROVIDER-ROTATION] Error updating provider metrics:`, error);
   }
 }
 
 async function getFallbackData(searchType: string): Promise<any> {
-  // Try to get curated demo data first
-  try {
-    // Import fallback data dynamically (simulated)
-    const fallbackData = {
-      flight: {
+  switch (searchType) {
+    case 'flight':
+      return {
         flights: [
           {
-            id: "demo-flight-1",
-            airline: "Demo Airways",
-            flightNumber: "DM101",
-            departure: { airport: "SYD", city: "Sydney", time: "08:00" },
-            arrival: { airport: "MEL", city: "Melbourne", time: "09:30" },
-            duration: "1h 30m",
-            price: { amount: 249, currency: "AUD" },
+            id: 'demo-flight-1',
+            airline: 'Demo Airways',
+            flightNumber: 'DM101',
+            departure: { airport: 'SYD', city: 'Sydney', time: '08:00' },
+            arrival: { airport: 'MEL', city: 'Melbourne', time: '09:30' },
+            duration: '1h 30m',
+            price: { amount: 249, currency: 'AUD' },
             isDemoData: true
           }
         ],
-        meta: { 
-          isDemoData: true, 
-          message: "Live flight data temporarily unavailable. Showing sample results." 
+        meta: {
+          isDemoData: true,
+          message: 'Live flight data temporarily unavailable. Showing sample results.'
         }
-      },
-      hotel: {
+      };
+    
+    case 'hotel':
+      return {
         hotels: [
           {
-            id: "demo-hotel-1",
-            name: "Grand Demo Hotel",
-            address: "123 Sample Street, Sydney NSW 2000",
+            id: 'demo-hotel-1',
+            name: 'Grand Demo Hotel',
+            address: '123 Sample Street, Sydney NSW 2000',
             starRating: 4,
-            price: { amount: 185, currency: "AUD", period: "per night" },
+            price: { amount: 185, currency: 'AUD', period: 'per night' },
             rating: { score: 4.2, reviews: 1205 },
             isDemoData: true
           }
         ],
-        meta: { 
-          isDemoData: true, 
-          message: "Live hotel data temporarily unavailable. Showing sample results." 
+        meta: {
+          isDemoData: true,
+          message: 'Live hotel data temporarily unavailable. Showing sample results.'
         }
-      },
-      activity: {
+      };
+    
+    case 'activity':
+      return {
         activities: [
           {
-            id: "demo-activity-1",
-            name: "Sydney Harbour Bridge Climb",
-            description: "Experience breathtaking 360-degree views of Sydney from the top of the iconic Harbour Bridge.",
-            duration: "3.5 hours",
-            price: { amount: 185, currency: "AUD" },
+            id: 'demo-activity-1',
+            name: 'Sydney Harbour Bridge Climb',
+            description: 'Experience breathtaking 360-degree views of Sydney from the top of the iconic Harbour Bridge.',
+            duration: '3.5 hours',
+            price: { amount: 185, currency: 'AUD' },
             rating: { score: 4.8, reviews: 12540 },
             isDemoData: true
           }
         ],
-        meta: { 
-          isDemoData: true, 
-          message: "Live activity data temporarily unavailable. Showing sample results." 
+        meta: {
+          isDemoData: true,
+          message: 'Live activity data temporarily unavailable. Showing sample results.'
         }
-      }
-    };
+      };
     
-    return fallbackData[searchType as keyof typeof fallbackData] || {
-      data: [],
-      meta: { 
-        isDemoData: true,
-        message: "Service temporarily unavailable. Showing sample results." 
-      }
-    };
-  } catch (error) {
-    logger.warn('[PROVIDER-ROTATION] Failed to load fallback data, using empty results');
-    
-    // Return empty results as final fallback
-    switch (searchType) {
-      case 'flight':
-        return {
-          flights: [],
-          meta: { error: 'All flight providers are temporarily unavailable. Please try again later.' }
-        };
-      
-      case 'hotel':
-        return {
-          hotels: [],
-          meta: { error: 'All hotel providers are temporarily unavailable. Please try again later.' }
-        };
-      
-      case 'activity':
-        return {
-          activities: [],
-          meta: { error: 'All activity providers are temporarily unavailable. Please try again later.' }
-        };
-      
-      default:
-        return { 
-          data: [], 
-          meta: { error: 'Service temporarily unavailable. Please try again later.' } 
-        };
-    }
+    default:
+      return { error: 'Unknown search type' };
   }
 }
