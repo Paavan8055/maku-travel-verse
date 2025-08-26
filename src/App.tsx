@@ -32,6 +32,7 @@ const ActivitySearchPage = createLazyRoute(() => import("./pages/search/activiti
 const UnifiedSearchPage = createLazyRoute(() => import("./pages/search/index"));
 const HotelBookingReviewPage = createLazyRoute(() => import("./pages/hotel-booking-review"));
 const FlightBookingReviewPage = createLazyRoute(() => import("./pages/flight-booking-review"));
+const FlightManagementPage = createLazyRoute(() => import("./pages/flight-management"));
 const ActivityBookingReviewPage = createLazyRoute(() => import("./pages/activity-booking-review"));
 const HotelCheckoutPage = createLazyRoute(() => import("./pages/HotelCheckout"));
 const FlightCheckoutPage = createLazyRoute(() => import("./pages/FlightCheckout"));
@@ -120,7 +121,8 @@ const App = () => (
                                        <Route path="/search/flights" element={<FlightSearchPage />} />
                                        <Route path="/search/activities" element={<ActivitySearchPage />} />
                                        <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
-                                       <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
+                                        <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
+                                        <Route path="/flight-management" element={<FlightManagementPage />} />
                                        <Route path="/activity-booking-review" element={<ActivityBookingReviewPage />} />
                                        <Route path="/hotel-checkout" element={<HotelCheckoutPage />} />
                                        <Route path="/flight-checkout" element={<FlightCheckoutPage />} />
