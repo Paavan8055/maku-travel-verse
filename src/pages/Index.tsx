@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
 import { BookingTestPanel } from "@/components/debug/BookingTestPanel";
 import { ProductionStatusIndicator } from "@/components/production/ProductionStatusIndicator";
+import { EmergencyFixPanel } from "@/components/EmergencyFixPanel";
 const Index = () => {
   return (
     <ErrorBoundary>
@@ -25,6 +26,14 @@ const Index = () => {
           <TestModeIndicator />
           <SessionRecoveryBanner />
           <Navbar />
+          
+          {/* Emergency Fix Panel - Critical for Production Launch */}
+          <div className="bg-destructive/5 border-y border-destructive/20 py-6">
+            <div className="max-w-4xl mx-auto px-6">
+              <EmergencyFixPanel />
+            </div>
+          </div>
+          
           <HeroSection />
           <MarketplacePills />
           <SearchSection />

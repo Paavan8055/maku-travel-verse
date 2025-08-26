@@ -347,28 +347,44 @@ async function getAvailableProviders(
 
 // Check if a provider has valid credentials
 function isProviderCredentialsValid(providerId: string): boolean {
-  switch (providerId) {
-    case 'amadeus-flight':
-    case 'amadeus-hotel':
-    case 'amadeus-activity':
-      return validateProviderCredentials('amadeus');
-    
-    case 'sabre-flight':
-    case 'sabre-hotel':
-      return validateProviderCredentials('sabre');
-    
-    case 'hotelbeds-hotel':
-      return validateHotelBedsCredentials('hotel');
-    
-    case 'hotelbeds-activity':
-      return validateHotelBedsCredentials('activity');
-    
-    case 'hotelbeds-transfer':
-      return validateHotelBedsCredentials('transfer');
-    
-    default:
-      logger.warn(`[PROVIDER-ROTATION] Unknown provider ID: ${providerId}`);
-      return false;
+  try {
+    switch (providerId) {
+      case 'amadeus-flight':
+      case 'amadeus-hotel':
+      case 'amadeus-activity':
+        const amadeusClientId = Deno.env.get('AMADEUS_CLIENT_ID');
+        const amadeusClientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
+        return !!(amadeusClientId && amadeusClientSecret);
+      
+      case 'sabre-flight':
+      case 'sabre-hotel':
+        const sabreClientId = Deno.env.get('SABRE_CLIENT_ID');
+        const sabreClientSecret = Deno.env.get('SABRE_CLIENT_SECRET');
+        return !!(sabreClientId && sabreClientSecret);
+      
+      case 'hotelbeds-hotel':
+        const hotelbedsApiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
+        const hotelbedsSecret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
+        return !!(hotelbedsApiKey && hotelbedsSecret);
+      
+      case 'hotelbeds-activity':
+        const activityApiKey = Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY');
+        const activitySecret = Deno.env.get('HOTELBEDS_ACTIVITY_SECRET');
+        return !!(activityApiKey && activitySecret);
+      
+      case 'hotelbeds-transfer':
+        // HotelBeds transfer uses same credentials as hotel
+        const transferApiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
+        const transferSecret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
+        return !!(transferApiKey && transferSecret);
+      
+      default:
+        logger.warn(`[PROVIDER-ROTATION] Unknown provider ID: ${providerId}`);
+        return false;
+    }
+  } catch (error) {
+    logger.error(`[PROVIDER-ROTATION] Error checking credentials for ${providerId}:`, error);
+    return false;
   }
 }
 
