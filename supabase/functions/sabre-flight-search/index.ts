@@ -37,63 +37,29 @@ serve(async (req) => {
     const accessToken = await getSabreAccessToken();
     logger.info('✅ Successfully obtained Sabre token');
 
-    // Build Sabre search request
-    const searchRequest = {
-      OTA_AirLowFareSearchRQ: {
-        Version: "1",
-        POS: {
-          Source: [{
-            PseudoCityCode: "F9CE",
-            RequestorID: {
-              Type: "1",
-              ID: "1",
-              CompanyName: {
-                Code: "TN"
-              }
-            }
-          }]
-        },
-        OriginDestinationInformation: [{
-          RPH: "1",
-          DepartureDateTime: `${departureDate}T00:00:00`,
-          OriginLocation: { LocationCode: originLocationCode },
-          DestinationLocation: { LocationCode: destinationLocationCode }
-        }],
-        TravelPreferences: {
-          MaxStopsQuantity: 3
-        },
-        TravelerInfoSummary: {
-          AirTravelerAvail: [{
-            PassengerTypeQuantity: {
-              Code: "ADT",
-              Quantity: adults
-            }
-          }]
-        }
-      }
-    };
-
-    // Add return flight if specified
-    if (returnDate) {
-      searchRequest.OTA_AirLowFareSearchRQ.OriginDestinationInformation.push({
-        RPH: "2",
-        DepartureDateTime: `${returnDate}T00:00:00`,
-        OriginLocation: { LocationCode: destinationLocationCode },
-        DestinationLocation: { LocationCode: originLocationCode }
-      });
-    }
-
-    const searchUrl = `${ENV_CONFIG.sabre?.baseUrl || 'https://api-crt.cert.havail.sabre.com'}/v1/offers/shop`;
+    // Build search URL with query parameters for InstaFlights Search API
+    const searchUrl = new URL('/v1/shop/flights', ENV_CONFIG.sabre?.baseUrl || 'https://api-crt.cert.havail.sabre.com');
     
-    logger.info('Making Sabre API request');
+    // Add query parameters for InstaFlights Search API
+    searchUrl.searchParams.append('origin', originLocationCode);
+    searchUrl.searchParams.append('destination', destinationLocationCode);
+    searchUrl.searchParams.append('departuredate', departureDate);
+    searchUrl.searchParams.append('passengercount', adults.toString());
+    searchUrl.searchParams.append('limit', '50');
+    searchUrl.searchParams.append('offset', '1');
+    
+    if (returnDate) {
+      searchUrl.searchParams.append('returndate', returnDate);
+    }
+    
+    logger.info('Making Sabre API request to:', searchUrl.toString());
 
     const response = await fetch(searchUrl, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(searchRequest)
+        'Accept': 'application/json',
+      }
     });
 
     if (!response.ok) {
@@ -109,11 +75,13 @@ serve(async (req) => {
     const data = await response.json();
     logger.info('✅ Successfully retrieved Sabre flight offers');
 
-    // Transform Sabre response to standard format
+    // Transform Sabre InstaFlights response to standard format
+    const flights = data.PricedItineries || data.PricedItineraries || [];
     const transformedData = {
-      data: data.OTA_AirLowFareSearchRS?.PricedItineraries?.PricedItinerary || [],
+      data: flights,
       meta: {
-        count: data.OTA_AirLowFareSearchRS?.PricedItineraries?.PricedItinerary?.length || 0
+        count: flights.length || 0,
+        currency: data.Links?.LinkCurrency || 'USD'
       }
     };
 
