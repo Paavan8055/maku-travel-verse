@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, environment } = await req.json();
+    const { action, environment } = await req.json().catch(() => ({ action: 'get_config' }));
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -24,13 +24,33 @@ serve(async (req) => {
       case 'get_config':
         console.log('[ENVIRONMENT-CONFIG] Getting current configuration');
         
+        // Get current environment from database
+        const { data: envConfig } = await supabase
+          .from('environment_configs')
+          .select('*')
+          .eq('config_key', 'current_environment')
+          .eq('is_active', true)
+          .single();
+
+        const currentEnv = envConfig?.config_value?.active_environment || 'test';
+        const isProduction = currentEnv === 'production';
+        
         const currentConfig = {
-          isProduction: ENV_CONFIG.isProduction,
-          hotelbeds: ENV_CONFIG.hotelbeds,
-          amadeus: ENV_CONFIG.amadeus,
-          sabre: ENV_CONFIG.sabre,
+          isProduction,
+          hotelbeds: {
+            hotel: { baseUrl: isProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" },
+            activity: { baseUrl: isProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" }
+          },
+          amadeus: {
+            baseUrl: isProduction ? "https://api.amadeus.com" : "https://test.api.amadeus.com",
+            tokenUrl: isProduction ? "https://api.amadeus.com/v1/security/oauth2/token" : "https://test.api.amadeus.com/v1/security/oauth2/token"
+          },
+          sabre: {
+            baseUrl: isProduction ? "https://api.sabre.com" : "https://api-crt.cert.havail.sabre.com",
+            tokenUrl: isProduction ? "https://api.sabre.com/v2/auth/token" : "https://api-crt.cert.havail.sabre.com/v2/auth/token"
+          },
           mtls: getMTLSConfig(),
-          environment: ENV_CONFIG.isProduction ? 'production' : 'test'
+          environment: currentEnv
         };
 
         return new Response(JSON.stringify(currentConfig), {
@@ -55,9 +75,33 @@ serve(async (req) => {
           throw insertError;
         }
 
+        // Get updated config after environment switch
+        const { data: updatedEnvConfig } = await supabase
+          .from('environment_configs')
+          .select('*')
+          .eq('config_key', 'current_environment')
+          .eq('is_active', true)
+          .single();
+
+        const newEnv = updatedEnvConfig?.config_value?.active_environment || environment;
+        const newIsProduction = newEnv === 'production';
+
         const newConfig = {
-          ...ENV_CONFIG,
-          isProduction: environment === 'production'
+          isProduction: newIsProduction,
+          hotelbeds: {
+            hotel: { baseUrl: newIsProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" },
+            activity: { baseUrl: newIsProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" }
+          },
+          amadeus: {
+            baseUrl: newIsProduction ? "https://api.amadeus.com" : "https://test.api.amadeus.com",
+            tokenUrl: newIsProduction ? "https://api.amadeus.com/v1/security/oauth2/token" : "https://test.api.amadeus.com/v1/security/oauth2/token"
+          },
+          sabre: {
+            baseUrl: newIsProduction ? "https://api.sabre.com" : "https://api-crt.cert.havail.sabre.com",
+            tokenUrl: newIsProduction ? "https://api.sabre.com/v2/auth/token" : "https://api-crt.cert.havail.sabre.com/v2/auth/token"
+          },
+          mtls: getMTLSConfig(),
+          environment: newEnv
         };
 
         return new Response(JSON.stringify(newConfig), {

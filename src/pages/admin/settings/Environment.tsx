@@ -131,19 +131,18 @@ const EnvironmentPage = () => {
   const testAllCredentials = async () => {
     setTestingCredentials(true);
     try {
-      // Reset provider health to force fresh checks
-      await supabase.functions.invoke('provider-quota-monitor');
+      const { data, error } = await supabase.functions.invoke('provider-credential-test');
+      
+      if (error) throw error;
       
       toast({
-        title: "Credential test initiated",
-        description: "Testing all provider credentials...",
+        title: "Credential test completed",
+        description: `${data.summary.successful}/${data.summary.total} providers passed`,
+        variant: data.summary.failed > 0 ? "destructive" : "default"
       });
 
-      // Refresh status after a moment
-      setTimeout(() => {
-        fetchCredentialStatus();
-        setTestingCredentials(false);
-      }, 3000);
+      // Refresh status after test
+      fetchCredentialStatus();
     } catch (error) {
       console.error('Failed to test credentials:', error);
       toast({
@@ -151,6 +150,7 @@ const EnvironmentPage = () => {
         description: "Could not test provider credentials",
         variant: "destructive"
       });
+    } finally {
       setTestingCredentials(false);
     }
   };
