@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
-import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 
 interface MobileSearchSheetProps {
   trigger?: React.ReactNode;
