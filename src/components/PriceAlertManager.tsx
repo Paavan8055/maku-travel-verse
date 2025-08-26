@@ -34,8 +34,19 @@ export const PriceAlertManager: React.FC = () => {
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newAlert, setNewAlert] = useState({
-    type: 'hotel' as const,
+  const [newAlert, setNewAlert] = useState<{
+    type: 'flight' | 'hotel' | 'activity';
+    destination: string;
+    origin: string;
+    startDate: string;
+    endDate: string;
+    passengers: number;
+    rooms: number;
+    targetPrice: number;
+    threshold: number;
+    notificationMethod: 'email' | 'push' | 'both';
+  }>({
+    type: 'hotel',
     destination: '',
     origin: '',
     startDate: '',
@@ -44,7 +55,7 @@ export const PriceAlertManager: React.FC = () => {
     rooms: 1,
     targetPrice: 0,
     threshold: 10,
-    notificationMethod: 'email' as const
+    notificationMethod: 'email'
   });
   const { toast } = useToast();
 
