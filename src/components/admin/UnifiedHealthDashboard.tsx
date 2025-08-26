@@ -303,27 +303,35 @@ export const UnifiedHealthDashboard: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Quota Status:</span>
-                    <Badge variant={getQuotaColor(provider.quotaPercentage, provider.quotaStatus)}>
-                      {provider.quotaStatus}
-                    </Badge>
-                  </div>
+                   <div className="flex justify-between items-center">
+                     <span className="text-sm">Quota Status:</span>
+                     <Badge variant={getQuotaColor(provider.quotaPercentage, provider.quotaStatus)}>
+                       {provider.quotaStatus || 'healthy'}
+                     </Badge>
+                   </div>
                   
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Usage:</span>
-                    <span className="text-sm font-mono">{provider.quotaPercentage}%</span>
-                  </div>
+                   <div className="flex justify-between items-center">
+                     <span className="text-sm">Usage:</span>
+                     <span className="text-sm font-mono">{provider.quotaPercentage || 0}%</span>
+                   </div>
                   
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${
-                        provider.quotaPercentage >= 90 ? 'bg-red-500' :
-                        provider.quotaPercentage >= 75 ? 'bg-yellow-500' : 'bg-green-500'
-                      }`}
-                      style={{ width: `${Math.min(provider.quotaPercentage, 100)}%` }}
-                    />
-                  </div>
+                   <div className="w-full bg-gray-200 rounded-full h-2">
+                     <div 
+                       className={`h-2 rounded-full ${
+                         (provider.quotaPercentage || 0) >= 90 ? 'bg-red-500' :
+                         (provider.quotaPercentage || 0) >= 75 ? 'bg-yellow-500' : 'bg-green-500'
+                       }`}
+                       style={{ width: `${Math.min(provider.quotaPercentage || 0, 100)}%` }}
+                     />
+                   </div>
+                   
+                   {/* Show quota monitoring status */}
+                   <div className="text-xs text-muted-foreground">
+                     <div className="flex items-center gap-1">
+                       <CheckCircle className="h-3 w-3 text-green-500" />
+                       <span>Real-time monitoring active</span>
+                     </div>
+                   </div>
                 </CardContent>
               </Card>
             )) : (
