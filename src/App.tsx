@@ -59,7 +59,7 @@ const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/us
 const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
 const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
-const DebugPage = createLazyRoute(() => import("./pages/debug"));
+
 const HotelSelectionPage = createLazyRoute(() => import("./pages/booking/hotel-selection").then(m => ({ default: m.default })));
 
 const queryClient = new QueryClient({
@@ -159,11 +159,6 @@ const App = () => (
                                         {/* Legacy Routes for backward compatibility */}
                                         <Route path="deployment-test" element={<DeploymentTestPage />} />
                                       </Route>
-                                      <Route path="/debug" element={
-                                        <DebugGuard>
-                                          <DebugPage />
-                                        </DebugGuard>
-                                      } />
                                       <Route path="/booking/hotel-selection" element={<HotelSelectionPage />} />
                                     </Routes>
                                   </BrowserRouter>
