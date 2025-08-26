@@ -1,25 +1,13 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import logger from "../_shared/logger.ts";
 import { ENV_CONFIG } from "../_shared/config.ts";
-
-// Simple logger fallback to avoid import errors
-const logger = {
-  info: (msg: any, ...args: any[]) => console.log('[INFO]', msg, ...args),
-  error: (msg: any, ...args: any[]) => console.error('[ERROR]', msg, ...args),
-  warn: (msg: any, ...args: any[]) => console.warn('[WARN]', msg, ...args),
-  debug: (msg: any, ...args: any[]) => console.debug('[DEBUG]', msg, ...args),
-};
+import { getAmadeusAccessToken } from "../_shared/amadeus.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-interface AmadeusAuthResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
 
 interface SearchContext {
   destination: string;
@@ -33,47 +21,6 @@ interface SearchContext {
   currency: string;
   radius?: number;
   coordinates?: { lat: number; lng: number };
-}
-
-// Enhanced Amadeus authentication
-async function getAmadeusAccessToken(): Promise<string> {
-  const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
-  const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
-  
-  if (!clientId || !clientSecret) {
-    logger.error('❌ CRITICAL: Missing Amadeus credentials');
-    throw new Error('Missing Amadeus credentials - check environment configuration');
-  }
-
-  logger.info('🔐 Attempting Amadeus authentication...');
-
-  try {
-    const response = await fetch(ENV_CONFIG.amadeus.tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: clientId,
-        client_secret: clientSecret,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      logger.error('❌ Amadeus authentication failed:', errorText);
-      throw new Error(`Amadeus auth failed: ${response.statusText}`);
-    }
-
-    const data: AmadeusAuthResponse = await response.json();
-    logger.info('✅ Successfully authenticated with Amadeus');
-    return data.access_token;
-    
-  } catch (error) {
-    logger.error('❌ Amadeus authentication error:', error);
-    throw error;
-  }
 }
 
 // Step 1: Get hotel list from city  
