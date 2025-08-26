@@ -1,6 +1,6 @@
+
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    logger.info('Fetching admin metrics for user:', user.id);
+    console.log('Fetching admin metrics for user:', user.id);
 
     // Check cache first
     const { data: cachedMetrics } = await supabaseClient
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (cachedMetrics) {
-      logger.info('✅ Returning cached admin metrics');
+      console.log('✅ Returning cached admin metrics');
       return new Response(
         JSON.stringify({
           success: true,
@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
         expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour cache
       });
 
-    logger.info('✅ Admin metrics fetched successfully');
+    console.log('✅ Admin metrics fetched successfully');
 
     return new Response(
       JSON.stringify({
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    logger.error('Admin metrics error:', error);
+    console.error('Admin metrics error:', error);
     return new Response(
       JSON.stringify({
         success: false,
