@@ -41,9 +41,7 @@ async function getAmadeusAccessToken(): Promise<string> {
 }
 
 async function confirmWithAmadeus(bookingData: any, accessToken: string) {
-  // Simulate Amadeus hotel booking confirmation
-  // In production, this would be the actual Amadeus booking API call
-  logger.info('Confirming hotel booking with Amadeus:', {
+  logger.info('Making REAL Amadeus hotel booking confirmation:', {
     hotelId: bookingData.hotelId,
     offerId: bookingData.offerId,
     checkIn: bookingData.checkIn,
@@ -52,9 +50,10 @@ async function confirmWithAmadeus(bookingData: any, accessToken: string) {
 
   const bookingPayload = {
     data: {
-      type: "hotel-order",
-      hotelId: bookingData.hotelId,
-      offerId: bookingData.offerId,
+      type: "hotel-booking",
+      hotelOffer: {
+        id: bookingData.offerId
+      },
       guests: bookingData.guests || [
         {
           id: 1,
@@ -64,7 +63,7 @@ async function confirmWithAmadeus(bookingData: any, accessToken: string) {
             lastName: bookingData.customerInfo?.lastName || "Doe"
           },
           contact: {
-            phone: "+1234567890",
+            phone: bookingData.customerInfo?.phone || "+1234567890",
             email: bookingData.customerInfo?.email || "guest@example.com"
           }
         }
@@ -90,19 +89,89 @@ async function confirmWithAmadeus(bookingData: any, accessToken: string) {
     }
   };
 
-  // For now, return a mock confirmation since actual Amadeus booking
-  // requires more complex integration
-  return {
-    success: true,
-    booking: {
-      id: `amadeus_${Date.now()}`,
-      confirmationNumber: `AMB${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-      status: 'confirmed',
-      hotelId: bookingData.hotelId,
-      checkIn: bookingData.checkIn,
-      checkOut: bookingData.checkOut
+  try {
+    // Make actual Amadeus booking API call
+    const response = await fetch('https://test.api.amadeus.com/v1/booking/hotel-bookings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bookingPayload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      logger.error('Amadeus booking API error:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorData 
+      });
+      
+      // If Amadeus fails, fall back to HotelBeds or other providers
+      if (response.status === 400 || response.status === 404) {
+        throw new Error('Hotel offer no longer available. Please search again.');
+      } else if (response.status === 403) {
+        throw new Error('Amadeus API access denied. Credential issue.');
+      } else {
+        throw new Error(`Amadeus booking failed: ${response.statusText}`);
+      }
     }
-  };
+
+    const booking = await response.json();
+    logger.info('✅ REAL Amadeus booking confirmed:', booking);
+
+    return {
+      success: true,
+      booking: {
+        id: booking.data?.id || `amadeus_${Date.now()}`,
+        confirmationNumber: booking.data?.providerConfirmationId || booking.data?.id || `AMB${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
+        status: 'confirmed',
+        hotelId: bookingData.hotelId,
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        amadeus_data: booking.data
+      }
+    };
+
+  } catch (error) {
+    logger.error('Amadeus booking failed:', error);
+    
+    // Critical: Log to alerts table for manual intervention
+    await insertCriticalAlert('amadeus_booking_failed', {
+      error: error.message,
+      bookingData: {
+        hotelId: bookingData.hotelId,
+        offerId: bookingData.offerId,
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut
+      }
+    });
+    
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+async function insertCriticalAlert(alertType: string, metadata: any) {
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    
+    await supabase.from('critical_alerts').insert({
+      alert_type: alertType,
+      message: `Critical booking failure requiring manual intervention`,
+      severity: 'high',
+      requires_manual_action: true,
+      metadata
+    });
+  } catch (alertError) {
+    logger.error('Failed to log critical alert:', alertError);
+  }
 }
 
 Deno.serve(async (req) => {

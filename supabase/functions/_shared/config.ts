@@ -1,143 +1,95 @@
-// Common configuration for all Supabase functions
-export const config = {
-  cors: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  },
-  
-  // Supabase configuration
-  supabase: {
-    url: 'SUPABASE_URL',
-    serviceRoleKey: 'SUPABASE_SERVICE_ROLE_KEY',
-  },
-  
-  // Provider configurations
-  providers: {
-    amadeus: {
-      clientId: 'AMADEUS_CLIENT_ID',
-      clientSecret: 'AMADEUS_CLIENT_SECRET',
-      baseUrl: 'https://test.api.amadeus.com',
-    },
-    
-    sabre: {
-      clientId: 'SABRE_CLIENT_ID',
-      clientSecret: 'SABRE_CLIENT_SECRET',
-      baseUrl: 'SABRE_BASE_URL',
-    },
-    
-    hotelbeds: {
-      apiKey: 'HOTELBEDS_API_KEY',
-      secret: 'HOTELBEDS_SECRET',
-      baseUrl: 'https://api.test.hotelbeds.com',
-    },
-    
-    stripe: {
-      secretKey: 'STRIPE_SECRET_KEY',
-      publishableKey: 'STRIPE_PUBLISHABLE_KEY',
-      webhookSecret: 'STRIPE_WEBHOOK_SECRET',
-    }
-  },
-  
-  // Rate limiting
-  rateLimits: {
-    default: 100, // requests per minute
-    health: 30,   // health checks per minute
-    search: 60,   // searches per minute
-  },
-  
-  // Timeouts
-  timeouts: {
-    default: 30000, // 30 seconds
-    provider: 15000, // 15 seconds for provider calls
-    booking: 60000,  // 60 seconds for booking operations
-  }
-};
+import logger from "./logger.ts";
 
-// NEW: Environment-specific configuration that Edge Functions expect
+// Environment configuration utilities
 export const ENV_CONFIG = {
-  amadeus: {
-    baseUrl: 'https://test.api.amadeus.com',
-    tokenUrl: 'https://test.api.amadeus.com/v1/security/oauth2/token'
-  },
-  sabre: {
-    baseUrl: 'https://api-crt.cert.havail.sabre.com',
-    tokenUrl: 'https://api-crt.cert.havail.sabre.com/v2/auth/token'
-  },
-  hotelbeds: {
-    baseUrl: 'https://api.test.hotelbeds.com',
-    mtlsUrl: 'https://api.test.hotelbeds.com',
-    cacheApiUrl: 'https://api.test.hotelbeds.com/cache-api/1.0'
-  }
+  SUPABASE_URL: Deno.env.get('SUPABASE_URL'),
+  SUPABASE_ANON_KEY: Deno.env.get('SUPABASE_ANON_KEY'),
+  SUPABASE_SERVICE_ROLE_KEY: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+  
+  // Amadeus
+  AMADEUS_CLIENT_ID: Deno.env.get('AMADEUS_CLIENT_ID'),
+  AMADEUS_CLIENT_SECRET: Deno.env.get('AMADEUS_CLIENT_SECRET'),
+  
+  // Sabre
+  SABRE_CLIENT_ID: Deno.env.get('SABRE_CLIENT_ID'),
+  SABRE_CLIENT_SECRET: Deno.env.get('SABRE_CLIENT_SECRET'),
+  
+  // HotelBeds
+  HOTELBEDS_HOTEL_API_KEY: Deno.env.get('HOTELBEDS_HOTEL_API_KEY'),
+  HOTELBEDS_HOTEL_SECRET: Deno.env.get('HOTELBEDS_HOTEL_SECRET'),
+  HOTELBEDS_ACTIVITY_API_KEY: Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY'),
+  HOTELBEDS_ACTIVITY_SECRET: Deno.env.get('HOTELBEDS_ACTIVITY_SECRET'),
+  
+  // Stripe
+  STRIPE_SECRET_KEY: Deno.env.get('STRIPE_SECRET_KEY'),
+  
+  // Email
+  RESEND_API_KEY: Deno.env.get('RESEND_API_KEY')
 };
 
-// Rate limiting configuration for specific providers
-export const RATE_LIMITS = {
-  amadeus: {
-    searchPerMinute: 30,
-    bookingPerMinute: 10
-  },
-  sabre: {
-    searchPerMinute: 20,
-    bookingPerMinute: 5
-  },
-  hotelbeds: {
-    searchPerMinute: 25,
-    bookingPerMinute: 8
-  }
-};
-
-// Provider validation functions
-export function validateProviderCredentials(provider: string): boolean {
-  switch (provider) {
-    case 'amadeus':
-      return !!(Deno.env.get('AMADEUS_CLIENT_ID') && Deno.env.get('AMADEUS_CLIENT_SECRET'));
-    case 'sabre':
-      return !!(Deno.env.get('SABRE_CLIENT_ID') && Deno.env.get('SABRE_CLIENT_SECRET'));
-    case 'hotelbeds':
-      return validateHotelBedsCredentials();
-    case 'stripe':
-      return !!(Deno.env.get('STRIPE_SECRET_KEY') && Deno.env.get('STRIPE_PUBLISHABLE_KEY'));
-    default:
-      return false;
+// Enhanced provider credential validation
+export function validateProviderCredentials(provider: 'amadeus' | 'sabre'): boolean {
+  try {
+    switch (provider) {
+      case 'amadeus':
+        const amadeusValid = !!(ENV_CONFIG.AMADEUS_CLIENT_ID && ENV_CONFIG.AMADEUS_CLIENT_SECRET);
+        if (!amadeusValid) {
+          logger.warn('[CONFIG] Amadeus credentials missing', {
+            hasClientId: !!ENV_CONFIG.AMADEUS_CLIENT_ID,
+            hasClientSecret: !!ENV_CONFIG.AMADEUS_CLIENT_SECRET
+          });
+        }
+        return amadeusValid;
+        
+      case 'sabre':
+        const sabreValid = !!(ENV_CONFIG.SABRE_CLIENT_ID && ENV_CONFIG.SABRE_CLIENT_SECRET);
+        if (!sabreValid) {
+          logger.warn('[CONFIG] Sabre credentials missing', {
+            hasClientId: !!ENV_CONFIG.SABRE_CLIENT_ID,
+            hasClientSecret: !!ENV_CONFIG.SABRE_CLIENT_SECRET
+          });
+        }
+        return sabreValid;
+        
+      default:
+        return false;
+    }
+  } catch (error) {
+    logger.error(`[CONFIG] Error validating ${provider} credentials:`, error);
+    return false;
   }
 }
 
-export function validateHotelBedsCredentials(service?: string): boolean {
-  // Check service-specific credentials first
-  if (service === 'hotel') {
-    return !!(Deno.env.get('HOTELBEDS_HOTEL_API_KEY') && Deno.env.get('HOTELBEDS_HOTEL_SECRET'));
+export function validateHotelBedsCredentials(service: 'hotel' | 'activity'): boolean {
+  try {
+    switch (service) {
+      case 'hotel':
+        const hotelValid = !!(ENV_CONFIG.HOTELBEDS_HOTEL_API_KEY && ENV_CONFIG.HOTELBEDS_HOTEL_SECRET);
+        if (!hotelValid) {
+          logger.warn('[CONFIG] HotelBeds hotel credentials missing', {
+            hasApiKey: !!ENV_CONFIG.HOTELBEDS_HOTEL_API_KEY,
+            hasSecret: !!ENV_CONFIG.HOTELBEDS_HOTEL_SECRET
+          });
+        }
+        return hotelValid;
+        
+      case 'activity':
+        const activityValid = !!(ENV_CONFIG.HOTELBEDS_ACTIVITY_API_KEY && ENV_CONFIG.HOTELBEDS_ACTIVITY_SECRET);
+        if (!activityValid) {
+          logger.warn('[CONFIG] HotelBeds activity credentials missing', {
+            hasApiKey: !!ENV_CONFIG.HOTELBEDS_ACTIVITY_API_KEY,
+            hasSecret: !!ENV_CONFIG.HOTELBEDS_ACTIVITY_SECRET
+          });
+        }
+        return activityValid;
+        
+      default:
+        return false;
+    }
+  } catch (error) {
+    logger.error(`[CONFIG] Error validating HotelBeds ${service} credentials:`, error);
+    return false;
   }
-  if (service === 'activity') {
-    return !!(Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY') && Deno.env.get('HOTELBEDS_ACTIVITY_SECRET'));
-  }
-  if (service === 'transfer') {
-    return !!(Deno.env.get('HOTELBEDS_API_KEY') && Deno.env.get('HOTELBEDS_SECRET'));
-  }
-  
-  // Fallback to generic credentials
-  return !!(Deno.env.get('HOTELBEDS_API_KEY') && Deno.env.get('HOTELBEDS_SECRET'));
-}
-
-export function getHotelBedsCredentials(service?: string): { apiKey: string; secret: string } | null {
-  // Service-specific credentials
-  if (service === 'hotel') {
-    const apiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
-    const secret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
-    if (apiKey && secret) return { apiKey, secret };
-  }
-  
-  if (service === 'activity') {
-    const apiKey = Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY');
-    const secret = Deno.env.get('HOTELBEDS_ACTIVITY_SECRET');
-    if (apiKey && secret) return { apiKey, secret };
-  }
-  
-  // Fallback to generic credentials
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
-  const secret = Deno.env.get('HOTELBEDS_SECRET');
-  if (apiKey && secret) return { apiKey, secret };
-  
-  return null;
 }
 
 export function getAvailableHotelBedsServices(): string[] {
@@ -146,14 +98,71 @@ export function getAvailableHotelBedsServices(): string[] {
   if (validateHotelBedsCredentials('hotel')) {
     services.push('hotel');
   }
+  
   if (validateHotelBedsCredentials('activity')) {
     services.push('activity');
-  }
-  if (validateHotelBedsCredentials('transfer')) {
-    services.push('transfer');
   }
   
   return services;
 }
 
-export default config;
+// Get provider health status
+export function getProviderHealthStatus() {
+  return {
+    amadeus: {
+      available: validateProviderCredentials('amadeus'),
+      services: ['flight', 'hotel', 'activity']
+    },
+    sabre: {
+      available: validateProviderCredentials('sabre'),
+      services: ['flight', 'hotel']
+    },
+    hotelbeds: {
+      available: validateHotelBedsCredentials('hotel') || validateHotelBedsCredentials('activity'),
+      services: getAvailableHotelBedsServices()
+    }
+  };
+}
+
+// Check if core secrets are configured
+export function validateCoreSecrets(): { valid: boolean; missing: string[] } {
+  const required = [
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'STRIPE_SECRET_KEY'
+  ];
+  
+  const missing = required.filter(key => !ENV_CONFIG[key as keyof typeof ENV_CONFIG]);
+  
+  return {
+    valid: missing.length === 0,
+    missing
+  };
+}
+
+// Emergency configuration check
+export function performEmergencyConfigCheck(): boolean {
+  const coreSecrets = validateCoreSecrets();
+  const providerHealth = getProviderHealthStatus();
+  
+  const hasAtLeastOneProvider = Object.values(providerHealth).some(p => p.available);
+  
+  if (!coreSecrets.valid) {
+    logger.error('[CONFIG] CRITICAL: Core secrets missing:', coreSecrets.missing);
+    return false;
+  }
+  
+  if (!hasAtLeastOneProvider) {
+    logger.error('[CONFIG] CRITICAL: No providers available');
+    return false;
+  }
+  
+  logger.info('[CONFIG] Emergency check passed', {
+    coreSecrets: coreSecrets.valid,
+    providersAvailable: Object.entries(providerHealth)
+      .filter(([, config]) => config.available)
+      .map(([name]) => name)
+  });
+  
+  return true;
+}
