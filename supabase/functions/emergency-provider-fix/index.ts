@@ -1,12 +1,79 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import logger from "../_shared/logger.ts";
-import { performEmergencyConfigCheck, getProviderHealthStatus } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Simple logger for edge functions
+const logger = {
+  info: (message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [INFO] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  warn: (message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.warn(`[${timestamp}] [WARN] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  error: (message: string, error?: any) => {
+    const timestamp = new Date().toISOString();
+    const errorData = error instanceof Error ? { message: error.message, stack: error.stack } : error;
+    console.error(`[${timestamp}] [ERROR] ${message}`, errorData ? JSON.stringify(errorData) : '');
+  }
+};
+
+interface EmergencyReport {
+  success: boolean;
+  message: string;
+  summary: {
+    totalProviders: number;
+    workingProviders: number;
+    failedTests: number;
+  };
+  testResults: Array<{
+    searchType: string;
+    provider?: string;
+    success: boolean;
+    error?: string;
+  }>;
+  enabledProviders: string[];
+  details: any;
+}
+
+function performEmergencyConfigCheck(): boolean {
+  const requiredSecrets = [
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'STRIPE_SECRET_KEY'
+  ];
+  
+  const missing = requiredSecrets.filter(key => !Deno.env.get(key));
+  
+  if (missing.length > 0) {
+    logger.error('[CONFIG] CRITICAL: Core secrets missing:', missing);
+    return false;
+  }
+  
+  return true;
+}
+
+function getProviderHealthStatus() {
+  return {
+    amadeus: {
+      available: !!(Deno.env.get('AMADEUS_CLIENT_ID') && Deno.env.get('AMADEUS_CLIENT_SECRET')),
+      services: ['flight', 'hotel', 'activity']
+    },
+    sabre: {
+      available: !!(Deno.env.get('SABRE_CLIENT_ID') && Deno.env.get('SABRE_CLIENT_SECRET')),
+      services: ['flight', 'hotel']
+    },
+    hotelbeds: {
+      available: !!(Deno.env.get('HOTELBEDS_HOTEL_API_KEY') && Deno.env.get('HOTELBEDS_HOTEL_SECRET')),
+      services: ['hotel', 'activity']
+    }
+  };
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,81 +86,130 @@ serve(async (req) => {
   );
 
   try {
-    logger.info('🚨 EMERGENCY: Starting provider rotation system repair');
+    logger.info('[EMERGENCY-FIX] Starting emergency provider rotation repair');
 
-    // 1. Emergency configuration check
+    const report: EmergencyReport = {
+      success: false,
+      message: '',
+      summary: {
+        totalProviders: 0,
+        workingProviders: 0,
+        failedTests: 0
+      },
+      testResults: [],
+      enabledProviders: [],
+      details: {}
+    };
+
+    // Step 1: Validate critical configurations
+    logger.info('[EMERGENCY-FIX] Step 1: Validating configurations');
     const configValid = performEmergencyConfigCheck();
     if (!configValid) {
-      throw new Error('Critical configuration issues detected');
+      report.message = 'Critical configuration issues detected';
+      return new Response(JSON.stringify(report), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
     }
 
-    // 2. Get current provider health
+    // Step 2: Get provider health status
+    logger.info('[EMERGENCY-FIX] Step 2: Checking provider health');
     const providerHealth = getProviderHealthStatus();
-    logger.info('Current provider health:', providerHealth);
+    report.details.providerHealth = providerHealth;
 
-    // 3. Reset provider quotas to allow usage
-    const resetResult = await supabase
-      .from('provider_quotas')
-      .update({
-        current_usage: 0,
-        status: 'healthy',
-        reset_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Update all records
+    // Step 3: Reset provider quotas to allow usage
+    logger.info('[EMERGENCY-FIX] Step 3: Resetting provider quotas');
+    try {
+      const { error: quotaError } = await supabase
+        .from('provider_quotas')
+        .delete()
+        .neq('id', 'fake'); // Delete all existing quota records
 
-    logger.info('Provider quotas reset:', resetResult);
+      if (quotaError) {
+        logger.warn('[EMERGENCY-FIX] Failed to reset quotas:', quotaError);
+      } else {
+        logger.info('[EMERGENCY-FIX] Provider quotas reset successfully');
+      }
+    } catch (error) {
+      logger.warn('[EMERGENCY-FIX] Quota reset failed:', error);
+    }
 
-    // 4. Update provider configs to enable working providers
-    const enabledProviders = [];
-    for (const [providerName, config] of Object.entries(providerHealth)) {
+    // Step 4: Enable working providers
+    logger.info('[EMERGENCY-FIX] Step 4: Enabling working providers');
+    const workingProviders: string[] = [];
+    
+    Object.entries(providerHealth).forEach(([provider, config]) => {
       if (config.available) {
-        for (const service of config.services) {
-          const providerId = `${providerName}-${service}`;
-          enabledProviders.push(providerId);
-          
-          await supabase
-            .from('provider_configs')
-            .upsert({
-              id: providerId,
-              name: providerName,
-              type: service,
-              enabled: true,
-              priority: providerName === 'hotelbeds' ? 1 : 
-                       providerName === 'amadeus' ? 2 : 3,
-              circuit_breaker: {
-                failureCount: 0,
-                lastFailure: null,
-                timeout: 30000,
-                state: 'closed'
-              },
-              updated_at: new Date().toISOString()
-            });
+        config.services.forEach(service => {
+          const providerId = `${provider}-${service}`;
+          workingProviders.push(providerId);
+        });
+      }
+    });
+
+    report.enabledProviders = workingProviders;
+    report.summary.totalProviders = workingProviders.length;
+
+    // Step 5: Enable providers in database
+    for (const providerId of workingProviders) {
+      try {
+        const [provider, service] = providerId.split('-');
+        const { error } = await supabase
+          .from('provider_configs')
+          .upsert({
+            id: providerId,
+            name: provider.charAt(0).toUpperCase() + provider.slice(1),
+            type: service,
+            enabled: true,
+            priority: provider === 'amadeus' ? 1 : provider === 'sabre' ? 2 : 3,
+            circuit_breaker: {
+              failureCount: 0,
+              lastFailure: null,
+              timeout: 30000,
+              state: 'closed'
+            }
+          }, {
+            onConflict: 'id'
+          });
+
+        if (error) {
+          logger.warn(`[EMERGENCY-FIX] Failed to enable provider ${providerId}:`, error);
+        } else {
+          logger.info(`[EMERGENCY-FIX] Enabled provider: ${providerId}`);
         }
+      } catch (error) {
+        logger.warn(`[EMERGENCY-FIX] Error enabling provider ${providerId}:`, error);
       }
     }
 
-    // 5. Test provider rotation
-    logger.info('Testing emergency provider rotation...');
-    
-    const testResults = [];
-    for (const searchType of ['hotel', 'flight', 'activity']) {
+    // Step 6: Test provider rotation for each service type
+    logger.info('[EMERGENCY-FIX] Step 6: Testing provider rotation');
+    const searchTypes = ['hotel', 'flight', 'activity'];
+    let successfulTests = 0;
+
+    for (const searchType of searchTypes) {
       try {
-        const testResult = await supabase.functions.invoke('provider-rotation', {
+        const testParams = getTestParams(searchType);
+        const { data, error } = await supabase.functions.invoke('provider-rotation', {
           body: {
             searchType,
-            params: getTestParams(searchType)
+            params: testParams
           }
         });
-        
-        testResults.push({
+
+        const success = !error && data?.success;
+        report.testResults.push({
           searchType,
-          success: !testResult.error,
-          provider: testResult.data?.provider,
-          error: testResult.error?.message
+          provider: data?.provider || 'Unknown',
+          success,
+          error: error?.message || data?.error
         });
+
+        if (success) {
+          successfulTests++;
+        }
       } catch (error) {
-        testResults.push({
+        report.testResults.push({
           searchType,
           success: false,
           error: error.message
@@ -101,53 +217,47 @@ serve(async (req) => {
       }
     }
 
-    // 6. Create emergency success metrics
-    const emergencyReport = {
-      timestamp: new Date().toISOString(),
-      configValid,
-      providerHealth,
-      enabledProviders,
-      testResults,
-      summary: {
-        totalProviders: enabledProviders.length,
-        workingProviders: testResults.filter(r => r.success).length,
-        failedTests: testResults.filter(r => !r.success).length
-      }
-    };
+    report.summary.workingProviders = successfulTests;
+    report.summary.failedTests = searchTypes.length - successfulTests;
 
-    // 7. Log emergency completion
-    await supabase.rpc('log_system_event', {
-      p_correlation_id: 'emergency_fix',
-      p_service_name: 'emergency_provider_fix',
-      p_log_level: 'INFO',
-      p_message: 'Emergency provider rotation repair completed',
-      p_metadata: emergencyReport
+    // Step 7: Log the emergency fix report
+    try {
+      await supabase.rpc('log_system_event', {
+        p_correlation_id: crypto.randomUUID(),
+        p_service_name: 'emergency-provider-fix',
+        p_log_level: 'info',
+        p_message: 'Emergency provider rotation fix completed',
+        p_metadata: {
+          report,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      logger.warn('[EMERGENCY-FIX] Failed to log system event:', error);
+    }
+
+    // Determine overall success
+    report.success = successfulTests > 0;
+    report.message = report.success 
+      ? `Emergency fix completed. ${successfulTests}/${searchTypes.length} services restored.`
+      : 'Emergency fix completed but no services are working. Manual intervention required.';
+
+    logger.info('[EMERGENCY-FIX] Emergency fix completed', {
+      success: report.success,
+      workingProviders: report.summary.workingProviders,
+      totalProviders: report.summary.totalProviders
     });
 
-    logger.info('✅ Emergency provider fix completed:', emergencyReport.summary);
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Emergency provider rotation repair completed',
-      report: emergencyReport
-    }), {
+    return new Response(JSON.stringify(report), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    logger.error('❌ Emergency fix failed:', error);
+    logger.error('[EMERGENCY-FIX] Emergency fix failed:', error);
     
-    // Log critical alert
-    await supabase.from('critical_alerts').insert({
-      alert_type: 'emergency_fix_failed',
-      message: `Emergency provider fix failed: ${error.message}`,
-      severity: 'critical',
-      requires_manual_action: true,
-      metadata: { error: error.message }
-    });
-
     return new Response(JSON.stringify({
       success: false,
+      message: `Emergency fix failed: ${error.message}`,
       error: error.message
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -156,29 +266,29 @@ serve(async (req) => {
   }
 });
 
-function getTestParams(searchType: string) {
+function getTestParams(searchType: string): any {
   switch (searchType) {
     case 'hotel':
       return {
         destination: 'SYD',
         checkInDate: '2025-08-26',
         checkOutDate: '2025-08-27',
-        adults: 2,
-        rooms: 1
+        adults: 1,
+        roomQuantity: 1
       };
     case 'flight':
       return {
-        origin: 'SYD',
-        destination: 'LAX',
-        departureDate: '2025-08-26',
-        adults: 2,
-        travelClass: 'ECONOMY'
+        originLocationCode: 'SYD',
+        destinationLocationCode: 'MEL',
+        departureDate: '2025-09-01',
+        adults: 1
       };
     case 'activity':
       return {
-        destination: 'SYD',
-        from: '2025-08-26',
-        to: '2025-08-30'
+        destination: 'sydney',
+        date: '2025-08-26',
+        participants: 1,
+        radius: 10
       };
     default:
       return {};

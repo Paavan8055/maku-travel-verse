@@ -87,12 +87,11 @@ const Navbar = () => {
             <Button 
               variant="ghost" 
               className="text-foreground hover:text-primary flex items-center space-x-1" 
-              onClick={() => isActivitiesAvailable ? navigate('/search/activities') : navigate('/coming-soon')}
+              onClick={() => navigate('/search/activities')}
               role="menuitem"
             >
               <MapPin className="h-4 w-4" aria-hidden="true" />
               <span>{t('navigation.activities')}</span>
-              {!isActivitiesAvailable && <span className="text-xs ml-1">(Coming Soon)</span>}
             </Button>
             
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')} role="menuitem">
@@ -194,16 +193,12 @@ const Navbar = () => {
                 variant="ghost" 
                 className="w-full justify-start" 
                 onClick={() => {
-                  if (isActivitiesAvailable) {
-                    navigate('/search/activities');
-                  } else {
-                    navigate('/coming-soon');
-                  }
+                  navigate('/search/activities');
                   setIsMenuOpen(false);
                 }}
               >
                 <MapPin className="mr-2 h-4 w-4" />
-                Activities {!isActivitiesAvailable && <span className="text-xs ml-1">(Coming Soon)</span>}
+                Activities
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
                 navigate('/gift-cards');
