@@ -123,11 +123,18 @@ Deno.serve(async (req) => {
     // Generate idempotency key to prevent duplicate payments
     const idempotencyKey = `booking_${finalBookingId}_${Date.now()}_${user?.id || 'guest'}`;
 
-    // Create Stripe Payment Intent
-    const paymentIntentData = new URLSearchParams({
-      amount: amountCents.toString(),
-      currency: currency.toLowerCase(),
-      'automatic_payment_methods[enabled]': 'true',
+    // Get origin for redirect URLs
+    const origin = req.headers.get('origin') || 'https://iomeddeasarntjhqzndu.supabase.co';
+
+    // Create Stripe Checkout Session
+    const checkoutSessionData = new URLSearchParams({
+      'line_items[0][price_data][currency]': currency.toLowerCase(),
+      'line_items[0][price_data][product_data][name]': `${bookingType.charAt(0).toUpperCase() + bookingType.slice(1)} Booking`,
+      'line_items[0][price_data][unit_amount]': amountCents.toString(),
+      'line_items[0][quantity]': '1',
+      mode: 'payment',
+      'success_url': `${origin}/booking-success?booking_id=${finalBookingId}&session_id={CHECKOUT_SESSION_ID}`,
+      'cancel_url': `${origin}/booking-failure?booking_id=${finalBookingId}&error=payment_cancelled`,
       'metadata[booking_id]': finalBookingId,
       'metadata[booking_type]': bookingType,
       'metadata[user_id]': user?.id || 'guest',
@@ -135,24 +142,24 @@ Deno.serve(async (req) => {
     });
 
     if (customerInfo.email) {
-      paymentIntentData.append('receipt_email', customerInfo.email);
+      checkoutSessionData.append('customer_email', customerInfo.email);
     }
 
-    const stripeResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
+    const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${stripeSecretKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
         'Idempotency-Key': idempotencyKey,
       },
-      body: paymentIntentData,
+      body: checkoutSessionData,
     });
 
-    const paymentIntent = await stripeResponse.json();
+    const checkoutSession = await stripeResponse.json();
 
     if (!stripeResponse.ok) {
-      logger.error('Stripe error:', paymentIntent);
-      throw new Error('Failed to create payment intent');
+      logger.error('Stripe error:', checkoutSession);
+      throw new Error('Failed to create checkout session');
     }
 
     // Store payment record
@@ -160,26 +167,27 @@ Deno.serve(async (req) => {
       .from('payments')
       .insert({
         booking_id: finalBookingId,
-        stripe_payment_intent_id: paymentIntent.id,
+        stripe_session_id: checkoutSession.id,
         amount: amount,
         currency: currency.toUpperCase(),
-        status: paymentIntent.status
+        status: 'pending'
       });
 
     if (paymentError) {
       logger.error('Payment record error:', paymentError);
     }
 
-    logger.info(`✅ Created ${bookingType} booking payment ${finalBookingId} with intent ${paymentIntent.id}`);
+    logger.info(`✅ Created ${bookingType} booking payment ${finalBookingId} with session ${checkoutSession.id}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         bookingId: finalBookingId,
-        clientSecret: paymentIntent.client_secret,
+        checkoutUrl: checkoutSession.url,
+        sessionId: checkoutSession.id,
         payment: {
           method: paymentMethod,
-          status: paymentIntent.status
+          status: 'pending'
         },
         booking: {
           id: finalBookingId,
