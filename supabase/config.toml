@@ -6,6 +6,15 @@ verify_jwt = true
 [functions.production-readiness]
 verify_jwt = false
 
+[functions.unified-health-monitor]
+verify_jwt = false
+
+[functions.provider-quota-monitor]
+verify_jwt = false
+
+[functions.production-readiness]
+verify_jwt = false
+
 [functions.hotelbeds-monitoring]
 verify_jwt = false
 
