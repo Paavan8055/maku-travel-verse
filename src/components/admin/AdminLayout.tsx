@@ -133,7 +133,7 @@ export const AdminSidebar: React.FC = () => {
                         }
                       >
                         <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!collapsed && <span className="text-sm font-medium">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
