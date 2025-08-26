@@ -334,3 +334,6 @@ verify_jwt = true
 
 [functions.sabre-travel-alerts]
 verify_jwt = true
+
+[functions.sabre-flight-exchange]
+verify_jwt = true
