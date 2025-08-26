@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -32,6 +32,7 @@ const Navbar = () => {
   });
   const {
     user,
+    isAdmin,
     signOut
   } = useAuth();
   const navigate = useNavigate();
@@ -108,6 +109,13 @@ const Navbar = () => {
               <UsersIcon className="h-4 w-4" aria-hidden="true" />
               <span>Partners</span>
             </Button>
+            
+            {isAdmin && (
+              <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/admin')} role="menuitem">
+                <Shield className="h-4 w-4" aria-hidden="true" />
+                <span>Admin</span>
+              </Button>
+            )}
           </div>
 
           {/* Right Side Actions */}
@@ -221,6 +229,15 @@ const Navbar = () => {
                 <UsersIcon className="mr-2 h-4 w-4" />
                 Partners
               </Button>
+              {isAdmin && (
+                <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                  navigate('/admin');
+                  setIsMenuOpen(false);
+                }}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin
+                </Button>
+              )}
             </div>
           </div>
         )}
