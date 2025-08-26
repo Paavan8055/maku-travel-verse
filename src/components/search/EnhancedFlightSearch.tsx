@@ -369,20 +369,39 @@ export const EnhancedFlightSearch: React.FC = () => {
       {/* Flexible Date Matrix */}
       {searchParams.flexibleDates && searchParams.origin && searchParams.destination && (
         <FlexibleDateMatrix
-          originIata={searchParams.origin}
-          destinationIata={searchParams.destination}
-          baseDate={searchParams.departureDate}
-          passengerCount={searchParams.adults + searchParams.children + searchParams.infants}
-          onDateSelected={(date) => setSearchParams(prev => ({ ...prev, departureDate: date }))}
+          baseCriteria={{
+            origin: searchParams.origin,
+            destination: searchParams.destination,
+            departureDate: searchParams.departureDate,
+            returnDate: searchParams.returnDate,
+            passengers: searchParams.adults + searchParams.children + searchParams.infants
+          }}
+          onDateSelect={(departureDate, returnDate) => 
+            setSearchParams(prev => ({ 
+              ...prev, 
+              departureDate,
+              ...(returnDate && { returnDate })
+            }))
+          }
+          onPriceSearch={async (criteria) => {
+            // Mock price search for flexible dates
+            return { flights: [], averagePrice: 0 };
+          }}
         />
       )}
 
       {/* Multi-Provider Flight Comparison */}
       {showComparison && searchResults.length > 0 && (
         <MultiProviderFlightComparison
-          flights={searchResults}
-          onFlightSelected={(flightId) => {
-            setSelectedFlight(flightId);
+          criteria={{
+            origin: searchParams.origin,
+            destination: searchParams.destination,
+            departureDate: searchParams.departureDate,
+            returnDate: searchParams.returnDate,
+            passengers: searchParams.adults + searchParams.children + searchParams.infants
+          }}
+          onFlightSelect={(flight, provider) => {
+            setSelectedFlight(flight.id || flight.offerId);
             setShowSeatMap(true);
           }}
         />
