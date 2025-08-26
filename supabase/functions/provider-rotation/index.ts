@@ -40,7 +40,7 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     name: 'Amadeus',
     type: 'flight',
     enabled: true,
-    priority: 1,
+    priority: 2,
     circuitBreaker: {
       failureCount: 0,
       lastFailure: null,
@@ -55,7 +55,7 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     name: 'Sabre',
     type: 'flight',
     enabled: true,
-    priority: 2,
+    priority: 1,
     circuitBreaker: {
       failureCount: 0,
       lastFailure: null,
@@ -85,7 +85,7 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     name: 'Sabre',
     type: 'hotel',
     enabled: true,
-    priority: 2,
+    priority: 1,
     circuitBreaker: {
       failureCount: 0,
       lastFailure: null,
@@ -111,8 +111,8 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     responseTime: 0
   },
   {
-    id: 'amadeus-activity',
-    name: 'Amadeus',
+    id: 'hotelbeds-activity',
+    name: 'HotelBeds',
     type: 'activity',
     enabled: true,
     priority: 1,
@@ -126,11 +126,26 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     responseTime: 0
   },
   {
-    id: 'hotelbeds-activity',
-    name: 'HotelBeds',
+    id: 'sabre-activity',
+    name: 'Sabre',
     type: 'activity',
     enabled: true,
     priority: 2,
+    circuitBreaker: {
+      failureCount: 0,
+      lastFailure: null,
+      timeout: 30000,
+      state: 'closed'
+    },
+    healthScore: 100,
+    responseTime: 0
+  },
+  {
+    id: 'amadeus-activity',
+    name: 'Amadeus',
+    type: 'activity',
+    enabled: true,
+    priority: 3,
     circuitBreaker: {
       failureCount: 0,
       lastFailure: null,
@@ -359,6 +374,7 @@ function isProviderCredentialsValid(providerId: string): boolean {
       
       case 'sabre-flight':
       case 'sabre-hotel':
+      case 'sabre-activity':
         return validateProviderCredentials('sabre');
       
       case 'hotelbeds-hotel':
@@ -404,7 +420,8 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     'hotelbeds-hotel': 'hotelbeds-search',
     'sabre-hotel': 'sabre-hotel-search',
     'amadeus-activity': 'amadeus-activity-search',
-    'hotelbeds-activity': 'hotelbeds-activities'
+    'hotelbeds-activity': 'hotelbeds-activities',
+    'sabre-activity': 'sabre-activities'
   };
   
   const functionName = functionMap[provider.id];
@@ -412,55 +429,101 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     throw new Error(`Unknown provider function: ${provider.id}`);
   }
   
-  logger.info(`[PROVIDER-ROTATION] Calling ${functionName} with params:`, params);
+  // Exponential backoff retry logic for rate limits
+  let lastError: any = null;
+  const maxRetries = 3;
+  const baseDelay = 1000; // 1 second
   
-  const { data, error } = await supabase.functions.invoke(functionName, {
-    body: params
-  });
-  
-  const responseTime = Date.now() - startTime;
-  
-  logger.info(`[PROVIDER-ROTATION] ${functionName} response:`, { 
-    success: !error, 
-    responseTime, 
-    dataType: typeof data,
-    hasData: !!data,
-    errorMessage: error?.message || null
-  });
-  
-  if (error) {
-    logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
-    throw new Error(`Provider ${provider.id} failed: ${error.message}`);
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      logger.info(`[PROVIDER-ROTATION] Calling ${functionName} (attempt ${attempt + 1}/${maxRetries}) with params:`, params);
+      
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: params
+      });
+      
+      const responseTime = Date.now() - startTime;
+      
+      logger.info(`[PROVIDER-ROTATION] ${functionName} response:`, { 
+        success: !error, 
+        responseTime, 
+        dataType: typeof data,
+        hasData: !!data,
+        errorMessage: error?.message || null,
+        attempt: attempt + 1
+      });
+      
+      if (error) {
+        // Check for rate limit (429) errors
+        if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+          lastError = error;
+          if (attempt < maxRetries - 1) {
+            const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+            logger.warn(`[PROVIDER-ROTATION] Rate limit hit, retrying in ${delay}ms`, {
+              provider: provider.id,
+              attempt: attempt + 1,
+              delay
+            });
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+        }
+        
+        logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
+        throw new Error(`Provider ${provider.id} failed: ${error.message}`);
+      }
+      
+      // Validate response data
+      if (!data) {
+        logger.warn(`[PROVIDER-ROTATION] Provider ${provider.id} returned no data`);
+        throw new Error(`Provider ${provider.id} returned empty response`);
+      }
+      
+      // Standardize response format for different providers
+      let standardizedData;
+      if (data?.data && Array.isArray(data.data)) {
+        standardizedData = data.data;
+      } else if (data?.flights) {
+        standardizedData = data.flights;
+      } else if (data?.hotels) {
+        standardizedData = data.hotels;
+      } else if (data?.activities) {
+        standardizedData = data.activities;
+      } else if (Array.isArray(data)) {
+        standardizedData = data;
+      } else {
+        standardizedData = data;
+        logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
+      }
+      
+      return {
+        success: true,
+        data: standardizedData,
+        responseTime
+      };
+      
+    } catch (error) {
+      lastError = error;
+      
+      // Check for rate limit errors in caught exceptions
+      if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+        if (attempt < maxRetries - 1) {
+          const delay = baseDelay * Math.pow(2, attempt);
+          logger.warn(`[PROVIDER-ROTATION] Rate limit exception, retrying in ${delay}ms`, {
+            provider: provider.id,
+            attempt: attempt + 1,
+            delay
+          });
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+      }
+      
+      throw error;
+    }
   }
   
-  // Validate response data
-  if (!data) {
-    logger.warn(`[PROVIDER-ROTATION] Provider ${provider.id} returned no data`);
-    throw new Error(`Provider ${provider.id} returned empty response`);
-  }
-  
-  // Standardize response format for different providers
-  let standardizedData;
-  if (data?.data && Array.isArray(data.data)) {
-    standardizedData = data.data;
-  } else if (data?.flights) {
-    standardizedData = data.flights;
-  } else if (data?.hotels) {
-    standardizedData = data.hotels;
-  } else if (data?.activities) {
-    standardizedData = data.activities;
-  } else if (Array.isArray(data)) {
-    standardizedData = data;
-  } else {
-    standardizedData = data;
-    logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
-  }
-  
-  return {
-    success: true,
-    data: standardizedData,
-    responseTime
-  };
+  throw lastError || new Error('Max retries exceeded');
 }
 
 async function updateProviderMetrics(
