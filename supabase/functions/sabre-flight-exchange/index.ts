@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { getSabreAccessToken } from "../_shared/sabre.ts";
-import { logger } from "../_shared/logger.ts";
-import { ENV_CONFIG } from "../_shared/env-config.ts";
+import logger from "../_shared/logger.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,7 +34,7 @@ serve(async (req) => {
 
     if (action === 'get_exchange_options') {
       // First, get current PNR details
-      const pnrUrl = `${ENV_CONFIG.SABRE_BASE_URL}/v1/passenger/records/${pnrLocator}`;
+      const pnrUrl = `${ENV_CONFIG.sabre.baseUrl}/v1/passenger/records/${pnrLocator}`;
       
       const pnrResponse = await fetch(pnrUrl, {
         method: 'GET',
@@ -62,7 +62,7 @@ serve(async (req) => {
       }
 
       // Search for alternative flights on the same route
-      const searchUrl = `${ENV_CONFIG.SABRE_BASE_URL}/v4/offers/shop`;
+      const searchUrl = `${ENV_CONFIG.sabre.baseUrl}/v4/offers/shop`;
       
       const searchPayload = {
         OTA_AirLowFareSearchRQ: {
@@ -151,7 +151,7 @@ serve(async (req) => {
 
     } else if (action === 'process_exchange') {
       // Process the flight exchange
-      const exchangeUrl = `${ENV_CONFIG.SABRE_BASE_URL}/v1/passenger/records/${pnrLocator}/reshape`;
+      const exchangeUrl = `${ENV_CONFIG.sabre.baseUrl}/v1/passenger/records/${pnrLocator}/reshape`;
       
       const exchangePayload = {
         ReshapePassengerNameRecordRQ: {
