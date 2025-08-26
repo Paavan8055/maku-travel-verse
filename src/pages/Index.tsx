@@ -18,6 +18,7 @@ import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTe
 import { BookingTestPanel } from "@/components/debug/BookingTestPanel";
 import { ProductionStatusIndicator } from "@/components/production/ProductionStatusIndicator";
 import { EmergencyFixPanel } from "@/components/EmergencyFixPanel";
+import { SystemHardeningPanel } from "@/components/SystemHardeningPanel";
 const Index = () => {
   return (
     <ErrorBoundary>
@@ -30,7 +31,8 @@ const Index = () => {
           {/* Emergency Fix Panel - Critical for Production Launch */}
           <div className="bg-destructive/5 border-y border-destructive/20 py-6">
             <div className="max-w-4xl mx-auto px-6">
-              <EmergencyFixPanel />
+        <EmergencyFixPanel />
+        <SystemHardeningPanel />
             </div>
           </div>
           
