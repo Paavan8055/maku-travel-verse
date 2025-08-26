@@ -20,7 +20,7 @@ export interface HotelPhoto {
 export interface PhotoRetrievalResult {
   success: boolean;
   photos: HotelPhoto[];
-  source: 'amadeus' | 'hotelbeds' | 'fallback';
+  source: 'amadeus' | 'hotelbeds' | 'sabre' | 'fallback';
   cached?: boolean;
   error?: string;
 }
@@ -43,7 +43,7 @@ export class PhotoRetriever {
    */
   static async getHotelPhotos(
     hotelId: string, 
-    provider: 'amadeus' | 'hotelbeds' | 'auto' = 'auto',
+    provider: 'amadeus' | 'hotelbeds' | 'sabre' | 'auto' = 'auto',
     useCache: boolean = true
   ): Promise<PhotoRetrievalResult> {
     try {
@@ -63,16 +63,26 @@ export class PhotoRetriever {
       // Try provider-specific retrieval
       let result: PhotoRetrievalResult;
 
-      if (provider === 'auto') {
-        // Try Amadeus first, then HotelBeds, then fallback
-        result = await this.tryAmadeusPhotos(hotelId) ||
-                 await this.tryHotelBedsPhotos(hotelId) ||
-                 this.getFallbackPhotos();
-      } else if (provider === 'amadeus') {
-        result = await this.tryAmadeusPhotos(hotelId) || this.getFallbackPhotos();
+      // Try specific provider first
+      if (provider === 'amadeus') {
+        result = await this.tryAmadeusPhotos(hotelId);
       } else if (provider === 'hotelbeds') {
-        result = await this.tryHotelBedsPhotos(hotelId) || this.getFallbackPhotos();
+        result = await this.tryHotelBedsPhotos(hotelId);
+      } else if (provider === 'sabre') {
+        result = await this.trySabrePhotos(hotelId);
       } else {
+        // Auto mode: try HotelBeds first (usually more photos), then Sabre, then Amadeus
+        result = await this.tryHotelBedsPhotos(hotelId);
+        if (!result || result.photos.length === 0) {
+          result = await this.trySabrePhotos(hotelId);
+        }
+        if (!result || result.photos.length === 0) {
+          result = await this.tryAmadeusPhotos(hotelId);
+        }
+      }
+
+      // Fallback if no provider succeeded
+      if (!result || result.photos.length === 0) {
         result = this.getFallbackPhotos();
       }
 
@@ -245,6 +255,54 @@ export class PhotoRetriever {
       logger.warn('Failed to read cached photos:', error);
       return null;
     }
+  }
+
+  /**
+   * Try retrieving photos from Sabre Hotel Content API
+   */
+  static async trySabrePhotos(hotelId: string): Promise<PhotoRetrievalResult | null> {
+    try {
+      logger.info('Attempting Sabre photo retrieval', { hotelId });
+
+      const { data, error } = await supabase.functions.invoke('sabre-hotel-content', {
+        body: { hotelId }
+      });
+
+      if (error) {
+        logger.warn('Sabre API error:', error);
+        return null;
+      }
+
+      if (data?.success && data.images?.length > 0) {
+        const photos = this.processSabrePhotos(data.images);
+        logger.info(`Retrieved ${photos.length} photos from Sabre`, { hotelId });
+        
+        return {
+          success: true,
+          photos,
+          source: 'sabre'
+        };
+      }
+
+      return null;
+    } catch (error) {
+      logger.error('Sabre photo retrieval failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Process Sabre photo data into standard format
+   */
+  private static processSabrePhotos(images: any[]): HotelPhoto[] {
+    return images.map(image => ({
+      url: image.url,
+      caption: image.caption || 'Hotel Image',
+      type: 'photo',
+      category: image.category || 'other',
+      width: image.width,
+      height: image.height
+    })).slice(0, this.MAX_PHOTOS);
   }
 
   /**
