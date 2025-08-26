@@ -45,6 +45,25 @@ export const ENV_CONFIG = {
   }
 };
 
+// Rate limiting configuration
+export const RATE_LIMITS = {
+  amadeus: {
+    requestsPerSecond: 10,
+    requestsPerMinute: 600,
+    requestsPerHour: 30000
+  },
+  sabre: {
+    requestsPerSecond: 5,
+    requestsPerMinute: 300,
+    requestsPerHour: 18000
+  },
+  hotelbeds: {
+    requestsPerSecond: 5,
+    requestsPerMinute: 300,
+    requestsPerHour: 15000
+  }
+};
+
 // Enhanced provider credential validation
 export function validateProviderCredentials(provider: 'amadeus' | 'sabre'): boolean {
   try {
@@ -122,6 +141,23 @@ export function getAvailableHotelBedsServices(): string[] {
   }
   
   return services;
+}
+
+export function getHotelBedsCredentials(service: 'hotel' | 'activity') {
+  switch (service) {
+    case 'hotel':
+      return {
+        apiKey: ENV_CONFIG.HOTELBEDS_HOTEL_API_KEY,
+        secret: ENV_CONFIG.HOTELBEDS_HOTEL_SECRET
+      };
+    case 'activity':
+      return {
+        apiKey: ENV_CONFIG.HOTELBEDS_ACTIVITY_API_KEY,
+        secret: ENV_CONFIG.HOTELBEDS_ACTIVITY_SECRET
+      };
+    default:
+      return { apiKey: '', secret: '' };
+  }
 }
 
 // Get provider health status
