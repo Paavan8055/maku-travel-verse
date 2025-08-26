@@ -17,11 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ProviderRotationTestPanel } from "@/components/debug/ProviderRotationTestPanel";
 import { BookingTestPanel } from "@/components/debug/BookingTestPanel";
 import { ProductionStatusIndicator } from "@/components/production/ProductionStatusIndicator";
-import { EmergencyFixPanel } from "@/components/EmergencyFixPanel";
-import { SystemHardeningPanel } from "@/components/SystemHardeningPanel";
-import { SecureAdminDashboard } from "@/components/SecureAdminDashboard";
 import { PriceAlertManager } from "@/components/PriceAlertManager";
-import { TestingFrameworkDashboard } from "@/components/TestingFrameworkDashboard";
 const Index = () => {
   return (
     <ErrorBoundary>
@@ -31,28 +27,10 @@ const Index = () => {
           <SessionRecoveryBanner />
           <Navbar />
           
-          {/* Emergency Fix Panel - Critical for Production Launch */}
-          <div className="bg-destructive/5 border-y border-destructive/20 py-6">
-            <div className="max-w-4xl mx-auto px-6">
-              <EmergencyFixPanel />
-              <SystemHardeningPanel />
-            </div>
-          </div>
-
-          {/* Phase 3: Enterprise Polish & UI Completion */}
+          {/* Price Alerts for authenticated users */}
           <div className="bg-gradient-to-r from-primary/5 to-blue-600/5 border-y border-primary/20 py-6">
-            <div className="max-w-6xl mx-auto px-6 space-y-6">
-              <h2 className="text-2xl font-bold text-center mb-6">Enterprise Grade Features</h2>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <SecureAdminDashboard />
-                  <TestingFrameworkDashboard />
-                </div>
-                <div className="space-y-6">
-                  <PriceAlertManager />
-                </div>
-              </div>
+            <div className="max-w-6xl mx-auto px-6">
+              <PriceAlertManager />
             </div>
           </div>
           

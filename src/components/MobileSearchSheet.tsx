@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
+import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 
 interface MobileSearchSheetProps {
   trigger?: React.ReactNode;
@@ -114,8 +115,38 @@ export const MobileSearchSheet = ({ trigger }: MobileSearchSheetProps) => {
             </TabsContent>
 
             <TabsContent value="activities" className="space-y-4">
-              <div className="text-center py-8 text-muted-foreground">
-                Activity search coming soon
+              <div className="space-y-4">
+                <DestinationAutocomplete
+                  value={destination}
+                  onChange={setDestination}
+                  onDestinationSelect={(d) => setDestination(d.code ? `${d.city ?? d.name} (${d.code})` : d.name)}
+                  placeholder="Activity destination"
+                  className="w-full"
+                />
+                
+                <Button variant="outline" className="justify-start text-left font-normal w-full">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {checkIn ? format(checkIn, "MMM dd") : "Activity date"}
+                </Button>
+
+                <Select value={guests} onValueChange={setGuests}>
+                  <SelectTrigger>
+                    <Users className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Participants" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Person</SelectItem>
+                    <SelectItem value="2">2 People</SelectItem>
+                    <SelectItem value="3">3 People</SelectItem>
+                    <SelectItem value="4">4 People</SelectItem>
+                    <SelectItem value="5">5+ People</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button className="w-full mt-6">
+                  <Search className="mr-2 h-4 w-4" />
+                  Search Activities
+                </Button>
               </div>
             </TabsContent>
           </Tabs>

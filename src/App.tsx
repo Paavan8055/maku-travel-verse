@@ -58,6 +58,7 @@ const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations
 const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/users"));
 const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
+const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
 const DebugPage = createLazyRoute(() => import("./pages/debug"));
 const HotelSelectionPage = createLazyRoute(() => import("./pages/booking/hotel-selection").then(m => ({ default: m.default })));
 
@@ -151,8 +152,9 @@ const App = () => (
                                         <Route path="operations/users" element={<AdminUsersPage />} />
                                         <Route path="operations/testing" element={<AdminTestingPage />} />
                                         
-                                        {/* Security Routes */}
-                                        <Route path="security/access" element={<AdminSecurityPage />} />
+                        {/* Security Routes */}
+                        <Route path="security/access" element={<AdminSecurityPage />} />
+                        <Route path="emergency" element={<SecureAdminPanelPage />} />
                                         
                                         {/* Legacy Routes for backward compatibility */}
                                         <Route path="deployment-test" element={<DeploymentTestPage />} />
