@@ -478,8 +478,6 @@ async function updateProviderMetrics(
         last_checked: new Date().toISOString(),
         response_time_ms: responseTime,
         error_count: success ? 0 : 1
-      }, {
-        onConflict: 'provider'
       });
 
     if (error) {
