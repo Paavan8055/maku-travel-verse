@@ -396,7 +396,7 @@ export const PriceAlertManager: React.FC = () => {
                 />
               </div>
 
-              {newAlert.type === 'hotel' && (
+              {(newAlert.type === 'hotel' || newAlert.type === 'activity') && (
                 <div>
                   <Label>End Date</Label>
                   <Input
