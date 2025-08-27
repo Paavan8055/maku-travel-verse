@@ -12,6 +12,7 @@ import { CorrelationTracker } from '@/components/admin/CorrelationTracker';
 import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide';
 import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
 import { SystemRecoveryDashboard } from '@/components/admin/SystemRecoveryDashboard';
+import { EmergencyRecoveryExecutor } from '@/components/admin/EmergencyRecoveryExecutor';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -126,7 +127,8 @@ const AdminDashboard = () => {
           </TabsList>
           
           <TabsContent value="recovery">
-            <SystemRecoveryDashboard />
+        <EmergencyRecoveryExecutor />
+        <SystemRecoveryDashboard />
           </TabsContent>
           
           <TabsContent value="overview">
