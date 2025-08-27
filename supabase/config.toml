@@ -5,18 +5,19 @@ verify_jwt = true
 
 [functions.production-readiness]
 verify_jwt = false
+timeout = 300000
 
 [functions.unified-health-monitor]
 verify_jwt = false
+timeout = 60000
 
 [functions.provider-quota-monitor]
 verify_jwt = false
-
-[functions.production-readiness]
-verify_jwt = false
+timeout = 30000
 
 [functions.hotelbeds-monitoring]
 verify_jwt = false
+timeout = 45000
 
 [functions.comprehensive-health-monitor]
 verify_jwt = false
@@ -263,11 +264,9 @@ port = 54327
 vector_port = 54328
 backend = "postgres"
 
-[functions.comprehensive-health-monitor]
-verify_jwt = false
-
 [functions.configure-auth-security]
 verify_jwt = false
+timeout = 60000
 
 [functions.production-booking-manager]
 verify_jwt = false
@@ -350,9 +349,16 @@ verify_jwt = false
 
 [functions.hotelbeds-image-content]
 verify_jwt = false
-
-[functions.sabre-flight-price]
-verify_jwt = false
+timeout = 30000
 
 [functions.amadeus-order-create]
 verify_jwt = false
+timeout = 45000
+
+[functions.enhanced-provider-rotation]
+verify_jwt = false
+timeout = 60000
+
+[functions.booking-completion-workflow]
+verify_jwt = false
+timeout = 120000
