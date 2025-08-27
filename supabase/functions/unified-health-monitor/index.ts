@@ -46,159 +46,65 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Starting comprehensive provider health check...');
+    console.log('Starting comprehensive provider health check from database...');
 
-    const providers: ProviderHealthStatus[] = [];
+    // Fetch provider configurations
+    const { data: providerConfigs, error: configError } = await supabase
+      .from('provider_configs')
+      .select('*')
+      .eq('enabled', true);
+
+    if (configError) {
+      throw new Error(`Failed to fetch provider configs: ${configError.message}`);
+    }
+
+    // Fetch provider health data
+    const { data: providerHealth, error: healthError } = await supabase
+      .from('provider_health')
+      .select('*');
+
+    if (healthError) {
+      throw new Error(`Failed to fetch provider health: ${healthError.message}`);
+    }
+
+    // Fetch provider quotas
+    const { data: providerQuotas, error: quotaError } = await supabase
+      .from('provider_quotas')
+      .select('*');
+
+    if (quotaError) {
+      throw new Error(`Failed to fetch provider quotas: ${quotaError.message}`);
+    }
+
     const timestamp = Date.now();
     const recommendations: string[] = [];
 
-    // Check Amadeus Provider
-    const amadeusStart = Date.now();
-    try {
-      const { data: amadeusResponse, error } = await supabase.functions.invoke('amadeus-health');
-      const responseTime = Date.now() - amadeusStart;
-      
-      let status: 'healthy' | 'degraded' | 'outage' = 'healthy';
-      let credentialsValid = true;
-      
-      if (error || !amadeusResponse?.success) {
-        status = 'outage';
-        credentialsValid = false;
-        recommendations.push('Amadeus API credentials may be invalid or service is down');
-      }
+    // Build comprehensive provider status from database
+    const providers: ProviderHealthStatus[] = providerConfigs.map(config => {
+      const health = providerHealth.find(h => h.provider === config.id);
+      const quota = providerQuotas.find(q => q.provider_id === config.id);
+      const circuitBreaker = config.circuit_breaker as any;
 
-      // Get quota info for Amadeus
-      const { data: amadeusQuota } = await supabase
-        .from('provider_quotas')
-        .select('*')
-        .like('provider_id', 'amadeus%')
-        .limit(1)
-        .single();
+      // Map status values correctly
+      let status: 'healthy' | 'degraded' | 'outage' = 'outage';
+      if (health?.status === 'healthy') status = 'healthy';
+      else if (health?.status === 'degraded') status = 'degraded';
+      else if (health?.status === 'unhealthy') status = 'outage';
 
-      const quotaPercentage = amadeusQuota?.percentage_used || 0;
-      const quotaStatus = amadeusQuota?.status || 'healthy';
-
-      providers.push({
-        providerId: 'amadeus',
-        providerName: 'Amadeus',
+      return {
+        providerId: config.id,
+        providerName: config.name,
         status,
-        responseTime,
-        lastChecked: timestamp,
-        circuitBreakerState: 'closed',
-        failureCount: 0,
-        quotaStatus,
-        quotaPercentage,
-        credentialsValid,
-        serviceTypes: ['flight', 'hotel', 'activity']
-      });
-    } catch (error) {
-      providers.push({
-        providerId: 'amadeus',
-        providerName: 'Amadeus',
-        status: 'outage',
-        responseTime: Date.now() - amadeusStart,
-        lastChecked: timestamp,
-        circuitBreakerState: 'open',
-        failureCount: 1,
-        quotaStatus: 'unknown',
-        quotaPercentage: 0,
-        credentialsValid: false,
-        serviceTypes: ['flight', 'hotel', 'activity']
-      });
-      recommendations.push('Amadeus provider is completely unavailable');
-    }
-
-    // Check Stripe Provider (Payment System)
-    const stripeStart = Date.now();
-    try {
-      // Simple health check - just verify we can access basic info
-      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-      const credentialsValid = !!stripeKey;
-      
-      providers.push({
-        providerId: 'stripe',
-        providerName: 'Stripe',
-        status: credentialsValid ? 'healthy' : 'degraded',
-        responseTime: Date.now() - stripeStart,
-        lastChecked: timestamp,
-        circuitBreakerState: 'closed',
-        failureCount: 0,
-        quotaStatus: 'healthy',
-        quotaPercentage: 0,
-        credentialsValid,
-        serviceTypes: ['payment']
-      });
-
-      if (!credentialsValid) {
-        recommendations.push('Stripe credentials are missing or invalid');
-      }
-    } catch (error) {
-      providers.push({
-        providerId: 'stripe',
-        providerName: 'Stripe',
-        status: 'outage',
-        responseTime: Date.now() - stripeStart,
-        lastChecked: timestamp,
-        circuitBreakerState: 'open',
-        failureCount: 1,
-        quotaStatus: 'unknown',
-        quotaPercentage: 0,
-        credentialsValid: false,
-        serviceTypes: ['payment']
-      });
-      recommendations.push('Stripe payment system is unavailable');
-    }
-
-    // Check HotelBeds Provider
-    const hotelbedsStart = Date.now();
-    try {
-      const hotelbedsKey = Deno.env.get('HOTELBEDS_API_KEY');
-      const credentialsValid = !!hotelbedsKey;
-      
-      // Get quota info for HotelBeds
-      const { data: hotelbedsQuota } = await supabase
-        .from('provider_quotas')
-        .select('*')
-        .like('provider_id', 'hotelbeds%')
-        .limit(1)
-        .single();
-
-      const quotaPercentage = hotelbedsQuota?.percentage_used || 0;
-      const quotaStatus = hotelbedsQuota?.status || 'healthy';
-
-      providers.push({
-        providerId: 'hotelbeds',
-        providerName: 'HotelBeds',
-        status: credentialsValid ? 'healthy' : 'degraded',
-        responseTime: Date.now() - hotelbedsStart,
-        lastChecked: timestamp,
-        circuitBreakerState: 'closed',
-        failureCount: 0,
-        quotaStatus,
-        quotaPercentage,
-        credentialsValid,
-        serviceTypes: ['hotel', 'activity']
-      });
-
-      if (!credentialsValid) {
-        recommendations.push('HotelBeds credentials need verification');
-      }
-    } catch (error) {
-      providers.push({
-        providerId: 'hotelbeds',
-        providerName: 'HotelBeds',
-        status: 'outage',
-        responseTime: Date.now() - hotelbedsStart,
-        lastChecked: timestamp,
-        circuitBreakerState: 'open',
-        failureCount: 1,
-        quotaStatus: 'unknown',
-        quotaPercentage: 0,
-        credentialsValid: false,
-        serviceTypes: ['hotel', 'activity']
-      });
-      recommendations.push('HotelBeds provider is unavailable');
-    }
+        responseTime: health?.response_time_ms || 0,
+        lastChecked: health?.last_checked ? new Date(health.last_checked).getTime() : timestamp,
+        circuitBreakerState: circuitBreaker?.state || 'closed',
+        failureCount: health?.failure_count || 0,
+        quotaStatus: quota?.status || 'healthy',
+        quotaPercentage: quota?.percentage_used || 0,
+        credentialsValid: true, // Assume valid unless proven otherwise
+        serviceTypes: [config.type]
+      };
+    });
 
     // Calculate overall summary
     const healthyProviders = providers.filter(p => p.status === 'healthy').length;

@@ -115,9 +115,15 @@ export default function HotelBedsMonitoringDashboard() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Unable to load monitoring data. Please check your connection and try again.
+            Unable to load monitoring data. HotelBeds monitoring service may be temporarily unavailable.
           </AlertDescription>
         </Alert>
+        <div className="mt-4">
+          <Button onClick={fetchMonitoringData} variant="outline">
+            <Activity className="h-4 w-4 mr-2" />
+            Retry Connection
+          </Button>
+        </div>
       </div>
     );
   }
@@ -160,9 +166,9 @@ export default function HotelBedsMonitoringDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.metrics.searchCount.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{data?.metrics?.searchCount?.toLocaleString() || '0'}</div>
             <p className="text-xs text-muted-foreground">
-              Avg response: {data.metrics.avgResponseTime}ms
+              Avg response: {data?.metrics?.avgResponseTime || 0}ms
             </p>
           </CardContent>
         </Card>
@@ -173,7 +179,7 @@ export default function HotelBedsMonitoringDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.metrics.bookingCount.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{data?.metrics?.bookingCount?.toLocaleString() || '0'}</div>
             <p className="text-xs text-muted-foreground">
               Conversion rate calculated
             </p>
@@ -186,7 +192,7 @@ export default function HotelBedsMonitoringDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{data.metrics.errorCount}</div>
+            <div className="text-2xl font-bold text-red-600">{data?.metrics?.errorCount || 0}</div>
             <p className="text-xs text-muted-foreground">
               Errors in last 24 hours
             </p>
@@ -208,20 +214,20 @@ export default function HotelBedsMonitoringDashboard() {
                 <CardTitle>Response Time Trend</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={data.analytics}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="responseTime" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                 <ResponsiveContainer width="100%" height={300}>
+                   <LineChart data={data?.analytics || []}>
+                     <CartesianGrid strokeDasharray="3 3" />
+                     <XAxis dataKey="date" />
+                     <YAxis />
+                     <Tooltip />
+                     <Line 
+                       type="monotone" 
+                       dataKey="responseTime" 
+                       stroke="hsl(var(--primary))" 
+                       strokeWidth={2}
+                     />
+                   </LineChart>
+                 </ResponsiveContainer>
               </CardContent>
             </Card>
 
@@ -230,16 +236,16 @@ export default function HotelBedsMonitoringDashboard() {
                 <CardTitle>Search vs Booking Volume</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={data.analytics}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="searches" fill="hsl(var(--primary))" />
-                    <Bar dataKey="bookings" fill="hsl(var(--secondary))" />
-                  </BarChart>
-                </ResponsiveContainer>
+                 <ResponsiveContainer width="100%" height={300}>
+                   <BarChart data={data?.analytics || []}>
+                     <CartesianGrid strokeDasharray="3 3" />
+                     <XAxis dataKey="date" />
+                     <YAxis />
+                     <Tooltip />
+                     <Bar dataKey="searches" fill="hsl(var(--primary))" />
+                     <Bar dataKey="bookings" fill="hsl(var(--secondary))" />
+                   </BarChart>
+                 </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
@@ -252,7 +258,7 @@ export default function HotelBedsMonitoringDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {data.recentActivity.map((activity) => (
+                {data?.recentActivity?.length > 0 ? data.recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
                       <Badge variant={activity.type === 'error' ? 'destructive' : 'default'}>
@@ -261,10 +267,14 @@ export default function HotelBedsMonitoringDashboard() {
                       <span className="text-sm">{activity.timestamp}</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {JSON.stringify(activity.details, null, 2).substring(0, 100)}...
+                      {JSON.stringify(activity.details || {}, null, 2).substring(0, 100)}...
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No recent activity data available
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -279,11 +289,11 @@ export default function HotelBedsMonitoringDashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium">Last Health Check</div>
-                  <div className="text-2xl font-bold">{data.healthStatus.lastCheck}</div>
+                  <div className="text-2xl font-bold">{data?.healthStatus?.lastCheck || 'N/A'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium">Response Time</div>
-                  <div className="text-2xl font-bold">{data.healthStatus.responseTime}ms</div>
+                  <div className="text-2xl font-bold">{data?.healthStatus?.responseTime || 0}ms</div>
                 </div>
               </div>
 
