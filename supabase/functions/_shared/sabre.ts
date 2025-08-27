@@ -9,34 +9,57 @@ export interface SabreConfig {
   clientSecret: string;
 }
 
-export const SABRE_CONFIG: SabreConfig = {
-  tokenUrl: "https://api-crt.cert.havail.sabre.com/v2/auth/token",
-  baseUrl: "https://api-crt.cert.havail.sabre.com",
-  clientId: ENV_CONFIG.SABRE_CLIENT_ID || "",
-  clientSecret: ENV_CONFIG.SABRE_CLIENT_SECRET || ""
-};
+export function getSabreConfig(isProduction: boolean = false): SabreConfig {
+  if (isProduction) {
+    return {
+      tokenUrl: "https://api.havail.sabre.com/v2/auth/token",
+      baseUrl: "https://api.havail.sabre.com",
+      clientId: ENV_CONFIG.SABRE_CLIENT_ID || "",
+      clientSecret: ENV_CONFIG.SABRE_CLIENT_SECRET || ""
+    };
+  }
+  
+  return {
+    tokenUrl: "https://api-crt.cert.havail.sabre.com/v2/auth/token",
+    baseUrl: "https://api-crt.cert.havail.sabre.com",
+    clientId: ENV_CONFIG.SABRE_CLIENT_ID || "",
+    clientSecret: ENV_CONFIG.SABRE_CLIENT_SECRET || ""
+  };
+}
 
-export async function getSabreAccessToken(): Promise<string> {
+export const SABRE_CONFIG: SabreConfig = getSabreConfig();
+
+export async function getSabreAccessToken(isProduction: boolean = false): Promise<string> {
   const startTime = Date.now();
   
   try {
-    if (!SABRE_CONFIG.clientId || !SABRE_CONFIG.clientSecret) {
+    const config = getSabreConfig(isProduction);
+    
+    if (!config.clientId || !config.clientSecret) {
       throw new Error('Sabre credentials not configured');
     }
 
-    const credentials = btoa(`${SABRE_CONFIG.clientId}:${SABRE_CONFIG.clientSecret}`);
+    const credentials = btoa(`${config.clientId}:${config.clientSecret}`);
 
-    const pcc = Deno.env.get('SABRE_PCC');
-    const tokenResponse = await fetch(SABRE_CONFIG.tokenUrl, {
+    // Use environment-appropriate PCC
+    const pcc = isProduction 
+      ? Deno.env.get('SABRE_PROD_PCC') 
+      : Deno.env.get('SABRE_TEST_PCC');
+    
+    if (!pcc) {
+      throw new Error(`Sabre PCC not configured for ${isProduction ? 'production' : 'test'} environment`);
+    }
+
+    const tokenResponse = await fetch(config.tokenUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${credentials}`,
         'Content-Type': 'application/x-www-form-urlencoded',
-        ...(pcc && { 'PCC': pcc })
+        'PCC': pcc
       },
       body: new URLSearchParams({
         grant_type: 'client_credentials',
-        ...(pcc && { pcc })
+        pcc
       }),
     });
 
@@ -68,6 +91,21 @@ export async function getSabreAccessToken(): Promise<string> {
   }
 }
 
-export function validateSabreCredentials(): boolean {
-  return !!(SABRE_CONFIG.clientId && SABRE_CONFIG.clientSecret);
+export function validateSabreCredentials(isProduction: boolean = false): boolean {
+  const config = getSabreConfig(isProduction);
+  const pcc = isProduction 
+    ? Deno.env.get('SABRE_PROD_PCC') 
+    : Deno.env.get('SABRE_TEST_PCC');
+  
+  return !!(config.clientId && config.clientSecret && pcc);
+}
+
+export function getSabrePCC(isProduction: boolean = false): string | null {
+  return isProduction 
+    ? Deno.env.get('SABRE_PROD_PCC') || null
+    : Deno.env.get('SABRE_TEST_PCC') || null;
+}
+
+export function getSabreEPR(): string | null {
+  return Deno.env.get('SABRE_EPR_ID') || null;
 }

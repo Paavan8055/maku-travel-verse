@@ -33,8 +33,11 @@ serve(async (req) => {
       adults
     });
 
-    // Get Sabre access token
-    const accessToken = await getSabreAccessToken();
+    // Get environment status
+    const isProduction = Deno.env.get('NODE_ENV') === 'production';
+    
+    // Get Sabre access token with environment
+    const accessToken = await getSabreAccessToken(isProduction);
     logger.info('✅ Successfully obtained Sabre token');
 
     // Build search URL with query parameters for InstaFlights Search API

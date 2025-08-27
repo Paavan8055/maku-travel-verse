@@ -37,10 +37,10 @@ export const ENV_CONFIG = {
   },
   sabre: {
     tokenUrl: Deno.env.get('NODE_ENV') === 'production'
-      ? "https://api.sabre.com/v2/auth/token"
+      ? "https://api.havail.sabre.com/v2/auth/token"
       : "https://api-crt.cert.havail.sabre.com/v2/auth/token",
     baseUrl: Deno.env.get('NODE_ENV') === 'production'
-      ? "https://api.sabre.com"
+      ? "https://api.havail.sabre.com"
       : "https://api-crt.cert.havail.sabre.com"
   },
   hotelbeds: {
