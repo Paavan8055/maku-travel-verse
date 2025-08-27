@@ -4599,6 +4599,10 @@ export type Database = {
         }
         Returns: string
       }
+      emergency_cleanup_payments: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       generate_booking_reference: {
         Args: Record<PropertyKey, never>
         Returns: string
