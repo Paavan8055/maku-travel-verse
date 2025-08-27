@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
@@ -119,9 +120,9 @@ export const AdminSidebar: React.FC = () => {
   return <Sidebar className={collapsed ? 'w-14' : 'w-60'} collapsible="icon">
       <SidebarContent>
         {adminMenuItems.map(group => <SidebarGroup key={group.category}>
-            <SidebarGroupLabel className="flex items-center gap-2">
+            <SidebarGroupLabel className="flex items-center gap-2 text-foreground font-medium">
               <group.icon className="h-4 w-4" />
-              {!collapsed && <span>{group.category}</span>}
+              {!collapsed && <span className="text-foreground">{group.category}</span>}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -129,9 +130,9 @@ export const AdminSidebar: React.FC = () => {
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={({
                   isActive
-                }) => `flex items-center gap-3 ${isActive ? 'bg-primary text-primary-foreground font-medium' : 'hover:bg-muted'}`}>
+                }) => `flex items-center gap-3 text-foreground ${isActive ? 'bg-primary text-primary-foreground font-medium' : 'hover:bg-muted'}`}>
                         <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!collapsed && <span className="text-foreground">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>)}
@@ -150,7 +151,7 @@ export const AdminHeader: React.FC = () => {
       <div className="flex items-center gap-4">
         <SidebarTrigger />
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold">MAKU Admin</h1>
+          <h1 className="text-xl font-semibold text-foreground">MAKU Admin</h1>
         </div>
       </div>
 
@@ -158,30 +159,30 @@ export const AdminHeader: React.FC = () => {
         {/* Global Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search admin features..." className="pl-9 w-64" />
+          <Input placeholder="Search admin features..." className="pl-9 w-64 text-foreground" />
         </div>
 
         {/* Notifications */}
         <Button variant="ghost" size="icon">
-          <Bell className="h-4 w-4" />
+          <Bell className="h-4 w-4 text-foreground" />
         </Button>
 
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
-              <User className="h-4 w-4" />
+              <User className="h-4 w-4 text-foreground" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
+            <DropdownMenuLabel className="text-foreground">
               {user?.email || 'Admin User'}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-            <DropdownMenuItem>Admin Preferences</DropdownMenuItem>
+            <DropdownMenuItem className="text-foreground">Profile Settings</DropdownMenuItem>
+            <DropdownMenuItem className="text-foreground">Admin Preferences</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Sign Out</DropdownMenuItem>
+            <DropdownMenuItem className="text-foreground">Sign Out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -197,7 +198,7 @@ export const AdminLayout: React.FC = () => {
           <div className="px-6 py-3 border-b bg-background">
             <AdminBreadcrumb />
           </div>
-          <main className="flex-1 p-6 bg-muted/5">
+          <main className="flex-1 p-6 bg-muted/5 text-foreground">
             <Outlet />
           </main>
         </div>
