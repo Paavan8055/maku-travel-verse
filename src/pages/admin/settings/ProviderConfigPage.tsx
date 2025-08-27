@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,8 @@ import {
   XCircle, 
   AlertTriangle,
   RefreshCw,
-  Save
+  Save,
+  Clock
 } from 'lucide-react';
 
 interface ProviderConfig {
@@ -41,11 +43,22 @@ interface ProviderStatus {
   credentialsValid: boolean;
   authSuccess: boolean;
   error?: string;
+  status?: 'success' | 'failed' | 'missing_credentials';
+  service?: string;
+}
+
+interface ProviderHealth {
+  provider: string;
+  status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+  response_time_ms: number;
+  last_checked: string;
+  error_count: number;
 }
 
 export default function ProviderConfigPage() {
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
   const [providerStatus, setProviderStatus] = useState<ProviderStatus[]>([]);
+  const [providerHealth, setProviderHealth] = useState<ProviderHealth[]>([]);
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -67,8 +80,24 @@ export default function ProviderConfigPage() {
         description: "Failed to load provider configurations",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchProviderHealth = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('provider_health')
+        .select('*')
+        .order('last_checked', { ascending: false });
+
+      if (error) {
+        console.warn('Failed to fetch provider health:', error);
+        return;
+      }
+      
+      setProviderHealth(data || []);
+    } catch (error) {
+      console.warn('Provider health data not available:', error);
     }
   };
 
@@ -137,35 +166,92 @@ export default function ProviderConfigPage() {
     }
   };
 
-  const getStatusIcon = (provider: string) => {
-    const status = providerStatus.find(p => p.provider.toLowerCase() === provider.toLowerCase());
-    if (!status) return <AlertTriangle className="h-4 w-4 text-gray-500" />;
-    
-    if (status.authSuccess) {
-      return <CheckCircle className="h-4 w-4 text-green-500" />;
-    } else if (status.credentialsValid) {
-      return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-    } else {
-      return <XCircle className="h-4 w-4 text-red-500" />;
+  const getProviderStatus = (provider: ProviderConfig) => {
+    // Try to find credential test result
+    const credentialStatus = providerStatus.find(p => {
+      const providerNameMatch = p.provider.toLowerCase() === provider.name.toLowerCase().replace(/\s/g, '');
+      const providerTypeMatch = p.provider.toLowerCase().includes(provider.type);
+      return providerNameMatch || providerTypeMatch;
+    });
+
+    // Try to find health data
+    const healthData = providerHealth.find(h => 
+      h.provider.toLowerCase().includes(provider.id.toLowerCase()) ||
+      h.provider.toLowerCase().includes(provider.name.toLowerCase())
+    );
+
+    let status: 'healthy' | 'degraded' | 'failed' | 'unknown' = 'unknown';
+    let message = 'No status available';
+    let responseTime = provider.response_time || 0;
+
+    if (credentialStatus) {
+      if (credentialStatus.status === 'success') {
+        status = 'healthy';
+        message = 'Credentials valid';
+      } else if (credentialStatus.status === 'failed') {
+        status = 'failed';
+        message = credentialStatus.error || 'Authentication failed';
+      } else {
+        status = 'failed';
+        message = 'Missing credentials';
+      }
+    }
+
+    if (healthData) {
+      responseTime = healthData.response_time_ms || responseTime;
+      if (healthData.status === 'healthy') {
+        status = 'healthy';
+        message = 'Service operational';
+      } else if (healthData.status === 'degraded') {
+        status = 'degraded';
+        message = 'Service degraded';
+      } else if (healthData.status === 'unhealthy') {
+        status = 'failed';
+        message = 'Service unhealthy';
+      }
+    }
+
+    return { status, message, responseTime };
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'healthy':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'degraded':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getStatusBadge = (provider: string) => {
-    const status = providerStatus.find(p => p.provider.toLowerCase() === provider.toLowerCase());
-    if (!status) return <Badge variant="outline">Unknown</Badge>;
-    
-    if (status.authSuccess) {
-      return <Badge variant="secondary" className="bg-green-100 text-green-800">Connected</Badge>;
-    } else if (status.credentialsValid) {
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-700">Auth Failed</Badge>;
-    } else {
-      return <Badge variant="destructive">No Credentials</Badge>;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'healthy':
+        return <Badge variant="secondary" className="bg-green-100 text-green-800">Healthy</Badge>;
+      case 'degraded':
+        return <Badge variant="outline" className="border-yellow-500 text-yellow-700">Degraded</Badge>;
+      case 'failed':
+        return <Badge variant="destructive">Failed</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
   useEffect(() => {
-    fetchProviders();
-    testCredentials();
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchProviders(),
+        fetchProviderHealth(),
+        testCredentials()
+      ]);
+      setLoading(false);
+    };
+    
+    loadData();
   }, []);
 
   if (loading) {
@@ -183,7 +269,7 @@ export default function ProviderConfigPage() {
         <div>
           <h1 className="text-3xl font-bold">Provider Configuration</h1>
           <p className="text-muted-foreground">
-            Manage API provider settings, credentials, and priorities
+            Manage API provider settings, credentials, and health monitoring
           </p>
         </div>
         <div className="flex gap-2">
@@ -206,121 +292,145 @@ export default function ProviderConfigPage() {
             Provider Status Overview
           </CardTitle>
           <CardDescription>
-            Current status of all configured providers
+            Real-time status and health metrics for all configured providers
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {providers.map((provider) => (
-              <div key={provider.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  {getProviderIcon(provider.type)}
-                  <div>
-                    <h4 className="font-medium">{provider.name}</h4>
-                    <p className="text-sm text-muted-foreground capitalize">{provider.type}</p>
+            {providers.map((provider) => {
+              const { status, message, responseTime } = getProviderStatus(provider);
+              
+              return (
+                <div key={provider.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {getProviderIcon(provider.type)}
+                    <div>
+                      <h4 className="font-medium">{provider.name}</h4>
+                      <p className="text-sm text-muted-foreground capitalize">{provider.type}</p>
+                      <p className="text-xs text-muted-foreground">{message}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    {getStatusIcon(status)}
+                    {getStatusBadge(status)}
+                    {responseTime > 0 && (
+                      <span className="text-xs text-muted-foreground">{responseTime}ms</span>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(provider.name)}
-                  {getStatusBadge(provider.name)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
       {/* Individual Provider Configurations */}
       <div className="grid gap-6">
-        {providers.map((provider) => (
-          <Card key={provider.id}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {getProviderIcon(provider.type)}
-                {provider.name}
-                <Badge variant="outline" className="ml-auto">
-                  Priority: {provider.priority}
-                </Badge>
-              </CardTitle>
-              <CardDescription>
-                Configure {provider.name} API settings and behavior
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label>Enable Provider</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Allow this provider to handle requests
-                  </p>
-                </div>
-                <Switch
-                  checked={provider.enabled}
-                  onCheckedChange={(enabled) => updateProvider(provider.id, { enabled })}
-                />
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <Input
-                    type="number"
-                    value={provider.priority}
-                    onChange={(e) => updateProvider(provider.id, { priority: parseInt(e.target.value) })}
-                    min="1"
-                    max="100"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Lower numbers = higher priority
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label>Service Type</Label>
-                  <Input
-                    value={provider.type}
-                    disabled
-                    className="bg-muted"
+        {providers.map((provider) => {
+          const { status, message } = getProviderStatus(provider);
+          
+          return (
+            <Card key={provider.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {getProviderIcon(provider.type)}
+                  {provider.name}
+                  <Badge variant="outline" className="ml-auto">
+                    Priority: {provider.priority}
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  Configure {provider.name} API settings and monitor health status
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label>Enable Provider</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Allow this provider to handle requests
+                    </p>
+                  </div>
+                  <Switch
+                    checked={provider.enabled}
+                    onCheckedChange={(enabled) => updateProvider(provider.id, { enabled })}
                   />
                 </div>
-              </div>
 
-              {/* Provider Health Metrics */}
-              <Separator />
-              <div className="space-y-2">
-                <Label>Health Metrics</Label>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Health Score:</span>
-                    <span className="ml-2 font-medium">{provider.health_score}%</span>
+                <Separator />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Priority</Label>
+                    <Input
+                      type="number"
+                      value={provider.priority}
+                      onChange={(e) => updateProvider(provider.id, { priority: parseInt(e.target.value) })}
+                      min="1"
+                      max="100"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Lower numbers = higher priority
+                    </p>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Avg Response:</span>
-                    <span className="ml-2 font-medium">{provider.response_time}ms</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Circuit Breaker:</span>
-                    <span className="ml-2 font-medium capitalize">{provider.circuit_breaker_state}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Base URL:</span>
-                    <span className="ml-2 font-medium text-xs">{provider.base_url}</span>
+                  <div className="space-y-2">
+                    <Label>Service Type</Label>
+                    <Input
+                      value={provider.type}
+                      disabled
+                      className="bg-muted"
+                    />
                   </div>
                 </div>
-              </div>
 
-              {/* Error messages */}
-              {providerStatus.find(p => p.provider.toLowerCase() === provider.name.toLowerCase())?.error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-700">
-                    {providerStatus.find(p => p.provider.toLowerCase() === provider.name.toLowerCase())?.error}
-                  </p>
+                {/* Provider Health Metrics */}
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Health Metrics & Status</Label>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Current Status:</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {getStatusIcon(status)}
+                        <span className="font-medium capitalize">{status}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Response Time:</span>
+                      <span className="ml-2 font-medium">{provider.response_time || 0}ms</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Health Score:</span>
+                      <span className="ml-2 font-medium">{provider.health_score}%</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Circuit Breaker:</span>
+                      <span className="ml-2 font-medium capitalize">{provider.circuit_breaker_state}</span>
+                    </div>
+                  </div>
+                  {provider.base_url && (
+                    <div className="mt-2">
+                      <span className="text-muted-foreground text-xs">Base URL:</span>
+                      <span className="ml-2 font-mono text-xs">{provider.base_url}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+
+                {/* Status message */}
+                {message && message !== 'No status available' && (
+                  <div className={`p-3 rounded-md text-sm ${
+                    status === 'healthy' ? 'bg-green-50 border border-green-200 text-green-700' :
+                    status === 'degraded' ? 'bg-yellow-50 border border-yellow-200 text-yellow-700' :
+                    status === 'failed' ? 'bg-red-50 border border-red-200 text-red-700' :
+                    'bg-gray-50 border border-gray-200 text-gray-700'
+                  }`}>
+                    {message}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {providers.length === 0 && (
