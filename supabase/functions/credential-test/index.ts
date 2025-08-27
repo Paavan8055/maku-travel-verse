@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { ENV_CONFIG, validateProviderCredentials, validateHotelBedsCredentials } from "../_shared/config.ts";
 import { getSabreAccessToken } from "../_shared/sabre.ts";
 import logger from "../_shared/logger.ts";
@@ -197,7 +197,10 @@ async function testHotelbedsAuth(): Promise<void> {
 }
 
 async function testHotelBedsService(apiKey: string, secret: string, service: 'hotel' | 'activity'): Promise<void> {
+  const correlationId = crypto.randomUUID();
   const timestamp = Math.floor(Date.now() / 1000);
+  
+  logger.info(`Testing HotelBeds ${service} service`, { correlationId, service, apiKey: apiKey.substring(0, 8) + '...' });
   
   // Create signature using Web Crypto API (Deno compatible)
   const encoder = new TextEncoder();
@@ -214,6 +217,12 @@ async function testHotelBedsService(apiKey: string, secret: string, service: 'ho
     ? '/hotel-content-api/1.0/types/boards'
     : '/activity-content-api/1.0/types/categories';
 
+  logger.info(`Making HotelBeds ${service} test request`, { 
+    correlationId, 
+    endpoint: `${baseUrl}${endpoint}`,
+    timestamp 
+  });
+
   const response = await fetch(`${baseUrl}${endpoint}`, {
     headers: {
       'Api-key': apiKey,
@@ -224,8 +233,17 @@ async function testHotelBedsService(apiKey: string, secret: string, service: 'ho
   });
 
   if (!response.ok) {
-    throw new Error(`HotelBeds ${service} auth failed: ${response.statusText}`);
+    const errorText = await response.text();
+    logger.error(`HotelBeds ${service} API test failed`, { 
+      correlationId, 
+      status: response.status, 
+      statusText: response.statusText,
+      error: errorText 
+    });
+    throw new Error(`HotelBeds ${service} auth failed: ${response.status} ${errorText}`);
   }
+
+  logger.info(`HotelBeds ${service} authentication successful`, { correlationId });
 }
 
 serve(async (req) => {
