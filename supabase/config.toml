@@ -352,3 +352,9 @@ verify_jwt = false
 
 [functions.hotelbeds-image-content]
 verify_jwt = false
+
+[functions.sabre-flight-price]
+verify_jwt = false
+
+[functions.amadeus-order-create]
+verify_jwt = false
