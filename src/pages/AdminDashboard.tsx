@@ -11,6 +11,7 @@ import { RealTimeMetricsDashboard } from '@/components/admin/RealTimeMetricsDash
 import { CorrelationTracker } from '@/components/admin/CorrelationTracker';
 import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide';
 import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
+import { SystemRecoveryDashboard } from '@/components/admin/SystemRecoveryDashboard';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -111,8 +112,9 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs defaultValue="recovery" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="recovery">System Recovery</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="realtime">Real-Time</TabsTrigger>
             <TabsTrigger value="correlation">Correlation</TabsTrigger>
@@ -122,6 +124,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="recovery">
+            <SystemRecoveryDashboard />
+          </TabsContent>
           
           <TabsContent value="overview">
             <Card>
