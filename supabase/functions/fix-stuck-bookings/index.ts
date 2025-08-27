@@ -13,7 +13,25 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  let auditData = {
+    bookings_processed: 0,
+    bookings_expired: 0,
+    payments_cancelled: 0,
+    errors_encountered: 0,
+    triggered_by: 'manual'
+  };
+
   try {
+    // Parse request body for automated cleanup parameters
+    const body = req.method === 'POST' ? await req.json() : {};
+    const isAutomated = body.automated || false;
+    const timeoutMinutes = body.timeout_minutes || 60;
+    
+    if (isAutomated) {
+      auditData.triggered_by = 'automated';
+    }
+
     // Initialize clients
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -26,10 +44,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
 
-    logger.info('Starting stuck bookings recovery process');
+    logger.info('Starting stuck bookings recovery process', { 
+      automated: isAutomated, 
+      timeoutMinutes 
+    });
 
-    // Find stuck bookings (pending for more than 1 hour)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    // Find stuck bookings (pending for more than specified timeout)
+    const timeoutAgo = new Date(Date.now() - timeoutMinutes * 60 * 1000);
     
     const { data: stuckBookings, error: fetchError } = await supabase
       .from('bookings')
@@ -42,7 +63,7 @@ serve(async (req) => {
         payments(stripe_payment_intent_id, status)
       `)
       .eq('status', 'pending')
-      .lt('created_at', oneHourAgo.toISOString());
+      .lt('created_at', timeoutAgo.toISOString());
 
     if (fetchError) {
       throw new Error(`Failed to fetch stuck bookings: ${fetchError.message}`);
@@ -51,13 +72,24 @@ serve(async (req) => {
     logger.info(`Found ${stuckBookings?.length || 0} stuck bookings to process`);
 
     const recoveryResults = [];
+    auditData.bookings_processed = stuckBookings?.length || 0;
     
     for (const booking of stuckBookings || []) {
       try {
-        const result = await recoverStuckBooking(booking, stripe, supabase);
+        const result = await recoverStuckBooking(booking, stripe, supabase, isAutomated);
         recoveryResults.push(result);
+        
+        // Track cleanup metrics
+        if (result.status === 'failed' || result.status === 'expired') {
+          auditData.bookings_expired++;
+        }
+        if (result.payment_cancelled) {
+          auditData.payments_cancelled++;
+        }
+        
         logger.info('Processed stuck booking:', result);
       } catch (error) {
+        auditData.errors_encountered++;
         logger.error('Failed to recover booking:', { bookingId: booking.id, error: error.message });
         recoveryResults.push({
           booking_id: booking.id,
@@ -73,10 +105,22 @@ serve(async (req) => {
       recovered: recoveryResults.filter(r => r.status === 'recovered').length,
       confirmed: recoveryResults.filter(r => r.status === 'confirmed').length,
       failed: recoveryResults.filter(r => r.status === 'failed').length,
+      expired: recoveryResults.filter(r => r.status === 'expired').length,
       recovery_failed: recoveryResults.filter(r => r.status === 'recovery_failed').length
     };
 
-    logger.info('Stuck bookings recovery completed:', summary);
+    // Log cleanup audit
+    const executionTime = Date.now() - startTime;
+    await supabase
+      .from('cleanup_audit')
+      .insert({
+        cleanup_type: 'stuck_bookings',
+        ...auditData,
+        execution_time_ms: executionTime,
+        details: { summary, timeout_minutes: timeoutMinutes }
+      });
+
+    logger.info('Stuck bookings recovery completed:', { summary, executionTime });
 
     return new Response(
       JSON.stringify({
@@ -104,15 +148,17 @@ serve(async (req) => {
   }
 });
 
-async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any) {
+async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any, isAutomated = false) {
   const paymentIntentId = booking.booking_data?.stripe_payment_intent_id;
+  let paymentCancelled = false;
   
   if (!paymentIntentId) {
-    // No payment intent found, mark as failed
+    // No payment intent found, mark as expired for automated cleanup
+    const newStatus = isAutomated ? 'expired' : 'failed';
     await supabase
       .from('bookings')
       .update({ 
-        status: 'failed',
+        status: newStatus,
         updated_at: new Date().toISOString()
       })
       .eq('id', booking.id);
@@ -120,8 +166,9 @@ async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any) 
     return {
       booking_id: booking.id,
       booking_reference: booking.booking_reference,
-      status: 'failed',
-      reason: 'No payment intent found'
+      status: newStatus,
+      reason: 'No payment intent found',
+      payment_cancelled: paymentCancelled
     };
   }
 
@@ -161,8 +208,19 @@ async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any) 
         
       case 'canceled':
       case 'payment_failed':
-        newStatus = 'failed';
+        newStatus = isAutomated ? 'expired' : 'failed';
         reason = `Payment failed in Stripe: ${paymentIntent.status}`;
+        
+        // Cancel payment intent if automated cleanup and still cancelable
+        if (isAutomated && ['requires_payment_method', 'requires_confirmation'].includes(paymentIntent.status)) {
+          try {
+            await stripe.paymentIntents.cancel(paymentIntentId);
+            paymentCancelled = true;
+            logger.info('Cancelled payment intent during automated cleanup', { paymentIntentId });
+          } catch (cancelError) {
+            logger.warn('Failed to cancel payment intent', { paymentIntentId, error: cancelError.message });
+          }
+        }
         break;
         
       default:
@@ -186,7 +244,8 @@ async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any) 
       booking_reference: booking.booking_reference,
       status: newStatus === 'confirmed' ? 'recovered' : newStatus,
       reason,
-      stripe_status: paymentIntent.status
+      stripe_status: paymentIntent.status,
+      payment_cancelled: paymentCancelled
     };
     
   } catch (stripeError) {
@@ -195,12 +254,13 @@ async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any) 
       error: stripeError.message 
     });
     
-    // If payment intent doesn't exist in Stripe, mark booking as failed
+    // If payment intent doesn't exist in Stripe, mark booking as expired/failed
     if (stripeError.code === 'resource_missing') {
+      const newStatus = isAutomated ? 'expired' : 'failed';
       await supabase
         .from('bookings')
         .update({ 
-          status: 'failed',
+          status: newStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', booking.id);
@@ -208,8 +268,9 @@ async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any) 
       return {
         booking_id: booking.id,
         booking_reference: booking.booking_reference,
-        status: 'failed',
-        reason: 'Payment intent not found in Stripe'
+        status: newStatus,
+        reason: 'Payment intent not found in Stripe',
+        payment_cancelled: paymentCancelled
       };
     }
     
