@@ -272,7 +272,7 @@ serve(async (req) => {
     };
 
     const cityMapping = getCityMapping();
-    const destCode = cityMapping[destination.toLowerCase()];
+    const destCode = destination ? cityMapping[destination.toLowerCase()] : null;
     
     if (!destCode) {
       logger.warn('Destination not found in mapping:', destination);
