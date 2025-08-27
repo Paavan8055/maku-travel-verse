@@ -73,13 +73,12 @@ async function searchHotelbedsActivities(params: ActivitySearchParams): Promise<
 
   logger.info('HotelBeds Activities search request:', requestBody);
 
-  // Fixed: Use correct HotelBeds test endpoint and headers
-  const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/activity-api/3.0/activities/search`, {
+  const response = await fetch(`${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-api/3.0/activities/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Api-key': apiKey, // Fixed: lowercase 'k' in Api-key
-      'X-signature': signature, // Fixed: lowercase 's' in X-signature  
+      'Api-Key': apiKey,
+      'X-Signature': signature,
       'Accept': 'application/json',
       'Accept-Encoding': 'gzip'
     },

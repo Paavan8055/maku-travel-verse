@@ -26,14 +26,17 @@ export async function getSabreAccessToken(): Promise<string> {
 
     const credentials = btoa(`${SABRE_CONFIG.clientId}:${SABRE_CONFIG.clientSecret}`);
 
+    const pcc = Deno.env.get('SABRE_PCC');
     const tokenResponse = await fetch(SABRE_CONFIG.tokenUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${credentials}`,
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...(pcc && { 'PCC': pcc })
       },
       body: new URLSearchParams({
         grant_type: 'client_credentials',
+        ...(pcc && { pcc })
       }),
     });
 
