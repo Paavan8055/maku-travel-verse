@@ -4597,6 +4597,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_old_audit_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_health_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -4696,6 +4700,10 @@ export type Database = {
         Returns: Json
       }
       get_cleanup_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_database_performance_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
