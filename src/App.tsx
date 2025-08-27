@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/ui/loading-states';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminGuard } from './features/auth/components/AdminGuard';
 import { AuthProvider } from './features/auth/context/AuthContext';
+import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import FeatureFlagsPage from '@/pages/admin/FeatureFlagsPage';
@@ -28,11 +29,11 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Main Website Route */}
+              <Route path="/" element={<Index />} />
+              
               {/* Auth Route */}
               <Route path="/auth" element={<Auth />} />
-              
-              {/* Dashboard Route - redirects to admin */}
-              <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
               
               {/* Admin Routes */}
               <Route
@@ -51,31 +52,8 @@ function App() {
                 <Route path="monitoring/providers" element={<AdminProvidersPage />} />
               </Route>
               
-              {/* Fallback Route */}
-              <Route 
-                path="*" 
-                element={
-                  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
-                    <div className="text-center max-w-md p-8 bg-card rounded-lg shadow-lg border">
-                      <h1 className="text-3xl font-bold mb-4 text-foreground">Welcome to MAKU Admin</h1>
-                      <p className="text-muted-foreground mb-6">
-                        Professional travel platform administration panel
-                      </p>
-                      <div className="space-y-4">
-                        <a 
-                          href="/auth" 
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
-                        >
-                          Access Admin Panel
-                        </a>
-                        <p className="text-xs text-muted-foreground">
-                          Administrator credentials required
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                } 
-              />
+              {/* Fallback Route - redirect to main website */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
