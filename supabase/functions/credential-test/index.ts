@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { ENV_CONFIG, validateProviderCredentials } from "../_shared/config.ts";
+import { ENV_CONFIG, validateProviderCredentials, validateHotelBedsCredentials } from "../_shared/config.ts";
+import { getSabreAccessToken } from "../_shared/sabre.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,11 +29,21 @@ interface CredentialTestResult {
 async function testProviderAuth(provider: 'amadeus' | 'sabre' | 'hotelbeds'): Promise<ProviderStatus> {
   const result: ProviderStatus = {
     provider,
-    credentialsValid: validateProviderCredentials(provider),
+    credentialsValid: false,
     authSuccess: false,
     environment: ENV_CONFIG.isProduction ? 'production' : 'test',
     error: undefined
   };
+
+  // Validate credentials based on provider type
+  if (provider === 'amadeus' || provider === 'sabre') {
+    result.credentialsValid = validateProviderCredentials(provider);
+  } else if (provider === 'hotelbeds') {
+    // Check both hotel and activity services for HotelBeds
+    const hotelValid = validateHotelBedsCredentials('hotel');
+    const activityValid = validateHotelBedsCredentials('activity');
+    result.credentialsValid = hotelValid || activityValid;
+  }
 
   if (!result.credentialsValid) {
     result.error = 'Missing credentials';
@@ -76,35 +87,62 @@ async function testAmadeusAuth(): Promise<void> {
 }
 
 async function testSabreAuth(): Promise<void> {
-  const credentials = btoa(`${Deno.env.get('SABRE_CLIENT_ID')}:${Deno.env.get('SABRE_CLIENT_SECRET')}`);
-  
-  const response = await fetch(ENV_CONFIG.sabre.tokenUrl, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: 'grant_type=client_credentials',
-  });
-
-  if (!response.ok) {
-    throw new Error(`Sabre auth failed: ${response.statusText}`);
-  }
+  // Use the existing Sabre access token function
+  await getSabreAccessToken();
 }
 
 async function testHotelbedsAuth(): Promise<void> {
-  // HotelBeds uses API key authentication - test with a simple info request
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY')!;
-  const secret = Deno.env.get('HOTELBEDS_SECRET')!;
+  // Try hotel service first, then activity service
+  let lastError: string | undefined;
+  
+  // Test hotel service
+  const hotelApiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
+  const hotelSecret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
+  
+  if (hotelApiKey && hotelSecret) {
+    try {
+      await testHotelBedsService(hotelApiKey, hotelSecret, 'hotel');
+      return; // Success with hotel service
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : 'Hotel service test failed';
+    }
+  }
+  
+  // Test activity service
+  const activityApiKey = Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY');
+  const activitySecret = Deno.env.get('HOTELBEDS_ACTIVITY_SECRET');
+  
+  if (activityApiKey && activitySecret) {
+    try {
+      await testHotelBedsService(activityApiKey, activitySecret, 'activity');
+      return; // Success with activity service
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : 'Activity service test failed';
+    }
+  }
+  
+  throw new Error(lastError || 'No valid HotelBeds credentials found');
+}
+
+async function testHotelBedsService(apiKey: string, secret: string, service: 'hotel' | 'activity'): Promise<void> {
   const timestamp = Math.floor(Date.now() / 1000);
   
-  // Create signature for HotelBeds
-  const crypto = await import('node:crypto');
-  const signature = crypto.createHash('sha256')
-    .update(apiKey + secret + timestamp)
-    .digest('hex');
+  // Create signature using Web Crypto API (Deno compatible)
+  const encoder = new TextEncoder();
+  const data = encoder.encode(apiKey + secret + timestamp);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-  const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-content-api/1.0/types/boards`, {
+  const baseUrl = service === 'hotel' 
+    ? ENV_CONFIG.hotelbeds.baseUrl 
+    : ENV_CONFIG.hotelbeds.activityBaseUrl || ENV_CONFIG.hotelbeds.baseUrl;
+    
+  const endpoint = service === 'hotel' 
+    ? '/hotel-content-api/1.0/types/boards'
+    : '/activity-content-api/1.0/types/categories';
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
     headers: {
       'Api-key': apiKey,
       'X-Signature': signature,
@@ -114,7 +152,7 @@ async function testHotelbedsAuth(): Promise<void> {
   });
 
   if (!response.ok) {
-    throw new Error(`HotelBeds auth failed: ${response.statusText}`);
+    throw new Error(`HotelBeds ${service} auth failed: ${response.statusText}`);
   }
 }
 
