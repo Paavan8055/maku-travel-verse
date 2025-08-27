@@ -13,7 +13,13 @@ serve(async (req) => {
   try {
     const clientId = Deno.env.get('SABRE_CLIENT_ID');
     const clientSecret = Deno.env.get('SABRE_CLIENT_SECRET');
-    const baseUrl = Deno.env.get('SABRE_BASE_URL') || 'https://api-crt.cert.havail.sabre.com';
+    const isProduction = Deno.env.get('NODE_ENV') === 'production';
+    const baseUrl = isProduction 
+      ? 'https://api.havail.sabre.com' 
+      : 'https://api-crt.cert.havail.sabre.com';
+    const pcc = isProduction 
+      ? Deno.env.get('SABRE_PROD_PCC') 
+      : Deno.env.get('SABRE_TEST_PCC');
     
     // Test authentication
     const authStartTime = Date.now();
@@ -34,8 +40,12 @@ serve(async (req) => {
           headers: {
             'Authorization': `Basic ${credentials}`,
             'Content-Type': 'application/x-www-form-urlencoded',
+            ...(pcc && { 'PCC': pcc })
           },
-          body: 'grant_type=client_credentials',
+          body: new URLSearchParams({
+            grant_type: 'client_credentials',
+            ...(pcc && { pcc })
+          }),
         });
 
         const authResponseTime = Date.now() - authStartTime;
@@ -83,7 +93,9 @@ serve(async (req) => {
       hotelSearch,
       credentials: {
         clientId: !!clientId,
-        clientSecret: !!clientSecret
+        clientSecret: !!clientSecret,
+        pcc: !!pcc,
+        environment: isProduction ? 'production' : 'test'
       },
       timestamp: new Date().toISOString()
     };

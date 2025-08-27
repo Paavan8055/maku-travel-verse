@@ -60,7 +60,36 @@ Deno.serve(async (req) => {
       details: { missing: missingEnvs, total: requiredEnvs.length }
     });
 
-    // 2. Check database connectivity
+    // 2. Check Sabre production readiness
+    const isProduction = Deno.env.get('NODE_ENV') === 'production';
+    const sabreTestPCC = Deno.env.get('SABRE_TEST_PCC');
+    const sabreProdPCC = Deno.env.get('SABRE_PROD_PCC');
+    const sabreEPR = Deno.env.get('SABRE_EPR_ID');
+    
+    if (isProduction) {
+      checks.push({
+        name: 'Sabre Production PCC',
+        status: sabreProdPCC ? 'pass' : 'fail',
+        message: sabreProdPCC ? 'Production PCC configured' : 'SABRE_PROD_PCC not configured',
+        details: { configured: !!sabreProdPCC }
+      });
+      
+      checks.push({
+        name: 'Sabre EPR ID',
+        status: sabreEPR ? 'pass' : 'fail',
+        message: sabreEPR ? 'EPR ID configured' : 'SABRE_EPR_ID not configured',
+        details: { configured: !!sabreEPR }
+      });
+    } else {
+      checks.push({
+        name: 'Sabre Test PCC',
+        status: sabreTestPCC ? 'pass' : 'warn',
+        message: sabreTestPCC ? 'Test PCC configured' : 'SABRE_TEST_PCC not configured',
+        details: { configured: !!sabreTestPCC }
+      });
+    }
+
+    // 3. Check database connectivity
     try {
       const { data, error } = await supabase.from('bookings').select('count').limit(1);
       checks.push({

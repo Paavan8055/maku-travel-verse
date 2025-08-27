@@ -46,8 +46,8 @@ serve(async (req) => {
             tokenUrl: isProduction ? "https://api.amadeus.com/v1/security/oauth2/token" : "https://test.api.amadeus.com/v1/security/oauth2/token"
           },
           sabre: {
-            baseUrl: isProduction ? "https://api.sabre.com" : "https://api-crt.cert.havail.sabre.com",
-            tokenUrl: isProduction ? "https://api.sabre.com/v2/auth/token" : "https://api-crt.cert.havail.sabre.com/v2/auth/token"
+            baseUrl: isProduction ? "https://api.havail.sabre.com" : "https://api-crt.cert.havail.sabre.com",
+            tokenUrl: isProduction ? "https://api.havail.sabre.com/v2/auth/token" : "https://api-crt.cert.havail.sabre.com/v2/auth/token"
           },
           mtls: getMTLSConfig(),
           environment: currentEnv
@@ -97,8 +97,8 @@ serve(async (req) => {
             tokenUrl: newIsProduction ? "https://api.amadeus.com/v1/security/oauth2/token" : "https://test.api.amadeus.com/v1/security/oauth2/token"
           },
           sabre: {
-            baseUrl: newIsProduction ? "https://api.sabre.com" : "https://api-crt.cert.havail.sabre.com",
-            tokenUrl: newIsProduction ? "https://api.sabre.com/v2/auth/token" : "https://api-crt.cert.havail.sabre.com/v2/auth/token"
+            baseUrl: newIsProduction ? "https://api.havail.sabre.com" : "https://api-crt.cert.havail.sabre.com",
+            tokenUrl: newIsProduction ? "https://api.havail.sabre.com/v2/auth/token" : "https://api-crt.cert.havail.sabre.com/v2/auth/token"
           },
           mtls: getMTLSConfig(),
           environment: newEnv
