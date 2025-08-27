@@ -6,20 +6,32 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Test individual provider authentication
-async function testProviderAuth(provider: 'amadeus' | 'sabre' | 'hotelbeds'): Promise<{
+interface ProviderStatus {
   provider: string;
   credentialsValid: boolean;
   authSuccess: boolean;
-  error?: string;
   environment: string;
-}> {
-  const result = {
+  error?: string;
+}
+
+interface CredentialTestResult {
+  environment: string;
+  providers: ProviderStatus[];
+  summary: {
+    total: number;
+    working: number;
+    failed: number;
+  };
+}
+
+// Test individual provider authentication
+async function testProviderAuth(provider: 'amadeus' | 'sabre' | 'hotelbeds'): Promise<ProviderStatus> {
+  const result: ProviderStatus = {
     provider,
     credentialsValid: validateProviderCredentials(provider),
     authSuccess: false,
     environment: ENV_CONFIG.isProduction ? 'production' : 'test',
-    error: undefined as string | undefined
+    error: undefined
   };
 
   if (!result.credentialsValid) {
@@ -112,7 +124,7 @@ serve(async (req) => {
   }
 
   try {
-    const { provider } = await req.json();
+    const { provider } = await req.json().catch(() => ({}));
 
     if (provider && ['amadeus', 'sabre', 'hotelbeds'].includes(provider)) {
       // Test specific provider
@@ -128,7 +140,7 @@ serve(async (req) => {
         testProviderAuth('hotelbeds')
       ]);
 
-      const testResults = results.map((result, index) => {
+      const testResults: ProviderStatus[] = results.map((result, index) => {
         const providers = ['amadeus', 'sabre', 'hotelbeds'];
         if (result.status === 'fulfilled') {
           return result.value;
@@ -143,7 +155,7 @@ serve(async (req) => {
         }
       });
 
-      return new Response(JSON.stringify({
+      const response: CredentialTestResult = {
         environment: ENV_CONFIG.isProduction ? 'production' : 'test',
         providers: testResults,
         summary: {
@@ -151,7 +163,9 @@ serve(async (req) => {
           working: testResults.filter(r => r.authSuccess).length,
           failed: testResults.filter(r => !r.authSuccess).length
         }
-      }), {
+      };
+
+      return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
