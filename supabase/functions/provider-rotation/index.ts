@@ -428,102 +428,80 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   if (!functionName) {
     throw new Error(`Unknown provider function: ${provider.id}`);
   }
-  
-  // Exponential backoff retry logic for rate limits
-  let lastError: any = null;
-  const maxRetries = 3;
-  const baseDelay = 1000; // 1 second
-  
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      logger.info(`[PROVIDER-ROTATION] Calling ${functionName} (attempt ${attempt + 1}/${maxRetries}) with params:`, params);
-      
-      const { data, error } = await supabase.functions.invoke(functionName, {
-        body: params
-      });
-      
-      const responseTime = Date.now() - startTime;
-      
-      logger.info(`[PROVIDER-ROTATION] ${functionName} response:`, { 
-        success: !error, 
-        responseTime, 
-        dataType: typeof data,
-        hasData: !!data,
-        errorMessage: error?.message || null,
-        attempt: attempt + 1
-      });
-      
-      if (error) {
-        // Check for rate limit (429) errors
-        if (error.message?.includes('429') || error.message?.includes('rate limit')) {
-          lastError = error;
-          if (attempt < maxRetries - 1) {
-            const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
-            logger.warn(`[PROVIDER-ROTATION] Rate limit hit, retrying in ${delay}ms`, {
-              provider: provider.id,
-              attempt: attempt + 1,
-              delay
-            });
-            await new Promise(resolve => setTimeout(resolve, delay));
-            continue;
-          }
-        }
-        
-        logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
-        throw new Error(`Provider ${provider.id} failed: ${error.message}`);
-      }
-      
-      // Validate response data
-      if (!data) {
-        logger.warn(`[PROVIDER-ROTATION] Provider ${provider.id} returned no data`);
-        throw new Error(`Provider ${provider.id} returned empty response`);
-      }
-      
-      // Standardize response format for different providers
-      let standardizedData;
-      if (data?.data && Array.isArray(data.data)) {
-        standardizedData = data.data;
-      } else if (data?.flights) {
-        standardizedData = data.flights;
-      } else if (data?.hotels) {
-        standardizedData = data.hotels;
-      } else if (data?.activities) {
-        standardizedData = data.activities;
-      } else if (Array.isArray(data)) {
-        standardizedData = data;
-      } else {
-        standardizedData = data;
-        logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
-      }
-      
-      return {
-        success: true,
-        data: standardizedData,
-        responseTime
-      };
-      
-    } catch (error) {
-      lastError = error;
-      
-      // Check for rate limit errors in caught exceptions
-      if (error.message?.includes('429') || error.message?.includes('rate limit')) {
-        if (attempt < maxRetries - 1) {
-          const delay = baseDelay * Math.pow(2, attempt);
-          logger.warn(`[PROVIDER-ROTATION] Rate limit exception, retrying in ${delay}ms`, {
-            provider: provider.id,
-            attempt: attempt + 1,
-            delay
-          });
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-      }
-      
-      throw error;
-    }
+
+  // Enhanced credential check with detailed logging
+  const credentialCheck = isProviderCredentialsValid(provider.id);
+  if (!credentialCheck) {
+    logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} credentials missing or invalid`);
+    throw new Error(`Provider ${provider.id} credentials not configured`);
   }
   
-  throw lastError || new Error('Max retries exceeded');
+  // Enhanced timeout based on provider type
+  const timeoutMs = provider.circuitBreaker?.timeout || 30000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    logger.info(`[PROVIDER-ROTATION] Calling ${functionName} with params:`, {
+      ...params,
+      timeout: timeoutMs,
+      providerId: provider.id
+    });
+    
+    const { data, error } = await supabase.functions.invoke(functionName, {
+      body: params,
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    const responseTime = Date.now() - startTime;
+    
+    logger.info(`[PROVIDER-ROTATION] ${functionName} response:`, { 
+      success: !error, 
+      responseTime, 
+      dataType: typeof data,
+      hasData: !!data,
+      errorMessage: error?.message || null
+    });
+    
+    if (error) {
+      logger.error(`[PROVIDER-ROTATION] Provider ${provider.id} failed:`, error);
+      throw new Error(`Provider ${provider.id} failed: ${error.message}`);
+    }
+    
+    // Validate response data
+    if (!data) {
+      logger.warn(`[PROVIDER-ROTATION] Provider ${provider.id} returned no data`);
+      throw new Error(`Provider ${provider.id} returned empty response`);
+    }
+    
+    // Standardize response format for different providers
+    let standardizedData;
+    if (data?.data && Array.isArray(data.data)) {
+      standardizedData = data.data;
+    } else if (data?.flights) {
+      standardizedData = data.flights;
+    } else if (data?.hotels) {
+      standardizedData = data.hotels;
+    } else if (data?.activities) {
+      standardizedData = data.activities;
+    } else if (Array.isArray(data)) {
+      standardizedData = data;
+    } else {
+      standardizedData = data;
+      logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
+    }
+    
+    return {
+      success: true,
+      data: standardizedData,
+      responseTime
+    };
+    
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 }
 
 async function updateProviderMetrics(

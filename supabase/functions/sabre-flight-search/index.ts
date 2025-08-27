@@ -101,14 +101,34 @@ serve(async (req) => {
   } catch (error) {
     logger.error('Sabre flight search error:', error);
     
+    // Enhanced error handling with specific status codes
+    let status = 500;
+    let errorDetails = 'Unable to search for flights at this time';
+    
+    if (error.message?.includes('401') || error.message?.includes('authentication')) {
+      status = 401;
+      errorDetails = 'Sabre API authentication failed - please check credentials';
+    } else if (error.message?.includes('403')) {
+      status = 403;
+      errorDetails = 'Sabre API access denied - insufficient permissions';
+    } else if (error.message?.includes('429')) {
+      status = 429;
+      errorDetails = 'Sabre API rate limit exceeded - please try again later';
+    } else if (error.message?.includes('credentials not configured')) {
+      status = 503;
+      errorDetails = 'Sabre API credentials not configured';
+    }
+    
     return new Response(
       JSON.stringify({
         success: false,
         error: error.message || 'Sabre flight search failed',
-        details: 'Unable to search for flights at this time'
+        details: errorDetails,
+        provider: 'sabre',
+        timestamp: new Date().toISOString()
       }),
       { 
-        status: 500,
+        status,
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
