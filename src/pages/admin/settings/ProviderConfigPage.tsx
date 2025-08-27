@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +27,13 @@ interface ProviderConfig {
   type: string;
   enabled: boolean;
   priority: number;
-  config: any;
+  base_url: string;
+  circuit_breaker: any;
+  circuit_breaker_state: string;
+  health_score: number;
+  response_time: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ProviderStatus {
@@ -281,20 +286,29 @@ export default function ProviderConfigPage() {
                 </div>
               </div>
 
-              {/* Provider-specific configurations */}
-              {provider.config && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label>Configuration</Label>
-                    <div className="bg-muted p-3 rounded-md">
-                      <pre className="text-xs overflow-auto">
-                        {JSON.stringify(provider.config, null, 2)}
-                      </pre>
-                    </div>
+              {/* Provider Health Metrics */}
+              <Separator />
+              <div className="space-y-2">
+                <Label>Health Metrics</Label>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Health Score:</span>
+                    <span className="ml-2 font-medium">{provider.health_score}%</span>
                   </div>
-                </>
-              )}
+                  <div>
+                    <span className="text-muted-foreground">Avg Response:</span>
+                    <span className="ml-2 font-medium">{provider.response_time}ms</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Circuit Breaker:</span>
+                    <span className="ml-2 font-medium capitalize">{provider.circuit_breaker_state}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Base URL:</span>
+                    <span className="ml-2 font-medium text-xs">{provider.base_url}</span>
+                  </div>
+                </div>
+              </div>
 
               {/* Error messages */}
               {providerStatus.find(p => p.provider.toLowerCase() === provider.name.toLowerCase())?.error && (
