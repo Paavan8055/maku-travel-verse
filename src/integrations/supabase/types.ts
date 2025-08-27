@@ -783,6 +783,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cleanup_audit: {
+        Row: {
+          bookings_expired: number | null
+          bookings_processed: number | null
+          cleanup_type: string
+          created_at: string
+          details: Json | null
+          errors_encountered: number | null
+          execution_time_ms: number | null
+          id: string
+          payments_cancelled: number | null
+          triggered_by: string | null
+        }
+        Insert: {
+          bookings_expired?: number | null
+          bookings_processed?: number | null
+          cleanup_type: string
+          created_at?: string
+          details?: Json | null
+          errors_encountered?: number | null
+          execution_time_ms?: number | null
+          id?: string
+          payments_cancelled?: number | null
+          triggered_by?: string | null
+        }
+        Update: {
+          bookings_expired?: number | null
+          bookings_processed?: number | null
+          cleanup_type?: string
+          created_at?: string
+          details?: Json | null
+          errors_encountered?: number | null
+          execution_time_ms?: number | null
+          id?: string
+          payments_cancelled?: number | null
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       communication_preferences: {
         Row: {
           created_at: string
@@ -4575,6 +4614,10 @@ export type Database = {
       get_admin_status: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      get_cleanup_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_partner_dashboard_data: {
         Args: { p_partner_id: string }
