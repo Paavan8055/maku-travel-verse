@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AdminBreadcrumb } from './AdminBreadcrumb';
+
 const adminMenuItems = [{
   category: 'Dashboard',
   icon: LayoutDashboard,
@@ -104,6 +105,7 @@ const adminMenuItems = [{
     icon: Settings
   }]
 }];
+
 export const AdminSidebar: React.FC = () => {
   const {
     state,
@@ -129,7 +131,7 @@ export const AdminSidebar: React.FC = () => {
                   isActive
                 }) => `flex items-center gap-3 ${isActive ? 'bg-primary text-primary-foreground font-medium' : 'hover:bg-muted'}`}>
                         <item.icon className="h-4 w-4" />
-                        {!collapsed && <span className="text-yellow-500">{item.title}</span>}
+                        {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>)}
@@ -139,6 +141,7 @@ export const AdminSidebar: React.FC = () => {
       </SidebarContent>
     </Sidebar>;
 };
+
 export const AdminHeader: React.FC = () => {
   const {
     user
@@ -184,6 +187,7 @@ export const AdminHeader: React.FC = () => {
       </div>
     </header>;
 };
+
 export const AdminLayout: React.FC = () => {
   return <SidebarProvider>
       <div className="min-h-screen flex w-full">

@@ -1,5 +1,6 @@
 
-import { Suspense } from 'react';
+import './App.css';
+import React from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -13,7 +14,8 @@ import Auth from '@/pages/Auth';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import FeatureFlagsPage from '@/pages/admin/FeatureFlagsPage';
 import EnvironmentConfigPage from '@/pages/admin/EnvironmentConfigPage';
-import PerformanceMonitoringPage from '@/pages/admin/PerformanceMonitoringPage';
+import AdminProvidersPage from '@/pages/admin/monitoring/providers';
+import AdminProvidersSettingsPage from '@/pages/admin/settings/providers';
 
 const queryClient = new QueryClient();
 
@@ -45,10 +47,11 @@ function App() {
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="settings/features" element={<FeatureFlagsPage />} />
                 <Route path="settings/environment" element={<EnvironmentConfigPage />} />
-                <Route path="monitoring/performance" element={<PerformanceMonitoringPage />} />
+                <Route path="settings/providers" element={<AdminProvidersSettingsPage />} />
+                <Route path="monitoring/providers" element={<AdminProvidersPage />} />
               </Route>
               
-              {/* Default route */}
+              {/* Fallback Route */}
               <Route 
                 path="*" 
                 element={
