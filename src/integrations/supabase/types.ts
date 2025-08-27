@@ -4615,6 +4615,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      get_cleanup_monitoring: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_cleanup_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
