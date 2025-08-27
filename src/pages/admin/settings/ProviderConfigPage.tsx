@@ -48,11 +48,18 @@ interface ProviderStatus {
 }
 
 interface ProviderHealth {
+  id: string;
   provider: string;
-  status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+  status: string; // Changed from union type to string to match database
   response_time_ms: number;
   last_checked: string;
   error_count: number;
+  error_message: string;
+  failure_count: number;
+  circuit_breaker_opened_at: string;
+  last_reset_at: string;
+  metadata: any;
+  created_at: string;
 }
 
 export default function ProviderConfigPage() {
@@ -166,6 +173,27 @@ export default function ProviderConfigPage() {
     }
   };
 
+  // Helper function to normalize status values
+  const normalizeStatus = (status: string): 'healthy' | 'degraded' | 'failed' | 'unknown' => {
+    const normalizedStatus = status?.toLowerCase();
+    switch (normalizedStatus) {
+      case 'healthy':
+      case 'up':
+      case 'operational':
+        return 'healthy';
+      case 'degraded':
+      case 'partial':
+        return 'degraded';
+      case 'unhealthy':
+      case 'down':
+      case 'failed':
+      case 'error':
+        return 'failed';
+      default:
+        return 'unknown';
+    }
+  };
+
   const getProviderStatus = (provider: ProviderConfig) => {
     // Try to find credential test result
     const credentialStatus = providerStatus.find(p => {
@@ -199,15 +227,17 @@ export default function ProviderConfigPage() {
 
     if (healthData) {
       responseTime = healthData.response_time_ms || responseTime;
-      if (healthData.status === 'healthy') {
+      const normalizedHealthStatus = normalizeStatus(healthData.status);
+      
+      if (normalizedHealthStatus === 'healthy') {
         status = 'healthy';
         message = 'Service operational';
-      } else if (healthData.status === 'degraded') {
+      } else if (normalizedHealthStatus === 'degraded') {
         status = 'degraded';
         message = 'Service degraded';
-      } else if (healthData.status === 'unhealthy') {
+      } else if (normalizedHealthStatus === 'failed') {
         status = 'failed';
-        message = 'Service unhealthy';
+        message = healthData.error_message || 'Service unhealthy';
       }
     }
 
