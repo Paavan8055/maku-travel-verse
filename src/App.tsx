@@ -22,6 +22,7 @@ import HotelSearchPage from '@/pages/search/hotels';
 import FlightSearchPage from '@/pages/search/flights';
 import ActivitySearchPage from '@/pages/search/activities';
 import CarSearchPage from '@/pages/search/cars';
+import { BookingConfirmation } from '@/components/checkout/BookingConfirmation';
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,9 @@ function App() {
               <Route path="/search/flights" element={<FlightSearchPage />} />
               <Route path="/search/activities" element={<ActivitySearchPage />} />
               <Route path="/search/cars" element={<CarSearchPage />} />
+              
+              {/* Booking Routes */}
+              <Route path="/booking/confirmation" element={<BookingConfirmation />} />
               
               
               {/* Admin Routes */}
