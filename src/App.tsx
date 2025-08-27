@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/ui/loading-states';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminGuard } from './features/auth/components/AdminGuard';
 import { AuthProvider } from './features/auth/context/AuthContext';
+import { AgenticBotProvider } from '@/features/agenticBot/context/AgenticBotContext';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import AdminDashboard from '@/components/admin/AdminDashboard';
@@ -24,13 +25,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {/* Main Website Route */}
-              <Route path="/" element={<Index />} />
+        <AgenticBotProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Main Website Route */}
+                <Route path="/" element={<Index />} />
               
               {/* Auth Route */}
               <Route path="/auth" element={<Auth />} />
@@ -57,6 +59,7 @@ function App() {
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+        </AgenticBotProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
