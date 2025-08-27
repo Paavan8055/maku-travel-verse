@@ -44,6 +44,9 @@ export const ENV_CONFIG = {
       : "https://api-crt.cert.havail.sabre.com"
   },
   hotelbeds: {
+    baseUrl: Deno.env.get('NODE_ENV') === 'production'
+      ? "https://api.hotelbeds.com"
+      : "https://api.test.hotelbeds.com",
     hotel: {
       baseUrl: Deno.env.get('NODE_ENV') === 'production'
         ? "https://api.hotelbeds.com"
