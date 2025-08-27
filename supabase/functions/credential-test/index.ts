@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { ENV_CONFIG, validateProviderCredentials, validateHotelBedsCredentials } from "../_shared/config.ts";
 import { getSabreAccessToken } from "../_shared/sabre.ts";
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,6 +28,9 @@ interface CredentialTestResult {
 
 // Test individual provider authentication
 async function testProviderAuth(provider: 'amadeus' | 'sabre' | 'hotelbeds'): Promise<ProviderStatus> {
+  const correlationId = crypto.randomUUID();
+  logger.info(`Testing ${provider} credentials`, { correlationId, provider });
+  
   const result: ProviderStatus = {
     provider,
     credentialsValid: false,
@@ -43,10 +47,12 @@ async function testProviderAuth(provider: 'amadeus' | 'sabre' | 'hotelbeds'): Pr
     const hotelValid = validateHotelBedsCredentials('hotel');
     const activityValid = validateHotelBedsCredentials('activity');
     result.credentialsValid = hotelValid || activityValid;
+    logger.info(`HotelBeds validation - hotel: ${hotelValid}, activity: ${activityValid}`, { correlationId });
   }
 
   if (!result.credentialsValid) {
     result.error = 'Missing credentials';
+    logger.warn(`${provider} credentials missing`, { correlationId, provider });
     return result;
   }
 
@@ -63,11 +69,77 @@ async function testProviderAuth(provider: 'amadeus' | 'sabre' | 'hotelbeds'): Pr
         break;
     }
     result.authSuccess = true;
+    logger.info(`${provider} authentication successful`, { correlationId, provider });
   } catch (error) {
     result.error = error instanceof Error ? error.message : 'Unknown error';
+    logger.error(`${provider} authentication failed`, error, { correlationId, provider });
   }
 
   return result;
+}
+
+// Map core provider results to UI provider format
+function mapProvidersToUIFormat(coreResults: ProviderStatus[]): ProviderStatus[] {
+  const uiProviders: ProviderStatus[] = [];
+  
+  for (const result of coreResults) {
+    switch (result.provider) {
+      case 'amadeus':
+        // Map Amadeus to three services
+        ['Amadeus Flight', 'Amadeus Hotel', 'Amadeus Activity'].forEach(serviceProvider => {
+          uiProviders.push({
+            ...result,
+            provider: serviceProvider
+          });
+        });
+        break;
+        
+      case 'sabre':
+        // Map Sabre to two services
+        ['Sabre Flight', 'Sabre Hotel'].forEach(serviceProvider => {
+          uiProviders.push({
+            ...result,
+            provider: serviceProvider
+          });
+        });
+        break;
+        
+      case 'hotelbeds':
+        // Map HotelBeds to specific services based on credentials
+        const hotelValid = validateHotelBedsCredentials('hotel');
+        const activityValid = validateHotelBedsCredentials('activity');
+        
+        if (hotelValid) {
+          uiProviders.push({
+            ...result,
+            provider: 'HotelBeds Hotel'
+          });
+        }
+        
+        if (activityValid) {
+          uiProviders.push({
+            ...result,
+            provider: 'HotelBeds Activity'
+          });
+        }
+        
+        // If neither service has credentials, show both as failed
+        if (!hotelValid && !activityValid) {
+          ['HotelBeds Hotel', 'HotelBeds Activity'].forEach(serviceProvider => {
+            uiProviders.push({
+              ...result,
+              provider: serviceProvider,
+              credentialsValid: false,
+              authSuccess: false,
+              error: 'Missing credentials for this service'
+            });
+          });
+        }
+        break;
+    }
+  }
+  
+  return uiProviders;
 }
 
 async function testAmadeusAuth(): Promise<void> {
@@ -193,15 +265,25 @@ serve(async (req) => {
         }
       });
 
+      // Map core provider results to UI format
+      const uiProviders = mapProvidersToUIFormat(testResults);
+      
       const response: CredentialTestResult = {
         environment: ENV_CONFIG.isProduction ? 'production' : 'test',
-        providers: testResults,
+        providers: uiProviders,
         summary: {
-          total: testResults.length,
-          working: testResults.filter(r => r.authSuccess).length,
-          failed: testResults.filter(r => !r.authSuccess).length
+          total: uiProviders.length,
+          working: uiProviders.filter(r => r.authSuccess).length,
+          failed: uiProviders.filter(r => !r.authSuccess).length
         }
       };
+      
+      logger.info(`Credential test completed`, {
+        total: uiProviders.length,
+        working: uiProviders.filter(r => r.authSuccess).length,
+        failed: uiProviders.filter(r => !r.authSuccess).length,
+        providers: uiProviders.map(p => ({ name: p.provider, status: p.authSuccess ? 'working' : 'failed' }))
+      });
 
       return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
