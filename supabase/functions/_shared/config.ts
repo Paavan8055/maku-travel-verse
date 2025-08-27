@@ -47,6 +47,12 @@ export const ENV_CONFIG = {
     baseUrl: Deno.env.get('NODE_ENV') === 'production'
       ? "https://api.hotelbeds.com"
       : "https://api.test.hotelbeds.com",
+    cacheApiUrl: Deno.env.get('NODE_ENV') === 'production'
+      ? "https://api.hotelbeds.com/cache-api/1.0"
+      : "https://api.test.hotelbeds.com/cache-api/1.0",
+    mtlsUrl: Deno.env.get('NODE_ENV') === 'production'
+      ? "https://api.hotelbeds.com"
+      : "https://api.test.hotelbeds.com",
     hotel: {
       baseUrl: Deno.env.get('NODE_ENV') === 'production'
         ? "https://api.hotelbeds.com"

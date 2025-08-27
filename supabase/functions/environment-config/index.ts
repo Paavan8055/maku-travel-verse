@@ -38,6 +38,9 @@ serve(async (req) => {
         const currentConfig = {
           isProduction,
           hotelbeds: {
+            baseUrl: isProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com",
+            cacheApiUrl: isProduction ? "https://api.hotelbeds.com/cache-api/1.0" : "https://api.test.hotelbeds.com/cache-api/1.0",
+            mtlsUrl: isProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com",
             hotel: { baseUrl: isProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" },
             activity: { baseUrl: isProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" }
           },
@@ -89,6 +92,9 @@ serve(async (req) => {
         const newConfig = {
           isProduction: newIsProduction,
           hotelbeds: {
+            baseUrl: newIsProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com",
+            cacheApiUrl: newIsProduction ? "https://api.hotelbeds.com/cache-api/1.0" : "https://api.test.hotelbeds.com/cache-api/1.0",
+            mtlsUrl: newIsProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com",
             hotel: { baseUrl: newIsProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" },
             activity: { baseUrl: newIsProduction ? "https://api.hotelbeds.com" : "https://api.test.hotelbeds.com" }
           },
