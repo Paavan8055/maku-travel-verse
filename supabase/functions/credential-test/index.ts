@@ -214,8 +214,8 @@ async function testHotelBedsService(apiKey: string, secret: string, service: 'ho
     : ENV_CONFIG.hotelbeds.activityBaseUrl || ENV_CONFIG.hotelbeds.baseUrl;
     
   const endpoint = service === 'hotel' 
-    ? '/hotel-content-api/1.0/types/boards'
-    : '/activity-content-api/1.0/types/categories';
+    ? '/hotel-content-api/1.0/hotels?codes=1&language=ENG&fields=code,name'
+    : '/activity-content-api/1.0/countries?fields=code,name';
 
   logger.info(`Making HotelBeds ${service} test request`, { 
     correlationId, 
