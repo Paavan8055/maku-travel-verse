@@ -9,7 +9,15 @@ import logger from '@/utils/logger';
 export class UnifiedApiClient {
   private providerRotation = new (class {
     async searchWithRotation(params: any): Promise<any> {
-      const { data, error } = await supabase.functions.invoke('provider-rotation', {
+      const { data, error } = await supabase.functions.invoke('enhanced-provider-rotation', {
+        body: params
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    }
+
+    async searchWithIntelligentRouting(params: any): Promise<any> {
+      const { data, error } = await supabase.functions.invoke('intelligent-provider-router', {
         body: params
       });
       if (error) throw new Error(error.message);
@@ -26,11 +34,18 @@ export class UnifiedApiClient {
     if (cached) return cached;
     
     try {
-      // Use provider rotation for automatic failover
-      const result = await this.providerRotation.searchWithRotation({
+      // Use intelligent provider routing with enhanced selection
+      const result = await this.providerRotation.searchWithIntelligentRouting({
         searchType: 'flight',
         params,
-        excludedProviders: []
+        routingPreferences: {
+          strategy: 'balanced',
+          maxResponseTime: 5000,
+          minReliabilityScore: 90
+        },
+        userContext: {
+          tier: 'premium' // This could be dynamic based on user
+        }
       });
       
       if (result.success) {
@@ -38,10 +53,22 @@ export class UnifiedApiClient {
         await advancedCacheManager.set(cacheKey, result.data, { strategy: 'flight-search' });
         return result.data;
       } else {
+        // Fallback to basic provider rotation
+        const fallbackResult = await this.providerRotation.searchWithRotation({
+          searchType: 'flight',
+          params,
+          excludedProviders: []
+        });
+        
+        if (fallbackResult.success) {
+          await advancedCacheManager.set(cacheKey, fallbackResult.data, { strategy: 'flight-search' });
+          return fallbackResult.data;
+        }
+        
         throw new Error(result.error || 'Flight search failed');
       }
     } catch (error) {
-      logger.error('Flight search failed', { error: error.message, params });
+      logger.error('Flight search failed', { error: error.message, params, correlationId: corrId });
       throw error;
     }
   }
