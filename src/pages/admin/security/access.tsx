@@ -3,6 +3,9 @@ import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide'
 import { SecurityMonitoring } from '@/components/admin/SecurityMonitoring';
 import { EmergencyStabilization } from '@/components/admin/EmergencyStabilization';
 import { ProviderHealthDashboard } from '@/components/admin/ProviderHealthDashboard';
+import { AuthenticationFix } from '@/components/admin/AuthenticationFix';
+import { SystemHealthMonitor } from '@/components/admin/SystemHealthMonitor';
+import { RecoveryStatus } from '@/components/admin/RecoveryStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const AdminSecurityPage = () => {
@@ -15,16 +18,26 @@ const AdminSecurityPage = () => {
         </p>
       </div>
       
-      <Tabs defaultValue="emergency" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="recovery" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="recovery">Recovery Status</TabsTrigger>
           <TabsTrigger value="emergency">Emergency</TabsTrigger>
+          <TabsTrigger value="auth">Authentication</TabsTrigger>
           <TabsTrigger value="providers">Providers</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
         
+        <TabsContent value="recovery">
+          <RecoveryStatus />
+        </TabsContent>
+        
         <TabsContent value="emergency">
           <EmergencyStabilization />
+        </TabsContent>
+        
+        <TabsContent value="auth">
+          <AuthenticationFix />
         </TabsContent>
         
         <TabsContent value="providers">
@@ -36,7 +49,10 @@ const AdminSecurityPage = () => {
         </TabsContent>
         
         <TabsContent value="monitoring">
-          <SecurityMonitoring />
+          <div className="space-y-6">
+            <SystemHealthMonitor />
+            <SecurityMonitoring />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
