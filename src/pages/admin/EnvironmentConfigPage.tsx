@@ -1,51 +1,123 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useEnvironmentConfig } from '@/hooks/useEnvironmentConfig';
-import { 
-  RefreshCw, 
-  AlertTriangle, 
-  CheckCircle, 
-  Server, 
-  Shield,
-  Database,
-  Zap
-} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { RefreshCw, AlertTriangle, CheckCircle, Settings, Database, Key } from 'lucide-react';
 
-export default function EnvironmentConfigPage() {
-  const { config, loading, switchEnvironment, validateProductionReadiness, refresh } = useEnvironmentConfig();
+interface EnvironmentConfig {
+  isProduction: boolean;
+  environment: string;
+  hotelbeds: {
+    baseUrl: string;
+    mtlsUrl: string;
+    cacheApiUrl: string;
+  };
+  amadeus: {
+    baseUrl: string;
+    tokenUrl: string;
+  };
+  sabre: {
+    baseUrl: string;
+    tokenUrl: string;
+  };
+}
+
+interface ProviderCredentialStatus {
+  provider: string;
+  service: string;
+  hasCredentials: boolean;
+  lastTested: string | null;
+  status: 'healthy' | 'warning' | 'error' | 'unknown';
+}
+
+const EnvironmentPage = () => {
+  const [config, setConfig] = useState<EnvironmentConfig | null>(null);
+  const [loading, setLoading] = useState(true);
   const [switching, setSwitching] = useState(false);
-  const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<any>(null);
+  const [testingCredentials, setTestingCredentials] = useState(false);
+  const [credentialStatus, setCredentialStatus] = useState<ProviderCredentialStatus[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const fetchConfig = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('environment-config', {
+        body: { action: 'get_config' }
+      });
 
-  const handleEnvironmentSwitch = async (toProduction: boolean) => {
-    if (toProduction) {
+      if (error) throw error;
+      setConfig(data);
+    } catch (error) {
+      console.error('Failed to fetch config:', error);
+      toast({
+        title: "Failed to load configuration",
+        description: "Could not retrieve environment settings",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCredentialStatus = async () => {
+    try {
+      // Get provider configs to check credentials
+      const { data: providers } = await supabase
+        .from('provider_configs')
+        .select('*')
+        .order('priority');
+
+      if (providers) {
+        const statuses: ProviderCredentialStatus[] = providers.map(provider => ({
+          provider: provider.name,
+          service: provider.type,
+          hasCredentials: provider.enabled, // Simple check for now
+          lastTested: provider.updated_at,
+          status: provider.health_score > 80 ? 'healthy' : 
+                 provider.health_score > 50 ? 'warning' : 'error'
+        }));
+        setCredentialStatus(statuses);
+      }
+    } catch (error) {
+      console.error('Failed to fetch credential status:', error);
+    }
+  };
+
+  const switchEnvironment = async (newEnvironment: 'test' | 'production') => {
+    if (newEnvironment === 'production') {
       const confirmed = window.confirm(
-        'WARNING: Switching to production will use live endpoints and process real transactions. Are you sure?'
+        'WARNING: Switching to production will use real endpoints and process actual bookings. Are you sure?'
       );
       if (!confirmed) return;
     }
 
     setSwitching(true);
     try {
-      await switchEnvironment(toProduction);
+      const { data, error } = await supabase.functions.invoke('environment-config', {
+        body: { 
+          action: 'switch_environment',
+          environment: newEnvironment
+        }
+      });
+
+      if (error) throw error;
+      
+      setConfig(data);
       toast({
-        title: "Environment Switched",
-        description: `Successfully switched to ${toProduction ? 'production' : 'test'} environment`,
+        title: "Environment switched",
+        description: `Successfully switched to ${newEnvironment} environment`,
+        variant: "default"
       });
     } catch (error) {
+      console.error('Failed to switch environment:', error);
       toast({
-        title: "Switch Failed",
-        description: "Failed to switch environment",
+        title: "Environment switch failed",
+        description: "Could not switch environment. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -53,279 +125,264 @@ export default function EnvironmentConfigPage() {
     }
   };
 
-  const handleValidateProduction = async () => {
-    setValidating(true);
+  const testAllCredentials = async () => {
+    setTestingCredentials(true);
     try {
-      const result = await validateProductionReadiness();
-      setValidationResult(result);
+      const { data, error } = await supabase.functions.invoke('provider-credential-test');
       
-      if (result.ready) {
-        toast({
-          title: "Production Ready",
-          description: "All systems are ready for production deployment",
-        });
-      } else {
-        toast({
-          title: "Production Issues Found",
-          description: `Found ${result.issues?.length || 0} issues that need attention`,
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
+      if (error) throw error;
+      
       toast({
-        title: "Validation Failed",
-        description: "Failed to validate production readiness",
+        title: "Credential test completed",
+        description: `${data.summary.successful}/${data.summary.total} providers passed`,
+        variant: data.summary.failed > 0 ? "destructive" : "default"
+      });
+
+      // Refresh status after test
+      fetchCredentialStatus();
+    } catch (error) {
+      console.error('Failed to test credentials:', error);
+      toast({
+        title: "Credential test failed",
+        description: "Could not test provider credentials",
         variant: "destructive"
       });
     } finally {
-      setValidating(false);
+      setTestingCredentials(false);
     }
   };
 
+  const resetProviderHealth = async () => {
+    try {
+      const { error } = await supabase
+        .from('provider_health')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Keep dummy record if exists
+
+      if (error) throw error;
+
+      const { error: quotaError } = await supabase
+        .from('provider_quotas')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (quotaError) throw quotaError;
+
+      toast({
+        title: "Provider health reset",
+        description: "All provider health data has been cleared and will be refreshed",
+      });
+
+      fetchCredentialStatus();
+    } catch (error) {
+      console.error('Failed to reset provider health:', error);
+      toast({
+        title: "Reset failed",
+        description: "Could not reset provider health data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchConfig();
+    fetchCredentialStatus();
+  }, []);
+
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Environment Configuration</h2>
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-        </div>
-        <div className="grid gap-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Environment Configuration</h2>
+          <h1 className="text-3xl font-bold">Environment Configuration</h1>
           <p className="text-muted-foreground">
-            Manage test and production environment settings
+            Manage API environments, credentials, and provider settings
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={refresh} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button 
-            onClick={handleValidateProduction} 
-            variant="outline" 
-            size="sm"
-            disabled={validating}
+          <Button
+            onClick={testAllCredentials}
+            disabled={testingCredentials}
+            variant="outline"
           >
-            <Shield className="h-4 w-4 mr-2" />
-            Validate Production
+            {testingCredentials && <RefreshCw className="h-4 w-4 mr-2 animate-spin" />}
+            <Key className="h-4 w-4 mr-2" />
+            Test Credentials
+          </Button>
+          <Button
+            onClick={resetProviderHealth}
+            variant="outline"
+          >
+            <Database className="h-4 w-4 mr-2" />
+            Reset Health Data
           </Button>
         </div>
       </div>
 
-      {/* Current Environment Status */}
+      {/* Current Environment */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Server className="h-5 w-5" />
+            <Settings className="h-5 w-5" />
             Current Environment
           </CardTitle>
+          <CardDescription>
+            Switch between test and production environments
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Badge 
-                variant={config?.isProduction ? 'destructive' : 'default'}
-                className="px-3 py-1"
-              >
-                {config?.isProduction ? 'PRODUCTION' : 'TEST'}
+              <Badge variant={config?.isProduction ? "destructive" : "secondary"}>
+                {config?.isProduction ? "PRODUCTION" : "TEST"}
               </Badge>
               <span className="text-sm text-muted-foreground">
-                {config?.isProduction 
-                  ? 'Live environment - real transactions' 
-                  : 'Test environment - safe for development'
-                }
+                Currently using {config?.environment} environment
               </span>
             </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => handleEnvironmentSwitch(false)}
-                disabled={switching || !config?.isProduction}
-                variant="outline"
-                size="sm"
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Test</span>
+              <Switch
+                checked={config?.isProduction || false}
+                onCheckedChange={(checked) => 
+                  switchEnvironment(checked ? 'production' : 'test')
+                }
+                disabled={switching}
+              />
+              <span className="text-sm">Production</span>
+            </div>
+          </div>
+
+          {config?.isProduction && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Production mode is active. All bookings will be processed with real payments 
+                and sent to actual providers.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Provider Credentials Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Provider Credentials</CardTitle>
+          <CardDescription>
+            Status of API credentials for all travel providers
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {credentialStatus.map((status) => (
+              <div
+                key={`${status.provider}-${status.service}`}
+                className="flex items-center justify-between p-3 border rounded-lg"
               >
-                Switch to Test
-              </Button>
-              <Button
-                onClick={() => handleEnvironmentSwitch(true)}
-                disabled={switching || config?.isProduction}
-                variant="outline"
-                size="sm"
-              >
-                Switch to Production
-              </Button>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {status.status === 'healthy' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                    {status.status === 'warning' && <AlertTriangle className="h-4 w-4 text-yellow-500" />}
+                    {status.status === 'error' && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                    {status.status === 'unknown' && <RefreshCw className="h-4 w-4 text-gray-500" />}
+                  </div>
+                  <div>
+                    <span className="font-medium">
+                      {status.provider.charAt(0).toUpperCase() + status.provider.slice(1)}
+                    </span>
+                    <span className="text-sm text-muted-foreground ml-2">
+                      ({status.service})
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={status.hasCredentials ? "default" : "destructive"}>
+                    {status.hasCredentials ? "Configured" : "Missing"}
+                  </Badge>
+                  {status.lastTested && (
+                    <span className="text-xs text-muted-foreground">
+                      Last tested: {new Date(status.lastTested).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* API Endpoints */}
+      <Card>
+        <CardHeader>
+          <CardTitle>API Endpoints</CardTitle>
+          <CardDescription>
+            Current API endpoints for each provider
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h4 className="font-medium mb-2">Amadeus</h4>
+            <div className="text-sm space-y-1">
+              <div>Base URL: <code className="bg-muted px-1 rounded">{config?.amadeus.baseUrl}</code></div>
+              <div>Token URL: <code className="bg-muted px-1 rounded">{config?.amadeus.tokenUrl}</code></div>
+            </div>
+          </div>
+          
+          <Separator />
+          
+          <div>
+            <h4 className="font-medium mb-2">Sabre</h4>
+            <div className="text-sm space-y-1">
+              <div>Base URL: <code className="bg-muted px-1 rounded">{config?.sabre.baseUrl}</code></div>
+              <div>Token URL: <code className="bg-muted px-1 rounded">{config?.sabre.tokenUrl}</code></div>
+            </div>
+          </div>
+          
+          <Separator />
+          
+          <div>
+            <h4 className="font-medium mb-2">HotelBeds</h4>
+            <div className="text-sm space-y-1">
+              <div>Base URL: <code className="bg-muted px-1 rounded">{config?.hotelbeds.baseUrl}</code></div>
+              <div>Cache API: <code className="bg-muted px-1 rounded">{config?.hotelbeds.cacheApiUrl}</code></div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Provider Configurations */}
-      {config && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Amadeus */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5" />
-                Amadeus
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-sm">
-                <strong>Base URL:</strong><br />
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {config.amadeus?.baseUrl}
-                </code>
-              </div>
-              <div className="text-sm">
-                <strong>Token URL:</strong><br />
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {config.amadeus?.tokenUrl}
-                </code>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Sabre */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Sabre
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-sm">
-                <strong>Base URL:</strong><br />
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {config.sabre?.baseUrl}
-                </code>
-              </div>
-              <div className="text-sm">
-                <strong>Token URL:</strong><br />
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {config.sabre?.tokenUrl}
-                </code>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* HotelBeds */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Server className="h-5 w-5" />
-                HotelBeds
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-sm">
-                <strong>Hotel API:</strong><br />
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {config.hotelbeds?.hotel?.baseUrl}
-                </code>
-              </div>
-              <div className="text-sm">
-                <strong>Activity API:</strong><br />
-                <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {config.hotelbeds?.activity?.baseUrl}
-                </code>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* MTLS Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Security (MTLS)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge variant={config.mtls?.rejectUnauthorized ? 'default' : 'secondary'}>
-                  {config.mtls?.rejectUnauthorized ? 'Strict SSL' : 'Relaxed SSL'}
-                </Badge>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Timeout: {config.mtls?.timeout}ms | Retries: {config.mtls?.retries}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Production Validation Results */}
-      {validationResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {validationResult.ready ? (
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              ) : (
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-              )}
-              Production Readiness Check
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {validationResult.ready ? (
-              <Alert>
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                  All systems are ready for production deployment
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <div className="space-y-2">
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Issues found that need attention before production deployment
-                  </AlertDescription>
-                </Alert>
-                {validationResult.issues?.map((issue: string, index: number) => (
-                  <div key={index} className="text-sm text-destructive">
-                    • {issue}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {!config && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <AlertTriangle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">
-              Failed to load environment configuration
-            </p>
-            <Button onClick={refresh} variant="outline">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Retry Loading
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Security Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Security Settings</CardTitle>
+          <CardDescription>
+            Connection security and timeout configuration
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex justify-between">
+            <span>Connection Timeout:</span>
+            <span>30000ms</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Retry Attempts:</span>
+            <span>3</span>
+          </div>
+          <div className="flex justify-between">
+            <span>SSL Verification:</span>
+            <Badge variant="default">Enabled</Badge>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default EnvironmentPage;

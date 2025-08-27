@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ import {
   Gauge
 } from 'lucide-react';
 import { PerformanceValidationDashboard } from '@/components/testing/PerformanceValidationDashboard';
-import { DatabasePerformancePanel } from '@/components/admin/DatabasePerformancePanel';
 
 interface PerformanceMetrics {
   webVitals: {
@@ -343,7 +341,38 @@ export default function PerformanceMonitoringPage() {
         </TabsContent>
 
         <TabsContent value="database" className="space-y-4">
-          <DatabasePerformancePanel />
+          {metrics && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5" />
+                    Database Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Average Query Time</span>
+                    <Badge variant="outline">{Math.round(metrics.databaseMetrics.queryTime)}ms</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Active Connections</span>
+                    <Badge variant="outline">{Math.round(metrics.databaseMetrics.connectionCount)}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Slow Queries</span>
+                    <Badge variant={metrics.databaseMetrics.slowQueries > 3 ? 'destructive' : 'outline'}>
+                      {metrics.databaseMetrics.slowQueries}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Cache Hit Rate</span>
+                    <Badge variant="outline">{Math.round(metrics.databaseMetrics.cacheHitRate)}%</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="detailed" className="space-y-4">
