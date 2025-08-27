@@ -18,6 +18,10 @@ import FeatureFlagsPage from '@/pages/admin/FeatureFlagsPage';
 import EnvironmentConfigPage from '@/pages/admin/EnvironmentConfigPage';
 import AdminProvidersPage from '@/pages/admin/monitoring/providers';
 import AdminProvidersSettingsPage from '@/pages/admin/settings/providers';
+import HotelSearchPage from '@/pages/search/hotels';
+import FlightSearchPage from '@/pages/search/flights';
+import ActivitySearchPage from '@/pages/search/activities';
+import CarSearchPage from '@/pages/search/cars';
 
 const queryClient = new QueryClient();
 
@@ -36,6 +40,13 @@ function App() {
               
               {/* Auth Route */}
               <Route path="/auth" element={<Auth />} />
+              
+              {/* Search Routes */}
+              <Route path="/search/hotels" element={<HotelSearchPage />} />
+              <Route path="/search/flights" element={<FlightSearchPage />} />
+              <Route path="/search/activities" element={<ActivitySearchPage />} />
+              <Route path="/search/cars" element={<CarSearchPage />} />
+              
               
               {/* Admin Routes */}
               <Route
