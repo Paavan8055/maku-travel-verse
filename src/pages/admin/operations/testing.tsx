@@ -8,7 +8,8 @@ import { ProviderRotationTestPanel } from '@/components/debug/ProviderRotationTe
 import { DirectProviderTest } from '@/components/debug/DirectProviderTest';
 import HotelBedsMonitoringDashboard from '@/components/admin/HotelBedsMonitoringDashboard';
 import { CredentialTestSuite } from '@/components/admin/CredentialTestSuite';
-import { TestTube, Play, BarChart3, Settings, Globe, Shield } from 'lucide-react';
+import { FoundationRepairPanel } from '@/components/testing/FoundationRepairPanel';
+import { TestTube, Play, BarChart3, Settings, Globe, Shield, Wrench } from 'lucide-react';
 
 const AdminTestingPage = () => {
   return (
@@ -20,8 +21,12 @@ const AdminTestingPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="test-suite" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+      <Tabs defaultValue="foundation" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="foundation" className="flex items-center gap-2">
+            <Wrench className="h-4 w-4" />
+            Foundation
+          </TabsTrigger>
           <TabsTrigger value="test-suite" className="flex items-center gap-2">
             <Play className="h-4 w-4" />
             Test Suite
@@ -46,11 +51,15 @@ const AdminTestingPage = () => {
             <TestTube className="h-4 w-4" />
             A/B Testing
           </TabsTrigger>
-        </TabsList>
+          </TabsList>
 
-        <TabsContent value="test-suite">
-          <UnifiedTestSuite />
-        </TabsContent>
+          <TabsContent value="foundation">
+            <FoundationRepairPanel />
+          </TabsContent>
+
+          <TabsContent value="test-suite">
+            <UnifiedTestSuite />
+          </TabsContent>
 
         <TabsContent value="provider-tests">
           <div className="space-y-6">
