@@ -7,6 +7,9 @@ import { AuthenticationFix } from '@/components/admin/AuthenticationFix';
 import { SystemHealthMonitor } from '@/components/admin/SystemHealthMonitor';
 import { RecoveryStatus } from '@/components/admin/RecoveryStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SecurityValidationPanel } from '@/components/admin/SecurityValidationPanel';
+import { ProviderApiTester } from '@/components/admin/ProviderApiTester';
+import { LoadTestingDashboard } from '@/components/admin/LoadTestingDashboard';
 
 const AdminSecurityPage = () => {
   return (
@@ -19,11 +22,12 @@ const AdminSecurityPage = () => {
       </div>
       
       <Tabs defaultValue="recovery" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="recovery">Recovery Status</TabsTrigger>
           <TabsTrigger value="emergency">Emergency</TabsTrigger>
           <TabsTrigger value="auth">Authentication</TabsTrigger>
           <TabsTrigger value="providers">Providers</TabsTrigger>
+          <TabsTrigger value="testing">Validation</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
@@ -41,7 +45,17 @@ const AdminSecurityPage = () => {
         </TabsContent>
         
         <TabsContent value="providers">
-          <ProviderHealthDashboard />
+          <div className="space-y-6">
+            <ProviderHealthDashboard />
+            <ProviderApiTester />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="testing">
+          <div className="space-y-6">
+            <SecurityValidationPanel />
+            <LoadTestingDashboard />
+          </div>
         </TabsContent>
         
         <TabsContent value="security">
