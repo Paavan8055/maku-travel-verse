@@ -111,16 +111,16 @@ export default function ProviderConfigPage() {
   const testCredentials = async () => {
     setTesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('provider-credential-test');
+      const { data, error } = await supabase.functions.invoke('credential-test');
       
       if (error) throw error;
       
-      setProviderStatus(data.detailed_results || []);
+      setProviderStatus(data.providers || []);
       
       toast({
         title: "Credential Test Complete",
-        description: `${data.summary.working_providers}/${data.summary.total_providers} providers working`,
-        variant: data.summary.working_providers === data.summary.total_providers ? "default" : "destructive"
+        description: `${data.summary.working}/${data.summary.total} providers working`,
+        variant: data.summary.working === data.summary.total ? "default" : "destructive"
       });
     } catch (error) {
       console.error('Credential test failed:', error);
@@ -137,15 +137,21 @@ export default function ProviderConfigPage() {
   const updateProvider = async (id: string, updates: Partial<ProviderConfig>) => {
     setSaving(true);
     try {
+      // Ensure priority is never null
+      const safeUpdates = {
+        ...updates,
+        ...(updates.priority !== undefined && { priority: updates.priority || 1 })
+      };
+
       const { error } = await supabase
         .from('provider_configs')
-        .update(updates)
+        .update(safeUpdates)
         .eq('id', id);
 
       if (error) throw error;
 
       setProviders(prev => prev.map(p => 
-        p.id === id ? { ...p, ...updates } : p
+        p.id === id ? { ...p, ...safeUpdates } : p
       ));
 
       toast({
@@ -195,12 +201,31 @@ export default function ProviderConfigPage() {
   };
 
   const getProviderStatus = (provider: ProviderConfig) => {
-    // Try to find credential test result
-    const credentialStatus = providerStatus.find(p => {
-      const providerNameMatch = p.provider.toLowerCase() === provider.name.toLowerCase().replace(/\s/g, '');
-      const providerTypeMatch = p.provider.toLowerCase().includes(provider.type);
-      return providerNameMatch || providerTypeMatch;
-    });
+    // Enhanced provider matching logic
+    const getCredentialStatus = () => {
+      return providerStatus.find(p => {
+        const testProvider = p.provider.toLowerCase();
+        const configName = provider.name.toLowerCase().replace(/\s/g, '');
+        
+        // Direct mapping logic
+        if (testProvider === 'amadeus') {
+          return configName.includes('amadeus');
+        }
+        if (testProvider === 'sabre') {
+          return configName.includes('sabre');
+        }
+        if (testProvider === 'hotelbeds') {
+          return configName.includes('hotelbeds');
+        }
+        
+        // Fallback matching
+        return testProvider === configName || 
+               testProvider.includes(provider.type) ||
+               configName.includes(testProvider);
+      });
+    };
+
+    const credentialStatus = getCredentialStatus();
 
     // Try to find health data
     const healthData = providerHealth.find(h => 
@@ -213,10 +238,10 @@ export default function ProviderConfigPage() {
     let responseTime = provider.response_time || 0;
 
     if (credentialStatus) {
-      if (credentialStatus.status === 'success') {
+      if (credentialStatus.credentialsValid && credentialStatus.authSuccess) {
         status = 'healthy';
-        message = 'Credentials valid';
-      } else if (credentialStatus.status === 'failed') {
+        message = 'Credentials valid and authenticated';
+      } else if (credentialStatus.credentialsValid && !credentialStatus.authSuccess) {
         status = 'failed';
         message = credentialStatus.error || 'Authentication failed';
       } else {
