@@ -3783,6 +3783,36 @@ export type Database = {
           },
         ]
       }
+      security_configurations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          setting_name: string
+          setting_value: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          setting_name: string
+          setting_value: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          setting_name?: string
+          setting_value?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           created_at: string | null
@@ -3942,6 +3972,48 @@ export type Database = {
           service_name?: string
           status_code?: number | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      system_validation_tests: {
+        Row: {
+          created_at: string | null
+          execution_time_ms: number | null
+          id: string
+          last_run_at: string | null
+          last_run_by: string | null
+          test_category: string
+          test_description: string | null
+          test_name: string
+          test_result: Json | null
+          test_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          last_run_at?: string | null
+          last_run_by?: string | null
+          test_category: string
+          test_description?: string | null
+          test_name: string
+          test_result?: Json | null
+          test_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          last_run_at?: string | null
+          last_run_by?: string | null
+          test_category?: string
+          test_description?: string | null
+          test_name?: string
+          test_result?: Json | null
+          test_status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -4744,6 +4816,10 @@ export type Database = {
           p_code: string
           p_user_id?: string
         }
+        Returns: Json
+      }
+      run_validation_test: {
+        Args: { p_test_id: string }
         Returns: Json
       }
       save_activity_search: {
