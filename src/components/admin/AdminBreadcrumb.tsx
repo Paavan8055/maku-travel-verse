@@ -1,5 +1,4 @@
-import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,92 +7,65 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Home } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
-interface BreadcrumbMapping {
-  [key: string]: string;
-}
-
-const breadcrumbMapping: BreadcrumbMapping = {
-  'admin': 'Admin',
-  'dashboard': 'Dashboard',
-  'monitoring': 'Monitoring',
-  'operations': 'Operations',
-  'security': 'Security',
-  'settings': 'Settings',
-  'health': 'System Health',
-  'providers': 'Provider Status',
-  'correlation': 'Correlation Tracking',
-  'quotas': 'Quota Management',
-  'logs': 'Performance Logs',
-  'bookings': 'Booking Management',
-  'users': 'User Management',
-  'testing': 'Test Suite',
-  'search': 'Search Analytics',
-  'access': 'Access Control',
-  'audit': 'Audit Logs',
-  'compliance': 'Compliance Status',
-  'features': 'Feature Flags',
-  'environment': 'Environment Config',
-  'realtime': 'Real-time Metrics',
-  'alerts': 'Critical Alerts',
-  'deployment-test': 'Deployment Test',
-};
-
-export const AdminBreadcrumb: React.FC = () => {
+export const AdminBreadcrumb = () => {
   const location = useLocation();
   const pathSegments = location.pathname.split('/').filter(Boolean);
 
-  // Remove the first 'admin' segment since we're already in admin context
-  const adminSegments = pathSegments.slice(1);
+  const breadcrumbMap: Record<string, string> = {
+    admin: 'Admin',
+    dashboard: 'Dashboard',
+    settings: 'Settings',
+    features: 'Feature Flags',
+    environment: 'Environment Config',
+    monitoring: 'Monitoring',
+    performance: 'Performance',
+    operations: 'Operations',
+    users: 'User Management',
+    security: 'Security',
+    access: 'Access Control'
+  };
 
-  if (adminSegments.length === 0) {
-    return (
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Admin Dashboard
-            </BreadcrumbPage>
+  const generateBreadcrumbs = () => {
+    const breadcrumbs = [];
+    let currentPath = '';
+
+    pathSegments.forEach((segment, index) => {
+      currentPath += `/${segment}`;
+      const isLast = index === pathSegments.length - 1;
+      const displayName = breadcrumbMap[segment] || segment;
+
+      if (isLast) {
+        breadcrumbs.push(
+          <BreadcrumbItem key={segment}>
+            <BreadcrumbPage>{displayName}</BreadcrumbPage>
           </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-    );
-  }
+        );
+      } else {
+        breadcrumbs.push(
+          <BreadcrumbItem key={segment}>
+            <BreadcrumbLink href={currentPath}>
+              {displayName}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        );
+        
+        if (index < pathSegments.length - 1) {
+          breadcrumbs.push(
+            <BreadcrumbSeparator key={`separator-${index}`} />
+          );
+        }
+      }
+    });
+
+    return breadcrumbs;
+  };
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link to="/admin" className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Admin
-            </Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        
-        {adminSegments.map((segment, index) => {
-          const isLast = index === adminSegments.length - 1;
-          const path = `/admin/${adminSegments.slice(0, index + 1).join('/')}`;
-          const displayName = breadcrumbMapping[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
-
-          return (
-            <React.Fragment key={segment}>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                {isLast ? (
-                  <BreadcrumbPage>{displayName}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link to={path}>{displayName}</Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-            </React.Fragment>
-          );
-        })}
+        {generateBreadcrumbs()}
       </BreadcrumbList>
     </Breadcrumb>
   );
