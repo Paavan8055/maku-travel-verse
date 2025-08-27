@@ -28,23 +28,22 @@ interface TransferSearchParams {
   language: string;
 }
 
-// Generate HMAC SHA256 signature for HotelBeds API
+// Generate SHA-256 signature for HotelBeds API (matching official documentation)
 async function generateSignature(apiKey: string, secret: string, timestamp: number): Promise<string> {
-  const message = apiKey + secret + timestamp;
+  const signatureString = apiKey + secret + timestamp;
   const encoder = new TextEncoder();
-  const data = encoder.encode(message);
+  const data = encoder.encode(signatureString);
   
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
+  // Generate SHA-256 hash (not HMAC)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = new Uint8Array(hashBuffer);
   
-  const signature = await crypto.subtle.sign('HMAC', key, data);
-  const hashArray = Array.from(new Uint8Array(signature));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Convert to hex string
+  const signature = Array.from(hashArray)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return signature;
 }
 
 async function searchHotelbedsTransfers(params: TransferSearchParams): Promise<any> {
