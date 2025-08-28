@@ -13,10 +13,10 @@ interface GiftCardPreviewProps {
 const GiftCardPreview = ({ amount, theme }: GiftCardPreviewProps) => {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 p-6 shadow-floating">
-      <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-gradient-to-br" style={{ backgroundImage: theme.gradient }}>
-        {/* Background image with overlay */}
+      <div className="relative aspect-[16/10] overflow-hidden rounded-xl">
+        {/* Background image */}
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30"
+          className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${theme.image})` }}
         />
         
