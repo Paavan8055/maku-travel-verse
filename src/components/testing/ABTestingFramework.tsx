@@ -62,102 +62,9 @@ export const ABTestProvider: React.FC<ABTestProviderProps> = ({ children }) => {
   const [userVariants, setUserVariants] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Initialize with mock tests
-    const mockTests: ABTest[] = [
-      {
-        id: 'booking-button-test',
-        name: 'Booking Button Color Test',
-        description: 'Testing different button colors for conversion',
-        status: 'running',
-        variants: [
-          {
-            id: 'control',
-            name: 'Blue Button',
-            description: 'Original blue booking button',
-            isControl: true,
-            traffic: 2500,
-            conversions: 125,
-            conversionRate: 5.0
-          },
-          {
-            id: 'variant-a',
-            name: 'Green Button',
-            description: 'Green booking button variant',
-            isControl: false,
-            traffic: 2450,
-            conversions: 147,
-            conversionRate: 6.0
-          }
-        ],
-        metrics: {
-          participants: 4950,
-          conversions: 272,
-          conversionRate: 5.5,
-          uplift: 20.0,
-          pValue: 0.034
-        },
-        startDate: new Date('2024-01-01'),
-        trafficSplit: [50, 50],
-        significance: 95
-      },
-      {
-        id: 'pricing-display-test',
-        name: 'Pricing Display Test',
-        description: 'Testing different ways to display pricing',
-        status: 'running',
-        variants: [
-          {
-            id: 'control',
-            name: 'Standard Pricing',
-            description: 'Current pricing display',
-            isControl: true,
-            traffic: 1800,
-            conversions: 72,
-            conversionRate: 4.0
-          },
-          {
-            id: 'variant-a',
-            name: 'Highlighted Savings',
-            description: 'Emphasis on savings amount',
-            isControl: false,
-            traffic: 1750,
-            conversions: 87,
-            conversionRate: 5.0
-          }
-        ],
-        metrics: {
-          participants: 3550,
-          conversions: 159,
-          conversionRate: 4.5,
-          uplift: 25.0,
-          pValue: 0.022
-        },
-        startDate: new Date('2024-01-15'),
-        trafficSplit: [50, 50],
-        significance: 95
-      }
-    ];
-
-    setCurrentTests(mockTests);
-
-    // Assign user to variants
-    const variants: Record<string, string> = {};
-    mockTests.forEach(test => {
-      if (test.status === 'running') {
-        const randomValue = Math.random();
-        let cumulativeWeight = 0;
-        
-        for (let i = 0; i < test.variants.length; i++) {
-          cumulativeWeight += test.trafficSplit[i] / 100;
-          if (randomValue <= cumulativeWeight) {
-            variants[test.id] = test.variants[i].id;
-            break;
-          }
-        }
-      }
-    });
-    
-    setUserVariants(variants);
+    // Initialize with empty tests - data should come from actual A/B testing service
+    setCurrentTests([]);
+    setUserVariants({});
   }, []);
 
   const getVariant = (testId: string): ABVariant | null => {
@@ -249,8 +156,14 @@ export const ABTestDashboard: React.FC<ABTestDashboardProps> = ({ className }) =
           </div>
 
           <div className="space-y-4">
-            {currentTests.map(test => (
-              <Card key={test.id} className="border">
+            {currentTests.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No A/B tests configured</p>
+                <p className="text-sm text-muted-foreground mt-1">Tests will appear here when they are created</p>
+              </div>
+            ) : (
+              currentTests.map(test => (
+                <Card key={test.id} className="border">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -310,8 +223,9 @@ export const ABTestDashboard: React.FC<ABTestDashboardProps> = ({ className }) =
                     {test.metrics.participants.toLocaleString()} / 10,000 target participants
                   </p>
                 </CardContent>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
