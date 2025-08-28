@@ -503,7 +503,7 @@ serve(async (req) => {
       source: 'hotelbeds',
       details: {
         originalError: error.message,
-        credentialsConfigured: !!(Deno.env.get('HOTELBEDS_HOTEL_API_KEY') || Deno.env.get('HOTELBEDS_API_KEY')),
+        credentialsConfigured: !!(Deno.env.get('HOTELBEDS_HOTEL_API_KEY')),
         usingServiceSpecific: !!Deno.env.get('HOTELBEDS_HOTEL_API_KEY')
       }
     }), {
