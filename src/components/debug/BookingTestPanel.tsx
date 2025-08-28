@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, MapPin, Users, CreditCard } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface BookingTestPanelProps {
   onTestHotelBooking?: () => void;
@@ -16,6 +18,39 @@ export const BookingTestPanel: React.FC<BookingTestPanelProps> = ({
   onTestFlightBooking,
   onTestActivityBooking
 }) => {
+  const [testing, setTesting] = useState(false);
+
+  const testBookingFlow = async (bookingType: 'flight' | 'hotel' | 'activity', useRealProvider = false) => {
+    setTesting(true);
+    try {
+      toast.info(`Testing ${bookingType} booking flow...`);
+      
+      const { data, error } = await supabase.functions.invoke('test-booking-flow', {
+        body: { bookingType, useRealProvider }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(`✅ ${bookingType} booking test passed!`, {
+          description: `Confirmation: ${data.result?.confirmationCode || 'N/A'}`
+        });
+        console.log('Test result:', data);
+      } else {
+        toast.error(`❌ ${bookingType} booking test failed`, {
+          description: data.error || 'Unknown error'
+        });
+      }
+    } catch (error) {
+      console.error('Booking test error:', error);
+      toast.error(`❌ ${bookingType} booking test failed`, {
+        description: error instanceof Error ? error.message : 'Unknown error'
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-4xl mx-auto mt-8">
       <CardHeader>
@@ -46,13 +81,24 @@ export const BookingTestPanel: React.FC<BookingTestPanelProps> = ({
               <span>Test Guests: 2 Adults, 1 Room</span>
             </div>
           </div>
-          <Button 
-            onClick={onTestHotelBooking}
-            className="w-full"
-            variant="outline"
-          >
-            Test Complete Hotel Booking Flow
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => testBookingFlow('hotel', false)}
+              className="flex-1"
+              variant="outline"
+              disabled={testing}
+            >
+              Test Demo Flow
+            </Button>
+            <Button 
+              onClick={() => testBookingFlow('hotel', true)}
+              className="flex-1"
+              variant="outline"
+              disabled={testing}
+            >
+              Test Real Provider
+            </Button>
+          </div>
         </div>
 
         <Separator />
@@ -77,13 +123,24 @@ export const BookingTestPanel: React.FC<BookingTestPanelProps> = ({
               <span>Test Passengers: 1 Adult</span>
             </div>
           </div>
-          <Button 
-            onClick={onTestFlightBooking}
-            className="w-full"
-            variant="outline"
-          >
-            Test Complete Flight Booking Flow
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => testBookingFlow('flight', false)}
+              className="flex-1"
+              variant="outline"
+              disabled={testing}
+            >
+              Test Demo Flow
+            </Button>
+            <Button 
+              onClick={() => testBookingFlow('flight', true)}
+              className="flex-1"
+              variant="outline"
+              disabled={testing}
+            >
+              Test Real Provider
+            </Button>
+          </div>
         </div>
 
         <Separator />
@@ -108,13 +165,24 @@ export const BookingTestPanel: React.FC<BookingTestPanelProps> = ({
               <span>Test Participants: 2 Adults</span>
             </div>
           </div>
-          <Button 
-            onClick={onTestActivityBooking}
-            className="w-full"
-            variant="outline"
-          >
-            Test Complete Activity Booking Flow
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => testBookingFlow('activity', false)}
+              className="flex-1"
+              variant="outline"
+              disabled={testing}
+            >
+              Test Demo Flow
+            </Button>
+            <Button 
+              onClick={() => testBookingFlow('activity', true)}
+              className="flex-1"
+              variant="outline"
+              disabled={testing}
+            >
+              Test Real Provider
+            </Button>
+          </div>
         </div>
 
         <div className="mt-6 p-4 bg-muted rounded-lg">

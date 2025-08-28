@@ -705,6 +705,8 @@ export type Database = {
           created_at: string | null
           currency: string | null
           id: string
+          provider_booking_id: string | null
+          provider_confirmation_code: string | null
           status: string
           total_amount: number | null
           updated_at: string | null
@@ -717,6 +719,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           id?: string
+          provider_booking_id?: string | null
+          provider_confirmation_code?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string | null
@@ -729,6 +733,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           id?: string
+          provider_booking_id?: string | null
+          provider_confirmation_code?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string | null
