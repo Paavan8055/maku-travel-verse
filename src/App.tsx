@@ -1,6 +1,6 @@
 
 import './App.css';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -23,6 +23,11 @@ import FlightSearchPage from '@/pages/search/flights';
 import ActivitySearchPage from '@/pages/search/activities';
 import CarSearchPage from '@/pages/search/cars';
 import { BookingConfirmation } from '@/components/checkout/BookingConfirmation';
+import GiftCards from '@/pages/GiftCards';
+import Roadmap from '@/pages/Roadmap';
+import Partners from '@/pages/Partners';
+import Loyalty from '@/pages/Loyalty';
+import Reviews from '@/pages/Reviews';
 
 const queryClient = new QueryClient();
 
@@ -51,7 +56,13 @@ function App() {
               {/* Booking Routes */}
               <Route path="/booking/confirmation" element={<BookingConfirmation />} />
               
-              
+              {/* Customer Routes */}
+              <Route path="/gift-cards" element={<GiftCards />} />
+              <Route path="/roadmap" element={<Roadmap />} />
+              <Route path="/partners" element={<Partners />} />
+              <Route path="/loyalty" element={<Loyalty />} />
+              <Route path="/reviews" element={<Reviews />} />
+
               {/* Admin Routes */}
               <Route
                 path="/admin/*"
