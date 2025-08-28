@@ -130,11 +130,45 @@ export const BookingManagement: React.FC = () => {
             <Badge variant="outline">{filteredBookings.length} bookings</Badge>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => {
+                const csvContent = [
+                  ['Reference', 'Type', 'Status', 'Amount', 'Currency', 'Date', 'Customer'],
+                  ...filteredBookings.map(booking => [
+                    booking.booking_reference,
+                    booking.booking_type,
+                    booking.status,
+                    booking.total_amount || 0,
+                    booking.currency,
+                    new Date(booking.created_at).toLocaleDateString(),
+                    booking.booking_data?.customerInfo?.email || 'Guest'
+                  ])
+                ].map(row => row.join(',')).join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bookings-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <Button size="sm" variant="outline" className="gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => {
+                // TODO: Implement advanced filter modal
+                console.log('Advanced filter clicked');
+              }}
+            >
               <Filter className="h-4 w-4" />
               Advanced Filter
             </Button>
@@ -219,7 +253,15 @@ export const BookingManagement: React.FC = () => {
                     {booking.booking_data?.customerInfo?.email || 'Guest'}
                   </TableCell>
                   <TableCell>
-                    <Button size="sm" variant="outline" className="gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="gap-2"
+                      onClick={() => {
+                        // TODO: Implement booking details view
+                        window.open(`/admin/bookings/${booking.id}`, '_blank');
+                      }}
+                    >
                       <Eye className="h-4 w-4" />
                       View
                     </Button>
