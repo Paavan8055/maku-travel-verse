@@ -1,8 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { ENV_CONFIG, RATE_LIMITS, getHotelBedsCredentials } from "../_shared/config.ts";
-import logger from "../_shared/logger.ts";
+import { createHash } from "https://deno.land/std@0.190.0/crypto/crypto.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,120 +15,24 @@ interface HotelSearchParams {
   rooms?: number;
 }
 
-const generateHotelBedsSignature = async (apiKey: string, secret: string, timestamp: number): Promise<string> => {
+const generateHotelBedsSignature = (apiKey: string, secret: string, timestamp: number): string => {
   const stringToSign = apiKey + secret + timestamp;
   const encoder = new TextEncoder();
   const data = encoder.encode(stringToSign);
   
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-};
-
-// Enhanced pricing extraction with tax breakdown - consistent with booking/checkrates
-const extractPricingDetails = (hotel: any) => {
-  const netAmount = hotel.minRate || 0;
-  const sellingRate = hotel.sellingRate || hotel.minRate || 0;
-  const hotelSellingRate = hotel.hotelSellingRate || 0;
-  const totalTaxes = hotel.taxes?.taxes?.reduce((sum: number, tax: any) => sum + (tax.amount || 0), 0) || 0;
-  
-  const pricing = {
-    // Core pricing
-    netAmount,
-    sellingRate,
-    hotelSellingRate,
-    markup: sellingRate - netAmount,
-    markupPCT: netAmount > 0 ? ((sellingRate - netAmount) / netAmount) * 100 : 0,
-    
-    // Enhanced pricing breakdown consistent with checkrates/booking
-    finalAmount: sellingRate + totalTaxes,
-    
-    // Tax information
-    taxesIncluded: hotel.taxes?.allIncluded || false,
-    taxBreakdown: hotel.taxes?.taxes?.map((tax: any) => ({
-      included: tax.included,
-      percent: tax.percent,
-      amount: tax.amount,
-      currency: tax.currency,
-      type: tax.type,
-      clientAmount: tax.clientAmount,
-      clientCurrency: tax.clientCurrency
-    })) || [],
-    totalTaxes,
-    
-    // Commission and rates
-    commission: hotel.commission || 0,
-    commissionVAT: hotel.commissionVAT || 0,
-    
-    // Additional pricing data
-    currency: hotel.currency || 'USD',
-    rateType: hotel.rateType || 'PUBLIC',
-    packaging: hotel.packaging || false,
-    commissionable: hotel.commissionable || false,
-    rateComments: hotel.rateComments || '',
-    offers: hotel.offers || [],
-    discount: hotel.discount || 0,
-    discountPCT: hotel.discountPCT || 0,
-    
-    // Free cancellation indicator
-    hasFreeCancellation: hotel.cancellationPolicies?.length === 0 || hotel.cancellationPolicies?.some((p: any) => p.amount === 0)
-  };
-  
-  return pricing;
-};
-
-// Rate limiting and retry logic
-const makeResilientRequest = async (url: string, options: RequestInit, maxRetries = 3, baseDelay = 1000) => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await fetch(url, options);
-      
-      if (response.status === 429) {
-        // Rate limited - wait with exponential backoff
-        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
-        logger.warn(`Rate limited, retrying in ${delay}ms (attempt ${attempt}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      
-      if (response.status >= 500 && attempt < maxRetries) {
-        // Server error - retry with backoff
-        const delay = baseDelay * Math.pow(2, attempt - 1);
-        logger.warn(`Server error ${response.status}, retrying in ${delay}ms (attempt ${attempt}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      
-      return response;
-    } catch (error) {
-      if (attempt === maxRetries) throw error;
-      
-      const delay = baseDelay * Math.pow(2, attempt - 1);
-      logger.warn(`Request failed, retrying in ${delay}ms (attempt ${attempt}/${maxRetries}):`, error.message);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-  
-  throw new Error(`Request failed after ${maxRetries} attempts`);
+  return createHash("sha256").update(data).toString("hex");
 };
 
 const searchHotels = async (params: HotelSearchParams) => {
-  const { apiKey, secret } = getHotelBedsCredentials('hotel');
+  const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
+  const secret = Deno.env.get('HOTELBEDS_SECRET');
   
   if (!apiKey || !secret) {
-    throw new Error('HotelBeds hotel API credentials not configured');
+    throw new Error('HotelBeds credentials not configured');
   }
 
-  // Log credential info for debugging (without exposing actual keys)
-  logger.info('[HOTELBEDS-SEARCH] Using credentials:', {
-    apiKeyLength: apiKey.length,
-    secretLength: secret.length,
-    usingServiceSpecific: !!Deno.env.get('HOTELBEDS_HOTEL_API_KEY'),
-    timestamp: Math.floor(Date.now() / 1000)
-  });
-
   const timestamp = Math.floor(Date.now() / 1000);
-  const signature = await generateHotelBedsSignature(apiKey, secret, timestamp);
+  const signature = generateHotelBedsSignature(apiKey, secret, timestamp);
 
   const requestBody = {
     stay: {
@@ -153,10 +54,7 @@ const searchHotels = async (params: HotelSearchParams) => {
     }
   };
 
-  logger.info('[HOTELBEDS-SEARCH] Making request to:', `${ENV_CONFIG.hotelbeds.baseUrl}/hotel-api/1.0/hotels`);
-  logger.info('[HOTELBEDS-SEARCH] Request body:', requestBody);
-
-  const response = await makeResilientRequest(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-api/1.0/hotels`, {
+  const response = await fetch('https://api.test.hotelbeds.com/hotel-api/1.0/hotels', {
     method: 'POST',
     headers: {
       'Api-key': apiKey,
@@ -169,24 +67,7 @@ const searchHotels = async (params: HotelSearchParams) => {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    logger.error('[HOTELBEDS-SEARCH] API Error:', {
-      status: response.status,
-      statusText: response.statusText,
-      errorBody: errorText,
-      headers: Object.fromEntries(response.headers.entries())
-    });
-
-    // Handle specific error types
-    if (response.status === 403) {
-      throw new Error(`HotelBeds API access denied (403). Please verify your hotel API credentials are correct and have proper permissions.`);
-    } else if (response.status === 401) {
-      throw new Error(`HotelBeds API authentication failed (401). Please check your API key and signature.`);
-    } else if (response.status === 429) {
-      throw new Error(`HotelBeds API rate limit exceeded (429). Please try again later.`);
-    } else {
-      throw new Error(`HotelBeds search failed (${response.status}): ${response.statusText} - ${errorText}`);
-    }
+    throw new Error(`HotelBeds search failed: ${response.statusText}`);
   }
 
   return await response.json();
@@ -206,113 +87,20 @@ serve(async (req) => {
       rooms = 1 
     } = await req.json();
 
-    logger.info('HotelBeds hotel search:', { destination, checkIn, checkOut, guests, rooms });
+    console.log('HotelBeds hotel search:', { destination, checkIn, checkOut, guests, rooms });
 
-    // Enhanced destination code mapping
-    const getCityMapping = () => {
-      return {
-        // Major cities
-        'sydney': 'SYD',
-        'melbourne': 'MEL',
-        'brisbane': 'BNE',
-        'perth': 'PER',
-        'adelaide': 'ADL',
-        'canberra': 'CBR',
-        'paris': 'PAR',
-        'london': 'LON',
-        'new york': 'NYC',
-        'tokyo': 'TYO',
-        'singapore': 'SIN',
-        'hong kong': 'HKG',
-        'bangkok': 'BKK',
-        'dubai': 'DXB',
-        'bali': 'DPS',
-        'jakarta': 'CGK',
-        'kuala lumpur': 'KUL',
-        'manila': 'MNL',
-        'delhi': 'DEL',
-        'mumbai': 'BOM',
-        'istanbul': 'IST',
-        'rome': 'ROM',
-        'madrid': 'MAD',
-        'barcelona': 'BCN',
-        'amsterdam': 'AMS',
-        'frankfurt': 'FRA',
-        'zurich': 'ZUR',
-        'vienna': 'VIE',
-        'prague': 'PRG',
-        'budapest': 'BUD',
-        'warsaw': 'WAW',
-        'stockholm': 'STO',
-        'oslo': 'OSL',
-        'copenhagen': 'CPH',
-        'helsinki': 'HEL',
-        'moscow': 'MOW',
-        'cairo': 'CAI',
-        'johannesburg': 'JNB',
-        'cape town': 'CPT',
-        'casablanca': 'CAS',
-        'nairobi': 'NBO',
-        'los angeles': 'LAX',
-        'san francisco': 'SFO',
-        'chicago': 'CHI',
-        'miami': 'MIA',
-        'las vegas': 'LAS',
-        'toronto': 'YYZ',
-        'vancouver': 'YVR',
-        'montreal': 'YUL',
-        'mexico city': 'MEX',
-        'rio de janeiro': 'RIO',
-        'sao paulo': 'SAO',
-        'buenos aires': 'BUE',
-        'lima': 'LIM',
-        'bogota': 'BOG',
-        'santiago': 'SCL'
-      };
+    // For demo, we'll use a destination code mapping
+    // In production, you'd have a proper destination mapping system
+    const destinationCodes: { [key: string]: string } = {
+      'bali': 'PMI',
+      'paris': 'PAR',
+      'london': 'LON',
+      'new york': 'NYC',
+      'tokyo': 'TYO',
+      'dubai': 'DXB'
     };
 
-    const cityMapping = getCityMapping();
-    const destCode = destination ? cityMapping[destination.toLowerCase()] : null;
-    
-    if (!destCode) {
-      logger.warn('Destination not found in mapping:', destination);
-      return new Response(JSON.stringify({
-        success: false,
-        error: `Destination "${destination}" is not supported. Please try a major city.`,
-        source: 'hotelbeds',
-        supportedDestinations: Object.keys(cityMapping).slice(0, 20) // Show some examples
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Create Supabase client for rate limiting
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // Check rate limits before proceeding
-    const rateLimitCheck = await supabase.functions.invoke('rate-limiter', {
-      body: {
-        identifier: req.headers.get('x-forwarded-for') || 'anonymous',
-        action: 'search',
-        window: 60,
-        maxAttempts: RATE_LIMITS.hotelbeds.searchPerMinute
-      }
-    });
-
-    if (rateLimitCheck.data && !rateLimitCheck.data.allowed) {
-      logger.warn('[HOTELBEDS-SEARCH] Rate limit exceeded for identifier:', req.headers.get('x-forwarded-for') || 'anonymous');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Rate limit exceeded', 
-          retryAfter: rateLimitCheck.data.retryAfter 
-        }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const destCode = destinationCodes[destination.toLowerCase()] || 'PMI';
 
     const hotelResults = await searchHotels({
       destination: destCode,
@@ -322,149 +110,49 @@ serve(async (req) => {
       rooms
     });
 
-    // Check if hotelResults has the expected structure
-    // HotelBeds response has nested structure: { hotels: { hotels: [...] } }
-    const hotelsArray = hotelResults?.hotels?.hotels;
-    if (!hotelResults || !hotelResults.hotels || !Array.isArray(hotelsArray)) {
-      logger.warn('No hotels found in HotelBeds response or invalid structure:', {
-        hasResults: !!hotelResults,
-        hasHotelsObject: !!hotelResults?.hotels,
-        hotelsTotal: hotelResults?.hotels?.total,
-        hotelsArrayLength: Array.isArray(hotelsArray) ? hotelsArray.length : 'not array',
-        auditData: hotelResults?.auditData
-      });
-      return new Response(JSON.stringify({
-        success: true,
-        source: 'hotelbeds',
-        hotels: [],
-        searchCriteria: { destination, checkIn, checkOut, guests, rooms },
-        message: 'No hotels found for this destination and dates'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Enhanced transformation with detailed pricing and content
-    const transformedHotels = await Promise.all(hotelsArray.map(async (hotel: any) => {
-      // Extract pricing details with tax breakdown
-      const pricing = extractPricingDetails(hotel);
-      
-      // Get enriched content if available
-      const { apiKey, secret } = getHotelBedsCredentials('hotel');
-      let enrichedContent = null;
-      try {
-        const contentResponse = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-content-api/1.0/hotels?codes=${hotel.code}&language=ENG`, {
-          headers: {
-            'Api-key': apiKey,
-            'X-Signature': await generateHotelBedsSignature(
-              apiKey,
-              secret,
-              Math.floor(Date.now() / 1000)
-            ),
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (contentResponse.ok) {
-          const contentData = await contentResponse.json();
-          enrichedContent = contentData.hotels?.[0];
-        }
-      } catch (error) {
-        logger.warn('Failed to fetch enriched content for hotel:', hotel.code, error.message);
-      }
-
-      return {
-        id: hotel.code.toString(),
-        source: 'hotelbeds',
-        name: hotel.name,
-        location: hotel.destinationName || destination,
-        address: hotel.address || '',
-        rating: hotel.categoryCode ? parseInt(hotel.categoryCode) : null,
-        reviews: null,
-        reviewScore: hotel.ranking ? (hotel.ranking / 10) : null,
-        
-        // Enhanced pricing with tax breakdown
-        pricing: {
-          ...pricing,
-          currency: hotel.currency || 'USD',
-          rateType: hotel.rateType || 'unknown',
-          packaging: hotel.packaging || false,
-          commissionable: hotel.commissionable || false,
-          taxes: {
-            included: pricing.taxesIncluded,
-            breakdown: pricing.taxBreakdown,
-            total: pricing.totalTaxes
-          }
-        },
-        
-        // Legacy price field for backward compatibility
-        price: {
-          amount: pricing.netAmount || pricing.sellingRate || hotel.minRate,
-          currency: hotel.currency || 'USD',
-          per: 'night'
-        },
-        
-        // Enhanced images and content
-        images: enrichedContent?.images?.map((img: any) => ({
-          url: img.path,
-          type: img.imageTypeCode,
-          order: img.order,
-          roomCode: img.roomCode
-        })) || hotel.images?.map((img: any) => ({ url: img.path })) || [],
-        
-        // Enhanced amenities
-        amenities: enrichedContent?.facilities?.map((f: any) => ({
-          code: f.facilityCode,
-          name: f.description?.content || f.description,
-          group: f.facilityGroupCode
-        })) || hotel.facilities?.map((f: any) => f.description) || [],
-        
-        distance: null,
-        coordinates: (hotel.latitude && hotel.longitude) ? {
-          latitude: parseFloat(hotel.latitude),
-          longitude: parseFloat(hotel.longitude)
-        } : enrichedContent?.coordinates ? {
-          latitude: parseFloat(enrichedContent.coordinates.latitude),
-          longitude: parseFloat(enrichedContent.coordinates.longitude)
-        } : null,
-        
-        // Enhanced room information
-        rooms: enrichedContent?.rooms?.map((room: any) => ({
-          code: room.roomCode,
-          type: room.typeDescription?.content || room.description?.content || 'Standard Room',
-          description: room.description?.content || '',
-          maxPax: room.maxPax,
-          maxAdults: room.maxAdults,
-          maxChildren: room.maxChildren,
-          facilities: room.roomFacilities?.map((f: any) => f.description?.content || f.description) || [],
-          price: pricing.netAmount || pricing.sellingRate,
-          available: !!hotel.minRate
-        })) || [{
-          type: 'Standard Room',
-          beds: '1 King Bed',
-          size: null,
-          guests: guests,
-          price: pricing.netAmount || pricing.sellingRate || hotel.minRate,
-          amenities: [],
-          available: !!hotel.minRate
-        }],
-        
-        policies: {
-          checkIn: '15:00',
-          checkOut: '11:00',
-          cancellation: 'Free cancellation until 24 hours before check-in'
-        },
-        verified: true,
-        
-        // Additional metadata
-        metadata: {
-          categoryCode: hotel.categoryCode,
-          destinationCode: hotel.destinationCode,
-          zoneCode: hotel.zoneCode,
-          chainCode: enrichedContent?.chainCode,
-          lastUpdate: enrichedContent?.lastUpdate
-        }
-      };
+    // Transform HotelBeds response to our format
+    const transformedHotels = hotelResults.hotels?.map((hotel: any) => ({
+      id: hotel.code.toString(),
+      source: 'hotelbeds',
+      name: hotel.name,
+      location: hotel.destinationName || destination,
+      address: hotel.address || '',
+      rating: hotel.categoryCode ? parseInt(hotel.categoryCode) : 4,
+      reviews: Math.floor(Math.random() * 2000) + 500, // Placeholder
+      reviewScore: hotel.ranking ? (hotel.ranking / 10) : (Math.random() * 2 + 7.5),
+      price: {
+        amount: hotel.minRate || Math.floor(Math.random() * 500) + 100,
+        currency: hotel.currency || 'USD',
+        per: 'night'
+      },
+      images: hotel.images?.map((img: any) => img.path) || [
+        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop"
+      ],
+      amenities: hotel.facilities?.map((f: any) => f.description) || [
+        "Free WiFi", "Pool", "Spa", "Restaurant"
+      ],
+      distance: hotel.coordinates ? 
+        `${(Math.random() * 5).toFixed(1)} km from center` : 
+        '2.5 km from center',
+      coordinates: hotel.coordinates ? {
+        latitude: hotel.coordinates.latitude,
+        longitude: hotel.coordinates.longitude
+      } : null,
+      rooms: [{
+        type: 'Standard Room',
+        beds: '1 King Bed',
+        size: '25 sqm',
+        guests: guests,
+        price: hotel.minRate || Math.floor(Math.random() * 500) + 100,
+        amenities: ['Free WiFi', 'Air Conditioning', 'TV'],
+        available: true
+      }],
+      policies: {
+        checkIn: '15:00',
+        checkOut: '11:00',
+        cancellation: 'Free cancellation until 24 hours before check-in'
+      },
+      verified: true
     })) || [];
 
     return new Response(JSON.stringify({
@@ -477,37 +165,13 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error('[HOTELBEDS-SEARCH] Search error:', error);
-    
-    // Determine appropriate HTTP status based on error type
-    let status = 500;
-    let errorMessage = error.message;
-    
-    if (error.message.includes('403') || error.message.includes('access denied')) {
-      status = 403;
-      errorMessage = 'HotelBeds API credentials are invalid or insufficient. Please check your hotel API key and secret.';
-    } else if (error.message.includes('401') || error.message.includes('authentication')) {
-      status = 401;
-      errorMessage = 'HotelBeds API authentication failed. Please verify your credentials.';
-    } else if (error.message.includes('429') || error.message.includes('rate limit')) {
-      status = 429;
-      errorMessage = 'HotelBeds API rate limit exceeded. Please try again later.';
-    } else if (error.message.includes('not configured')) {
-      status = 503;
-      errorMessage = 'HotelBeds hotel API credentials not configured. Please contact administrator.';
-    }
-
+    console.error('HotelBeds search error:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: errorMessage,
-      source: 'hotelbeds',
-      details: {
-        originalError: error.message,
-        credentialsConfigured: !!(Deno.env.get('HOTELBEDS_HOTEL_API_KEY') || Deno.env.get('HOTELBEDS_API_KEY')),
-        usingServiceSpecific: !!Deno.env.get('HOTELBEDS_HOTEL_API_KEY')
-      }
+      error: error.message,
+      source: 'hotelbeds'
     }), {
-      status,
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

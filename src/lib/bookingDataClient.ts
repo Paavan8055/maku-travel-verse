@@ -5,7 +5,7 @@ export async function fetchUserPreferences(userId: string) {
   const { data, error } = await supabase
     .from('user_preferences')
     .select('*')
-    .eq('profile_id', userId)
+    .eq('user_id', userId)
     .maybeSingle();
   
   if (error && error.code !== 'PGRST116') {
@@ -19,7 +19,7 @@ export async function saveUserPreferences(data: any) {
   const { data: result, error } = await supabase
     .from('user_preferences')
     .upsert({
-      profile_id: data.profile_id,
+      user_id: data.user_id,
       preferred_airlines: data.preferred_airlines || [],
       seat_class: data.seat_class || 'economy',
       room_type: data.room_type || 'standard',
@@ -119,7 +119,7 @@ export async function toggleFavorite(userId: string, itemType: string, itemId: s
     .eq('item_type', itemType)
     .eq('item_id', itemId)
     .maybeSingle();
-
+  
   if (existing) {
     // Remove favorite
     const { error } = await supabase

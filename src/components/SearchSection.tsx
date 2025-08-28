@@ -1,8 +1,4 @@
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { usePerformanceOptimizer } from "@/hooks/usePerformanceOptimizer";
-import { useTranslation } from "react-i18next";
 import { Search, Calendar, Users, MapPin, Plane, Building, Car, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,15 +11,8 @@ import { DestinationAutocomplete } from "@/components/search/DestinationAutocomp
 import FlightPassengerSelector from "@/components/search/FlightPassengerSelector";
 import MultiCitySegments, { type Segment } from "@/components/search/MultiCitySegments";
 import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
-import { MobileSearchSheet } from "@/components/MobileSearchSheet";
 
 const SearchSection = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { startRender, endRender } = usePerformanceOptimizer({
-    componentName: 'SearchSection',
-    enableMonitoring: true
-  });
   const [destination, setDestination] = useState("");
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
@@ -53,10 +42,10 @@ const [activityAdults, setActivityAdults] = useState(2);
 const [activityChildren, setActivityChildren] = useState(0);
 
   const searchTabs = [
-    { id: "hotels", label: t('navigation.hotels'), icon: Building },
-    { id: "flights", label: t('navigation.flights'), icon: Plane },
-    { id: "cars", label: t('navigation.cars'), icon: Car },
-    { id: "activities", label: t('navigation.activities'), icon: Camera }
+    { id: "hotels", label: "Hotels", icon: Building },
+    { id: "flights", label: "Flights", icon: Plane },
+    { id: "cars", label: "Cars", icon: Car },
+    { id: "activities", label: "Activities", icon: Camera }
   ];
 
   const popularDestinations = [
@@ -68,35 +57,8 @@ const [activityChildren, setActivityChildren] = useState(0);
     "Dubai, UAE"
   ];
 
-  const handleHotelSearch = () => {
-    if (!destination || !checkIn || !checkOut) {
-      return; // Basic validation
-    }
-    
-    startRender();
-    const params = new URLSearchParams();
-    
-    params.set("destination", destination);
-    params.set("checkIn", format(checkIn, "yyyy-MM-dd"));
-    params.set("checkOut", format(checkOut, "yyyy-MM-dd"));
-    
-    // Enhanced parameter handling with proper adult/children separation
-    const guestCount = parseInt(guests);
-    const adultsCount = Math.max(1, Math.min(guestCount, 8)); // Max 8 adults
-    const childrenCount = Math.max(0, guestCount - adultsCount);
-    
-    params.set("adults", String(adultsCount));
-    params.set("children", String(childrenCount));
-    params.set("rooms", "1");
-    params.set("guests", guests); // Keep for backward compatibility
-    params.set("searched", "true");
-    
-    endRender();
-    navigate(`/search/hotels?${params.toString()}`);
-  };
-
   return (
-    <section className="relative -mt-16 z-30 px-6">
+    <section className="relative -mt-32 z-30 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="travel-card bg-white p-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -121,7 +83,7 @@ const [activityChildren, setActivityChildren] = useState(0);
   value={destination}
   onChange={setDestination}
   onDestinationSelect={(d) => setDestination(d.code ? `${d.city ?? d.name} (${d.code})` : d.name)}
-  placeholder={t('search.destination')}
+  placeholder="Where are you going?"
   className="search-input"
 />
                 </div>
@@ -134,7 +96,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       className="search-input justify-start text-left font-normal"
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      {checkIn ? format(checkIn, "MMM dd") : t('search.checkIn')}
+                      {checkIn ? format(checkIn, "MMM dd") : "Check-in"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -156,7 +118,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       className="search-input justify-start text-left font-normal"
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      {checkOut ? format(checkOut, "MMM dd") : t('search.checkOut')}
+                      {checkOut ? format(checkOut, "MMM dd") : "Check-out"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -174,7 +136,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                 <Select value={guests} onValueChange={setGuests}>
                   <SelectTrigger className="search-input">
                     <Users className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder={t('search.guests')} />
+                    <SelectValue placeholder="Guests" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">1 Guest</SelectItem>
@@ -186,24 +148,14 @@ const [activityChildren, setActivityChildren] = useState(0);
                 </Select>
               </div>
 
-              <div className="flex justify-center gap-4">
+              <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  onClick={handleHotelSearch}
+                  onClick={() => window.location.href = `/search?type=hotels&destination=${encodeURIComponent(destination)}`}
                 >
                   <Search className="mr-2 h-5 w-5" />
-                  {t('search.searchHotels')}
+                  Search Hotels
                 </Button>
-                
-                <div className="md:hidden">
-                  <MobileSearchSheet 
-                    trigger={
-                      <Button variant="outline" size="lg" className="p-4">
-                        <Search className="h-5 w-5" />
-                      </Button>
-                    }
-                  />
-                </div>
               </div>
             </TabsContent>
 
@@ -215,7 +167,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     value={flightFrom}
                     onChange={setFlightFrom}
                     onDestinationSelect={(d) => setFlightFrom(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
-                    placeholder={t('search.departure')}
+                    placeholder="From"
                     className="search-input"
                     searchType="airport"
                   />
@@ -225,7 +177,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     value={flightTo}
                     onChange={setFlightTo}
                     onDestinationSelect={(d) => setFlightTo(d.code ? `${d.city || d.name} (${d.code})` : d.name)}
-                    placeholder={t('search.destination')}
+                    placeholder="To"
                     className="search-input"
                     searchType="airport"
                   />
@@ -235,7 +187,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="search-input justify-start text-left font-normal">
                         <Calendar className="mr-2 h-4 w-4" />
-                        {flightDepart ? format(flightDepart, "MMM dd") : t('search.departure')}
+                        {flightDepart ? format(flightDepart, "MMM dd") : "Departure"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -255,7 +207,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="search-input justify-start text-left font-normal">
                           <Calendar className="mr-2 h-4 w-4" />
-                          {flightReturn ? format(flightReturn, "MMM dd") : t('search.return')}
+                          {flightReturn ? format(flightReturn, "MMM dd") : "Return"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -390,7 +342,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       }));
                       const params = new URLSearchParams(base);
                       params.set("segments", JSON.stringify(segs));
-                      navigate(`/search/flights?${params.toString()}`);
+                      window.location.href = `/search/flights?${params.toString()}`;
                     } else {
                       const params = new URLSearchParams({
                         ...base,
@@ -399,12 +351,12 @@ const [activityChildren, setActivityChildren] = useState(0);
                         departureDate: flightDepart ? format(flightDepart, "yyyy-MM-dd") : "",
                         returnDate: tripType === "roundtrip" && flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
                       });
-                      navigate(`/search/flights?${params.toString()}`);
+                      window.location.href = `/search/flights?${params.toString()}`;
                     }
                   }}
                 >
                   <Search className="mr-2 h-5 w-5" />
-                  {t('search.searchFlights')}
+                  Search Flights
                 </Button>
               </div>
             </TabsContent>
@@ -469,7 +421,7 @@ const [activityChildren, setActivityChildren] = useState(0);
               <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  onClick={() => navigate('/search/cars')}
+                  onClick={() => window.location.href = `/search?type=cars`}
                 >
                   <Search className="mr-2 h-5 w-5" />
                   Search Cars
@@ -498,7 +450,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     adults: String(activityAdults),
                     children: String(activityChildren)
                   });
-                  navigate(`/search/activities?${params.toString()}`);
+                  window.location.href = `/search/activities?${params.toString()}`;
                 }}
               />
             </TabsContent>

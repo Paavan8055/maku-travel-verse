@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listDynamicOffers } from "@/lib/bookingDataClient";
 import { Tag, Clock, Zap } from "lucide-react";
-import logger from "@/utils/logger";
 interface DynamicOffer {
   id: string;
   route: string;
@@ -38,7 +37,7 @@ export default function OffersWidget({
       });
       setOffers(data);
     } catch (error) {
-      logger.error('Error loading offers:', error);
+      console.error('Error loading offers:', error);
     } finally {
       setLoading(false);
     }

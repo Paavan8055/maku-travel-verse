@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ArrowLeft, Download, Calendar, Users, DollarSign, CreditCard, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import logger from "@/utils/logger";
 
 interface BookingDetailsData {
   id: string;
@@ -71,7 +69,7 @@ const BookingDetailsInner: React.FC = () => {
       }
       setBooking(foundBooking);
     } catch (error) {
-      logger.error('Error fetching booking details:', error);
+      console.error('Error fetching booking details:', error);
       toast({
         title: "Error",
         description: "Failed to load booking details. Please try again.",
@@ -381,13 +379,10 @@ const BookingDetailsInner: React.FC = () => {
   );
 };
 
-const BookingDetails: React.FC = () => {
+export const BookingDetails: React.FC = () => {
   return (
     <AuthGuard>
       <BookingDetailsInner />
     </AuthGuard>
   );
 };
-
-export { BookingDetails };
-export default BookingDetails;

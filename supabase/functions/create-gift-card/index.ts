@@ -2,7 +2,6 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { Resend } from "npm:resend@2.0.0";
-import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,7 +63,7 @@ serve(async (req) => {
       .rpc('generate_gift_card_code');
     
     if (codeError || !codeData) {
-      logger.error("Gift card code generation error:", codeError);
+      console.error("Gift card code generation error:", codeError);
       throw new Error(`Failed to generate gift card code: ${codeError?.message || 'Unknown error'}`);
     }
     const giftCardCode = codeData;
@@ -115,11 +114,11 @@ serve(async (req) => {
       });
 
     if (insertError) {
-      logger.error("Gift card insert error:", insertError);
+      console.error("Gift card insert error:", insertError);
       throw new Error("Failed to create gift card record");
     }
 
-    logger.info("Gift card created successfully:", giftCardCode);
+    console.log("Gift card created successfully:", giftCardCode);
 
     return new Response(JSON.stringify({ 
       success: true,
@@ -131,7 +130,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error("Error in create-gift-card function:", error);
+    console.error("Error in create-gift-card function:", error);
     return new Response(JSON.stringify({ 
       success: false,
       error: error.message 

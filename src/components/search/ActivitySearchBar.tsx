@@ -6,6 +6,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import { ActivityParticipantSelector } from "@/components/search/ActivityParticipantSelector";
+import { generateMockActivitySearch } from "@/lib/autofillService";
 import { toast } from "sonner";
 
 interface ActivitySearchBarProps {
@@ -40,15 +41,13 @@ export const ActivitySearchBar = ({
   const [showFlexibleDates, setShowFlexibleDates] = useState(false);
 
   const handleFillDemoData = () => {
-    // Production app - no demo data
-    setDestination("Sydney, Australia");
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    setCheckIn(tomorrow);
-    setAdults(2);
-    setChildren(0);
-    toast.success("Sample search criteria applied!");
+    const mockData = generateMockActivitySearch();
+    setDestination(mockData.destination);
+    setCheckIn(mockData.checkIn);
+    setCheckOut(mockData.checkOut);
+    setAdults(mockData.adults);
+    setChildren(mockData.children);
+    toast.success("Demo data filled!");
   };
 
   const isValid = destination && checkIn && (adults + children > 0);

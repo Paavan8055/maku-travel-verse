@@ -1,219 +1,484 @@
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'jsr:@supabase/supabase-js@2'
-import logger from "../_shared/logger.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com;",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
+};
 
-interface BookingPaymentPayload {
-  bookingId?: string;
-  bookingType: 'hotel' | 'flight' | 'activity' | 'package';
+interface BookingPaymentParams {
+  bookingType: 'flight' | 'hotel' | 'activity' | 'package';
   bookingData: any;
   amount: number;
-  currency: string;
+  currency?: string;
   customerInfo: {
     email: string;
     firstName: string;
     lastName: string;
     phone?: string;
   };
-  selectedAddOns?: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity?: number;
-  }>;
-  addOnsTotal?: number;
   paymentMethod?: 'card' | 'fund' | 'split';
+  fundAmount?: number;
 }
 
-Deno.serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+async function createBookingItems(supabaseClient: any, bookingId: string, bookingType: string, bookingData: any, totalAmount: number) {
+  const items = [];
+  
+  try {
+    if (bookingType === 'flight') {
+      // Create items for outbound flight
+      if (bookingData.flight?.outbound?.id) {
+        items.push({
+          booking_id: bookingId,
+          item_type: 'flight_segment',
+          item_details: {
+            direction: 'outbound',
+            flight_id: bookingData.flight.outbound.id,
+            fare_type: bookingData.flight.outbound.fareType,
+            trip_type: bookingData.flight.tripType || 'oneway',
+            passenger_count: bookingData.passengers?.length || 1
+          },
+          quantity: bookingData.passengers?.length || 1,
+          unit_price: bookingData.flight.isRoundtrip ? totalAmount * 0.6 : totalAmount,
+          total_price: (bookingData.flight.isRoundtrip ? totalAmount * 0.6 : totalAmount) * (bookingData.passengers?.length || 1)
+        });
+      }
+      
+      // Create items for inbound flight (if exists)
+      if (bookingData.flight?.inbound?.id) {
+        items.push({
+          booking_id: bookingId,
+          item_type: 'flight_segment',
+          item_details: {
+            direction: 'inbound',
+            flight_id: bookingData.flight.inbound.id,
+            fare_type: bookingData.flight.inbound.fareType,
+            trip_type: bookingData.flight.tripType || 'roundtrip',
+            passenger_count: bookingData.passengers?.length || 1
+          },
+          quantity: bookingData.passengers?.length || 1,
+          unit_price: totalAmount * 0.4,
+          total_price: (totalAmount * 0.4) * (bookingData.passengers?.length || 1)
+        });
+      }
+      
+      // Add passenger details
+      if (bookingData.passengers) {
+        bookingData.passengers.forEach((passenger: any, index: number) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'passenger',
+            item_details: {
+              name: `${passenger.firstName} ${passenger.lastName}`,
+              type: passenger.type || 'adult',
+              seat: passenger.selectedSeat,
+              meal: passenger.mealPreference,
+              baggage: passenger.baggage
+            },
+            quantity: 1,
+            unit_price: 0,
+            total_price: 0
+          });
+        });
+      }
+      
+    } else if (bookingType === 'hotel') {
+      // Create items for hotel room nights
+      const checkIn = new Date(bookingData.hotel?.checkIn || bookingData.checkInDate);
+      const checkOut = new Date(bookingData.hotel?.checkOut || bookingData.checkOutDate);
+      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+      const roomPrice = totalAmount / nights;
+      
+      for (let i = 0; i < nights; i++) {
+        const night = new Date(checkIn);
+        night.setDate(night.getDate() + i);
+        
+        items.push({
+          booking_id: bookingId,
+          item_type: 'hotel_night',
+          item_details: {
+            hotel_name: bookingData.hotel?.name || bookingData.hotelName,
+            room_type: bookingData.hotel?.roomType || bookingData.roomType,
+            date: night.toISOString().split('T')[0],
+            night_number: i + 1,
+            total_nights: nights,
+            guests: bookingData.hotel?.guests || bookingData.guestCount || 1,
+            amenities: bookingData.hotel?.amenities || bookingData.amenities || []
+          },
+          quantity: 1,
+          unit_price: roomPrice,
+          total_price: roomPrice
+        });
+      }
+      
+      // Add room extras if any
+      if (bookingData.extras) {
+        bookingData.extras.forEach((extra: any) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'hotel_extra',
+            item_details: {
+              name: extra.name,
+              description: extra.description,
+              type: extra.type
+            },
+            quantity: extra.quantity || 1,
+            unit_price: extra.price || 0,
+            total_price: (extra.price || 0) * (extra.quantity || 1)
+          });
+        });
+      }
+      
+    } else if (bookingType === 'activity') {
+      // Create items for activity participants
+      const participants = bookingData.activity?.participants || bookingData.participants || 1;
+      const basePrice = totalAmount / (typeof participants === 'number' ? participants : participants.length);
+      
+      if (typeof participants === 'number') {
+        // Simple participant count
+        items.push({
+          booking_id: bookingId,
+          item_type: 'activity_participant',
+          item_details: {
+            activity_name: bookingData.activity?.title || bookingData.activityName,
+            participant_count: participants,
+            date: bookingData.activity?.date || bookingData.activityDate,
+            time: bookingData.activity?.time || bookingData.activityTime,
+            duration: bookingData.activity?.duration || bookingData.duration,
+            location: bookingData.activity?.location || bookingData.location
+          },
+          quantity: participants,
+          unit_price: basePrice,
+          total_price: totalAmount
+        });
+      } else if (Array.isArray(participants)) {
+        // Detailed participant array
+        participants.forEach((participant: any, index: number) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'activity_participant',
+            item_details: {
+              activity_name: bookingData.activity?.title || bookingData.activityName,
+              participant_name: `${participant.firstName} ${participant.lastName}`,
+              participant_type: participant.type || 'adult',
+              date: bookingData.activity?.date || bookingData.activityDate,
+              time: bookingData.activity?.time || bookingData.activityTime,
+              duration: bookingData.activity?.duration || bookingData.duration,
+              location: bookingData.activity?.location || bookingData.location,
+              special_requirements: participant.specialRequirements
+            },
+            quantity: 1,
+            unit_price: basePrice,
+            total_price: basePrice
+          });
+        });
+      }
+      
+      // Add activity add-ons
+      if (bookingData.addOns) {
+        bookingData.addOns.forEach((addOn: any) => {
+          items.push({
+            booking_id: bookingId,
+            item_type: 'activity_addon',
+            item_details: {
+              name: addOn.name,
+              description: addOn.description,
+              type: addOn.type
+            },
+            quantity: addOn.quantity || 1,
+            unit_price: addOn.price || 0,
+            total_price: (addOn.price || 0) * (addOn.quantity || 1)
+          });
+        });
+      }
+    }
+    
+    // Insert all booking items
+    if (items.length > 0) {
+      const { error } = await supabaseClient
+        .from('booking_items')
+        .insert(items);
+        
+      if (error) {
+        console.error('Error creating booking items:', error);
+        throw error;
+      }
+      
+      console.log(`Created ${items.length} booking items for booking ${bookingId}`);
+    }
+    
+  } catch (error) {
+    console.error('Error in createBookingItems:', error);
+    throw error;
+  }
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeSecretKey) {
-      throw new Error('Missing STRIPE_SECRET_KEY');
-    }
+    const params: BookingPaymentParams = await req.json();
+    
+    console.log('Creating booking payment:', { 
+      type: params.bookingType, 
+      amount: params.amount,
+      paymentMethod: params.paymentMethod 
+    });
 
-    // Create Supabase client with service role for bypassing RLS
+    // Initialize Supabase client
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
-    // Get user from auth header if available
-    const authHeader = req.headers.get('Authorization');
+    // Get authenticated user if available
+    const authHeader = req.headers.get("Authorization");
     let user = null;
     if (authHeader) {
-      const anonClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-      );
-      const token = authHeader.replace('Bearer ', '');
-      const { data } = await anonClient.auth.getUser(token);
+      const token = authHeader.replace("Bearer ", "");
+      const { data } = await supabaseClient.auth.getUser(token);
       user = data.user;
     }
 
-    const {
-      bookingId,
-      bookingType,
-      bookingData,
-      amount,
-      currency,
-      customerInfo,
-      selectedAddOns = [],
-      addOnsTotal = 0,
-      paymentMethod = 'card'
-    }: BookingPaymentPayload = await req.json();
+    // Generate booking reference
+    const bookingReference = `MK${Date.now().toString().slice(-8)}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
-    if (!bookingType || !bookingData || !amount || !customerInfo?.email) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required parameters' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    // Extract IP address for audit logging
+    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+
+    // Create booking record
+    const { data: booking, error: bookingError } = await supabaseClient
+      .from('bookings')
+      .insert({
+        user_id: user?.id || null,
+        booking_reference: bookingReference,
+        booking_type: params.bookingType,
+        status: 'pending',
+        total_amount: params.amount,
+        currency: params.currency || 'USD',
+        booking_data: {
+          ...params.bookingData,
+          customerInfo: params.customerInfo,
+          paymentMethod: params.paymentMethod,
+          sessionStart: new Date().toISOString(),
+          analytics: {
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            pagesVisited: 1
+          }
         }
-      );
+      })
+      .select()
+      .single();
+
+    if (bookingError) {
+      throw new Error(`Failed to create booking: ${bookingError.message}`);
     }
 
-    logger.info('Creating booking payment:', { bookingType, amount, currency, paymentMethod });
+    console.log('Booking created:', booking.id);
 
-    let finalBookingId = bookingId;
-
-    // If bookingId is missing, create new booking record
-    if (!finalBookingId) {
-      const bookingRecord = {
-        user_id: user?.id || null,
-        booking_reference: `${bookingType.toUpperCase()}${Date.now()}`,
-        status: 'pending',
-        booking_type: bookingType,
-        total_amount: amount,
-        currency: currency.toUpperCase(),
-        booking_data: {
-          ...bookingData,
-          customerInfo,
-          selectedAddOns,
-          addOnsTotal
+    // Generate guest access token for guest bookings
+    let guestAccessToken = null;
+    if (!user && params.customerInfo.email) {
+      try {
+        const { data: tokenData, error: tokenError } = await supabaseClient
+          .rpc('generate_guest_booking_token', {
+            _booking_id: booking.id,
+            _email: params.customerInfo.email
+          });
+        
+        if (!tokenError) {
+          guestAccessToken = tokenData;
+          console.log('Guest access token generated for booking:', booking.id);
         }
-      };
+      } catch (tokenError) {
+        console.error('Failed to generate guest token:', tokenError);
+        // Don't fail the booking if token generation fails
+      }
+    }
 
-      const { data: booking, error: bookingError } = await supabaseClient
-        .from('bookings')
-        .insert(bookingRecord)
-        .select()
+    // Log booking access attempt
+    try {
+      await supabaseClient.rpc('log_booking_access', {
+        _booking_id: booking.id,
+        _access_type: user ? 'authenticated_user' : 'guest_token',
+        _access_method: 'booking_creation',
+        _ip_address: ipAddress,
+        _user_agent: userAgent,
+        _accessed_data: {
+          action: 'create_booking',
+          booking_type: params.bookingType,
+          amount: params.amount
+        },
+        _success: true
+      });
+    } catch (auditError) {
+      console.error('Audit logging failed:', auditError);
+      // Don't fail the booking if audit logging fails
+    }
+
+    // Create detailed booking items
+    await createBookingItems(supabaseClient, booking.id, params.bookingType, params.bookingData, params.amount);
+
+    // Handle payment based on method
+    let checkoutUrl = null;
+    let paymentStatus = 'pending';
+
+    if (params.paymentMethod === 'fund') {
+      // Check if user has sufficient funds
+      if (!user) {
+        throw new Error('User must be logged in to use travel fund');
+      }
+
+      const { data: balance } = await supabaseClient
+        .from('fund_balances')
+        .select('balance')
+        .eq('user_id', user.id)
         .single();
 
-      if (bookingError) {
-        logger.error('Booking creation error:', bookingError);
-        throw new Error('Failed to create booking record');
+      if (!balance || balance.balance < params.amount) {
+        throw new Error('Insufficient funds in travel fund');
       }
 
-      finalBookingId = booking.id;
-      logger.info(`Created new booking ${finalBookingId}`);
-    }
+      // Deduct from fund and mark as paid
+      await supabaseClient
+        .from('fund_transactions')
+        .insert({
+          user_id: user.id,
+          type: 'booking',
+          amount: -params.amount,
+          status: 'completed'
+        });
 
-    const amountCents = Math.round(amount * 100);
+      paymentStatus = 'paid';
+      
+    } else if (params.paymentMethod === 'split') {
+      // Split payment: part fund, part card
+      if (!user || !params.fundAmount) {
+        throw new Error('Invalid split payment configuration');
+      }
 
-    // Generate idempotency key to prevent duplicate payments
-    const idempotencyKey = `booking_${finalBookingId}_${Date.now()}_${user?.id || 'guest'}`;
-
-    // Get origin for redirect URLs
-    const origin = req.headers.get('origin') || 'https://iomeddeasarntjhqzndu.supabase.co';
-
-    // Create Stripe Checkout Session
-    const checkoutSessionData = new URLSearchParams({
-      'line_items[0][price_data][currency]': currency.toLowerCase(),
-      'line_items[0][price_data][product_data][name]': `${bookingType.charAt(0).toUpperCase() + bookingType.slice(1)} Booking`,
-      'line_items[0][price_data][unit_amount]': amountCents.toString(),
-      'line_items[0][quantity]': '1',
-      mode: 'payment',
-      'success_url': `${origin}/booking-success?booking_id=${finalBookingId}&session_id={CHECKOUT_SESSION_ID}`,
-      'cancel_url': `${origin}/booking-failure?booking_id=${finalBookingId}&error=payment_cancelled`,
-      'metadata[booking_id]': finalBookingId,
-      'metadata[booking_type]': bookingType,
-      'metadata[user_id]': user?.id || 'guest',
-      'metadata[payment_method]': paymentMethod
-    });
-
-    if (customerInfo.email) {
-      checkoutSessionData.append('customer_email', customerInfo.email);
-    }
-
-    const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${stripeSecretKey}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Idempotency-Key': idempotencyKey,
-      },
-      body: checkoutSessionData,
-    });
-
-    const checkoutSession = await stripeResponse.json();
-
-    if (!stripeResponse.ok) {
-      logger.error('Stripe error:', checkoutSession);
-      throw new Error('Failed to create checkout session');
-    }
-
-    // Store payment record
-    const { error: paymentError } = await supabaseClient
-      .from('payments')
-      .insert({
-        booking_id: finalBookingId,
-        stripe_session_id: checkoutSession.id,
-        amount: amount,
-        currency: currency.toUpperCase(),
-        status: 'pending'
+      const cardAmount = params.amount - params.fundAmount;
+      
+      // Create Stripe checkout for card portion
+      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+        apiVersion: "2023-10-16",
       });
 
-    if (paymentError) {
-      logger.error('Payment record error:', paymentError);
+      const session = await stripe.checkout.sessions.create({
+        customer_email: params.customerInfo.email,
+        line_items: [
+          {
+            price_data: {
+              currency: params.currency || "usd",
+              product_data: {
+                name: `${params.bookingType.charAt(0).toUpperCase() + params.bookingType.slice(1)} Booking - ${bookingReference}`,
+                description: `Travel booking payment (split: $${params.fundAmount} from fund + $${cardAmount} card)`
+              },
+              unit_amount: Math.round(cardAmount * 100),
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${req.headers.get("origin")}/booking/confirmation?booking_id=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.get("origin")}/booking/cancelled?booking_id=${booking.id}`,
+        metadata: {
+          booking_id: booking.id,
+          booking_reference: bookingReference,
+          fund_amount: params.fundAmount.toString(),
+          payment_method: 'split'
+        }
+      });
+
+      checkoutUrl = session.url;
+
+    } else {
+      // Full card payment
+      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+        apiVersion: "2023-10-16",
+      });
+
+      const session = await stripe.checkout.sessions.create({
+        customer_email: params.customerInfo.email,
+        line_items: [
+          {
+            price_data: {
+              currency: params.currency || "usd",
+              product_data: {
+                name: `${params.bookingType.charAt(0).toUpperCase() + params.bookingType.slice(1)} Booking - ${bookingReference}`,
+                description: `Travel booking payment`
+              },
+              unit_amount: Math.round(params.amount * 100),
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${req.headers.get("origin")}/booking/confirmation?booking_id=${booking.id}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.get("origin")}/booking/cancelled?booking_id=${booking.id}`,
+        metadata: {
+          booking_id: booking.id,
+          booking_reference: bookingReference,
+          payment_method: 'card'
+        }
+      });
+
+      checkoutUrl = session.url;
     }
 
-    logger.info(`✅ Created ${bookingType} booking payment ${finalBookingId} with session ${checkoutSession.id}`);
+    // Update booking status if paid via fund
+    if (paymentStatus === 'paid') {
+      await supabaseClient
+        .from('bookings')
+        .update({ status: 'confirmed' })
+        .eq('id', booking.id);
+    }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        bookingId: finalBookingId,
-        checkoutUrl: checkoutSession.url,
-        sessionId: checkoutSession.id,
-        payment: {
-          method: paymentMethod,
-          status: 'pending'
-        },
-        booking: {
-          id: finalBookingId,
-          reference: `${bookingType.toUpperCase()}${Date.now()}`,
-          status: 'pending',
-          amount: amount,
-          currency: currency.toUpperCase()
-        }
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    return new Response(JSON.stringify({
+      success: true,
+      booking: {
+        id: booking.id,
+        reference: bookingReference,
+        status: paymentStatus === 'paid' ? 'confirmed' : 'pending',
+        amount: params.amount,
+        currency: params.currency || 'USD',
+        guestAccessToken: guestAccessToken // For guest bookings
+      },
+      payment: {
+        method: params.paymentMethod,
+        status: paymentStatus,
+        checkoutUrl: checkoutUrl
+      },
+      security: {
+        isGuestBooking: !user,
+        accessTokenGenerated: !!guestAccessToken,
+        auditLogged: true
       }
-    );
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
 
   } catch (error) {
-    logger.error('Create booking payment error:', error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create booking payment'
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    console.error('Booking payment error:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message 
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });

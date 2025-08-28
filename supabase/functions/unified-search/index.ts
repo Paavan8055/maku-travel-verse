@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +13,7 @@ const corsHeaders = {
 };
 
 interface SearchParams {
-  type: 'flight' | 'hotel' | 'activity' | 'car' | 'transfer';
+  type: 'flight' | 'hotel' | 'activity';
   origin?: string;
   destination: string;
   departureDate?: string;
@@ -24,18 +23,7 @@ interface SearchParams {
   passengers?: number;
   guests?: number;
   rooms?: number;
-  pickUpLocationCode?: string;
-  dropOffLocationCode?: string;
-  pickUpDate?: string;
-  pickUpTime?: string;
-  dropOffDate?: string;
-  dropOffTime?: string;
-  driverAge?: number;
-  fromType?: string;
-  fromCode?: string;
-  toType?: string;
-  toCode?: string;
-  providers?: string[]; // ['amadeus', 'hotelbeds', 'sabre', 'travelport']
+  providers?: string[]; // ['amadeus', 'hotelbeds', 'travelport']
 }
 
 const callEdgeFunction = async (functionName: string, payload: any) => {
@@ -53,7 +41,7 @@ const callEdgeFunction = async (functionName: string, payload: any) => {
   });
 
   if (error) {
-    logger.warn(`${functionName} search failed:`, error);
+    console.warn(`${functionName} search failed:`, error);
     return null;
   }
 
@@ -61,37 +49,29 @@ const callEdgeFunction = async (functionName: string, payload: any) => {
 };
 
 const aggregateResults = (results: any[], type: string) => {
-  const resultKey = {
-    'flight': 'flights',
-    'hotel': 'hotels', 
-    'activity': 'activities',
-    'car': 'cars',
-    'transfer': 'transfers'
-  }[type] || 'items';
-
   const allItems = results
     .filter(result => result && result.success)
-    .flatMap(result => result[resultKey] || []);
+    .flatMap(result => result[type === 'flight' ? 'flights' : 'hotels'] || []);
 
   // Sort by price (lowest first) and add source diversity
   const sortedItems = allItems.sort((a, b) => {
-    const priceA = a.price?.amount || a.pricePerNight || 0;
-    const priceB = b.price?.amount || b.pricePerNight || 0;
+    const priceA = a.price?.amount || 0;
+    const priceB = b.price?.amount || 0;
     return priceA - priceB;
   });
 
   // Ensure we have a good mix of sources
   const diversifiedResults = [];
-  const sourceTracking = { amadeus: 0, hotelbeds: 0, sabre: 0, travelport: 0 };
+  const sourceTracking = { amadeus: 0, hotelbeds: 0, travelport: 0 };
   
   for (const item of sortedItems) {
     const source = item.source || 'unknown';
-    if (sourceTracking[source] < 15) { // Max 15 results per source
+    if (sourceTracking[source] < 10) { // Max 10 results per source
       diversifiedResults.push(item);
       sourceTracking[source]++;
     }
     
-    if (diversifiedResults.length >= 60) break; // Max total results
+    if (diversifiedResults.length >= 50) break; // Max total results
   }
 
   return diversifiedResults;
@@ -104,9 +84,9 @@ serve(async (req) => {
 
   try {
     const params: SearchParams = await req.json();
-    const { type, providers = ['amadeus', 'hotelbeds', 'sabre', 'travelport'] } = params;
+    const { type, providers = ['amadeus', 'hotelbeds', 'travelport'] } = params;
 
-    logger.info('Unified search:', { type, providers, ...params });
+    console.log('Unified search:', { type, providers, ...params });
 
     const searchPromises = [];
 
@@ -139,29 +119,19 @@ serve(async (req) => {
       }
     }
 
-    // Hotel search - Use provider rotation for enhanced search capabilities
+    // Hotel search
     if (type === 'hotel') {
-      logger.info('[UNIFIED-SEARCH] Hotel search using provider-rotation with params:', {
-        destination: params.destination,
-        checkIn: params.checkIn,
-        checkOut: params.checkOut,
-        guests: params.guests || 2,
-        rooms: params.rooms || 1
-      });
-      
-      searchPromises.push(
-        callEdgeFunction('provider-rotation', {
-          searchType: 'hotel',
-          params: {
+      if (providers.includes('hotelbeds')) {
+        searchPromises.push(
+          callEdgeFunction('hotelbeds-search', {
             destination: params.destination,
             checkIn: params.checkIn,
             checkOut: params.checkOut,
             guests: params.guests || 2,
-            rooms: params.rooms || 1,
-            currency: params.currency || 'AUD'
-          }
-        })
-      );
+            rooms: params.rooms || 1
+          })
+        );
+      }
 
       if (providers.includes('travelport')) {
         searchPromises.push(
@@ -172,85 +142,6 @@ serve(async (req) => {
             checkOut: params.checkOut,
             guests: params.guests || 2,
             rooms: params.rooms || 1
-          })
-        );
-      }
-    }
-
-    // Activity search
-    if (type === 'activity') {
-      if (providers.includes('amadeus')) {
-        searchPromises.push(
-          callEdgeFunction('activity-search', {
-            destination: params.destination,
-            date: params.departureDate,
-            participants: params.passengers || 2
-          })
-        );
-      }
-
-      if (providers.includes('hotelbeds')) {
-        searchPromises.push(
-          callEdgeFunction('hotelbeds-activities', {
-            destination: params.destination,
-            from: params.departureDate,
-            to: params.returnDate,
-            language: 'en'
-          })
-        );
-      }
-    }
-
-    // Car search
-    if (type === 'car') {
-      if (providers.includes('amadeus')) {
-        searchPromises.push(
-          callEdgeFunction('amadeus-car-search', {
-            pickUpLocationCode: params.pickUpLocationCode || params.origin,
-            dropOffLocationCode: params.dropOffLocationCode || params.destination,
-            pickUpDate: params.pickUpDate || params.departureDate,
-            pickUpTime: params.pickUpTime || '10:00',
-            dropOffDate: params.dropOffDate || params.returnDate,
-            dropOffTime: params.dropOffTime || '10:00',
-            driverAge: params.driverAge || 25
-          })
-        );
-      }
-
-      if (providers.includes('sabre')) {
-        searchPromises.push(
-          callEdgeFunction('sabre-car-search', {
-            pickUpLocationCode: params.pickUpLocationCode || params.origin,
-            dropOffLocationCode: params.dropOffLocationCode || params.destination,
-            pickUpDate: params.pickUpDate || params.departureDate,
-            pickUpTime: params.pickUpTime || '10:00',
-            dropOffDate: params.dropOffDate || params.returnDate,
-            dropOffTime: params.dropOffTime || '10:00',
-            driverAge: params.driverAge || 25
-          })
-        );
-      }
-    }
-
-    // Transfer search
-    if (type === 'transfer') {
-      if (providers.includes('hotelbeds')) {
-        searchPromises.push(
-          callEdgeFunction('hotelbeds-transfers', {
-            fromType: params.fromType || 'IATA',
-            fromCode: params.fromCode || params.origin,
-            toType: params.toType || 'IATA', 
-            toCode: params.toCode || params.destination,
-            outbound: {
-              date: params.departureDate,
-              time: params.pickUpTime || '10:00'
-            },
-            inbound: params.returnDate ? {
-              date: params.returnDate,
-              time: params.dropOffTime || '10:00'
-            } : undefined,
-            occupancy: [{ adults: params.passengers || 2, children: 0, infants: 0 }],
-            language: 'en'
           })
         );
       }
@@ -267,13 +158,7 @@ serve(async (req) => {
     // Aggregate and sort results
     const aggregatedResults = aggregateResults(successfulResults, type);
 
-    const responseKey = {
-      'flight': 'flights',
-      'hotel': 'hotels',
-      'activity': 'activities', 
-      'car': 'cars',
-      'transfer': 'transfers'
-    }[type] || 'items';
+    const responseKey = type === 'flight' ? 'flights' : 'hotels';
 
     return new Response(JSON.stringify({
       success: true,
@@ -285,7 +170,6 @@ serve(async (req) => {
         total: aggregatedResults.length,
         amadeus: aggregatedResults.filter(r => r.source === 'amadeus').length,
         hotelbeds: aggregatedResults.filter(r => r.source === 'hotelbeds').length,
-        sabre: aggregatedResults.filter(r => r.source === 'sabre').length,
         travelport: aggregatedResults.filter(r => r.source === 'travelport').length
       }
     }), {
@@ -293,7 +177,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error('Unified search error:', error);
+    console.error('Unified search error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,

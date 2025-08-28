@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -119,7 +118,7 @@ serve(async (req) => {
     const searchParams = await req.json();
     const { type } = searchParams;
 
-    logger.info('Travelport search:', { type, ...searchParams });
+    console.log('Travelport search:', { type, ...searchParams });
 
     let results;
     let transformedData = [];
@@ -165,9 +164,9 @@ serve(async (req) => {
             carry_on: true
           },
           amenities: {
-            wifi: null, // WiFi info not available from Travelport
-            meal: null, // Meal info not available from search
-            entertainment: null // Entertainment info not available
+            wifi: Math.random() > 0.5,
+            meal: true,
+            entertainment: Math.random() > 0.3
           }
         };
       }) || [];
@@ -210,7 +209,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error('Travelport search error:', error);
+    console.error('Travelport search error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,

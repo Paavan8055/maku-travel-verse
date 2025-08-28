@@ -11,8 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, X, Calendar, Users, DollarSign, Loader2, Zap, TrendingUp, Activity, BarChart3, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import logger from "@/utils/logger";
-import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 
 import { SmartAnalytics } from '@/components/dashboard/SmartAnalytics';
 import { RealTimeFeeds } from '@/components/dashboard/RealTimeFeeds';
@@ -24,7 +22,6 @@ import { LoyaltyWidget } from '@/components/ota/LoyaltyWidget';
 import { SmartRecommendations } from '@/components/ota/SmartRecommendations';
 import SimpleDreamMap from '@/components/dream-map/SimpleDreamMap';
 import { DetailedBookingCard } from '@/components/dashboard/DetailedBookingCard';
-import { MyTripsSection } from '@/components/dashboard/MyTripsSection';
 
 interface BookingData {
   id: string;
@@ -57,7 +54,7 @@ interface BookingData {
   } | null;
 }
 
-const Dashboard: React.FC = () => {
+export const Dashboard: React.FC = () => {
   console.log('Dashboard: Component mounting');
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +73,7 @@ const Dashboard: React.FC = () => {
       const { data, error } = await supabase.rpc('get_user_bookings');
       
       if (error) {
-        logger.error('Error fetching bookings:', error);
+        console.error('Error fetching bookings:', error);
         toast({
           title: "Error",
           description: "Failed to load your bookings. Please try again.",
@@ -113,7 +110,7 @@ const Dashboard: React.FC = () => {
       }
       
     } catch (err) {
-      logger.error('Fetch bookings exception:', err);
+      console.error('Fetch bookings exception:', err);
       toast({
         title: "Error",
         description: "Failed to load your bookings. Please try again.",
@@ -146,7 +143,7 @@ const Dashboard: React.FC = () => {
         throw new Error(result.message);
       }
     } catch (error) {
-      logger.error('Error cancelling booking:', error);
+      console.error('Error cancelling booking:', error);
       toast({
         title: "Error",
         description: "Failed to cancel booking. Please try again.",
@@ -223,8 +220,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <AuthGuard>
-      <PerformanceWrapper componentName="DashboardPage">
-        <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         <Navbar />
         
         <div className="container mx-auto px-4 py-8">
@@ -309,7 +305,40 @@ const Dashboard: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="bookings" className="space-y-6">
-              <MyTripsSection />
+              {loading ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2">Loading bookings...</span>
+                </div>
+              ) : bookings.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <h3 className="text-lg font-semibold mb-2">No bookings yet</h3>
+                    <p className="text-muted-foreground mb-4">Start planning your next adventure!</p>
+                    <Button onClick={() => navigate('/')}>
+                      Explore Destinations
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                  {bookings.map((booking) => (
+                    <DetailedBookingCard
+                      key={booking.id}
+                      booking={booking}
+                      onViewDetails={(bookingId) => {
+                        navigate(`/booking-details/${bookingId}`);
+                      }}
+                      onDownloadItinerary={(bookingId) => {
+                        toast({
+                          title: "Download Started",
+                          description: "Your itinerary will be downloaded shortly",
+                        });
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-6">
@@ -340,9 +369,6 @@ const Dashboard: React.FC = () => {
           </Tabs>
         </div>
       </div>
-      </PerformanceWrapper>
     </AuthGuard>
   );
 };
-
-export default Dashboard;

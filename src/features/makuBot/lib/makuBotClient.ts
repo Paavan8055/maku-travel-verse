@@ -1,5 +1,4 @@
 // TODO: Replace with your Supabase edge function URL
-import logger from '@/utils/logger';
 const MAKU_BOT_API_URL = '/api/maku-bot'; // This will be a Supabase Edge Function
 
 interface MakuBotContext {
@@ -54,7 +53,7 @@ export const sendToMakuBot = async (
 
     return data.reply || 'Sorry, I couldn\'t process that request.';
   } catch (error) {
-    logger.error('MakuBot API Error:', error);
+    console.error('MakuBot API Error:', error);
     
     // Fallback responses based on context
     const fallbackResponses = {
@@ -92,6 +91,6 @@ export const sendToMakuBotWithRetry = async (
     }
   }
 
-  logger.error(`MakuBot failed after ${maxRetries} attempts:`, lastError);
+  console.error(`MakuBot failed after ${maxRetries} attempts:`, lastError);
   throw lastError;
 };

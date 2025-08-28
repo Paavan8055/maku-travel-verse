@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { loyaltyAPI } from '@/lib/otaDataClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import logger from "@/utils/logger";
 
 interface LoyaltyWidgetProps {
   className?: string;
@@ -82,7 +81,7 @@ export const LoyaltyWidget: React.FC<LoyaltyWidgetProps> = ({
       const data = await loyaltyAPI.fetchPoints(user.id);
       setLoyaltyData(data);
     } catch (error) {
-      logger.error('Error loading loyalty data:', error);
+      console.error('Error loading loyalty data:', error);
     } finally {
       setLoading(false);
     }

@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { fetchPaymentMethods } from "@/lib/bookingDataClient";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { CreditCard, Plus, Trash2, Star } from "lucide-react";
-import logger from "@/utils/logger";
 
 interface PaymentMethod {
   id: string;
@@ -39,7 +38,7 @@ export default function PaymentVault() {
       const methods = await fetchPaymentMethods(user.id);
       setPaymentMethods(methods);
     } catch (error) {
-      logger.error('Error loading payment methods:', error);
+      console.error('Error loading payment methods:', error);
       toast({
         title: "Error",
         description: "Failed to load payment methods.",
