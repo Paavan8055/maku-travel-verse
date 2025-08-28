@@ -1,11 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TestTube, Play, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminTestSuite() {
+  const [isRunning, setIsRunning] = useState(false);
+  const { toast } = useToast();
+  
   const tests = [
     {
       name: 'API Connectivity Tests',
@@ -59,6 +64,64 @@ export default function AdminTestSuite() {
     }
   };
 
+  const runAllTests = async () => {
+    setIsRunning(true);
+    try {
+      toast({
+        title: "Running All Tests",
+        description: "Starting comprehensive test suite...",
+      });
+
+      // Run health check
+      const healthCheck = await supabase.functions.invoke('health-check');
+      
+      // Run provider tests
+      const providerTests = await supabase.functions.invoke('test-provider-rotation');
+      
+      toast({
+        title: "Tests Completed",
+        description: "All tests have finished running. Check results below.",
+      });
+    } catch (error) {
+      toast({
+        title: "Test Failed",
+        description: "An error occurred while running tests.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const runProviderTests = async () => {
+    setIsRunning(true);
+    try {
+      toast({
+        title: "Running Provider Tests",
+        description: "Testing provider integrations...",
+      });
+
+      const result = await supabase.functions.invoke('test-provider-rotation');
+      
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      toast({
+        title: "Provider Tests Completed",
+        description: `Tests completed successfully. ${result.data?.summary?.successful || 0} passed, ${result.data?.summary?.failed || 0} failed.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Provider Tests Failed",
+        description: "An error occurred while testing providers.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -69,13 +132,22 @@ export default function AdminTestSuite() {
       </div>
 
       <div className="flex gap-4">
-        <Button className="gap-2">
+        <Button 
+          className="gap-2" 
+          onClick={runAllTests}
+          disabled={isRunning}
+        >
           <Play className="h-4 w-4" />
-          Run All Tests
+          {isRunning ? 'Running...' : 'Run All Tests'}
         </Button>
-        <Button variant="outline" className="gap-2">
+        <Button 
+          variant="outline" 
+          className="gap-2"
+          onClick={runProviderTests}
+          disabled={isRunning}
+        >
           <TestTube className="h-4 w-4" />
-          Run Provider Tests
+          {isRunning ? 'Testing...' : 'Run Provider Tests'}
         </Button>
       </div>
 
