@@ -67,7 +67,7 @@ const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnos
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
 const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
 
-const HotelSelectionPage = createLazyRoute(() => import("./pages/booking/hotel-selection").then(m => ({ default: m.default })));
+const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -141,39 +141,39 @@ const App = () => (
                                        <Route path="/bookings" element={<BookingsPage />} />
                                        <Route path="/travel-fund" element={<TravelFundPage />} />
                                        <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
-                                       <Route path="/invite-friends" element={<InviteFriendsPage />} />
-                                       <Route path="/admin" element={<AdminAuth />} />
-                                      <Route path="/admin/*" element={
-                                        <AdminGuard>
-                                          <AdminLayout />
-                                        </AdminGuard>
-                                      }>
-                                        {/* Dashboard Routes */}
-                                        <Route index element={<AdminOverviewPage />} />
-                                        <Route path="dashboard" element={<AdminOverviewPage />} />
-                                        <Route path="dashboard/realtime" element={<AdminRealtimePage />} />
-                                        <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
-                                        
-                        {/* Monitoring Routes */}
-                        <Route path="monitoring/health" element={<AdminHealthPage />} />
-                        <Route path="monitoring/providers" element={<AdminProvidersPage />} />
-                        <Route path="monitoring/quotas" element={<AdminQuotasPage />} />
-                        <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
-                                        
-                                         {/* Operations Routes */}
-                                         <Route path="operations/bookings" element={<AdminBookingsPage />} />
-                                         <Route path="operations/users" element={<AdminUsersPage />} />
-                                         <Route path="operations/testing" element={<AdminTestingPage />} />
-                                         <Route path="diagnostics" element={<AdminDiagnosticsPage />} />
-                                        
-                        {/* Security Routes */}
-                        <Route path="security/access" element={<AdminSecurityPage />} />
-                        <Route path="emergency" element={<SecureAdminPanelPage />} />
-                                        
-                                        {/* Legacy Routes for backward compatibility */}
-                                        <Route path="deployment-test" element={<DeploymentTestPage />} />
-                                      </Route>
-                                      <Route path="/booking/hotel-selection" element={<HotelSelectionPage />} />
+                                        <Route path="/invite-friends" element={<InviteFriendsPage />} />
+                                        <Route path="/sitemap.xml" element={<SitemapRoute />} />
+                                        <Route path="/admin" element={<AdminAuth />} />
+                                       <Route path="/admin/*" element={
+                                         <AdminGuard>
+                                           <AdminLayout />
+                                         </AdminGuard>
+                                       }>
+                                         {/* Dashboard Routes */}
+                                         <Route index element={<AdminOverviewPage />} />
+                                         <Route path="dashboard" element={<AdminOverviewPage />} />
+                                         <Route path="dashboard/realtime" element={<AdminRealtimePage />} />
+                                         <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
+                                         
+                         {/* Monitoring Routes */}
+                         <Route path="monitoring/health" element={<AdminHealthPage />} />
+                         <Route path="monitoring/providers" element={<AdminProvidersPage />} />
+                         <Route path="monitoring/quotas" element={<AdminQuotasPage />} />
+                         <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
+                                         
+                                          {/* Operations Routes */}
+                                          <Route path="operations/bookings" element={<AdminBookingsPage />} />
+                                          <Route path="operations/users" element={<AdminUsersPage />} />
+                                          <Route path="operations/testing" element={<AdminTestingPage />} />
+                                          <Route path="diagnostics" element={<AdminDiagnosticsPage />} />
+                                         
+                         {/* Security Routes */}
+                         <Route path="security/access" element={<AdminSecurityPage />} />
+                         <Route path="emergency" element={<SecureAdminPanelPage />} />
+                                         
+                                         {/* Legacy Routes for backward compatibility */}
+                                         <Route path="deployment-test" element={<DeploymentTestPage />} />
+                                       </Route>
                                     </Routes>
                                   </BrowserRouter>
                                 </div>
