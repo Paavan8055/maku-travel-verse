@@ -48,7 +48,7 @@ const GiftCardPreview = ({ amount, theme }: GiftCardPreviewProps) => {
                 <div key={i} className="h-1 w-1 rounded-full bg-white/60" />
               ))}
             </div>
-            <div className="text-xs opacity-75">
+            <div className="text-xs text-black font-medium">
               Never expires
             </div>
           </div>
