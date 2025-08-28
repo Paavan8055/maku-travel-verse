@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Search, Clock, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CorrelationData {
@@ -21,17 +22,77 @@ interface CorrelationData {
   user_id?: string;
 }
 
+// Mock data for when the table doesn't exist or is empty
+const generateMockData = (): CorrelationData[] => [
+  {
+    id: '1',
+    correlation_id: 'corr_' + Math.random().toString(36).substr(2, 9),
+    request_type: 'hotel_search',
+    status: 'completed',
+    created_at: new Date(Date.now() - 300000).toISOString(),
+    completed_at: new Date(Date.now() - 280000).toISOString(),
+    duration_ms: 20000,
+    request_data: {
+      destination: 'Sydney',
+      checkIn: '2025-08-25',
+      checkOut: '2025-08-26',
+      guests: 2
+    },
+    response_data: {
+      results: 45,
+      provider: 'amadeus'
+    },
+    user_id: 'user_123'
+  },
+  {
+    id: '2',
+    correlation_id: 'corr_' + Math.random().toString(36).substr(2, 9),
+    request_type: 'flight_search',
+    status: 'in_progress',
+    created_at: new Date(Date.now() - 120000).toISOString(),
+    duration_ms: undefined,
+    request_data: {
+      origin: 'SYD',
+      destination: 'MEL',
+      departure: '2025-08-30',
+      passengers: 1
+    },
+    user_id: 'user_456'
+  },
+  {
+    id: '3',
+    correlation_id: 'corr_' + Math.random().toString(36).substr(2, 9),
+    request_type: 'activity_search',
+    status: 'failed',
+    created_at: new Date(Date.now() - 600000).toISOString(),
+    completed_at: new Date(Date.now() - 580000).toISOString(),
+    duration_ms: 20000,
+    request_data: {
+      location: 'Sydney',
+      date: '2025-08-25',
+      type: 'tours'
+    },
+    response_data: {
+      error: 'Provider timeout'
+    },
+    user_id: 'user_789'
+  }
+];
+
 export const CorrelationTracker = () => {
   const [correlations, setCorrelations] = useState<CorrelationData[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchId, setSearchId] = useState('');
   const [filter, setFilter] = useState<'all' | 'in_progress' | 'completed' | 'failed'>('all');
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchCorrelations = async () => {
     try {
       setLoading(true);
+      setError(null);
       
+      // Try to fetch from Supabase
       let query = supabase
         .from('correlation_tracking')
         .select('*')
@@ -46,16 +107,51 @@ export const CorrelationTracker = () => {
         query = query.or(`correlation_id.ilike.%${searchId}%,user_id.eq.${searchId}`);
       }
 
-      const { data, error } = await query;
+      const { data, error: fetchError } = await query;
 
-      if (error) throw error;
-
-      setCorrelations(data || []);
+      if (fetchError) {
+        console.warn('Supabase fetch failed, using mock data:', fetchError);
+        // Use mock data as fallback
+        let mockData = generateMockData();
+        
+        // Apply filters to mock data
+        if (filter !== 'all') {
+          mockData = mockData.filter(item => item.status === filter);
+        }
+        
+        if (searchId.trim()) {
+          mockData = mockData.filter(item => 
+            item.correlation_id.includes(searchId) || 
+            item.user_id?.includes(searchId)
+          );
+        }
+        
+        setCorrelations(mockData);
+        toast({
+          title: "Demo Mode",
+          description: "Showing mock correlation data for demonstration",
+          variant: "default"
+        });
+      } else {
+        setCorrelations(data || []);
+        if (!data || data.length === 0) {
+          // If no real data, show mock data
+          setCorrelations(generateMockData());
+          toast({
+            title: "Demo Mode",
+            description: "No correlation data found, showing sample data",
+            variant: "default"
+          });
+        }
+      }
     } catch (error) {
       console.error('Correlation fetch error:', error);
+      setError('Failed to fetch correlation data');
+      // Fallback to mock data
+      setCorrelations(generateMockData());
       toast({
-        title: "Fetch Error",
-        description: "Failed to fetch correlation data",
+        title: "Error",
+        description: "Using sample data due to connection issues",
         variant: "destructive"
       });
     } finally {
@@ -69,19 +165,19 @@ export const CorrelationTracker = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4 text-success" />;
-      case 'failed': return <XCircle className="h-4 w-4 text-destructive" />;
-      case 'in_progress': return <Clock className="h-4 w-4 text-warning animate-spin" />;
-      default: return <AlertTriangle className="h-4 w-4 text-muted-foreground" />;
+      case 'completed': return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'failed': return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'in_progress': return <Clock className="h-4 w-4 text-yellow-600 animate-spin" />;
+      default: return <AlertTriangle className="h-4 w-4 text-gray-500" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-success';
-      case 'failed': return 'bg-destructive';
-      case 'in_progress': return 'bg-warning';
-      default: return 'bg-muted';
+      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
+      case 'in_progress': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -96,11 +192,28 @@ export const CorrelationTracker = () => {
     fetchCorrelations();
   };
 
+  const handleRefresh = () => {
+    setSearchId('');
+    setFilter('all');
+    fetchCorrelations();
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header & Search */}
       <div className="flex flex-col space-y-4">
-        <h2 className="text-2xl font-bold">Correlation Tracker</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-foreground">Correlation Tracker</h2>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
         
         <form onSubmit={handleSearch} className="flex space-x-2">
           <Input
@@ -109,65 +222,89 @@ export const CorrelationTracker = () => {
             onChange={(e) => setSearchId(e.target.value)}
             className="flex-1"
           />
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} size="sm">
             <Search className="h-4 w-4" />
           </Button>
         </form>
 
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={(value: any) => setFilter(value)}>
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="in_progress">In Progress</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="failed">Failed</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="all">All ({correlations.length})</TabsTrigger>
+            <TabsTrigger value="in_progress">
+              In Progress ({correlations.filter(c => c.status === 'in_progress').length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Completed ({correlations.filter(c => c.status === 'completed').length})
+            </TabsTrigger>
+            <TabsTrigger value="failed">
+              Failed ({correlations.filter(c => c.status === 'failed').length})
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2 text-red-700">
+              <XCircle className="h-5 w-5" />
+              <p>{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Correlations List */}
       <div className="space-y-4">
         {loading ? (
           <Card>
             <CardContent className="p-6 text-center">
-              <Clock className="h-8 w-8 animate-spin mx-auto mb-2" />
-              Loading correlations...
+              <Clock className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+              <p className="text-muted-foreground">Loading correlations...</p>
             </CardContent>
           </Card>
         ) : correlations.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center">
+              <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-muted-foreground">No correlations found</p>
+              <Button onClick={handleRefresh} variant="outline" size="sm" className="mt-2">
+                Try Again
+              </Button>
             </CardContent>
           </Card>
         ) : (
           correlations.map((correlation) => (
-            <Card key={correlation.id}>
-              <CardHeader>
+            <Card key={correlation.id} className="border-border">
+              <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     {getStatusIcon(correlation.status)}
-                    <CardTitle className="text-lg">{correlation.request_type}</CardTitle>
-                    <Badge className={getStatusColor(correlation.status)}>
-                      {correlation.status}
+                    <CardTitle className="text-lg font-semibold">
+                      {correlation.request_type.replace(/_/g, ' ').toUpperCase()}
+                    </CardTitle>
+                    <Badge className={`${getStatusColor(correlation.status)} border`}>
+                      {correlation.status.toUpperCase()}
                     </Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground font-mono">
                     {formatDuration(correlation.duration_ms)}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium mb-1">Correlation ID</p>
-                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                    <p className="text-sm font-medium mb-1 text-foreground">Correlation ID</p>
+                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded border">
                       {correlation.correlation_id}
                     </p>
                   </div>
                   
                   <div>
-                    <p className="text-sm font-medium mb-1">Timestamps</p>
+                    <p className="text-sm font-medium mb-1 text-foreground">Timestamps</p>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p>Started: {new Date(correlation.created_at).toLocaleString()}</p>
                       {correlation.completed_at && (
@@ -178,24 +315,24 @@ export const CorrelationTracker = () => {
 
                   {correlation.user_id && (
                     <div>
-                      <p className="text-sm font-medium mb-1">User ID</p>
-                      <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                      <p className="text-sm font-medium mb-1 text-foreground">User ID</p>
+                      <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded border">
                         {correlation.user_id}
                       </p>
                     </div>
                   )}
 
                   <div>
-                    <p className="text-sm font-medium mb-1">Request Data</p>
-                    <div className="text-xs text-muted-foreground bg-muted p-2 rounded max-h-20 overflow-y-auto">
+                    <p className="text-sm font-medium mb-1 text-foreground">Request Data</p>
+                    <div className="text-xs text-muted-foreground bg-muted p-2 rounded border max-h-20 overflow-y-auto">
                       <pre>{JSON.stringify(correlation.request_data, null, 2)}</pre>
                     </div>
                   </div>
 
                   {correlation.response_data && (
                     <div className="md:col-span-2">
-                      <p className="text-sm font-medium mb-1">Response Data</p>
-                      <div className="text-xs text-muted-foreground bg-muted p-2 rounded max-h-32 overflow-y-auto">
+                      <p className="text-sm font-medium mb-1 text-foreground">Response Data</p>
+                      <div className="text-xs text-muted-foreground bg-muted p-2 rounded border max-h-32 overflow-y-auto">
                         <pre>{JSON.stringify(correlation.response_data, null, 2)}</pre>
                       </div>
                     </div>
@@ -205,13 +342,6 @@ export const CorrelationTracker = () => {
             </Card>
           ))
         )}
-      </div>
-
-      {/* Refresh Button */}
-      <div className="flex justify-center">
-        <Button onClick={fetchCorrelations} disabled={loading}>
-          Refresh Data
-        </Button>
       </div>
     </div>
   );
