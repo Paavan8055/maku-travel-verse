@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,7 +19,7 @@ serve(async (req) => {
   try {
     const params: AnonymizationRequest = await req.json();
     
-    logger.info('AI training anonymization request:', {
+    console.log('AI training anonymization request:', {
       bookingId: params.bookingId,
       batchSize: params.batchSize || 100
     });
@@ -43,11 +42,11 @@ serve(async (req) => {
           _booking_id: params.bookingId
         });
         processedCount = 1;
-        logger.info(`Anonymized booking ${params.bookingId} for AI training`);
+        console.log(`Anonymized booking ${params.bookingId} for AI training`);
       } catch (error) {
         errorCount = 1;
         errors.push(`Error processing booking ${params.bookingId}: ${error.message}`);
-        logger.error('Anonymization error:', error);
+        console.error('Anonymization error:', error);
       }
     } else {
       // Process batch of old guest bookings
@@ -64,20 +63,20 @@ serve(async (req) => {
           .limit(batchSize);
         
         processedCount = recentlyAnonymized?.length || 0;
-        logger.info(`Batch anonymization completed: ${processedCount} bookings processed`);
+        console.log(`Batch anonymization completed: ${processedCount} bookings processed`);
       } catch (error) {
         errorCount = 1;
         errors.push(`Batch anonymization error: ${error.message}`);
-        logger.error('Batch anonymization error:', error);
+        console.error('Batch anonymization error:', error);
       }
     }
 
     // Also run cleanup of expired tokens
     try {
       await supabaseClient.rpc('cleanup_expired_guest_tokens');
-      logger.info('Cleaned up expired guest tokens');
+      console.log('Cleaned up expired guest tokens');
     } catch (error) {
-      logger.error('Token cleanup error:', error);
+      console.error('Token cleanup error:', error);
       errors.push(`Token cleanup error: ${error.message}`);
     }
 
@@ -112,7 +111,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error('AI training anonymization error:', error);
+    console.error('AI training anonymization error:', error);
     return new Response(JSON.stringify({ 
       success: false, 
       error: error.message 

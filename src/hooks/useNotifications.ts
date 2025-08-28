@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 
 export interface Notification {
   id: string;
-  type: 'flight_delay' | 'price_drop' | 'check_in' | 'weather_alert' | 'document_expiry' | 'booking_confirmed' | 'payment_success' | 'security_alert';
+  type: 'flight_delay' | 'price_drop' | 'check_in' | 'weather_alert' | 'document_expiry';
   title: string;
   message: string;
   timestamp: string;
@@ -12,191 +12,147 @@ export interface Notification {
   isRead: boolean;
   actionUrl?: string;
   userId?: string;
-  metadata?: Record<string, any>;
 }
 
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Fetch real notifications from Supabase
-  const fetchNotifications = async () => {
-    if (!user) {
-      setNotifications([]);
-      setUnreadCount(0);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('notification-service', {
-        method: 'GET'
-      });
-
-      if (error) {
-        console.error('Error fetching notifications:', error);
-        return;
-      }
-
-      if (data.success) {
-        const formattedNotifications = data.notifications.map((n: any) => ({
-          id: n.id,
-          type: n.type,
-          title: n.title,
-          message: n.message,
-          timestamp: n.created_at,
-          priority: n.priority,
-          isRead: n.is_read,
-          actionUrl: n.action_url,
-          userId: n.user_id,
-          metadata: n.metadata
-        }));
-
-        setNotifications(formattedNotifications);
-        setUnreadCount(data.unreadCount);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Real-time subscription to notifications
+  // Mock real-time notifications for demo
   useEffect(() => {
-    if (!user) return;
+    const mockNotifications: Notification[] = [
+      {
+        id: '1',
+        type: 'flight_delay',
+        title: 'Flight Delay Alert',
+        message: 'Your flight JQ123 to Tokyo is delayed by 2 hours. New departure: 8:30 PM',
+        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 mins ago
+        priority: 'high',
+        isRead: false
+      },
+      {
+        id: '2',
+        type: 'check_in',
+        title: 'Check-in Available',
+        message: 'Check-in is now open for your flight to Tokyo. Complete it now to save time!',
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        priority: 'medium',
+        isRead: false
+      },
+      {
+        id: '3',
+        type: 'price_drop',
+        title: 'Price Drop Alert',
+        message: 'Great news! Hotel prices in Bali dropped by 25%. Book now to save $200!',
+        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+        priority: 'medium',
+        isRead: true
+      },
+      {
+        id: '4',
+        type: 'document_expiry',
+        title: 'Passport Expiry Warning',
+        message: 'Your passport expires in 6 months. Renew it to avoid travel disruptions.',
+        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        priority: 'high',
+        isRead: false
+      }
+    ];
+    
+    setNotifications(mockNotifications);
+    setUnreadCount(mockNotifications.filter(n => !n.isRead).length);
 
-    fetchNotifications();
+    // Simulate real-time notifications
+    const interval = setInterval(() => {
+      // Randomly add new notifications (10% chance every 30 seconds)
+      if (Math.random() < 0.1) {
+        const newNotification: Notification = {
+          id: Date.now().toString(),
+          type: 'price_drop',
+          title: 'New Price Alert',
+          message: 'Price dropped for your watched destination!',
+          timestamp: new Date().toISOString(),
+          priority: 'medium',
+          isRead: false
+        };
+        
+        setNotifications(prev => [newNotification, ...prev]);
+        setUnreadCount(prev => prev + 1);
 
-    // Subscribe to real-time changes
-    const channel = supabase
-      .channel('notifications_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        () => {
-          fetchNotifications(); // Refetch when changes occur
+        // Browser push notification for high priority
+        if (newNotification.priority === 'high' && 'Notification' in window) {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification(newNotification.title, {
+                body: newNotification.message,
+                icon: '/favicon.ico'
+              });
+            }
+          });
         }
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const markAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(notif => 
+        notif.id === id ? { ...notif, isRead: true } : notif
       )
-      .subscribe();
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
 
-    return () => {
-      supabase.removeChannel(channel);
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notif => ({ ...notif, isRead: true }))
+    );
+    setUnreadCount(0);
+  };
+
+  const deleteNotification = (id: string) => {
+    const notif = notifications.find(n => n.id === id);
+    setNotifications(prev => prev.filter(notif => notif.id !== id));
+    if (notif && !notif.isRead) {
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
+  };
+
+  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'userId'>) => {
+    const newNotification: Notification = {
+      ...notification,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      userId: user?.id
     };
-  }, [user]);
-
-  const markAsRead = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (!error) {
-        setNotifications(prev => 
-          prev.map(notif => 
-            notif.id === id ? { ...notif, isRead: true } : notif
-          )
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
+    
+    setNotifications(prev => [newNotification, ...prev]);
+    if (!newNotification.isRead) {
+      setUnreadCount(prev => prev + 1);
     }
-  };
 
-  const markAllAsRead = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true, updated_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      if (!error) {
-        setNotifications(prev => 
-          prev.map(notif => ({ ...notif, isRead: true }))
-        );
-        setUnreadCount(0);
-      }
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const deleteNotification = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
-
-      if (!error) {
-        const notif = notifications.find(n => n.id === id);
-        setNotifications(prev => prev.filter(notif => notif.id !== id));
-        if (notif && !notif.isRead) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
-
-  const addNotification = async (notification: Omit<Notification, 'id' | 'timestamp' | 'userId'>) => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase.functions.invoke('notification-service', {
-        body: {
-          user_id: user.id,
-          type: notification.type,
-          title: notification.title,
-          message: notification.message,
-          priority: notification.priority || 'medium',
-          action_url: notification.actionUrl,
-          metadata: notification.metadata || {}
+    // Browser push notification for high priority
+    if (newNotification.priority === 'high' && 'Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification(newNotification.title, {
+            body: newNotification.message,
+            icon: '/favicon.ico'
+          });
         }
       });
-
-      if (error) {
-        console.error('Error creating notification:', error);
-        return;
-      }
-
-      // Browser push notification for high priority
-      if (notification.priority === 'high' && 'Notification' in window) {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification(notification.title, {
-              body: notification.message,
-              icon: '/favicon.ico'
-            });
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error adding notification:', error);
     }
   };
 
   return {
     notifications,
     unreadCount,
-    loading,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    addNotification,
-    refetch: fetchNotifications
+    addNotification
   };
 };

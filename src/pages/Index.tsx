@@ -7,29 +7,26 @@ import FeaturedListings from "@/components/FeaturedListings";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/features/makuBot/components/ChatWidget";
 import AgenticWidget from "@/features/agenticBot/components/AgenticWidget";
-import { PerformanceWrapper } from "@/components/PerformanceWrapper";
-import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
-import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-
+import { SocialProofIndicators } from "@/components/ota/SocialProofIndicators";
+import { PriceIntelligence } from "@/components/ota/PriceIntelligence";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Zap, Activity, TrendingUp } from "lucide-react";
 const Index = () => {
-  return (
-    <ErrorBoundary>
-      <PerformanceWrapper componentName="HomePage">
-        <div className="min-h-screen bg-background">
-          <SessionRecoveryBanner />
-          <Navbar />
-          <HeroSection />
-          <MarketplacePills />
-          <SearchSection />
-          <MarketplaceSection />
-          <FeaturedListings />
+  return <div className="min-h-screen bg-background">
+      <Navbar />
+      <HeroSection />
+      <MarketplacePills />
       
-          <Footer />
-          <ChatWidget userVertical="Solo" />
-          <AgenticWidget />
-        </div>
-      </PerformanceWrapper>
-    </ErrorBoundary>
-  );
+      {/* Travel Tech Intelligence Section */}
+      
+      
+      <SearchSection />
+      <MarketplaceSection />
+      <FeaturedListings />
+      <Footer />
+      <ChatWidget userVertical="Solo" />
+      <AgenticWidget />
+    </div>;
 };
 export default Index;

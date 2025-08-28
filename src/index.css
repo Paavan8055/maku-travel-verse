@@ -5,25 +5,6 @@
 /* Maku.travel Design System - Vibrant Travel Theme */
 
 @layer base {
-  /* CSS Reset for full-page layout */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  html {
-    width: 100vw;
-    height: 100vh;
-    overflow-x: hidden;
-  }
-  
-  body {
-    width: 100vw;
-    height: 100vh;
-    overflow-x: hidden;
-  }
-  
   :root {
     --background: 0 0% 100%;
     --foreground: 230 15% 15%;
@@ -53,7 +34,7 @@
 
     --border: 220 15% 90%;
     --input: 220 15% 96%;
-    --ring: 330 85% 58%;
+    --ring: var(--primary);
 
     --radius: 12px;
 
@@ -126,7 +107,7 @@
 
     --border: 230 15% 20%;
     --input: 230 15% 15%;
-    --ring: 330 85% 65%;
+    --ring: var(--primary);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -183,95 +164,6 @@
   .PhoneInputCountryIconImg,
   .PhoneInputInternationalIconPhone,
   .PhoneInputInternationalIconGlobe {
-    display: none !important;
-  }
-
-  /* Hide scrollbars */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Accessibility styles */
-  .high-contrast {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --primary: 240 100% 30%;
-    --border: 0 0% 50%;
-    --ring: 240 100% 30%;
-  }
-
-  .high-contrast.dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-  }
-
-  .reduced-motion * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  .large-text {
-    font-size: 1.25em !important;
-    line-height: 1.6 !important;
-  }
-
-  .screen-reader-active .sr-only {
-    @apply not-sr-only;
-  }
-
-  .keyboard-navigation *:focus {
-    @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
-  }
-
-  /* Mobile optimization */
-  @media (max-width: 768px) {
-    .touch-optimized {
-      @apply min-h-[48px] min-w-[48px];
-    }
-    
-    .mobile-sticky-bottom {
-      @apply fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border p-4;
-    }
-  }
-
-  /* Performance optimizations */
-  .will-change-transform {
-    will-change: transform;
-  }
-  
-  .will-change-opacity {
-    will-change: opacity;
-  }
-  
-  .contain-layout {
-    contain: layout;
-  }
-  
-  .contain-paint {
-    contain: paint;
-  }
-}
-
-/* Smooth scrolling */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-/* Print styles */
-@media print {
-  .no-print {
     display: none !important;
   }
 }

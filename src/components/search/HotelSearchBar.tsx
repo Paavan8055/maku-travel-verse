@@ -42,7 +42,6 @@ const HotelSearchBar: React.FC<HotelSearchBarProps> = ({ className }) => {
   // Rooms & Guests (default 1 room, 2 adults)
   const initialGuests = Math.max(1, parseInt(params.get("guests") || "2"));
   const [rooms, setRooms] = useState([{ adults: Math.min(initialGuests, 8), children: [] as number[] }]);
-  const hotelName = params.get("hotelName") || "";
 
   useEffect(() => {
     // If guests > 8, just keep a single room and cap adults; simple MVP
@@ -66,7 +65,6 @@ const HotelSearchBar: React.FC<HotelSearchBarProps> = ({ className }) => {
     if (dateRange?.to) qs.set("checkOut", toYMD(dateRange.to));
     qs.set("guests", String(totalGuests));
     qs.set("rooms", String(rooms.length));
-    qs.set("searched", "true"); // Add flag to indicate user searched
 
     navigate(`/search/hotels?${qs.toString()}`);
   };
@@ -81,12 +79,8 @@ const HotelSearchBar: React.FC<HotelSearchBarProps> = ({ className }) => {
               value={destination}
               onChange={setDestination}
               onDestinationSelect={(d) => setDestination(d.name)}
-              placeholder={hotelName ? `${hotelName} in ${destination}` : "Search hotels or destinations"}
-              searchType="hotel"
+              placeholder="Search places or properties"
             />
-            {hotelName && (
-              <p className="text-sm text-muted-foreground mt-1">Searching for: {hotelName}</p>
-            )}
           </div>
 
           {/* Dates */}

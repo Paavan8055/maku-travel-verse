@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,7 +28,7 @@ serve(async (req) => {
   try {
     const body: BookingPaymentParams = await req.json();
     const { bookingType, bookingData, amount, currency, customerInfo } = (body as any) ?? {};
-    logger.info('create-card-payment-intent init', {
+    console.log('create-card-payment-intent init', {
       bookingType,
       amount,
       currency,
@@ -63,7 +62,7 @@ serve(async (req) => {
     if (!customerInfo?.email) errors.customerEmail = 'customerInfo.email is required';
 
     if (Object.keys(errors).length > 0) {
-      logger.error('Validation failed for create-card-payment-intent', { errors, body });
+      console.error('Validation failed for create-card-payment-intent', { errors, body });
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid request parameters', details: errors }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 422 }
@@ -140,7 +139,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {
-    logger.error('create-card-payment-intent error:', error);
+    console.error('create-card-payment-intent error:', error);
     return new Response(
       JSON.stringify({ success: false, error: (error as Error).message || 'Unknown error' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

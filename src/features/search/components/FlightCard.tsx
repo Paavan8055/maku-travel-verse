@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FareSelectionDialog } from "./FareSelectionDialog";
-import { useCurrency } from "@/features/currency/CurrencyProvider";
-
 interface Flight {
   id: string;
   airline: string;
@@ -51,7 +49,6 @@ export const FlightCard = ({
   isMultiCitySelected = false
 }: FlightCardProps) => {
   const [fareOpen, setFareOpen] = useState(false);
-  const { convert, formatCurrency } = useCurrency();
 
   const handleSelectFlight = () => {
     if (tripType === "multicity" && onMultiCitySelect) {
@@ -106,10 +103,6 @@ export const FlightCard = ({
     }
     return "Select flight";
   };
-
-  // Convert and format the price properly
-  const displayPrice = convert(getCombinedPrice(), flight.currency);
-  const formattedPrice = formatCurrency(displayPrice);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -188,7 +181,7 @@ export const FlightCard = ({
             <div>
               <p className="text-xs text-muted-foreground">{getPriceLabel()}</p>
               <p className="text-2xl font-bold text-foreground">
-                {formattedPrice}
+                {flight.currency}{getCombinedPrice()}
               </p>
               <p className="text-sm text-muted-foreground">per person</p>
             </div>

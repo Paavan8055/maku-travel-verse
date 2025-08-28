@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import logger from "@/utils/logger";
 
 // Fix Leaflet default markers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -112,7 +111,7 @@ const InteractiveWorldMap: React.FC = () => {
     user = authResult.user;
     console.log('InteractiveWorldMap: useAuth result:', { user: !!user });
   } catch (error) {
-    logger.error('InteractiveWorldMap: useAuth error:', error);
+    console.error('InteractiveWorldMap: useAuth error:', error);
     setMapError('Authentication error');
   }
 
@@ -132,7 +131,7 @@ const InteractiveWorldMap: React.FC = () => {
       if (error) throw error;
       setDestinations(data || []);
     } catch (error) {
-      logger.error('Error fetching destinations:', error);
+      console.error('Error fetching destinations:', error);
       toast({
         title: "Error",
         description: "Failed to load destinations",
@@ -153,7 +152,7 @@ const InteractiveWorldMap: React.FC = () => {
       if (error) throw error;
       setBookmarks(data || []);
     } catch (error) {
-      logger.error('Error fetching bookmarks:', error);
+      console.error('Error fetching bookmarks:', error);
     }
   };
 
@@ -193,7 +192,7 @@ const InteractiveWorldMap: React.FC = () => {
         description: "Destination added to your dream board!",
       });
     } catch (error) {
-      logger.error('Error adding bookmark:', error);
+      console.error('Error adding bookmark:', error);
       toast({
         title: "Error",
         description: "Failed to add destination to dream board",
@@ -217,7 +216,7 @@ const InteractiveWorldMap: React.FC = () => {
         description: "Destination removed from your dream board",
       });
     } catch (error) {
-      logger.error('Error removing bookmark:', error);
+      console.error('Error removing bookmark:', error);
       toast({
         title: "Error",
         description: "Failed to remove destination",

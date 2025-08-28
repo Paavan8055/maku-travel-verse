@@ -11,7 +11,6 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import logger from "@/utils/logger";
 
 const PartnerAuth = () => {
   const { signUp } = useAuth();
@@ -109,7 +108,7 @@ const PartnerAuth = () => {
           });
 
         if (profileError) {
-          logger.error('Profile creation error:', profileError);
+          console.error('Profile creation error:', profileError);
         }
 
         // Initiate payment flow

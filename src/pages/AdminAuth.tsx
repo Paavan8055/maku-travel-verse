@@ -4,7 +4,6 @@ import { AdminLoginForm } from '@/features/auth/components/AdminLoginForm';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import logger from "@/utils/logger";
 
 const AdminAuth = () => {
   const { user, loading } = useAuth();
@@ -13,7 +12,7 @@ const AdminAuth = () => {
   const location = useLocation();
 
   // Get the intended destination after login
-  const from = location.state?.from?.pathname || '/admin/dashboard';
+  const from = location.state?.from?.pathname || '/admin-dashboard';
 
   // Check if current user is admin
   useEffect(() => {
@@ -21,7 +20,7 @@ const AdminAuth = () => {
       if (user) {
         const { data: isAdmin, error } = await supabase.rpc('get_admin_status');
         if (error) {
-          logger.error('Admin status check failed:', error);
+          console.error('Admin status check failed:', error);
           setIsAdmin(false);
         } else {
           setIsAdmin(!!isAdmin);

@@ -97,12 +97,18 @@ export default function ActivityGuestForm({ onChange, initial, participantCount 
   const handleUpper = (value: string) => value.toUpperCase();
 
   const handleDemoFill = () => {
-    // Production app - remove demo data functionality
+    setIsAutofilling(true);
+    const mockData = autofillService.generateMockActivityParticipants(fields.length);
+    
+    // Reset form with mock data
+    form.reset(mockData);
+    
     toast({
-      title: "Demo data not available",
-      description: "Please enter participant information manually",
-      variant: "destructive"
+      title: "Demo data filled",
+      description: "Form has been filled with sample participant information",
     });
+    
+    setTimeout(() => setIsAutofilling(false), 500);
   };
 
   const handleUserDataFill = async () => {
@@ -143,16 +149,17 @@ export default function ActivityGuestForm({ onChange, initial, participantCount 
             emergencyContact: userParticipant.phone
           };
         } else {
-          // Additional participants - use empty template
+          // Generate variations for additional participants
+          const mockData = autofillService.generateMockPersonalData();
           return {
-            title: "",
-            firstName: "",
-            lastName: "",
-            dateOfBirth: "",
-            email: "",
-            phone: "",
+            title: mockData.title === 'MR' ? 'Mr' : 'Mrs',
+            firstName: mockData.firstName,
+            lastName: mockData.lastName,
+            dateOfBirth: mockData.dateOfBirth,
+            email: mockData.email,
+            phone: mockData.phone,
             dietaryRestrictions: "",
-            emergencyContact: ""
+            emergencyContact: mockData.phone
           };
         }
       });

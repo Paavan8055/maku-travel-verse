@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Shield, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import logger from "@/utils/logger";
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -52,7 +51,7 @@ const PaymentForm = () => {
       }
 
       if (result.error) {
-        logger.error('Payment error:', result.error);
+        console.error('Payment error:', result.error);
         toast({
           title: "Payment Error",
           description: result.error.message,
@@ -66,7 +65,7 @@ const PaymentForm = () => {
         });
       }
     } catch (error) {
-      logger.error('Payment submission error:', error);
+      console.error('Payment submission error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -165,7 +164,7 @@ const PaymentSetup = () => {
         const { data, error } = await supabase.functions.invoke('get-stripe-publishable-key');
         
         if (error) {
-          logger.error('Error fetching Stripe key:', error);
+          console.error('Error fetching Stripe key:', error);
           toast({
             title: "Configuration Error",
             description: "Unable to load payment configuration. Please try again.",
@@ -186,7 +185,7 @@ const PaymentSetup = () => {
           });
         }
       } catch (error) {
-        logger.error('Error loading Stripe:', error);
+        console.error('Error loading Stripe:', error);
         toast({
           title: "Error",
           description: "Failed to initialize payment system.",

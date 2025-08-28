@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { Resend } from "npm:resend@2.0.0";
-import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -187,7 +186,7 @@ serve(async (req) => {
       throw new Error(`Failed to send email: ${emailResponse.error.message}`);
     }
 
-    logger.info("Gift card email sent successfully:", giftCardCode);
+    console.log("Gift card email sent successfully:", giftCardCode);
 
     return new Response(JSON.stringify({ 
       success: true,
@@ -198,7 +197,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    logger.error("Error in send-gift-card-email function:", error);
+    console.error("Error in send-gift-card-email function:", error);
     return new Response(JSON.stringify({ 
       success: false,
       error: error.message 

@@ -1,5 +1,4 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
 import { Pill, PawPrint, Users, HeartHandshake, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +12,6 @@ const items = [
 ];
 
 const MarketplacePills: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   return (
     <div className="w-full bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
