@@ -130,6 +130,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_mfa_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          mfa_verified: boolean | null
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          mfa_verified?: boolean | null
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          mfa_verified?: boolean | null
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -3545,6 +3572,39 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_health_logs: {
+        Row: {
+          endpoint: string
+          error_message: string | null
+          id: string
+          provider_id: string
+          response_time_ms: number | null
+          status_code: number | null
+          test_type: string | null
+          tested_at: string | null
+        }
+        Insert: {
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          provider_id: string
+          response_time_ms?: number | null
+          status_code?: number | null
+          test_type?: string | null
+          tested_at?: string | null
+        }
+        Update: {
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          provider_id?: string
+          response_time_ms?: number | null
+          status_code?: number | null
+          test_type?: string | null
+          tested_at?: string | null
+        }
+        Relationships: []
+      }
       provider_metrics: {
         Row: {
           created_at: string
@@ -4775,6 +4835,10 @@ export type Database = {
       }
       is_emergency_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_mfa_verified_admin: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       is_secure_admin: {
