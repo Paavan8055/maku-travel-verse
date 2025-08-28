@@ -109,6 +109,7 @@ export const UnifiedTestSuite: React.FC = () => {
   ]);
 
   const [batchRuns, setBatchRuns] = useState<BatchTestRun[]>([]);
+  const [individualResults, setIndividualResults] = useState<Record<string, TestResult>>({});
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>([]);
   const [selectedProviders, setSelectedProviders] = useState<string[]>(['amadeus', 'sabre', 'hotelbeds']);
   const [isRunning, setIsRunning] = useState(false);
@@ -241,8 +242,24 @@ export const UnifiedTestSuite: React.FC = () => {
                           size="sm" 
                           variant="outline" 
                           className="flex-1"
+                          disabled={individualResults[scenario.id]?.status === 'running'}
                           onClick={async () => {
                             console.log('Running individual test:', scenario.name);
+                            
+                            // Set running state
+                            setIndividualResults(prev => ({
+                              ...prev,
+                              [scenario.id]: {
+                                id: `individual-${scenario.id}-${Date.now()}`,
+                                scenarioId: scenario.id,
+                                provider: 'multi',
+                                status: 'running',
+                                duration: 0,
+                                startTime: new Date(),
+                                logs: ['Starting test...']
+                              }
+                            }));
+
                             try {
                               const { data, error } = await supabase.functions.invoke('deployment-validator', {
                                 body: {
@@ -252,19 +269,109 @@ export const UnifiedTestSuite: React.FC = () => {
                                 },
                                 headers: correlationId.getHeaders()
                               });
+                              
+                              const endTime = new Date();
+                              const result = {
+                                id: `individual-${scenario.id}-${Date.now()}`,
+                                scenarioId: scenario.id,
+                                provider: 'multi',
+                                status: error ? 'failed' : 'passed',
+                                duration: endTime.getTime() - (individualResults[scenario.id]?.startTime?.getTime() || Date.now()),
+                                startTime: individualResults[scenario.id]?.startTime || new Date(),
+                                endTime,
+                                logs: [
+                                  'Starting test...',
+                                  ...(data?.logs || []),
+                                  error ? `Error: ${error.message}` : 'Test completed successfully'
+                                ],
+                                error: error?.message,
+                                responseData: data
+                              } as TestResult;
+
+                              setIndividualResults(prev => ({
+                                ...prev,
+                                [scenario.id]: result
+                              }));
+                              
                               console.log('Test result:', data || error);
-                            } catch (err) {
+                            } catch (err: any) {
+                              const endTime = new Date();
+                              setIndividualResults(prev => ({
+                                ...prev,
+                                [scenario.id]: {
+                                  ...prev[scenario.id],
+                                  status: 'failed',
+                                  endTime,
+                                  duration: endTime.getTime() - (prev[scenario.id]?.startTime?.getTime() || Date.now()),
+                                  error: err.message || 'Test execution failed',
+                                  logs: [...(prev[scenario.id]?.logs || []), `Error: ${err.message || 'Test execution failed'}`]
+                                }
+                              }));
                               console.error('Test failed:', err);
                             }
                           }}
                         >
-                          <Play className="h-3 w-3 mr-1" />
-                          Run
+                          {individualResults[scenario.id]?.status === 'running' ? (
+                            <>
+                              <Clock className="h-3 w-3 mr-1 animate-spin" />
+                              Running...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-3 w-3 mr-1" />
+                              Run
+                            </>
+                          )}
                         </Button>
                         <Button size="sm" variant="outline">
                           <Settings className="h-3 w-3" />
                         </Button>
                       </div>
+
+                      {/* Individual Test Results */}
+                      {individualResults[scenario.id] && (
+                        <div className="mt-4 p-3 bg-muted/50 rounded-md border">
+                          <div className="flex items-center gap-2 mb-2">
+                            {getStatusIcon(individualResults[scenario.id].status)}
+                            <span className="text-sm font-medium">
+                              {individualResults[scenario.id].status === 'running' ? 'Running...' : 
+                               individualResults[scenario.id].status === 'passed' ? 'Test Passed' :
+                               'Test Failed'}
+                            </span>
+                            {individualResults[scenario.id].endTime && (
+                              <span className="text-xs text-muted-foreground">
+                                ({individualResults[scenario.id].duration}ms)
+                              </span>
+                            )}
+                          </div>
+                          
+                          {individualResults[scenario.id].error && (
+                            <div className="text-xs text-red-600 mb-2">
+                              Error: {individualResults[scenario.id].error}
+                            </div>
+                          )}
+                          
+                          <div className="text-xs text-muted-foreground">
+                            <div>Started: {individualResults[scenario.id].startTime.toLocaleTimeString()}</div>
+                            {individualResults[scenario.id].endTime && (
+                              <div>Completed: {individualResults[scenario.id].endTime?.toLocaleTimeString()}</div>
+                            )}
+                          </div>
+                          
+                          {individualResults[scenario.id].logs.length > 0 && (
+                            <details className="mt-2">
+                              <summary className="text-xs cursor-pointer text-muted-foreground hover:text-foreground">
+                                View Logs ({individualResults[scenario.id].logs.length})
+                              </summary>
+                              <div className="mt-1 text-xs bg-black/5 p-2 rounded max-h-32 overflow-y-auto">
+                                {individualResults[scenario.id].logs.map((log, index) => (
+                                  <div key={index} className="font-mono">{log}</div>
+                                ))}
+                              </div>
+                            </details>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
