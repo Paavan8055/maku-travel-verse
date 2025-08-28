@@ -86,8 +86,8 @@ async function getAmadeusFlightDeals(): Promise<DynamicOffer[]> {
 async function getHotelbedsDeals(): Promise<DynamicOffer[]> {
   try {
     // Get HotelBeds API credentials
-    const hotelbedsKey = Deno.env.get('HOTELBEDS_API_KEY');
-    const hotelbedsSecret = Deno.env.get('HOTELBEDS_SECRET');
+    const hotelbedsKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
+    const hotelbedsSecret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
     
     if (!hotelbedsKey || !hotelbedsSecret) {
       throw new Error('HotelBeds credentials not configured');

@@ -17,8 +17,15 @@ serve(async (req) => {
     // Test if secrets are available
     const amadeusClientId = Deno.env.get('AMADEUS_CLIENT_ID');
     const amadeusSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
-    const hotelbedsKey = Deno.env.get('HOTELBEDS_API_KEY');
-    const hotelbedsSecret = Deno.env.get('HOTELBEDS_SECRET');
+    const hotelbedsHotelKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
+    const hotelbedsHotelSecret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
+    const hotelbedsActivityKey = Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY');
+    const hotelbedsActivitySecret = Deno.env.get('HOTELBEDS_ACTIVITY_SECRET');
+    const sabreClientId = Deno.env.get('SABRE_CLIENT_ID');
+    const sabreClientSecret = Deno.env.get('SABRE_CLIENT_SECRET');
+    const sabreTestPcc = Deno.env.get('SABRE_TEST_PCC');
+    const sabreProdPcc = Deno.env.get('SABRE_PROD_PCC');
+    const sabreEprId = Deno.env.get('SABRE_EPR_ID');
     
     return new Response(JSON.stringify({
       success: true,
@@ -27,8 +34,15 @@ serve(async (req) => {
       secrets_check: {
         amadeus_client_id: amadeusClientId ? 'Present' : 'Missing',
         amadeus_secret: amadeusSecret ? 'Present' : 'Missing', 
-        hotelbeds_key: hotelbedsKey ? 'Present' : 'Missing',
-        hotelbeds_secret: hotelbedsSecret ? 'Present' : 'Missing'
+        hotelbeds_hotel_key: hotelbedsHotelKey ? 'Present' : 'Missing',
+        hotelbeds_hotel_secret: hotelbedsHotelSecret ? 'Present' : 'Missing',
+        hotelbeds_activity_key: hotelbedsActivityKey ? 'Present' : 'Missing',
+        hotelbeds_activity_secret: hotelbedsActivitySecret ? 'Present' : 'Missing',
+        sabre_client_id: sabreClientId ? 'Present' : 'Missing',
+        sabre_client_secret: sabreClientSecret ? 'Present' : 'Missing',
+        sabre_test_pcc: sabreTestPcc ? 'Present' : 'Missing',
+        sabre_prod_pcc: sabreProdPcc ? 'Present' : 'Missing',
+        sabre_epr_id: sabreEprId ? 'Present' : 'Missing'
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

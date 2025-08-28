@@ -31,8 +31,8 @@ const generateHotelBedsSignature = async (apiKey: string, secret: string, timest
 };
 
 async function hbFetch(path: string) {
-  const apiKey = Deno.env.get("HOTELBEDS_API_KEY");
-  const secret = Deno.env.get("HOTELBEDS_SECRET");
+  const apiKey = Deno.env.get("HOTELBEDS_HOTEL_API_KEY");
+  const secret = Deno.env.get("HOTELBEDS_HOTEL_SECRET");
   if (!apiKey || !secret) {
     throw new Error("HotelBeds credentials not configured");
   }

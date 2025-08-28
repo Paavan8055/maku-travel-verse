@@ -137,8 +137,8 @@ async function testAmadeusFlights(testData: any) {
 
 async function testHotelBedsHotels(testData: any) {
   try {
-    const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
-    const secret = Deno.env.get('HOTELBEDS_SECRET');
+    const apiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
+    const secret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
     
     if (!apiKey || !secret) {
       throw new Error('HotelBeds credentials not configured');
@@ -193,7 +193,7 @@ async function testHotelBedsHotels(testData: any) {
 
 async function testHotelBedsActivities(testData: any) {
   try {
-    const apiKey = Deno.env.get('HOTELBEDS_ACTIVITY_KEY');
+    const apiKey = Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY');
     const secret = Deno.env.get('HOTELBEDS_ACTIVITY_SECRET');
     
     if (!apiKey || !secret) {

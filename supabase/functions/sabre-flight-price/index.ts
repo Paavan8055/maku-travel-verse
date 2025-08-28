@@ -30,7 +30,7 @@ serve(async (req) => {
       OTA_AirPriceRQ: {
         POS: {
           Source: [{
-            PseudoCityCode: process.env.SABRE_PCC || "F9FE",
+            PseudoCityCode: Deno.env.get('SABRE_TEST_PCC') || Deno.env.get('SABRE_PROD_PCC') || "F9FE",
             RequestorID: {
               Type: "1",
               ID: "1",
