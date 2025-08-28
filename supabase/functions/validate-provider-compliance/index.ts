@@ -97,10 +97,7 @@ async function testSabreCompliance(): Promise<ComplianceTestResult[]> {
   const results: ComplianceTestResult[] = [];
   
   // Test Sabre PCC configuration
-  const isProduction = ENV_CONFIG.isProduction;
-  const pcc = isProduction 
-    ? Deno.env.get('SABRE_PROD_PCC') 
-    : Deno.env.get('SABRE_TEST_PCC');
+  const pcc = Deno.env.get('SABRE_PCC');
   results.push({
     provider: 'sabre',
     service: 'configuration',

@@ -13,9 +13,6 @@ interface EnvironmentConfig {
   isProduction: boolean;
   environment: string;
   hotelbeds: {
-    baseUrl: string;
-    cacheApiUrl: string;
-    mtlsUrl: string;
     hotel: { baseUrl: string };
     activity: { baseUrl: string };
   };
@@ -357,9 +354,6 @@ const EnvironmentPage = () => {
           <div>
             <h4 className="font-medium mb-2">HotelBeds</h4>
             <div className="text-sm space-y-1">
-              <div>Base URL: <code className="bg-muted px-1 rounded">{config?.hotelbeds.baseUrl}</code></div>
-              <div>Cache API: <code className="bg-muted px-1 rounded">{config?.hotelbeds.cacheApiUrl}</code></div>
-              <div>mTLS URL: <code className="bg-muted px-1 rounded">{config?.hotelbeds.mtlsUrl}</code></div>
               <div>Hotel API: <code className="bg-muted px-1 rounded">{config?.hotelbeds.hotel.baseUrl}</code></div>
               <div>Activity API: <code className="bg-muted px-1 rounded">{config?.hotelbeds.activity.baseUrl}</code></div>
             </div>

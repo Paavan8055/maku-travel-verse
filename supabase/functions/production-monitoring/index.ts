@@ -119,8 +119,8 @@ async function checkHotelBedsAPI(): Promise<{ status: string; responseTime: numb
   const startTime = Date.now();
   
   try {
-    const apiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY');
-    const secret = Deno.env.get('HOTELBEDS_HOTEL_SECRET');
+    const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
+    const secret = Deno.env.get('HOTELBEDS_SECRET');
     
     if (!apiKey || !secret) {
       return { status: 'down', responseTime: 0, error: 'HotelBeds credentials not configured' };

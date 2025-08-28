@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { usePerformanceOptimizer } from "@/hooks/usePerformanceOptimizer";
 import { useTranslation } from "react-i18next";
 import { Search, Calendar, Users, MapPin, Plane, Building, Car, Camera } from "lucide-react";
@@ -19,7 +18,6 @@ import { MobileSearchSheet } from "@/components/MobileSearchSheet";
 
 const SearchSection = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { startRender, endRender } = usePerformanceOptimizer({
     componentName: 'SearchSection',
     enableMonitoring: true
@@ -92,7 +90,7 @@ const [activityChildren, setActivityChildren] = useState(0);
     params.set("searched", "true");
     
     endRender();
-    navigate(`/search/hotels?${params.toString()}`);
+    window.location.href = `/search/hotels?${params.toString()}`;
   };
 
   return (
@@ -390,7 +388,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                       }));
                       const params = new URLSearchParams(base);
                       params.set("segments", JSON.stringify(segs));
-                      navigate(`/search/flights?${params.toString()}`);
+                      window.location.href = `/search/flights?${params.toString()}`;
                     } else {
                       const params = new URLSearchParams({
                         ...base,
@@ -399,7 +397,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                         departureDate: flightDepart ? format(flightDepart, "yyyy-MM-dd") : "",
                         returnDate: tripType === "roundtrip" && flightReturn ? format(flightReturn, "yyyy-MM-dd") : "",
                       });
-                      navigate(`/search/flights?${params.toString()}`);
+                      window.location.href = `/search/flights?${params.toString()}`;
                     }
                   }}
                 >
@@ -469,7 +467,7 @@ const [activityChildren, setActivityChildren] = useState(0);
               <div className="flex justify-center">
                 <Button 
                   className="btn-primary text-lg px-12 py-4"
-                  onClick={() => navigate('/search/cars')}
+                  onClick={() => window.location.href = `/search/cars`}
                 >
                   <Search className="mr-2 h-5 w-5" />
                   Search Cars
@@ -498,7 +496,7 @@ const [activityChildren, setActivityChildren] = useState(0);
                     adults: String(activityAdults),
                     children: String(activityChildren)
                   });
-                  navigate(`/search/activities?${params.toString()}`);
+                  window.location.href = `/search/activities?${params.toString()}`;
                 }}
               />
             </TabsContent>

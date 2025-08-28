@@ -1,17 +1,18 @@
-
 import React from 'react';
 import { RealTimeMetricsDashboard } from '@/components/admin/RealTimeMetricsDashboard';
 
-export default function AdminRealtimeMetrics() {
+const AdminRealtimePage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Real-time Metrics</h1>
+        <h1 className="text-3xl font-bold">Real-time Metrics</h1>
         <p className="text-muted-foreground">
-          Monitor live system performance and user activity
+          Live system performance and user activity monitoring
         </p>
       </div>
       <RealTimeMetricsDashboard />
     </div>
   );
-}
+};
+
+export default AdminRealtimePage;
