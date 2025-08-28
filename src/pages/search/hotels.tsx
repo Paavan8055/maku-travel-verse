@@ -3,6 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { LoadingSpinner } from '@/components/ui/loading-states';
 import { useHotelSearch } from '@/hooks/useUnifiedSearch';
 import { useToast } from '@/hooks/use-toast';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const HotelSearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -46,6 +48,7 @@ const HotelSearchPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Hotel Search Results</h1>
         <p className="text-muted-foreground mb-4">
@@ -73,6 +76,7 @@ const HotelSearchPage = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

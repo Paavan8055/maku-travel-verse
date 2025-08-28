@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
 import GiftCardPreview from '@/components/GiftCardPreview';
 import ThemeSelector, { Theme } from '@/components/ThemeSelector';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import heroMaldives from '@/assets/hero-maldives.jpg';
 import heroSwissAlps from '@/assets/hero-swiss-alps.jpg';
 import heroTokyo from '@/assets/hero-tokyo.jpg';
@@ -70,6 +72,7 @@ const GiftCards = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -271,6 +274,7 @@ const GiftCards = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

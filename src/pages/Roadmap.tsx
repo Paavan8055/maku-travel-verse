@@ -2,6 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, Zap, Globe, Brain, Shield } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const Roadmap = () => {
   const roadmapItems = [
@@ -83,6 +85,7 @@ const Roadmap = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
@@ -128,6 +131,7 @@ const Roadmap = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

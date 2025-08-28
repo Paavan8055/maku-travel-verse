@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plane, Building, MapPin, Star, Globe, Users, TrendingUp, Shield } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const Partners = () => {
   const partnerCategories = [
@@ -43,6 +45,7 @@ const Partners = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
@@ -91,6 +94,7 @@ const Partners = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
