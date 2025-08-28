@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,7 @@ interface EmergencyStatus {
 
 export const EmergencyStabilization = () => {
   const [status, setStatus] = useState<EmergencyStatus>({
-    stuckBookings: 50,
+    stuckBookings: 0,
     criticalAlerts: 0,
     providerHealth: 'degraded',
     securityStatus: 'vulnerable'
@@ -121,23 +121,23 @@ export const EmergencyStabilization = () => {
     setOperationLoading('refresh', true);
     try {
       // Get stuck bookings count
-      const { data: bookingData } = await supabase
+      const { count: bookingCount } = await supabase
         .from('bookings')
-        .select('id', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
         .eq('status', 'pending')
         .lt('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString());
 
       // Get critical alerts count  
-      const { data: alertData } = await supabase
+      const { count: alertCount } = await supabase
         .from('critical_alerts')
-        .select('id', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
         .eq('resolved', false)
         .in('severity', ['high', 'critical']);
 
       setStatus(prev => ({
         ...prev,
-        stuckBookings: bookingData?.length || 0,
-        criticalAlerts: alertData?.length || 0,
+        stuckBookings: bookingCount || 0,
+        criticalAlerts: alertCount || 0,
         securityStatus: 'hardened' // Security was hardened in migration
       }));
 
@@ -171,6 +171,11 @@ export const EmergencyStabilization = () => {
         return 'bg-muted text-muted-foreground';
     }
   };
+
+  // Load initial data
+  useEffect(() => {
+    refreshStatus();
+  }, []);
 
   return (
     <div className="space-y-6">
