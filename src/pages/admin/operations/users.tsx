@@ -1,11 +1,12 @@
+
 import React from 'react';
 import { UserManagement } from '@/components/admin/UserManagement';
 
-const AdminUsersPage = () => {
+export default function AdminUserManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">User Management</h1>
+        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
         <p className="text-muted-foreground">
           Manage user accounts, roles, and permissions
         </p>
@@ -13,6 +14,4 @@ const AdminUsersPage = () => {
       <UserManagement />
     </div>
   );
-};
-
-export default AdminUsersPage;
+}
