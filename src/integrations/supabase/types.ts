@@ -130,6 +130,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_mfa_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          mfa_verified: boolean | null
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          mfa_verified?: boolean | null
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          mfa_verified?: boolean | null
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -678,6 +705,8 @@ export type Database = {
           created_at: string | null
           currency: string | null
           id: string
+          provider_booking_id: string | null
+          provider_confirmation_code: string | null
           status: string
           total_amount: number | null
           updated_at: string | null
@@ -690,6 +719,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           id?: string
+          provider_booking_id?: string | null
+          provider_confirmation_code?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string | null
@@ -702,6 +733,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           id?: string
+          provider_booking_id?: string | null
+          provider_confirmation_code?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string | null
@@ -852,6 +885,45 @@ export type Database = {
           timezone?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      content_images: {
+        Row: {
+          created_at: string
+          destination_id: string
+          display_order: number | null
+          id: string
+          image_caption: string | null
+          image_category: string | null
+          image_source: string | null
+          image_url: string
+          is_featured: boolean | null
+          supplier_attribution: string | null
+        }
+        Insert: {
+          created_at?: string
+          destination_id: string
+          display_order?: number | null
+          id?: string
+          image_caption?: string | null
+          image_category?: string | null
+          image_source?: string | null
+          image_url: string
+          is_featured?: boolean | null
+          supplier_attribution?: string | null
+        }
+        Update: {
+          created_at?: string
+          destination_id?: string
+          display_order?: number | null
+          id?: string
+          image_caption?: string | null
+          image_category?: string | null
+          image_source?: string | null
+          image_url?: string
+          is_featured?: boolean | null
+          supplier_attribution?: string | null
         }
         Relationships: []
       }
@@ -1152,6 +1224,75 @@ export type Database = {
           },
         ]
       }
+      destination_content: {
+        Row: {
+          best_time_to_visit: string | null
+          content_source: string | null
+          content_status: string | null
+          continent: string | null
+          country: string
+          created_at: string
+          currency: string | null
+          description: string | null
+          destination_id: string
+          destination_name: string
+          highlights: string[] | null
+          id: string
+          language: string[] | null
+          safety_info: Json | null
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
+          supplier_data: Json | null
+          updated_at: string
+          weather_info: Json | null
+        }
+        Insert: {
+          best_time_to_visit?: string | null
+          content_source?: string | null
+          content_status?: string | null
+          continent?: string | null
+          country: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          destination_id: string
+          destination_name: string
+          highlights?: string[] | null
+          id?: string
+          language?: string[] | null
+          safety_info?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          supplier_data?: Json | null
+          updated_at?: string
+          weather_info?: Json | null
+        }
+        Update: {
+          best_time_to_visit?: string | null
+          content_source?: string | null
+          content_status?: string | null
+          continent?: string | null
+          country?: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          destination_id?: string
+          destination_name?: string
+          highlights?: string[] | null
+          id?: string
+          language?: string[] | null
+          safety_info?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          supplier_data?: Json | null
+          updated_at?: string
+          weather_info?: Json | null
+        }
+        Relationships: []
+      }
       detailed_reviews: {
         Row: {
           booking_id: string | null
@@ -1165,9 +1306,14 @@ export type Database = {
           item_id: string
           item_type: string
           location_rating: number | null
+          moderation_status: string | null
+          moderator_notes: string | null
           overall_rating: number
+          photo_urls: string[] | null
           photos: Json | null
+          review_source: string | null
           service_rating: number | null
+          supplier_verified: boolean | null
           title: string
           travel_date: string | null
           updated_at: string | null
@@ -1186,9 +1332,14 @@ export type Database = {
           item_id: string
           item_type: string
           location_rating?: number | null
+          moderation_status?: string | null
+          moderator_notes?: string | null
           overall_rating: number
+          photo_urls?: string[] | null
           photos?: Json | null
+          review_source?: string | null
           service_rating?: number | null
+          supplier_verified?: boolean | null
           title: string
           travel_date?: string | null
           updated_at?: string | null
@@ -1207,9 +1358,14 @@ export type Database = {
           item_id?: string
           item_type?: string
           location_rating?: number | null
+          moderation_status?: string | null
+          moderator_notes?: string | null
           overall_rating?: number
+          photo_urls?: string[] | null
           photos?: Json | null
+          review_source?: string | null
           service_rating?: number | null
+          supplier_verified?: boolean | null
           title?: string
           travel_date?: string | null
           updated_at?: string | null
@@ -3276,6 +3432,60 @@ export type Database = {
           },
         ]
       }
+      poi_content: {
+        Row: {
+          admission_fee: Json | null
+          category: string
+          coordinates: Json | null
+          created_at: string
+          description: string | null
+          destination_id: string
+          id: string
+          image_urls: string[] | null
+          name: string
+          opening_hours: Json | null
+          poi_id: string
+          rating: number | null
+          review_count: number | null
+          supplier_data: Json | null
+          updated_at: string
+        }
+        Insert: {
+          admission_fee?: Json | null
+          category: string
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          destination_id: string
+          id?: string
+          image_urls?: string[] | null
+          name: string
+          opening_hours?: Json | null
+          poi_id: string
+          rating?: number | null
+          review_count?: number | null
+          supplier_data?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          admission_fee?: Json | null
+          category?: string
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string
+          id?: string
+          image_urls?: string[] | null
+          name?: string
+          opening_hours?: Json | null
+          poi_id?: string
+          rating?: number | null
+          review_count?: number | null
+          supplier_data?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       points_transactions: {
         Row: {
           booking_id: string | null
@@ -3542,6 +3752,39 @@ export type Database = {
           provider?: string
           response_time_ms?: number | null
           status?: string
+        }
+        Relationships: []
+      }
+      provider_health_logs: {
+        Row: {
+          endpoint: string
+          error_message: string | null
+          id: string
+          provider_id: string
+          response_time_ms: number | null
+          status_code: number | null
+          test_type: string | null
+          tested_at: string | null
+        }
+        Insert: {
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          provider_id: string
+          response_time_ms?: number | null
+          status_code?: number | null
+          test_type?: string | null
+          tested_at?: string | null
+        }
+        Update: {
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          provider_id?: string
+          response_time_ms?: number | null
+          status_code?: number | null
+          test_type?: string | null
+          tested_at?: string | null
         }
         Relationships: []
       }
@@ -4775,6 +5018,10 @@ export type Database = {
       }
       is_emergency_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_mfa_verified_admin: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       is_secure_admin: {
