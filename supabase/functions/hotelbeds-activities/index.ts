@@ -73,7 +73,7 @@ async function searchHotelbedsActivities(params: ActivitySearchParams): Promise<
 
   logger.info('HotelBeds Activities search request:', requestBody);
 
-  const response = await fetch(`${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-content-api/3.0/activities/search`, {
+  const response = await fetch(`${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-api/3.0/activities/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
