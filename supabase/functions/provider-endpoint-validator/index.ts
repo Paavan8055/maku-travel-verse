@@ -162,7 +162,7 @@ async function validateHotelBedsEndpoints(): Promise<EndpointTestResult[]> {
   try {
     const { signature, timestamp, apiKey } = await generateHotelBedsSignature('activity');
     
-    const response = await fetch(`${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-api/3.0/status`, {
+    const response = await fetch(`${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-content-api/3.0/status`, {
       method: 'GET',
       headers: {
         'Api-Key': apiKey,
@@ -174,7 +174,7 @@ async function validateHotelBedsEndpoints(): Promise<EndpointTestResult[]> {
     results.push({
       provider: 'hotelbeds',
       service: 'activities',
-      endpoint: `${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-api/3.0/status`,
+      endpoint: `${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-content-api/3.0/status`,
       status: response.ok ? 'success' : 'auth_error',
       responseTime: Date.now() - activityStartTime,
       statusCode: response.status,
@@ -188,7 +188,7 @@ async function validateHotelBedsEndpoints(): Promise<EndpointTestResult[]> {
     results.push({
       provider: 'hotelbeds',
       service: 'activities',
-      endpoint: `${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-api/3.0/status`,
+      endpoint: `${ENV_CONFIG.hotelbeds.activity.baseUrl}/activity-content-api/3.0/status`,
       status: 'endpoint_error',
       responseTime: Date.now() - activityStartTime,
       error: error.message,
