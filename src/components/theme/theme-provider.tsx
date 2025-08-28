@@ -22,7 +22,7 @@ export function ThemeProvider({
   storageKey = 'maku-ui-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<string>(() => {
+  const [theme, setThemeState] = React.useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(storageKey) || defaultTheme;
     }
@@ -45,7 +45,7 @@ export function ThemeProvider({
     theme,
     setTheme: (theme: string) => {
       localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+      setThemeState(theme);
     },
   }), [theme, storageKey]);
 
