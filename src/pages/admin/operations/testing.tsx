@@ -9,34 +9,33 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function AdminTestSuite() {
   const [isRunning, setIsRunning] = useState(false);
-  const { toast } = useToast();
-  
-  const tests = [
+  const [tests, setTests] = useState([
     {
-      name: 'API Connectivity Tests',
-      status: 'passed',
-      lastRun: '2 hours ago',
-      duration: '45s'
+      name: 'Health Check Tests',
+      status: 'idle',
+      lastRun: 'Never',
+      duration: '--'
     },
     {
-      name: 'Payment Processing Tests',
-      status: 'passed',
-      lastRun: '1 hour ago',
-      duration: '120s'
+      name: 'Hotel Provider Tests',
+      status: 'idle',
+      lastRun: 'Never',
+      duration: '--'
     },
     {
-      name: 'Booking Flow Tests',
-      status: 'failed',
-      lastRun: '30 minutes ago',
-      duration: '180s'
+      name: 'Flight Provider Tests',
+      status: 'idle',
+      lastRun: 'Never',
+      duration: '--'
     },
     {
-      name: 'Provider Integration Tests',
-      status: 'running',
-      lastRun: 'Now',
-      duration: '60s'
+      name: 'Activity Provider Tests',
+      status: 'idle',
+      lastRun: 'Never',
+      duration: '--'
     }
-  ];
+  ]);
+  const { toast } = useToast();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -59,30 +58,80 @@ export default function AdminTestSuite() {
         return <Badge variant="destructive">Failed</Badge>;
       case 'running':
         return <Badge variant="secondary">Running</Badge>;
+      case 'idle':
+        return <Badge variant="outline">Idle</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
+  const updateTestStatus = (testName: string, status: string, duration?: string) => {
+    setTests(prev => prev.map(test => 
+      test.name === testName 
+        ? { 
+            ...test, 
+            status, 
+            lastRun: new Date().toLocaleTimeString(),
+            duration: duration || test.duration 
+          }
+        : test
+    ));
+  };
+
   const runAllTests = async () => {
     setIsRunning(true);
+    const startTime = Date.now();
+    
     try {
       toast({
         title: "Running All Tests",
         description: "Starting comprehensive test suite...",
       });
 
+      // Update all tests to running
+      updateTestStatus('Health Check Tests', 'running');
+      updateTestStatus('Hotel Provider Tests', 'running');
+      updateTestStatus('Flight Provider Tests', 'running');
+      updateTestStatus('Activity Provider Tests', 'running');
+
       // Run health check
+      const healthStart = Date.now();
       const healthCheck = await supabase.functions.invoke('health-check');
+      const healthDuration = `${Math.round((Date.now() - healthStart) / 1000)}s`;
+      updateTestStatus('Health Check Tests', healthCheck.error ? 'failed' : 'passed', healthDuration);
       
       // Run provider tests
+      const providerStart = Date.now();
       const providerTests = await supabase.functions.invoke('test-provider-rotation');
       
+      if (providerTests.data?.testResults) {
+        // Update individual provider test results
+        providerTests.data.testResults.forEach((result: any) => {
+          const testName = `${result.service.charAt(0).toUpperCase() + result.service.slice(1)} Provider Tests`;
+          const duration = `${Math.round((Date.now() - providerStart) / 1000)}s`;
+          updateTestStatus(testName, result.success ? 'passed' : 'failed', duration);
+        });
+      } else {
+        // If no detailed results, mark all as failed
+        const duration = `${Math.round((Date.now() - providerStart) / 1000)}s`;
+        updateTestStatus('Hotel Provider Tests', 'failed', duration);
+        updateTestStatus('Flight Provider Tests', 'failed', duration);
+        updateTestStatus('Activity Provider Tests', 'failed', duration);
+      }
+      
+      const totalDuration = Math.round((Date.now() - startTime) / 1000);
       toast({
         title: "Tests Completed",
-        description: "All tests have finished running. Check results below.",
+        description: `All tests finished in ${totalDuration}s. Check results below.`,
       });
     } catch (error) {
+      // Mark all running tests as failed
+      setTests(prev => prev.map(test => 
+        test.status === 'running' 
+          ? { ...test, status: 'failed', lastRun: new Date().toLocaleTimeString() }
+          : test
+      ));
+      
       toast({
         title: "Test Failed",
         description: "An error occurred while running tests.",
@@ -95,11 +144,18 @@ export default function AdminTestSuite() {
 
   const runProviderTests = async () => {
     setIsRunning(true);
+    const startTime = Date.now();
+    
     try {
       toast({
         title: "Running Provider Tests",
         description: "Testing provider integrations...",
       });
+
+      // Update provider tests to running
+      updateTestStatus('Hotel Provider Tests', 'running');
+      updateTestStatus('Flight Provider Tests', 'running');
+      updateTestStatus('Activity Provider Tests', 'running');
 
       const result = await supabase.functions.invoke('test-provider-rotation');
       
@@ -107,11 +163,34 @@ export default function AdminTestSuite() {
         throw new Error(result.error.message);
       }
 
+      if (result.data?.testResults) {
+        // Update individual provider test results
+        result.data.testResults.forEach((testResult: any) => {
+          const testName = `${testResult.service.charAt(0).toUpperCase() + testResult.service.slice(1)} Provider Tests`;
+          const duration = `${Math.round((Date.now() - startTime) / 1000)}s`;
+          updateTestStatus(testName, testResult.success ? 'passed' : 'failed', duration);
+        });
+      } else {
+        // If no detailed results, mark all as failed
+        const duration = `${Math.round((Date.now() - startTime) / 1000)}s`;
+        updateTestStatus('Hotel Provider Tests', 'failed', duration);
+        updateTestStatus('Flight Provider Tests', 'failed', duration);
+        updateTestStatus('Activity Provider Tests', 'failed', duration);
+      }
+
+      const totalDuration = Math.round((Date.now() - startTime) / 1000);
       toast({
         title: "Provider Tests Completed",
-        description: `Tests completed successfully. ${result.data?.summary?.successful || 0} passed, ${result.data?.summary?.failed || 0} failed.`,
+        description: `Tests completed in ${totalDuration}s. ${result.data?.summary?.successful || 0} passed, ${result.data?.summary?.failed || 0} failed.`,
       });
     } catch (error) {
+      // Mark all running tests as failed
+      setTests(prev => prev.map(test => 
+        test.status === 'running' 
+          ? { ...test, status: 'failed', lastRun: new Date().toLocaleTimeString() }
+          : test
+      ));
+      
       toast({
         title: "Provider Tests Failed",
         description: "An error occurred while testing providers.",
