@@ -66,6 +66,7 @@ const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/us
 const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
 const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnostics"));
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
+const AdminFeatureFlagsPage = createLazyRoute(() => import("./components/admin/FeatureFlags").then(m => ({ default: m.FeatureFlags })));
 const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
 
 const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
@@ -169,9 +170,13 @@ const App = () => (
                                           <Route path="operations/testing" element={<AdminTestingPage />} />
                                           <Route path="diagnostics" element={<AdminDiagnosticsPage />} />
                                          
-                         {/* Security Routes */}
-                         <Route path="security/access" element={<AdminSecurityPage />} />
-                         <Route path="emergency" element={<SecureAdminPanelPage />} />
+                          {/* Security Routes */}
+                          <Route path="security/access" element={<AdminSecurityPage />} />
+                          
+                          {/* Settings Routes */}
+                          <Route path="settings/features" element={<AdminFeatureFlagsPage />} />
+                          
+                          <Route path="emergency" element={<SecureAdminPanelPage />} />
                                          
                                          {/* Legacy Routes for backward compatibility */}
                                          <Route path="deployment-test" element={<DeploymentTestPage />} />
