@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { analyticsAPI } from '@/lib/otaDataClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import logger from "@/utils/logger";
 import { 
   MapPin, 
   Calendar, 
@@ -40,7 +41,7 @@ export const SmartAnalytics: React.FC<{ className?: string }> = ({ className }) 
         const data = await analyticsAPI.fetchTravelAnalytics(user.id);
         setAnalytics(data);
       } catch (error) {
-        console.error('Error loading analytics:', error);
+        logger.error('Error loading analytics:', error);
       } finally {
         setLoading(false);
       }

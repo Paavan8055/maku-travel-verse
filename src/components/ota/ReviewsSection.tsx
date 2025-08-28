@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { reviewsAPI } from '@/lib/otaDataClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { toast } from 'sonner';
+import logger from "@/utils/logger";
 
 interface ReviewsSectionProps {
   itemType: string;
@@ -69,7 +70,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       const data = await reviewsAPI.fetchReviews(itemType, itemId);
       setReviews(data || []);
     } catch (error) {
-      console.error('Error loading reviews:', error);
+      logger.error('Error loading reviews:', error);
     } finally {
       setLoading(false);
     }

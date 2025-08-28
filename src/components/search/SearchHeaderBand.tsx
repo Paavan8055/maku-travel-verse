@@ -6,19 +6,24 @@ interface SearchHeaderBandProps {
   checkIn: string;
   checkOut: string;
   guests: number;
+  hotelName?: string;
 }
 
 const SearchHeaderBand: React.FC<SearchHeaderBandProps> = ({
   destination,
   checkIn,
   checkOut,
-  guests
+  guests,
+  hotelName
 }) => {
   return (
     <div className="w-full rounded-xl border bg-card text-card-foreground p-4 sm:p-5 flex flex-wrap items-center gap-4">
       <div className="flex items-center gap-2 pr-4 border-r last:border-r-0">
         <MapPin className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium">{destination || "Add destination"}</span>
+        <span className="font-medium">{destination || "Sydney (Default)"}</span>
+        {hotelName && (
+          <span className="text-sm font-medium text-primary">• {hotelName}</span>
+        )}
       </div>
       <div className="flex items-center gap-2 pr-4 border-r last:border-r-0">
         <CalendarDays className="h-4 w-4 text-muted-foreground" />

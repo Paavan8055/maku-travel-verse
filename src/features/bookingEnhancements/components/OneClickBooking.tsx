@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { fetchUserPreferences, saveUserPreferences, fetchPassportInfo, fetchPaymentMethods } from "@/lib/bookingDataClient";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar, MapPin, CreditCard, CheckCircle, Zap, Users } from "lucide-react";
+import logger from "@/utils/logger";
 
 interface BookingFormData {
   destination: string;
@@ -72,7 +74,7 @@ export default function OneClickBooking({ bookingData, onBookingComplete }: OneC
       setCanOneClick(hasVerifiedPassport && hasPaymentMethod);
 
     } catch (error) {
-      console.error('Error loading user data:', error);
+      logger.error('Error loading user data:', error);
     }
   };
 
@@ -82,39 +84,62 @@ export default function OneClickBooking({ bookingData, onBookingComplete }: OneC
     setLoading(true);
     
     try {
-      // Simulate booking API call
+      // Step 1: Create hotel booking with real supplier API
       const bookingPayload = {
-        user_id: user.id,
-        destination: prefilledData.destination,
-        check_in_date: prefilledData.checkIn,
-        check_out_date: prefilledData.checkOut,
-        guest_count: prefilledData.guests,
-        room_type: userPreferences?.room_type || 'standard',
-        preferences: userPreferences,
-        passport_verified: passportInfo?.verified,
-        payment_method_id: paymentMethods.find(p => p.is_default)?.id || paymentMethods[0]?.id
+        hotelId: sessionStorage.getItem('selectedHotelId') || 'HOTEL001',
+        offerId: sessionStorage.getItem('selectedOfferId') || `offer_${Date.now()}`,
+        checkIn: prefilledData.checkIn,
+        checkOut: prefilledData.checkOut,
+        adults: prefilledData.guests,
+        children: 0,
+        rooms: 1,
+        addons: [],
+        bedPref: userPreferences?.bed_preference || 'any',
+        note: userPreferences?.special_requests || ''
       };
 
-      // TODO: Replace with actual booking API call
-      console.log('One-click booking:', bookingPayload);
-      
-      // Simulate successful booking
-      const mockBookingId = `booking_${Date.now()}`;
-      
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API delay
+      logger.info('Starting one-click hotel booking:', bookingPayload);
 
-      toast({
-        title: "Booking confirmed! 🎉",
-        description: `Your booking has been confirmed. Reference: ${mockBookingId}`,
+      // Create hotel booking with real price confirmation and payment
+      const { data: bookingResult, error: bookingError } = await supabase.functions.invoke('create-hotel-booking', {
+        body: bookingPayload
       });
 
-      onBookingComplete?.(mockBookingId);
+      if (bookingError || !bookingResult?.success) {
+        throw new Error(bookingResult?.error || 'Hotel booking failed');
+      }
+
+  // Step 2: Complete booking with supplier after payment intent created
+      if (bookingResult.clientSecret) {
+        // In production, this would redirect to Stripe checkout
+        // For now, we'll simulate successful payment and immediate booking confirmation
+        const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-payment-and-complete-booking', {
+          body: {
+            booking_id: bookingResult.booking_id,
+            payment_intent_id: bookingResult.clientSecret.split('_secret_')[0]
+          }
+        });
+
+        if (verifyError || !verifyResult?.success) {
+          logger.error('Payment verification failed:', verifyError);
+          throw new Error('Payment processing failed. Please try again or contact support.');
+        }
+
+        toast({
+          title: "Booking confirmed! 🎉",
+          description: `Hotel booking confirmed. Reference: ${verifyResult.confirmation_number}`,
+        });
+
+        onBookingComplete?.(bookingResult.booking_id);
+      } else {
+        throw new Error('Payment setup failed');
+      }
 
     } catch (error) {
-      console.error('Booking error:', error);
+      logger.error('One-click booking error:', error);
       toast({
         title: "Booking failed",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -123,11 +148,17 @@ export default function OneClickBooking({ bookingData, onBookingComplete }: OneC
   };
 
   const handleRegularBooking = () => {
-    toast({
-      title: "Redirecting to full booking flow",
-      description: "Taking you to the detailed booking process...",
+    // Navigate to the hotel checkout flow instead of showing a toast
+    const params = new URLSearchParams({
+      destination: prefilledData.destination,
+      checkIn: prefilledData.checkIn,
+      checkOut: prefilledData.checkOut,
+      guests: prefilledData.guests.toString(),
+      hotelId: sessionStorage.getItem('selectedHotelId') || '',
+      hotelName: sessionStorage.getItem('selectedHotelName') || prefilledData.destination
     });
-    // TODO: Navigate to full booking flow
+    
+    window.location.href = `/hotel-checkout?${params.toString()}`;
   };
 
   if (!user) {

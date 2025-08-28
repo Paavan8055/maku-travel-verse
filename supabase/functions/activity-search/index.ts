@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import logger from "../_shared/logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,14 +15,17 @@ serve(async (req) => {
   try {
     const { destination, date, participants } = await req.json();
 
-    console.log('Activity search request:', {
+    logger.info('Activity search request:', {
       destination,
       date,
       participants
     });
 
-    // In a real implementation, this would integrate with activity providers APIs
-    // For now, return a structure that matches the expected format
+    // In a real implementation, this would integrate with activity providers APIs like:
+    // - Viator API for activities and tours
+    // - GetYourGuide API for experiences
+    // - Amadeus Tours and Activities API
+    // For now, return enhanced mock data with proper image references
     
     const mockActivities = [
       {
@@ -30,7 +34,7 @@ serve(async (req) => {
         description: "Experience breathtaking views from the top of the iconic bridge with professional guidance and safety equipment.",
         provider: "BridgeClimb Sydney",
         location: "Sydney Harbour Bridge, Sydney, NSW",
-        images: ["/placeholder.svg"],
+        images: ["/src/assets/activity-bridge-climb.jpg"],
         category: "Adventure",
         price: 174,
         currency: "$",
@@ -54,7 +58,7 @@ serve(async (req) => {
         description: "Discover native Australian wildlife in their natural habitat with expert guides.",
         provider: "Blue Mountains Explorer",
         location: "Blue Mountains, NSW",
-        images: ["/placeholder.svg"],
+        images: ["/src/assets/activity-blue-mountains.jpg"],
         category: "Nature",
         price: 89,
         currency: "$",
@@ -78,7 +82,7 @@ serve(async (req) => {
         description: "Sample premium wines at boutique vineyards with expert sommelier guidance.",
         provider: "Hunter Valley Tours",
         location: "Hunter Valley, NSW",
-        images: ["/placeholder.svg"],
+        images: ["/src/assets/activity-wine-tasting.jpg"],
         category: "Food & Drink",
         price: 145,
         currency: "$",
@@ -102,7 +106,7 @@ serve(async (req) => {
         description: "Fun-filled adventure activities designed specially for children with safety supervision.",
         provider: "Sydney Kids Adventures",
         location: "Adventure Park, Sydney",
-        images: ["/placeholder.svg"],
+        images: ["/src/assets/activity-surfing.jpg"],
         category: "Adventure",
         price: 45,
         currency: "$",
@@ -139,7 +143,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Activity search error:', error);
+    logger.error('Activity search error:', error);
     
     return new Response(
       JSON.stringify({

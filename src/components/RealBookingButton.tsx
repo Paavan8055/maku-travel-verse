@@ -71,7 +71,8 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
                 amount: String(amount),
                 currency
               });
-              navigate(`/booking/flight?${params.toString()}`);
+              console.log('Navigating to flight checkout with multi-city params:', params.toString());
+              navigate(`/flight-checkout?${params.toString()}`);
               return;
             }
 
@@ -87,7 +88,8 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
                 amount: String(amount),
                 currency
               });
-              navigate(`/booking/flight?${params.toString()}`);
+              console.log('Navigating to flight checkout with roundtrip params:', params.toString());
+              navigate(`/flight-checkout?${params.toString()}`);
               return;
             }
 
@@ -99,7 +101,34 @@ export const RealBookingButton: React.FC<RealBookingButtonProps> = ({
               amount: String(amount),
               currency
             });
-            navigate(`/booking/flight?${params.toString()}`);
+            console.log('Navigating to flight checkout with one-way params:', params.toString());
+            navigate(`/flight-checkout?${params.toString()}`);
+          } else if (bookingType === 'hotel') {
+            // For hotel bookings, always redirect to hotel-checkout first
+            const params = new URLSearchParams({
+              hotelId: bookingData?.hotelId || '',
+              hotelName: bookingData?.name || 'Hotel',
+              checkIn: bookingData?.checkIn || '',
+              checkOut: bookingData?.checkOut || '',
+              adults: String(bookingData?.adults || 2),
+              children: String(bookingData?.children || 0),
+              rooms: String(bookingData?.rooms || 1),
+              price: String(amount),
+              currency
+            });
+            navigate(`/hotel-checkout?${params.toString()}`);
+          } else if (bookingType === 'activity') {
+            // For activity bookings, redirect to activity-checkout
+            const params = new URLSearchParams({
+              activityId: bookingData?.id || '',
+              title: bookingData?.title || 'Activity',
+              date: bookingData?.date || '',
+              time: bookingData?.time || '',
+              participants: String(bookingData?.participants || 1),
+              total: String(amount),
+              currency
+            });
+            navigate(`/activity-checkout?${params.toString()}`);
           } else {
             setShowBookingForm(true);
           }

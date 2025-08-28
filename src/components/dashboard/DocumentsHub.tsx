@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,19 +16,7 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
-import { useAuth } from '@/features/auth/context/AuthContext';
-
-interface Document {
-  id: string;
-  type: 'boarding_pass' | 'hotel_confirmation' | 'passport' | 'visa' | 'insurance' | 'receipt';
-  title: string;
-  description: string;
-  date: string;
-  expiryDate?: string;
-  status: 'valid' | 'expiring' | 'expired';
-  fileUrl?: string;
-  tripId?: string;
-}
+import { useDocuments } from '@/hooks/useDocuments';
 
 interface QuickAction {
   icon: React.ElementType;
@@ -39,54 +27,7 @@ interface QuickAction {
 }
 
 export const DocumentsHub: React.FC<{ className?: string }> = ({ className }) => {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockDocuments: Document[] = [
-      {
-        id: '1',
-        type: 'passport',
-        title: 'Australian Passport',
-        description: 'Passport No. P123456789',
-        date: '2020-01-15',
-        expiryDate: '2030-01-15',
-        status: 'valid'
-      },
-      {
-        id: '2',
-        type: 'boarding_pass',
-        title: 'Flight to Tokyo',
-        description: 'JQ123 - SYD to NRT',
-        date: '2024-03-15',
-        status: 'valid',
-        tripId: '1'
-      },
-      {
-        id: '3',
-        type: 'hotel_confirmation',
-        title: 'Park Hyatt Tokyo',
-        description: 'Booking Ref: HTL789',
-        date: '2024-03-15',
-        status: 'valid',
-        tripId: '1'
-      },
-      {
-        id: '4',
-        type: 'insurance',
-        title: 'Travel Insurance',
-        description: 'World Nomads Policy',
-        date: '2024-01-01',
-        expiryDate: '2024-12-31',
-        status: 'valid'
-      }
-    ];
-    
-    setDocuments(mockDocuments);
-    setLoading(false);
-  }, [user]);
+  const { documents, loading, expiringCount } = useDocuments();
 
   const getDocumentIcon = (type: string) => {
     switch (type) {
@@ -106,19 +47,19 @@ export const DocumentsHub: React.FC<{ className?: string }> = ({ className }) =>
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'valid':
+      case 'active':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'expiring':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'expired':
         return 'bg-red-100 text-red-800 border-red-200';
+      case 'revoked':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const checkExpiryStatus = (expiryDate?: string) => {
-    if (!expiryDate) return 'valid';
+    if (!expiryDate) return 'active';
     
     const now = new Date();
     const expiry = new Date(expiryDate);
@@ -126,7 +67,7 @@ export const DocumentsHub: React.FC<{ className?: string }> = ({ className }) =>
     
     if (daysUntilExpiry < 0) return 'expired';
     if (daysUntilExpiry <= 90) return 'expiring';
-    return 'valid';
+    return 'active';
   };
 
   const formatDate = (dateString: string) => {
@@ -168,10 +109,6 @@ export const DocumentsHub: React.FC<{ className?: string }> = ({ className }) =>
     }
   ];
 
-  const expiringDocs = documents.filter(doc => 
-    doc.expiryDate && checkExpiryStatus(doc.expiryDate) === 'expiring'
-  );
-
   if (loading) {
     return (
       <div className={className}>
@@ -204,11 +141,11 @@ export const DocumentsHub: React.FC<{ className?: string }> = ({ className }) =>
       </div>
 
       {/* Expiry Alerts */}
-      {expiringDocs.length > 0 && (
+      {expiringCount > 0 && (
         <Alert className="mb-6 border-yellow-200 bg-yellow-50">
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            {expiringDocs.length} document(s) expiring soon. Check your passport and visa validity.
+            {expiringCount} document(s) expiring soon. Check your passport and visa validity.
           </AlertDescription>
         </Alert>
       )}
@@ -243,27 +180,33 @@ export const DocumentsHub: React.FC<{ className?: string }> = ({ className }) =>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-muted/50">
-                        {getDocumentIcon(doc.type)}
+                        {getDocumentIcon(doc.document_type)}
                       </div>
                       <div>
                         <h4 className="font-semibold">{doc.title}</h4>
                         <p className="text-sm text-muted-foreground">{doc.description}</p>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(checkExpiryStatus(doc.expiryDate))}>
-                      {checkExpiryStatus(doc.expiryDate)}
+                    <Badge className={getStatusColor(doc.status)}>
+                      {doc.status}
                     </Badge>
                   </div>
 
                   <div className="space-y-2 text-sm text-muted-foreground mb-4">
                     <div className="flex justify-between">
                       <span>Date Added:</span>
-                      <span>{formatDate(doc.date)}</span>
+                      <span>{formatDate(doc.created_at)}</span>
                     </div>
-                    {doc.expiryDate && (
+                    {doc.expiry_date && (
                       <div className="flex justify-between">
                         <span>Expires:</span>
-                        <span>{formatDate(doc.expiryDate)}</span>
+                        <span>{formatDate(doc.expiry_date)}</span>
+                      </div>
+                    )}
+                    {doc.document_number && (
+                      <div className="flex justify-between">
+                        <span>Document #:</span>
+                        <span className="font-mono text-xs">{doc.document_number}</span>
                       </div>
                     )}
                   </div>

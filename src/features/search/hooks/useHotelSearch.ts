@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useReducer, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 // Import hotel images
 import shangriLaImg from "@/assets/hotel-shangri-la.jpg";
@@ -13,6 +14,7 @@ interface HotelSearchCriteria {
   checkIn: string;
   checkOut: string;
   guests: number;
+  hotelName?: string;
 }
 
 interface Hotel {
@@ -32,6 +34,8 @@ interface Hotel {
   amenities: string[];
   cancellationPolicy: string;
   breakfast: boolean;
+  safetyRating?: string;
+  pointsOfInterest?: any[];
   deals?: {
     type: string;
     description: string;
@@ -39,130 +43,325 @@ interface Hotel {
   };
 }
 
-export const useHotelSearch = (criteria: HotelSearchCriteria) => {
-  const [hotels, setHotels] = useState<Hotel[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface SearchMeta {
+  pathTaken: string[];
+  dateAdjusted: boolean;
+  suggestedDates?: { checkIn: string; checkOut: string };
+  alternativeAreas?: string[];
+  apiCallsUsed: number;
+  errors: Array<{ step: string; error: string; statusCode?: number }>;
+  totalResults: number;
+  isEmpty?: boolean;
+  message?: string;
+  alternativeSuggestions?: string[];
+}
+
+// Transform Amadeus hotel data to our interface - NO MOCK DATA
+const transformAmadeusHotel = (amadeusHotel: any): Hotel => {
+  return {
+    id: amadeusHotel.id || amadeusHotel.hotelId || `hotel-${Date.now()}`,
+    name: amadeusHotel.name || 'Hotel',
+    description: amadeusHotel.description || 'Hotel accommodation',
+    address: amadeusHotel.location?.address || amadeusHotel.address || 'Location not available',
+    images: amadeusHotel.images && amadeusHotel.images.length > 0 ? amadeusHotel.images : [],
+    starRating: amadeusHotel.starRating || amadeusHotel.rating || 0,
+    rating: amadeusHotel.guestRating || 0,
+    reviewCount: amadeusHotel.reviewCount || 0,
+    pricePerNight: amadeusHotel.pricePerNight || 0,
+    currency: amadeusHotel.currency || 'USD',
+    totalPrice: amadeusHotel.totalPrice || 0,
+    propertyType: amadeusHotel.propertyType || 'Hotel',
+    distanceFromCenter: amadeusHotel.distanceFromCenter || 0,
+    amenities: amadeusHotel.amenities || [],
+    cancellationPolicy: amadeusHotel.cancellationPolicy || 'No cancellation policy available',
+    breakfast: amadeusHotel.breakfast || false,
+    safetyRating: amadeusHotel.safetyRating,
+    pointsOfInterest: amadeusHotel.pointsOfInterest,
+    deals: amadeusHotel.deals
+  };
+};
+
+// State management with reducer for stability
+interface SearchState {
+  hotels: Hotel[];
+  loading: boolean;
+  error: string | null;
+  isEmpty: boolean;
+  meta: SearchMeta | null;
+}
+
+type SearchAction = 
+  | { type: 'SEARCH_START' }
+  | { type: 'SEARCH_SUCCESS'; payload: { hotels: Hotel[]; meta: SearchMeta | null } }
+  | { type: 'SEARCH_ERROR'; payload: string | { message: string; systemError: boolean; originalError: any } }
+  | { type: 'SEARCH_EMPTY'; payload: { error?: string; meta?: SearchMeta | null } };
+
+const searchReducer = (state: SearchState, action: SearchAction): SearchState => {
+  switch (action.type) {
+    case 'SEARCH_START':
+      return { ...state, loading: true, error: null, isEmpty: false };
+    case 'SEARCH_SUCCESS':
+      return { 
+        ...state, 
+        loading: false, 
+        hotels: action.payload.hotels, 
+        meta: action.payload.meta,
+        isEmpty: action.payload.hotels.length === 0,
+        error: null 
+      };
+    case 'SEARCH_ERROR':
+      return { 
+        ...state, 
+        loading: false, 
+        error: typeof action.payload === 'string' ? action.payload : action.payload.message, 
+        hotels: [], 
+        isEmpty: true,
+        meta: null 
+      };
+    case 'SEARCH_EMPTY':
+      return { 
+        ...state, 
+        loading: false, 
+        isEmpty: true, 
+        hotels: [], 
+        error: action.payload.error || null,
+        meta: action.payload.meta || null 
+      };
+    default:
+      return state;
+  }
+};
+
+export const useHotelSearch = (criteria: HotelSearchCriteria | null) => {
+  const [state, dispatch] = useReducer(searchReducer, {
+    hotels: [],
+    loading: false,
+    error: null,
+    isEmpty: false,
+    meta: null
+  });
+
+  // Memoize search criteria to prevent unnecessary re-renders - only when criteria is provided
+  const memoizedCriteria = useMemo(() => criteria, [
+    criteria?.destination,
+    criteria?.checkIn,
+    criteria?.checkOut,
+    criteria?.guests,
+    criteria?.hotelName
+  ]);
+
+  // Stable search function
+  const searchHotels = useCallback(async (searchCriteria: typeof memoizedCriteria, signal: AbortSignal) => {
+    try {
+      dispatch({ type: 'SEARCH_START' });
+      
+      console.log('🔍 Starting hotel search with criteria:', searchCriteria);
+      console.log('📡 Calling provider-rotation function...');
+
+        const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
+        body: {
+          searchType: 'hotel',
+          params: {
+            destination: searchCriteria.destination,
+            checkIn: searchCriteria.checkIn,
+            checkOut: searchCriteria.checkOut,
+            guests: searchCriteria.guests,
+            rooms: 1,
+            hotelName: searchCriteria.hotelName
+          }
+        }
+      });
+      
+      console.log('📡 Provider rotation response received:', { 
+        hasData: !!data, 
+        hasError: !!functionError, 
+        provider: data?.provider,
+        fallbackUsed: data?.fallbackUsed,
+        success: data?.success 
+      });
+
+      // Check if request was aborted
+      if (signal.aborted) return;
+      
+      console.log('📡 Hotel search response:', { success: data?.success, error: functionError, data });
+
+      // Enhanced error handling with specific user-friendly messages
+      if (functionError) {
+        logger.error("❌ Hotel search function error:", functionError);
+        
+        // Provide specific error messages based on error type with actionable guidance
+        let userMessage = "Hotel search failed. Please try again.";
+        let isSystemError = false;
+        
+        if (functionError.message?.includes('AMADEUS_AUTH_INVALID_CREDENTIALS')) {
+          userMessage = "Hotel search is temporarily unavailable while we update our systems. Please try again in a few minutes.";
+          isSystemError = true;
+        } else if (functionError.message?.includes('CIRCUIT_BREAKER_OPEN')) {
+          userMessage = "Hotel search is temporarily overloaded. Please try again in 1-2 minutes.";
+          isSystemError = true;
+        } else if (functionError.message?.includes('Missing required parameters')) {
+          userMessage = "Please fill in all search fields (destination, check-in, and check-out dates).";
+        } else if (functionError.message?.includes('Check-in date cannot be in the past')) {
+          userMessage = "Please select a check-in date that is today or in the future.";
+        } else if (functionError.message?.includes('Check-out date must be after check-in')) {
+          userMessage = "Please ensure your check-out date is after your check-in date.";
+        } else if (functionError.message?.includes('network') || functionError.message?.includes('timeout')) {
+          userMessage = "Connection issue. Please check your internet connection and try again.";
+        }
+        
+        dispatch({ 
+          type: 'SEARCH_ERROR', 
+          payload: isSystemError ? "Service temporarily unavailable" : "Unable to search hotels at this time" 
+        });
+        
+        toast.error(userMessage, { 
+          duration: isSystemError ? 8000 : 5000,
+          action: isSystemError ? {
+            label: "Retry in 1 min",
+            onClick: () => {
+              setTimeout(() => {
+                if (searchCriteria) {
+                  searchHotels(searchCriteria, signal);
+                }
+              }, 60000);
+            }
+          } : undefined
+        });
+        return;
+      }
+
+      // PHASE 2: Handle both success and system error responses
+      if (data?.success) {
+        // Log data quality for monitoring
+        if (data.meta?.dataSource) {
+          console.log(`✅ Hotel data received from: ${data.meta.dataSource}`);
+        }
+        
+        if (data.isEmpty || !data.hotels || data.hotels.length === 0) {
+          dispatch({ 
+            type: 'SEARCH_EMPTY', 
+            payload: { 
+              error: data.error || "No hotels found for your search criteria",
+              meta: data.meta 
+            }
+          });
+          
+          // Enhanced user feedback for empty results
+          if (data.meta?.suggestions?.length > 0) {
+            toast.info(`No hotels found. Try: ${data.meta.suggestions[0]}`);
+          } else if (data.meta?.dateAdjusted && data.meta?.suggestedDates) {
+            toast.info(`Moved search to ${data.meta.suggestedDates.checkIn} - ${data.meta.suggestedDates.checkOut} for test availability`);
+          } else {
+            toast.info("No hotels found for your criteria. Try different dates or locations.");
+          }
+        } else {
+          if (data.meta?.dateAdjusted && data.meta?.suggestedDates) {
+            toast.info(`Dates adjusted to ${data.meta.suggestedDates.checkIn} - ${data.meta.suggestedDates.checkOut} for better availability`);
+          }
+          
+          // PHASE 2: Use only real Amadeus data
+          const transformedHotels = data.hotels.map(transformAmadeusHotel);
+          
+          // Show fallback notification if provider rotation used fallback data
+          if (data.fallbackUsed) {
+            toast.info("Showing sample hotels while we restore full service.");
+          } else if (data.meta?.dataSource === 'amadeus_live') {
+            toast.success(`Found ${transformedHotels.length} hotels with live pricing`);
+          }
+          
+          dispatch({ 
+            type: 'SEARCH_SUCCESS', 
+            payload: { 
+              hotels: transformedHotels, 
+              meta: data.meta 
+            }
+          });
+        }
+      } else if (data?.systemError) {
+        // PHASE 1: Handle system-level errors (circuit breaker, service unavailable)
+        logger.error("🚨 System error:", data.technicalError);
+        
+        let userMessage = "Hotel search is temporarily unavailable. Please try again in a few minutes.";
+        if (data.retryAfter) {
+          userMessage = `Hotel search temporarily unavailable. Please try again in ${data.retryAfter} seconds.`;
+        }
+        
+        dispatch({ type: 'SEARCH_ERROR', payload: data.error || "Service temporarily unavailable" });
+        toast.error(userMessage);
+      } else {
+        // Generic failure
+        dispatch({ 
+          type: 'SEARCH_ERROR', 
+          payload: data?.error || "Failed to search hotels" 
+        });
+        toast.error("Hotel search failed. Please try again.");
+      }
+    } catch (err: any) {
+      if (signal.aborted) return;
+      
+      logger.error("Hotel search error:", err);
+      
+      let errorMessage = "Failed to search hotels. Please try again.";
+      let systemError = false;
+      
+      // Enhanced error handling for different failure types
+      if (err?.message) {
+        if (err.message.includes('AMADEUS_AUTH_INVALID_CREDENTIALS')) {
+          errorMessage = 'Hotel search is temporarily unavailable. Our team has been notified.';
+          systemError = true;
+        } else if (err.message.includes('Circuit breaker')) {
+          errorMessage = 'Hotel search service is temporarily overloaded. Please try again in a few minutes.';
+          systemError = true;
+        } else if (err.message.includes('Failed to fetch')) {
+          errorMessage = 'Connection error. Please check your internet and try again.';
+        }
+      }
+      
+      dispatch({ 
+        type: 'SEARCH_ERROR', 
+        payload: { 
+          message: errorMessage,
+          systemError,
+          originalError: err?.message 
+        }
+      });
+      
+      if (systemError) {
+        toast.error(errorMessage, { duration: 8000 });
+      } else {
+        toast.error(errorMessage);
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    console.log("Hotel search criteria:", criteria);
-    
-    if (!criteria.destination || !criteria.checkIn || !criteria.checkOut) {
-      console.log("Missing search criteria, not searching");
+    // Only search if criteria is provided and has required fields
+    if (!memoizedCriteria?.destination || !memoizedCriteria?.checkIn || !memoizedCriteria?.checkOut) {
+      console.log('❌ Hotel search skipped - missing criteria:', { 
+        hasCriteria: !!memoizedCriteria,
+        hasDestination: !!memoizedCriteria?.destination,
+        hasCheckIn: !!memoizedCriteria?.checkIn,
+        hasCheckOut: !!memoizedCriteria?.checkOut
+      });
       return;
     }
 
-    const searchHotels = async () => {
-      console.log("Starting hotel search...");
-      setLoading(true);
-      setError(null);
-
-      try {
-        console.log("Calling unified-search function with:", {
-          type: 'hotel',
-          destination: criteria.destination,
-          checkIn: criteria.checkIn,
-          checkOut: criteria.checkOut,
-          guests: criteria.guests,
-          providers: ['hotelbeds', 'travelport']
-        });
-
-        // Call unified search with real providers
-        const { data, error: functionError } = await supabase.functions.invoke('unified-search', {
-          body: {
-            type: 'hotel',
-            destination: criteria.destination,
-            checkIn: criteria.checkIn,
-            checkOut: criteria.checkOut,
-            guests: criteria.guests,
-            providers: ['hotelbeds', 'travelport']
-          }
-        });
-
-        console.log("Unified search response:", { data, error: functionError });
-
-        if (functionError) {
-          throw functionError;
-        }
-
-        if (data?.hotels && data.hotels.length > 0) {
-          console.log("Found real hotel data:", data.hotels.length, "hotels");
-          setHotels(data.hotels);
-        } else {
-          console.log("No real hotel data, using mock data");
-          // Fallback to mock data for development
-          setHotels(generateMockHotels(criteria));
-        }
-      } catch (err) {
-        console.error("Hotel search error:", err);
-        setError(err instanceof Error ? err.message : "Failed to search hotels");
-        toast.error("Failed to search hotels. Showing sample results.");
-        
-        // Show mock data on error
-        setHotels(generateMockHotels(criteria));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    searchHotels();
-  }, [criteria.destination, criteria.checkIn, criteria.checkOut, criteria.guests]);
-
-  return { hotels, loading, error };
-};
-
-// Mock data generator for development
-const generateMockHotels = (criteria: HotelSearchCriteria): Hotel[] => {
-  const hotelData = [
-    { name: "Shangri-La Sydney", image: shangriLaImg },
-    { name: "Park Hyatt Sydney", image: parkHyattImg },
-    { name: "Four Seasons Sydney", image: boutiqueImg },
-    { name: "The Langham Sydney", image: shangriLaImg },
-    { name: "InterContinental Sydney", image: parkHyattImg },
-    { name: "Hilton Sydney", image: budgetImg },
-    { name: "Marriott Sydney Harbour", image: boutiqueImg },
-    { name: "Swissotel Sydney", image: budgetImg }
-  ];
-
-  const propertyTypes = ["Hotel", "Resort", "Boutique", "Apartment"];
-  const amenities = ["WiFi", "Pool", "Gym", "Spa", "Parking", "Restaurant", "Bar", "Room Service"];
-
-  const hotels: Hotel[] = [];
-  
-  const checkInDate = new Date(criteria.checkIn);
-  const checkOutDate = new Date(criteria.checkOut);
-  const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
-
-  for (let i = 0; i < hotelData.length; i++) {
-    const basePrice = 150 + Math.random() * 350;
-    const starRating = Math.floor(Math.random() * 3) + 3; // 3-5 stars
-    const rating = 3.5 + Math.random() * 1.5; // 3.5-5.0 rating
-    const hotelAmenities = amenities.sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 4) + 3);
+    console.log('✅ Triggering hotel search with valid criteria:', memoizedCriteria);
+    const controller = new AbortController();
+    searchHotels(memoizedCriteria, controller.signal);
     
-    hotels.push({
-      id: `hotel-${i + 1}`,
-      name: hotelData[i].name,
-      description: `Experience luxury and comfort at ${hotelData[i].name}, perfectly located in the heart of ${criteria.destination}. Enjoy stunning views, world-class amenities, and exceptional service.`,
-      address: `${Math.floor(Math.random() * 500) + 1} ${criteria.destination} Street, ${criteria.destination}`,
-      images: [hotelData[i].image],
-      starRating,
-      rating: Math.round(rating * 10) / 10,
-      reviewCount: Math.floor(Math.random() * 2000) + 100,
-      pricePerNight: Math.round(basePrice),
-      currency: "$",
-      totalPrice: Math.round(basePrice * nights),
-      propertyType: propertyTypes[Math.floor(Math.random() * propertyTypes.length)],
-      distanceFromCenter: Math.round((Math.random() * 5 + 0.1) * 10) / 10,
-      amenities: hotelAmenities,
-      cancellationPolicy: Math.random() < 0.6 ? "Free cancellation" : "Non-refundable",
-      breakfast: Math.random() < 0.4,
-      deals: Math.random() < 0.3 ? {
-        type: "Early Bird",
-        description: "Book now and save",
-        savings: Math.floor(Math.random() * 100) + 20
-      } : undefined
-    });
-  }
+    return () => {
+      controller.abort();
+    };
+  }, [memoizedCriteria, searchHotels]);
 
-  return hotels.sort((a, b) => a.pricePerNight - b.pricePerNight);
+  return { 
+    hotels: state.hotels, 
+    loading: state.loading, 
+    error: state.error, 
+    isEmpty: state.isEmpty, 
+    meta: state.meta 
+  };
 };
+
+// This function has been removed to force use of real Amadeus data only

@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import logger from "../_shared/logger.ts";
+import { ENV_CONFIG } from "../_shared/config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,7 +18,7 @@ type Suggestion = {
   displayName?: string;
 };
 
-const CONTENT_BASE = "https://api.test.hotelbeds.com/hotel-content-api/1.0";
+const CONTENT_BASE = `${ENV_CONFIG.hotelbeds.baseUrl}/hotel-content-api/1.0`;
 
 // Web Crypto SHA-256 signature generation
 const generateHotelBedsSignature = async (apiKey: string, secret: string, timestamp: number): Promise<string> => {
@@ -29,8 +31,8 @@ const generateHotelBedsSignature = async (apiKey: string, secret: string, timest
 };
 
 async function hbFetch(path: string) {
-  const apiKey = Deno.env.get("HOTELBEDS_API_KEY");
-  const secret = Deno.env.get("HOTELBEDS_SECRET");
+  const apiKey = Deno.env.get("HOTELBEDS_HOTEL_API_KEY");
+  const secret = Deno.env.get("HOTELBEDS_HOTEL_SECRET");
   if (!apiKey || !secret) {
     throw new Error("HotelBeds credentials not configured");
   }
@@ -94,11 +96,11 @@ async function fetchDestinationsPaged(qLower: string, max: number) {
       }
       if (items.length < batch) break; // no more pages
     } catch (e) {
-      console.error("HotelBeds destinations page error:", e);
+      logger.error("HotelBeds destinations page error:", e);
       break;
     }
   }
-  console.log("hotelbeds-autocomplete destinations scanned=%d matched=%d", scanned, out.length);
+  logger.info("hotelbeds-autocomplete destinations scanned=%d matched=%d", scanned, out.length);
   return out;
 }
 
@@ -131,11 +133,11 @@ async function fetchHotelsPaged(qLower: string, max: number) {
       }
       if (items.length < batch) break;
     } catch (e) {
-      console.error("HotelBeds hotels page error:", e);
+      logger.error("HotelBeds hotels page error:", e);
       break;
     }
   }
-  console.log("hotelbeds-autocomplete hotels scanned=%d matched=%d", scanned, out.length);
+  logger.info("hotelbeds-autocomplete hotels scanned=%d matched=%d", scanned, out.length);
   return out;
 }
 
@@ -173,7 +175,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("hotelbeds-autocomplete error:", err);
+    logger.error("hotelbeds-autocomplete error:", err);
     return new Response(JSON.stringify({ error: String((err as Error).message || err) }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

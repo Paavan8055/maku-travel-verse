@@ -1,450 +1,235 @@
-import { useState } from "react";
-import { ChevronLeft, Plus, Minus, Shield, Car, Plane, Utensils } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { OneClickBooking } from "@/features/bookingEnhancements";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, Plus, Minus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import logger from "@/utils/logger";
 
-const BookingExtrasPage = () => {
-  const [selectedExtras, setSelectedExtras] = useState<Record<string, any>>({});
-  const [basePrice] = useState(3150); // 7 nights × $450
-  const [fundContribution] = useState(50);
+type Addon = {
+  id: string; 
+  code: string; 
+  name: string; 
+  description?: string;
+  price_cents: number; 
+  currency: string; 
+  active: boolean;
+  category: string;
+  per_person: boolean;
+};
 
-  const extras = [
-    {
-      id: "insurance",
-      name: "Travel Insurance",
-      description: "Comprehensive coverage for cancellation, medical emergencies, and trip delays",
-      price: 89,
-      icon: Shield,
-      category: "protection",
-      recommended: true,
-      savings: "Save up to $5,000 in emergency costs"
-    },
-    {
-      id: "airport-transfer",
-      name: "Airport Transfer",
-      description: "Private car service from Ngurah Rai Airport to hotel",
-      price: 45,
-      icon: Car,
-      category: "transport",
-      options: [
-        { id: "standard", name: "Standard Car", price: 45 },
-        { id: "luxury", name: "Luxury Vehicle", price: 85 },
-        { id: "shared", name: "Shared Shuttle", price: 25 }
-      ]
-    },
-    {
-      id: "early-checkin",
-      name: "Early Check-in",
-      description: "Guaranteed room availability from 12:00 PM (standard is 3:00 PM)",
-      price: 35,
-      icon: Plus,
-      category: "convenience"
-    },
-    {
-      id: "late-checkout",
-      name: "Late Check-out",
-      description: "Keep your room until 6:00 PM (standard is 11:00 AM)",
-      price: 25,
-      icon: Minus,
-      category: "convenience"
-    },
-    {
-      id: "spa-package",
-      name: "Spa Wellness Package",
-      description: "60-minute couples massage and access to spa facilities",
-      price: 180,
-      icon: Plus,
-      category: "wellness",
-      savings: "Save $40 vs booking separately"
-    },
-    {
-      id: "meal-plan",
-      name: "All-Inclusive Dining",
-      description: "Breakfast, lunch, dinner and premium beverages included",
-      price: 95,
-      priceType: "per person per day",
-      icon: Utensils,
-      category: "dining",
-      quantity: true
-    }
-  ];
+export default function BookingExtras() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  const hotelId = searchParams.get("hotelId")!;
+  const offerId = searchParams.get("offerId")!;
+  const checkIn = searchParams.get("checkIn")!;
+  const checkOut = searchParams.get("checkOut")!;
+  const adults = parseInt(searchParams.get("adults") || "2");
+  const children = parseInt(searchParams.get("children") || "0");
+  const rooms = parseInt(searchParams.get("rooms") || "1");
+  const bedPref = searchParams.get("bedPref") || "any";
+  const note = searchParams.get("note") || "";
 
-  const toggleExtra = (extraId: string, option?: any) => {
-    setSelectedExtras(prev => {
-      const newExtras = { ...prev };
-      
-      if (newExtras[extraId]) {
-        // Remove if already selected
-        delete newExtras[extraId];
-      } else {
-        // Add with option or default
-        const extra = extras.find(e => e.id === extraId);
-        newExtras[extraId] = {
-          ...extra,
-          selectedOption: option || (extra?.options ? extra.options[0] : null),
-          quantity: extra?.quantity ? 2 : 1 // Default 2 for per-person items
-        };
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [selected, setSelected] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadAddons = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("hotel_addons")
+          .select("*")
+          .eq("hotel_id", hotelId)
+          .eq("active", true);
+          
+        if (error) {
+          logger.error('Error loading addons:', error);
+          toast.error('Failed to load hotel extras');
+        } else {
+          setAddons(data as Addon[]);
+        }
+      } catch (err) {
+        logger.error('Addons loading error:', err);
+        toast.error('Failed to load hotel extras');
+      } finally {
+        setLoading(false);
       }
-      
-      return newExtras;
-    });
-  };
+    };
+    
+    loadAddons();
+  }, [hotelId]);
 
-  const updateQuantity = (extraId: string, quantity: number) => {
-    setSelectedExtras(prev => ({
+  const updateQuantity = (id: string, change: number) => {
+    setSelected((prev) => ({
       ...prev,
-      [extraId]: {
-        ...prev[extraId],
-        quantity: Math.max(1, quantity)
-      }
+      [id]: Math.max(0, (prev[id] || 0) + change)
     }));
   };
 
-  const getExtraPrice = (extra: any) => {
-    if (extra.selectedOption) {
-      return extra.selectedOption.price * (extra.quantity || 1);
-    }
-    return extra.price * (extra.quantity || 1);
+  const getAddonPrice = (addon: Addon) => {
+    const basePrice = addon.price_cents / 100;
+    const quantity = addon.per_person ? (adults + children) : 1;
+    return basePrice * quantity;
   };
 
   const getTotalExtrasPrice = () => {
-    return Object.values(selectedExtras).reduce((total: number, extra: any) => {
-      return total + getExtraPrice(extra);
+    return addons.reduce((total, addon) => {
+      const quantity = selected[addon.id] || 0;
+      if (quantity > 0) {
+        return total + (getAddonPrice(addon) * quantity);
+      }
+      return total;
     }, 0);
   };
 
-  const getTotalPrice = () => {
-    return basePrice + getTotalExtrasPrice() + fundContribution;
-  };
-
-  const handleContinue = () => {
-    const queryParams = new URLSearchParams({
-      basePrice: basePrice.toString(),
-      extrasPrice: getTotalExtrasPrice().toString(),
-      fundContribution: fundContribution.toString(),
-      total: getTotalPrice().toString(),
-      extras: JSON.stringify(selectedExtras)
+  const proceed = () => {
+    const selectedAddons = Object.entries(selected)
+      .filter(([_, quantity]) => quantity > 0)
+      .map(([id]) => id);
+    
+    const params = new URLSearchParams({
+      hotelId,
+      offerId,
+      checkIn,
+      checkOut,
+      adults: adults.toString(),
+      children: children.toString(),
+      rooms: rooms.toString(),
+      bedPref,
+      note,
+      addons: selectedAddons.join(',')
     });
     
-    window.location.href = `/booking/checkout?${queryParams}`;
+    navigate(`/booking/checkout?${params.toString()}`);
   };
+
+  const totalExtras = getTotalExtrasPrice();
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Header */}
-      <div className="pt-24 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
-        <div className="max-w-7xl mx-auto">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-4">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Room Selection
-          </Button>
-          
-          <h1 className="text-3xl font-bold mb-2">Enhance Your <span className="hero-text">Stay</span></h1>
-          <p className="text-muted-foreground">
-            Add extras and services to make your trip even more memorable
-          </p>
-        </div>
-      </div>
+      <div className="container mx-auto p-4 space-y-4 pt-24">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 mb-4"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to Room Selection
+        </Button>
 
-      <div className="max-w-7xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Extras Selection */}
-          <div className="lg:col-span-2">
-            <div className="space-y-6">
-              {/* Recommended */}
-              <div>
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <Badge className="mr-2 bg-primary">Recommended</Badge>
-                  Popular Add-ons
-                </h2>
-                
-                <div className="grid gap-4">
-                  {extras.filter(extra => extra.recommended).map((extra) => {
-                    const Icon = extra.icon;
-                    const isSelected = selectedExtras[extra.id];
-                    
-                    return (
-                      <Card 
-                        key={extra.id}
-                        className={`travel-card cursor-pointer transition-all ${
-                          isSelected ? 'ring-2 ring-primary' : ''
-                        }`}
-                        onClick={() => toggleExtra(extra.id)}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-4 flex-1">
-                              <div className="p-2 bg-primary/10 rounded-lg">
-                                <Icon className="h-6 w-6 text-primary" />
-                              </div>
-                              
-                              <div className="flex-1">
-                                <h3 className="font-bold mb-1">{extra.name}</h3>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {extra.description}
-                                </p>
-                                {extra.savings && (
-                                  <p className="text-sm text-green-600 font-medium">
-                                    {extra.savings}
-                                  </p>
-                                )}
-                              </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Extras & Services</CardTitle>
+            <p className="text-muted-foreground">
+              Enhance your stay with optional extras and services
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loading ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Loading available extras...</p>
+              </div>
+            ) : addons.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No extras available for this hotel.</p>
+              </div>
+            ) : (
+              <>
+                {addons.map((addon) => {
+                  const quantity = selected[addon.id] || 0;
+                  const price = getAddonPrice(addon);
+                  
+                  return (
+                    <Card key={addon.id} className="border">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium">{addon.name}</h4>
+                              <Badge variant="outline" className="text-xs">
+                                {addon.category}
+                              </Badge>
+                              {addon.per_person && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Per person
+                                </Badge>
+                              )}
                             </div>
-                            
-                            <div className="text-right ml-4">
-                              <div className="flex items-center space-x-3">
-                                <div>
-                                  <p className="text-lg font-bold">${extra.price}</p>
-                                  {extra.priceType && (
-                                    <p className="text-xs text-muted-foreground">{extra.priceType}</p>
-                                  )}
-                                </div>
-                                <Switch 
-                                  checked={isSelected}
-                                  onCheckedChange={() => toggleExtra(extra.id)}
-                                />
-                              </div>
+                            {addon.description && (
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {addon.description}
+                              </p>
+                            )}
+                            <div className="text-sm font-medium">
+                              {addon.currency} {price.toFixed(2)}
+                              {addon.per_person && (
+                                <span className="text-muted-foreground ml-1">
+                                  (× {adults + children} guests)
+                                </span>
+                              )}
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Transport & Convenience */}
-              <div>
-                <h2 className="text-xl font-bold mb-4">Transport & Convenience</h2>
-                
-                <div className="grid gap-4">
-                  {extras.filter(extra => ['transport', 'convenience'].includes(extra.category)).map((extra) => {
-                    const Icon = extra.icon;
-                    const isSelected = selectedExtras[extra.id];
-                    
-                    return (
-                      <Card 
-                        key={extra.id}
-                        className={`travel-card transition-all ${
-                          isSelected ? 'ring-2 ring-primary' : ''
-                        }`}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-4 flex-1">
-                              <div className="p-2 bg-muted rounded-lg">
-                                <Icon className="h-6 w-6" />
-                              </div>
-                              
-                              <div className="flex-1">
-                                <h3 className="font-bold mb-1">{extra.name}</h3>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                  {extra.description}
-                                </p>
-                                
-                                {/* Options for transport */}
-                                {extra.options && isSelected && (
-                                  <div className="space-y-2">
-                                    {extra.options.map((option: any) => (
-                                      <div 
-                                        key={option.id}
-                                        className="flex items-center justify-between p-2 border rounded cursor-pointer hover:bg-muted/50"
-                                        onClick={() => {
-                                          setSelectedExtras(prev => ({
-                                            ...prev,
-                                            [extra.id]: {
-                                              ...prev[extra.id],
-                                              selectedOption: option
-                                            }
-                                          }));
-                                        }}
-                                      >
-                                        <span className="text-sm">{option.name}</span>
-                                        <span className="text-sm font-medium">${option.price}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="text-right ml-4">
-                              <div className="flex items-center space-x-3">
-                                <div>
-                                  <p className="text-lg font-bold">${extra.price}</p>
-                                </div>
-                                <Switch 
-                                  checked={isSelected}
-                                  onCheckedChange={() => toggleExtra(extra.id)}
-                                />
-                              </div>
-                            </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateQuantity(addon.id, -1)}
+                              disabled={quantity === 0}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="w-8 text-center font-medium">
+                              {quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateQuantity(addon.id, 1)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Wellness & Dining */}
-              <div>
-                <h2 className="text-xl font-bold mb-4">Wellness & Dining</h2>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
                 
-                <div className="grid gap-4">
-                  {extras.filter(extra => ['wellness', 'dining'].includes(extra.category)).map((extra) => {
-                    const Icon = extra.icon;
-                    const isSelected = selectedExtras[extra.id];
-                    
-                    return (
-                      <Card 
-                        key={extra.id}
-                        className={`travel-card transition-all ${
-                          isSelected ? 'ring-2 ring-primary' : ''
-                        }`}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-4 flex-1">
-                              <div className="p-2 bg-muted rounded-lg">
-                                <Icon className="h-6 w-6" />
-                              </div>
-                              
-                              <div className="flex-1">
-                                <h3 className="font-bold mb-1">{extra.name}</h3>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {extra.description}
-                                </p>
-                                {extra.savings && (
-                                  <p className="text-sm text-green-600 font-medium">
-                                    {extra.savings}
-                                  </p>
-                                )}
-                                
-                                {/* Quantity selector for per-person items */}
-                                {extra.quantity && isSelected && (
-                                  <div className="flex items-center space-x-2 mt-3">
-                                    <span className="text-sm">Guests:</span>
-                                    <div className="flex items-center space-x-2">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => updateQuantity(extra.id, (selectedExtras[extra.id]?.quantity || 1) - 1)}
-                                      >
-                                        <Minus className="h-3 w-3" />
-                                      </Button>
-                                      <span className="w-8 text-center">
-                                        {selectedExtras[extra.id]?.quantity || 1}
-                                      </span>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => updateQuantity(extra.id, (selectedExtras[extra.id]?.quantity || 1) + 1)}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="text-right ml-4">
-                              <div className="flex items-center space-x-3">
-                                <div>
-                                  <p className="text-lg font-bold">${extra.price}</p>
-                                  {extra.priceType && (
-                                    <p className="text-xs text-muted-foreground">{extra.priceType}</p>
-                                  )}
-                                </div>
-                                <Switch 
-                                  checked={isSelected}
-                                  onCheckedChange={() => toggleExtra(extra.id)}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
+                {totalExtras > 0 && (
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Total Extras:</span>
+                        <span className="font-bold text-lg">
+                          AUD {totalExtras.toFixed(2)}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
 
-          {/* Price Summary */}
-          <div>
-            <Card className="travel-card sticky top-24">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold mb-4">Price Summary</h3>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Room (7 nights)</span>
-                    <span>${basePrice}</span>
-                  </div>
-                  
-                  {Object.entries(selectedExtras).map(([id, extra]: [string, any]) => (
-                    <div key={id} className="flex justify-between text-sm">
-                      <span>
-                        {extra.name}
-                        {extra.quantity > 1 && ` (×${extra.quantity})`}
-                      </span>
-                      <span>${getExtraPrice(extra)}</span>
-                    </div>
-                  ))}
-                  
-                  {fundContribution > 0 && (
-                    <div className="flex justify-between text-sm text-primary">
-                      <span>Fund Contribution</span>
-                      <span>+${fundContribution}</span>
-                    </div>
-                  )}
-                  
-                  <div className="border-t pt-3 flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>${getTotalPrice()}</span>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    Includes all taxes and fees
-                  </div>
-                </div>
-
-                
-                {/* One-Click Booking Integration */}
-                <div className="mt-6">
-                  <OneClickBooking 
-                    bookingData={{
-                      destination: "Bali",
-                      checkIn: "2024-02-01", 
-                      checkOut: "2024-02-05",
-                      guests: 2
-                    }}
-                  />
-                </div>
-
-                <Button onClick={handleContinue} className="w-full mt-4 btn-primary h-12">
-                  Continue to Payment
-                </Button>
-                
-                <p className="text-xs text-center text-muted-foreground mt-3">
-                  You can modify or cancel extras up to 24 hours before check-in
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            <Button onClick={proceed} className="w-full mt-6" size="lg">
+              Continue to Checkout
+              {totalExtras > 0 && (
+                <span className="ml-2">
+                  (+AUD {totalExtras.toFixed(2)})
+                </span>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default BookingExtrasPage;
+}
