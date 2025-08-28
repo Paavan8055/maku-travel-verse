@@ -20,8 +20,6 @@ const GiftCardPreview = ({ amount, theme }: GiftCardPreviewProps) => {
           style={{ backgroundImage: `url(${theme.image})` }}
         />
         
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/40" />
         
         {/* Gift card content */}
         <div className="relative flex h-full flex-col justify-between p-6 text-white">
