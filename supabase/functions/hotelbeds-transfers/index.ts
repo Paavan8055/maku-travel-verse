@@ -47,8 +47,8 @@ async function generateSignature(apiKey: string, secret: string, timestamp: numb
 }
 
 async function searchHotelbedsTransfers(params: TransferSearchParams): Promise<any> {
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
-  const secret = Deno.env.get('HOTELBEDS_SECRET');
+  const apiKey = Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY');
+  const secret = Deno.env.get('HOTELBEDS_ACTIVITY_SECRET');
   
   if (!apiKey || !secret) {
     throw new Error('HotelBeds credentials not configured');

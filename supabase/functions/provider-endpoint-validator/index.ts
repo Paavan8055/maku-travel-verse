@@ -69,7 +69,10 @@ async function validateSabreEndpoints(): Promise<EndpointTestResult[]> {
   const startTime = Date.now();
   try {
     const credentials = btoa(`${ENV_CONFIG.SABRE_CLIENT_ID}:${ENV_CONFIG.SABRE_CLIENT_SECRET}`);
-    const pcc = Deno.env.get('SABRE_PCC');
+    const isProduction = ENV_CONFIG.isProduction;
+    const pcc = isProduction 
+      ? Deno.env.get('SABRE_PROD_PCC') 
+      : Deno.env.get('SABRE_TEST_PCC');
     
     const response = await fetch(ENV_CONFIG.sabre.tokenUrl, {
       method: 'POST',

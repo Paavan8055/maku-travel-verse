@@ -37,8 +37,8 @@ function generateHotelBedsSignature(apiKey: string, secret: string, timestamp: n
 }
 
 async function checkHotelRates(params: CheckratesParams): Promise<any> {
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY')
-  const secret = Deno.env.get('HOTELBEDS_SECRET')
+  const apiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY')
+  const secret = Deno.env.get('HOTELBEDS_HOTEL_SECRET')
   
   if (!apiKey || !secret) {
     throw new Error('HotelBeds credentials not configured')

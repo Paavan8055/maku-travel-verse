@@ -43,8 +43,8 @@ async function logToMonitoring(entry: MonitoringEntry): Promise<void> {
 
 async function testHotelBedsEndpoint(endpoint: string, testData: any = null): Promise<MonitoringEntry> {
   const startTime = Date.now()
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY')
-  const secret = Deno.env.get('HOTELBEDS_SECRET')
+  const apiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY')
+  const secret = Deno.env.get('HOTELBEDS_HOTEL_SECRET')
   
   if (!apiKey || !secret) {
     return {
