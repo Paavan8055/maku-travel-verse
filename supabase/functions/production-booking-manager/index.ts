@@ -141,8 +141,8 @@ serve(async (req) => {
       }
     })
 
-    // Create booking update record for real-time notifications (only for authenticated users)
-    if (providerResult.success && booking.user_id) {
+    // Create booking update record for real-time notifications
+    if (providerResult.success) {
       await supabase
         .from('booking_updates')
         .insert({
@@ -153,7 +153,6 @@ serve(async (req) => {
           message: `Your ${bookingType} booking has been confirmed`,
           status: 'confirmed',
           booking_type: bookingType,
-          user_id: booking.user_id,
           metadata: {
             confirmation_code: providerResult.confirmationCode,
             pnr: providerResult.pnr
@@ -205,8 +204,8 @@ async function createProviderBooking(
     // Route to appropriate provider function
     const providerFunctions = {
       flight: 'amadeus-flight-booking',
-      hotel: 'hotelbeds-booking', 
-      activity: 'hotelbeds-booking',
+      hotel: 'hotelbeds-hotel-booking', 
+      activity: 'hotelbeds-activity-booking',
       car: 'amadeus-transfer-booking'
     }
 
@@ -229,27 +228,11 @@ async function createProviderBooking(
     }
 
     if (data?.success) {
-      // Handle different response formats from providers
-      let confirmationCode = data.confirmationCode || data.confirmation;
-      let bookingId = data.bookingId || data.providerBookingId;
-      
-      // Handle amadeus-flight-booking response format
-      if (data.booking?.reference && data.booking?.id) {
-        confirmationCode = data.booking.reference;
-        bookingId = data.booking.id;
-      }
-      
-      // Handle hotelbeds-booking response format  
-      if (data.booking?.reference && !data.booking?.id) {
-        confirmationCode = data.booking.reference;
-        bookingId = data.booking.reference; // HotelBeds uses reference as ID
-      }
-      
       return {
         success: true,
-        bookingId: bookingId,
-        confirmationCode: confirmationCode,
-        pnr: data.pnr || data.booking?.pnr,
+        bookingId: data.bookingId || data.providerBookingId,
+        confirmationCode: data.confirmationCode || data.confirmation,
+        pnr: data.pnr,
         providerResponse: data
       }
     } else {

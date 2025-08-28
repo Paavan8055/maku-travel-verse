@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import logger from "../_shared/logger.ts";
-import { ProviderAuthFactory } from "../_shared/provider-authentication.ts";
-import { CircuitBreakerManager } from "../_shared/provider-circuit-breakers.ts";
-import { ResponseTransformer } from "../_shared/unified-response-transformer.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -243,52 +240,55 @@ async function executeWithCircuitBreaker(
   params: any
 ): Promise<{ success: boolean; data?: any; error?: string; responseTime: number; quotaUsage?: number }> {
   const startTime = Date.now();
-  const correlationId = crypto.randomUUID();
 
   try {
-    // Get independent circuit breaker for this provider
-    const circuitBreaker = CircuitBreakerManager.getCircuitBreaker(provider.providerId);
-    
-    // Execute with circuit breaker protection
-    const result = await circuitBreaker.execute(async () => {
-      return await executeProviderRequest(provider, params, correlationId);
+    // Check circuit breaker
+    if (!isCircuitBreakerClosed(provider.circuitBreaker)) {
+      throw new Error(`Circuit breaker is ${provider.circuitBreaker.state} for provider ${provider.providerId}`);
+    }
+
+    // Map provider to function
+    const functionMap: Record<string, string> = {
+      'amadeus-flight': 'amadeus-flight-search',
+      'sabre-flight': 'sabre-flight-search',
+      'amadeus-hotel': 'amadeus-hotel-search',
+      'hotelbeds-hotel': 'hotelbeds-search',
+      'sabre-hotel': 'sabre-hotel-search',
+      'amadeus-activity': 'amadeus-activity-search',
+      'hotelbeds-activity': 'hotelbeds-activities'
+    };
+
+    const functionName = functionMap[provider.providerId];
+    if (!functionName) {
+      throw new Error(`Unknown provider function: ${provider.providerId}`);
+    }
+
+    const { data, error } = await supabase.functions.invoke(functionName, {
+      body: params
     });
 
     const responseTime = Date.now() - startTime;
-    
-    // Transform response to unified format
-    let transformedData = result.data;
-    try {
-      const providerType = provider.providerId.split('-')[0] as 'amadeus' | 'sabre' | 'hotelbeds';
-      const serviceType = provider.providerId.split('-')[1] as 'flight' | 'hotel' | 'activity';
-      
-      transformedData = ResponseTransformer.transformResponse(
-        result.data,
-        providerType,
-        serviceType,
-        provider.providerId,
-        responseTime
-      );
-    } catch (transformError) {
-      logger.warn(`[ENHANCED-PROVIDER-ROTATION] Response transformation failed for ${provider.providerId}:`, transformError);
-      // Keep original data if transformation fails
+
+    if (error) {
+      updateCircuitBreakerOnFailure(provider.providerId);
+      throw new Error(`Provider ${provider.providerId} failed: ${error.message}`);
+    }
+
+    // Success - reset circuit breaker if needed
+    if (provider.circuitBreaker.state === 'half-open') {
+      resetCircuitBreaker(provider.providerId);
     }
 
     return {
       success: true,
-      data: transformedData,
+      data: data?.data || data,
       responseTime,
       quotaUsage: provider.quotaUsage
     };
 
   } catch (error) {
     const responseTime = Date.now() - startTime;
-    
-    logger.error(`[ENHANCED-PROVIDER-ROTATION] Provider ${provider.providerId} failed:`, {
-      error: error.message,
-      responseTime,
-      correlationId
-    });
+    updateCircuitBreakerOnFailure(provider.providerId);
     
     return {
       success: false,
@@ -296,135 +296,6 @@ async function executeWithCircuitBreaker(
       responseTime
     };
   }
-}
-
-async function executeProviderRequest(provider: ProviderMetrics, params: any, correlationId: string): Promise<{ data: any }> {
-  // Use independent authentication for each provider
-  let authHeader = {};
-  
-  const providerType = provider.providerId.split('-')[0];
-  
-  try {
-    switch (providerType) {
-      case 'sabre': {
-        const auth = ProviderAuthFactory.getSabreAuth();
-        const token = await auth.getValidToken();
-        authHeader = { 'Authorization': `Bearer ${token}` };
-        break;
-      }
-      case 'amadeus': {
-        const auth = ProviderAuthFactory.getAmadeusAuth();
-        const token = await auth.getValidToken();
-        authHeader = { 'Authorization': `Bearer ${token}` };
-        break;
-      }
-      case 'hotelbeds': {
-        const auth = ProviderAuthFactory.getHotelBedsAuth();
-        const serviceType = provider.providerId.split('-')[1] as 'hotel' | 'activity';
-        const signature = await auth.generateSignature(serviceType);
-        authHeader = {
-          'Api-key': signature.apiKey,
-          'X-Signature': signature.signature
-        };
-        break;
-      }
-      default:
-        throw new Error(`Unknown provider type: ${providerType}`);
-    }
-  } catch (authError) {
-    logger.error(`[ENHANCED-PROVIDER-ROTATION] Authentication failed for ${provider.providerId}:`, authError);
-    throw new Error(`Authentication failed: ${authError.message}`);
-  }
-
-  // Direct API call with independent authentication
-  const apiResponse = await makeDirectProviderCall(provider, params, authHeader, correlationId);
-  
-  return { data: apiResponse };
-}
-
-async function makeDirectProviderCall(
-  provider: ProviderMetrics, 
-  params: any, 
-  authHeader: any, 
-  correlationId: string
-): Promise<any> {
-  const providerType = provider.providerId.split('-')[0];
-  const serviceType = provider.providerId.split('-')[1];
-  
-  // Provider-specific endpoint mapping
-  const endpointMap: Record<string, string> = {
-    'sabre-flight': 'https://api-crt.cert.havail.sabre.com/v1/shop/flights',
-    'sabre-hotel': 'https://api-crt.cert.havail.sabre.com/v1/shop/hotels',
-    'amadeus-flight': 'https://test.api.amadeus.com/v2/shopping/flight-offers',
-    'amadeus-hotel': 'https://test.api.amadeus.com/v3/shopping/hotel-offers',
-    'hotelbeds-hotel': 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels',
-    'hotelbeds-activity': 'https://api.test.hotelbeds.com/activity-api/3.0/activities'
-  };
-
-  const endpoint = endpointMap[provider.providerId];
-  if (!endpoint) {
-    throw new Error(`No endpoint configured for provider: ${provider.providerId}`);
-  }
-
-  // Build query parameters based on service type
-  const queryParams = buildQueryParams(serviceType, params);
-  const url = `${endpoint}${queryParams ? '?' + queryParams : ''}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Correlation-ID': correlationId,
-        ...authHeader
-      }
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Provider API error: ${response.status} - ${errorText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    logger.error(`[ENHANCED-PROVIDER-ROTATION] Direct API call failed for ${provider.providerId}:`, {
-      error: error.message,
-      endpoint: endpoint.split('?')[0], // Log URL without params for security
-      correlationId
-    });
-    throw error;
-  }
-}
-
-function buildQueryParams(serviceType: string, params: any): string {
-  const searchParams = new URLSearchParams();
-  
-  switch (serviceType) {
-    case 'flight':
-      if (params.originLocationCode) searchParams.set('originLocationCode', params.originLocationCode);
-      if (params.destinationLocationCode) searchParams.set('destinationLocationCode', params.destinationLocationCode);
-      if (params.departureDate) searchParams.set('departureDate', params.departureDate);
-      if (params.returnDate) searchParams.set('returnDate', params.returnDate);
-      if (params.adults) searchParams.set('adults', params.adults.toString());
-      break;
-    
-    case 'hotel':
-      if (params.cityCode) searchParams.set('cityCode', params.cityCode);
-      if (params.checkInDate) searchParams.set('checkInDate', params.checkInDate);
-      if (params.checkOutDate) searchParams.set('checkOutDate', params.checkOutDate);
-      if (params.adults) searchParams.set('adults', params.adults.toString());
-      if (params.roomQuantity) searchParams.set('roomQuantity', params.roomQuantity.toString());
-      break;
-    
-    case 'activity':
-      if (params.destination) searchParams.set('destination', params.destination);
-      if (params.date) searchParams.set('date', params.date);
-      if (params.participants) searchParams.set('participants', params.participants.toString());
-      break;
-  }
-  
-  return searchParams.toString();
 }
 
 function updateProviderMetrics(

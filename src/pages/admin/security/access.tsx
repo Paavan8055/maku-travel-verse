@@ -1,86 +1,76 @@
-
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Shield, User, Lock, Key } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide';
+import { SecurityMonitoring } from '@/components/admin/SecurityMonitoring';
+import { EmergencyStabilization } from '@/components/admin/EmergencyStabilization';
+import { ProviderHealthDashboard } from '@/components/admin/ProviderHealthDashboard';
+import { AuthenticationFix } from '@/components/admin/AuthenticationFix';
+import { SystemHealthMonitor } from '@/components/admin/SystemHealthMonitor';
+import { RecoveryStatus } from '@/components/admin/RecoveryStatus';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SecurityValidationPanel } from '@/components/admin/SecurityValidationPanel';
+import { ProviderApiTester } from '@/components/admin/ProviderApiTester';
+import { LoadTestingDashboard } from '@/components/admin/LoadTestingDashboard';
 
-export default function AdminAccessControl() {
-  const accessControls = [
-    {
-      role: 'Super Admin',
-      users: 2,
-      permissions: ['All Access'],
-      lastModified: '2 days ago'
-    },
-    {
-      role: 'Admin',
-      users: 5,
-      permissions: ['User Management', 'Booking Management', 'Reports'],
-      lastModified: '1 week ago'
-    },
-    {
-      role: 'Support',
-      users: 12,
-      permissions: ['View Bookings', 'Customer Support'],
-      lastModified: '3 days ago'
-    },
-    {
-      role: 'Read Only',
-      users: 8,
-      permissions: ['View Reports', 'View Analytics'],
-      lastModified: '5 days ago'
-    }
-  ];
-
+const AdminSecurityPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Access Control</h1>
+        <h1 className="text-3xl font-bold">Security & Operations Control</h1>
         <p className="text-muted-foreground">
-          Manage user roles and permissions
+          Emergency stabilization, security monitoring, and system operations
         </p>
       </div>
-
-      <div className="flex gap-4">
-        <Button className="gap-2">
-          <User className="h-4 w-4" />
-          Add New Role
-        </Button>
-        <Button variant="outline" className="gap-2">
-          <Key className="h-4 w-4" />
-          Manage API Keys
-        </Button>
-      </div>
-
-      <div className="grid gap-4">
-        {accessControls.map((control, index) => (
-          <Card key={index}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  <CardTitle className="text-lg">{control.role}</CardTitle>
-                </div>
-                <Badge variant="outline">{control.users} users</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div>
-                  <span className="text-sm font-medium">Permissions: </span>
-                  <span className="text-sm text-muted-foreground">
-                    {control.permissions.join(', ')}
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Last modified: {control.lastModified}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      
+      <Tabs defaultValue="recovery" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="recovery">Recovery Status</TabsTrigger>
+          <TabsTrigger value="emergency">Emergency</TabsTrigger>
+          <TabsTrigger value="auth">Authentication</TabsTrigger>
+          <TabsTrigger value="providers">Providers</TabsTrigger>
+          <TabsTrigger value="testing">Validation</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="recovery">
+          <RecoveryStatus />
+        </TabsContent>
+        
+        <TabsContent value="emergency">
+          <EmergencyStabilization />
+        </TabsContent>
+        
+        <TabsContent value="auth">
+          <AuthenticationFix />
+        </TabsContent>
+        
+        <TabsContent value="providers">
+          <div className="space-y-6">
+            <ProviderHealthDashboard />
+            <ProviderApiTester />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="testing">
+          <div className="space-y-6">
+            <SecurityValidationPanel />
+            <LoadTestingDashboard />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="security">
+          <SecuritySettingsGuide />
+        </TabsContent>
+        
+        <TabsContent value="monitoring">
+          <div className="space-y-6">
+            <SystemHealthMonitor />
+            <SecurityMonitoring />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-}
+};
+
+export default AdminSecurityPage;

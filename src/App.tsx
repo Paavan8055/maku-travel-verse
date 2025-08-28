@@ -1,202 +1,197 @@
+import React from 'react';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/features/auth/context/AuthContext";
+import { AdminGuard, DebugGuard } from "@/components/auth/RoleGuard";
+import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
+import { SearchProvider } from "@/features/search/context/SearchContext";
+import { HealthMonitorProvider } from "@/providers/HealthMonitorProvider";
+import { PaymentProvider } from "@/features/payment/PaymentProvider";
+import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
+import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
+import { ABTestProvider } from "@/components/testing/ABTestingFramework";
+import { ProductionProvider } from "@/contexts/ProductionContext";
+import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
+import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
+import { createLazyRoute } from "@/components/performance/CodeSplitting";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { Helmet, HelmetProvider } from 'react-helmet-async';
+import "./App.css";
 
-import './App.css';
-import React, { Suspense } from 'react';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LoadingSpinner } from '@/components/ui/loading-states';
-import { AdminLayout } from '@/components/admin/AdminLayout';
-import { AdminGuard } from './features/auth/components/AdminGuard';
-import { AuthProvider } from './features/auth/context/AuthContext';
-import { AgenticBotProvider } from '@/features/agenticBot/context/AgenticBotContext';
-import Index from '@/pages/Index';
-import Auth from '@/pages/Auth';
-import AdminDashboard from '@/components/admin/AdminDashboard';
-import FeatureFlagsPage from '@/pages/admin/FeatureFlagsPage';
-import EnvironmentConfigPage from '@/pages/admin/EnvironmentConfigPage';
-import AdminProvidersPage from '@/pages/admin/monitoring/providers';
-import AdminProvidersSettingsPage from '@/pages/admin/settings/providers';
-import HotelSearchPage from '@/pages/search/hotels';
-import FlightSearchPage from '@/pages/search/flights';
-import ActivitySearchPage from '@/pages/search/activities';
-import CarSearchPage from '@/pages/search/cars';
-import { BookingConfirmation } from '@/components/checkout/BookingConfirmation';
-import GiftCards from '@/pages/GiftCards';
-import Roadmap from '@/pages/Roadmap';
-import Partners from '@/pages/Partners';
-import Loyalty from '@/pages/Loyalty';
-import Reviews from '@/pages/Reviews';
-import About from '@/pages/About';
-import Careers from '@/pages/Careers';
-import Press from '@/pages/Press';
-import PartnerPortal from '@/pages/PartnerPortal';
-import Deals from '@/pages/Deals';
+// Lazy load pages for better performance
+const Index = createLazyRoute(() => import("./pages/Index"));
+const Auth = createLazyRoute(() => import("./pages/Auth"));
+const FlightsPage = createLazyRoute(() => import("./pages/flights"));
+const ActivitiesPage = createLazyRoute(() => import("./pages/activities"));
+const HotelSearchPage = createLazyRoute(() => import("./pages/search/hotels"));
+const FlightSearchPage = createLazyRoute(() => import("./pages/search/flights"));
+const ActivitySearchPage = createLazyRoute(() => import("./pages/search/activities"));
+const UnifiedSearchPage = createLazyRoute(() => import("./pages/search/index"));
+const HotelBookingReviewPage = createLazyRoute(() => import("./pages/hotel-booking-review"));
+const FlightBookingReviewPage = createLazyRoute(() => import("./pages/flight-booking-review"));
+const FlightManagementPage = createLazyRoute(() => import("./pages/flight-management"));
+const ActivityBookingReviewPage = createLazyRoute(() => import("./pages/activity-booking-review"));
+const HotelCheckoutPage = createLazyRoute(() => import("./pages/HotelCheckout"));
+const FlightCheckoutPage = createLazyRoute(() => import("./pages/FlightCheckout"));
+const ActivityCheckoutPage = createLazyRoute(() => import("./pages/ActivityCheckout"));
+const BookingConfirmationPage = createLazyRoute(() => import("./pages/BookingConfirmation"));
+const BookingDetailsPage = createLazyRoute(() => import("./pages/BookingDetails"));
+const BookingSuccessPage = createLazyRoute(() => import("./pages/BookingSuccess"));
+const BookingFailurePage = createLazyRoute(() => import("./pages/BookingFailure"));
+const PaymentSuccessPage = createLazyRoute(() => import("./pages/PaymentSuccess"));
+const DashboardPage = createLazyRoute(() => import("./pages/Dashboard"));
+const SettingsPage = createLazyRoute(() => import("./pages/settings"));
+const ProfilePage = createLazyRoute(() => import("./pages/profile"));
+const BookingsPage = createLazyRoute(() => import("./pages/bookings"));
+const TravelFundPage = createLazyRoute(() => import("./pages/travel-fund"));
+const TravelPreferencesPage = createLazyRoute(() => import("./pages/travel-preferences"));
+const InviteFriendsPage = createLazyRoute(() => import("./pages/invite-friends"));
+const AdminDashboard = createLazyRoute(() => import("./pages/AdminDashboard"));
+const AdminAuth = createLazyRoute(() => import("./pages/AdminAuth"));
+const DeploymentTestPage = createLazyRoute(() => import("./pages/admin/deployment-test"));
+const AdminLayout = createLazyRoute(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
+const AdminOverviewPage = createLazyRoute(() => import("./pages/admin/dashboard/overview"));
+const AdminRealtimePage = createLazyRoute(() => import("./pages/admin/dashboard/realtime"));
+const AdminAlertsPage = createLazyRoute(() => import("./pages/admin/dashboard/alerts"));
+const AdminHealthPage = createLazyRoute(() => import("./pages/admin/monitoring/health"));
+const AdminProvidersPage = createLazyRoute(() => import("./pages/admin/monitoring/providers"));
+const AdminQuotasPage = createLazyRoute(() => import("./pages/admin/monitoring/quotas"));
+const AdminCorrelationPage = createLazyRoute(() => import("./pages/admin/monitoring/correlation"));
+const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations/bookings"));
+const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/users"));
+const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
+const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnostics"));
+const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
+const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
 
-// Lazy load admin pages
-const AdminRealtimeMetrics = React.lazy(() => import('@/pages/admin/dashboard/realtime'));
-const AdminCriticalAlerts = React.lazy(() => import('@/pages/admin/dashboard/alerts'));
-const AdminSystemHealth = React.lazy(() => import('@/pages/admin/monitoring/health'));
-const AdminQuotaManagement = React.lazy(() => import('@/pages/admin/monitoring/quotas'));
-const AdminPerformanceLogs = React.lazy(() => import('@/pages/admin/monitoring/logs'));
-const AdminCorrelationTracking = React.lazy(() => import('@/pages/admin/monitoring/correlation'));
-const AdminBookingManagement = React.lazy(() => import('@/pages/admin/operations/bookings'));
-const AdminUserManagement = React.lazy(() => import('@/pages/admin/operations/users'));
-const AdminTestSuite = React.lazy(() => import('@/pages/admin/operations/testing'));
-const AdminSystemDiagnostics = React.lazy(() => import('@/pages/admin/diagnostics'));
-const AdminSearchAnalytics = React.lazy(() => import('@/pages/admin/operations/search'));
-const AdminAccessControl = React.lazy(() => import('@/pages/admin/security/access'));
-const AdminAuditLogs = React.lazy(() => import('@/pages/admin/security/audit'));
-const AdminComplianceStatus = React.lazy(() => import('@/pages/admin/security/compliance'));
+const HotelSelectionPage = createLazyRoute(() => import("./pages/booking/hotel-selection").then(m => ({ default: m.default })));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes  
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+  },
+});
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AgenticBotProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                {/* Main Website Route */}
-                <Route path="/" element={<Index />} />
-              
-                {/* Auth Route */}
-                <Route path="/auth" element={<Auth />} />
-              
-                {/* Search Routes */}
-                <Route path="/search/hotels" element={<HotelSearchPage />} />
-                <Route path="/search/flights" element={<FlightSearchPage />} />
-                <Route path="/search/activities" element={<ActivitySearchPage />} />
-                <Route path="/search/cars" element={<CarSearchPage />} />
-              
-                {/* Booking Routes */}
-                <Route path="/booking/confirmation" element={<BookingConfirmation />} />
-              
-                {/* Customer Routes */}
-                <Route path="/gift-cards" element={<GiftCards />} />
-                <Route path="/roadmap" element={<Roadmap />} />
-                <Route path="/partners" element={<Partners />} />
-                <Route path="/loyalty" element={<Loyalty />} />
-                <Route path="/reviews" element={<Reviews />} />
-                
-                {/* Additional Pages */}
-                <Route path="/about" element={<About />} />
-                <Route path="/careers" element={<Careers />} />
-                <Route path="/press" element={<Press />} />
-                <Route path="/partner-portal" element={<PartnerPortal />} />
-                <Route path="/deals" element={<Deals />} />
-
-                {/* Admin Routes */}
-                <Route
-                  path="/admin/*"
-                  element={
-                    <AdminGuard>
-                      <AdminLayout />
-                    </AdminGuard>
-                  }
-                >
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  
-                  {/* Dashboard Routes */}
-                  <Route path="dashboard/realtime" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminRealtimeMetrics />
-                    </Suspense>
-                  } />
-                  <Route path="dashboard/alerts" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminCriticalAlerts />
-                    </Suspense>
-                  } />
-                  
-                  {/* Monitoring Routes */}
-                  <Route path="monitoring/health" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminSystemHealth />
-                    </Suspense>
-                  } />
-                  <Route path="monitoring/providers" element={<AdminProvidersPage />} />
-                  <Route path="monitoring/quotas" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminQuotaManagement />
-                    </Suspense>
-                  } />
-                  <Route path="monitoring/logs" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminPerformanceLogs />
-                    </Suspense>
-                  } />
-                  <Route path="monitoring/correlation" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminCorrelationTracking />
-                    </Suspense>
-                  } />
-                  
-                  {/* Operations Routes */}
-                  <Route path="operations/bookings" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminBookingManagement />
-                    </Suspense>
-                  } />
-                  <Route path="operations/users" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminUserManagement />
-                    </Suspense>
-                  } />
-                  <Route path="operations/testing" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminTestSuite />
-                    </Suspense>
-                  } />
-                  <Route path="operations/search" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminSearchAnalytics />
-                    </Suspense>
-                  } />
-                  <Route path="diagnostics" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminSystemDiagnostics />
-                    </Suspense>
-                  } />
-                  
-                  {/* Security Routes */}
-                  <Route path="security/access" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminAccessControl />
-                    </Suspense>
-                  } />
-                  <Route path="security/audit" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminAuditLogs />
-                    </Suspense>
-                  } />
-                  <Route path="security/compliance" element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <AdminComplianceStatus />
-                    </Suspense>
-                  } />
-                  
-                  {/* Settings Routes */}
-                  <Route path="settings/features" element={<FeatureFlagsPage />} />
-                  <Route path="settings/environment" element={<EnvironmentConfigPage />} />
-                  <Route path="settings/providers" element={<AdminProvidersSettingsPage />} />
-                </Route>
-              
-                {/* Fallback Route - redirect to main website */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AgenticBotProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <GlobalErrorBoundary>
+    <HelmetProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <PerformanceMonitor>
+            <HealthMonitorProvider>
+              <AuthProvider>
+                <ProductionProvider>
+                  <CurrencyProvider>
+                    <SearchProvider>
+                      <PaymentProvider>
+                        <ABTestProvider>
+                          <AgenticBotProvider defaultVertical="Solo">
+                            <MakuBotProvider defaultVertical="Solo">
+                              <TooltipProvider>
+                                <div className="min-h-screen bg-background text-foreground">
+                                  <Helmet>
+                                    <meta name="theme-color" content="#ffffff" />
+                                    <meta name="apple-mobile-web-app-capable" content="yes" />
+                                    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+                                    <meta name="format-detection" content="telephone=no" />
+                                  </Helmet>
+                                  
+                                  <Toaster />
+                                  <Sonner />
+                                  
+                                   <BrowserRouter>
+                                     <Routes>
+                                       <Route path="/" element={<Index />} />
+                                       <Route path="/auth" element={<Auth />} />
+                                       <Route path="/flights" element={<FlightsPage />} />
+                                       <Route path="/activities" element={<ActivitiesPage />} />
+                                       <Route path="/hotels" element={<HotelSearchPage />} />
+                                       <Route path="/search" element={<UnifiedSearchPage />} />
+                                       <Route path="/search/hotels" element={<HotelSearchPage />} />
+                                       <Route path="/search/flights" element={<FlightSearchPage />} />
+                                       <Route path="/search/activities" element={<ActivitySearchPage />} />
+                                       <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
+                                        <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
+                                        <Route path="/flight-management" element={<FlightManagementPage />} />
+                                       <Route path="/activity-booking-review" element={<ActivityBookingReviewPage />} />
+                                       <Route path="/hotel-checkout" element={<HotelCheckoutPage />} />
+                                       <Route path="/flight-checkout" element={<FlightCheckoutPage />} />
+                                       <Route path="/activity-checkout" element={<ActivityCheckoutPage />} />
+                                        <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+                                        <Route path="/booking-success" element={<BookingSuccessPage />} />
+                                        <Route path="/booking-failure" element={<BookingFailurePage />} />
+                                        <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                                        <Route path="/booking/:id" element={<BookingDetailsPage />} />
+                                       <Route path="/dashboard" element={<DashboardPage />} />
+                                       <Route path="/settings" element={<SettingsPage />} />
+                                       <Route path="/profile" element={<ProfilePage />} />
+                                       <Route path="/bookings" element={<BookingsPage />} />
+                                       <Route path="/travel-fund" element={<TravelFundPage />} />
+                                       <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
+                                       <Route path="/invite-friends" element={<InviteFriendsPage />} />
+                                       <Route path="/admin" element={<AdminAuth />} />
+                                      <Route path="/admin/*" element={
+                                        <AdminGuard>
+                                          <AdminLayout />
+                                        </AdminGuard>
+                                      }>
+                                        {/* Dashboard Routes */}
+                                        <Route index element={<AdminOverviewPage />} />
+                                        <Route path="dashboard" element={<AdminOverviewPage />} />
+                                        <Route path="dashboard/realtime" element={<AdminRealtimePage />} />
+                                        <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
+                                        
+                        {/* Monitoring Routes */}
+                        <Route path="monitoring/health" element={<AdminHealthPage />} />
+                        <Route path="monitoring/providers" element={<AdminProvidersPage />} />
+                        <Route path="monitoring/quotas" element={<AdminQuotasPage />} />
+                        <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
+                                        
+                                         {/* Operations Routes */}
+                                         <Route path="operations/bookings" element={<AdminBookingsPage />} />
+                                         <Route path="operations/users" element={<AdminUsersPage />} />
+                                         <Route path="operations/testing" element={<AdminTestingPage />} />
+                                         <Route path="diagnostics" element={<AdminDiagnosticsPage />} />
+                                        
+                        {/* Security Routes */}
+                        <Route path="security/access" element={<AdminSecurityPage />} />
+                        <Route path="emergency" element={<SecureAdminPanelPage />} />
+                                        
+                                        {/* Legacy Routes for backward compatibility */}
+                                        <Route path="deployment-test" element={<DeploymentTestPage />} />
+                                      </Route>
+                                      <Route path="/booking/hotel-selection" element={<HotelSelectionPage />} />
+                                    </Routes>
+                                  </BrowserRouter>
+                                </div>
+                              </TooltipProvider>
+                            </MakuBotProvider>
+                          </AgenticBotProvider>
+                        </ABTestProvider>
+                      </PaymentProvider>
+                    </SearchProvider>
+                  </CurrencyProvider>
+                </ProductionProvider>
+              </AuthProvider>
+            </HealthMonitorProvider>
+          </PerformanceMonitor>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </HelmetProvider>
+  </GlobalErrorBoundary>
+);
 
 export default App;

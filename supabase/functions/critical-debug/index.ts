@@ -77,10 +77,8 @@ serve(async (req) => {
     const credentials = {
       AMADEUS_CLIENT_ID: !!Deno.env.get('AMADEUS_CLIENT_ID'),
       AMADEUS_CLIENT_SECRET: !!Deno.env.get('AMADEUS_CLIENT_SECRET'),
-      HOTELBEDS_HOTEL_API_KEY: !!Deno.env.get('HOTELBEDS_HOTEL_API_KEY'),
-      HOTELBEDS_HOTEL_SECRET: !!Deno.env.get('HOTELBEDS_HOTEL_SECRET'),
-      HOTELBEDS_ACTIVITY_API_KEY: !!Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY'),
-      HOTELBEDS_ACTIVITY_SECRET: !!Deno.env.get('HOTELBEDS_ACTIVITY_SECRET'),
+      HOTELBEDS_API_KEY: !!Deno.env.get('HOTELBEDS_API_KEY'),
+      HOTELBEDS_SECRET: !!Deno.env.get('HOTELBEDS_SECRET'),
       SUPABASE_URL: !!Deno.env.get('SUPABASE_URL'),
       SUPABASE_SERVICE_ROLE_KEY: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     };

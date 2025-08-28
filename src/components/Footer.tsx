@@ -1,7 +1,6 @@
 import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
 
 const Footer = () => {
   const footerLinks = {
@@ -98,9 +97,9 @@ return <footer className="bg-primary text-primary-foreground">
               <ul className="space-y-3">
                 {footerLinks.company.map(link => (
                   <li key={link.name}>
-                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
+                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
                       {link.name}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -110,11 +109,11 @@ return <footer className="bg-primary text-primary-foreground">
             <div>
               <h4 className="font-semibold text-lg mb-4">Services</h4>
               <ul className="space-y-3">
-                <li><Link to="/search/hotels" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Hotels & Accommodation</Link></li>
-                <li><Link to="/search/flights" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Flight Booking</Link></li>
-                <li><Link to="/search/activities" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Tours & Activities</Link></li>
-                <li><Link to="/gift-cards" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Gift Cards</Link></li>
-                <li><Link to="/deals" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Travel Deals</Link></li>
+                <li><a href="/search/hotels" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Hotels & Accommodation</a></li>
+                <li><a href="/search/flights" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Flight Booking</a></li>
+                <li><a href="/search/activities" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Tours & Activities</a></li>
+                <li><a href="/gift-cards" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Gift Cards</a></li>
+                <li><a href="/deals" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Travel Deals</a></li>
               </ul>
             </div>
 
@@ -124,15 +123,9 @@ return <footer className="bg-primary text-primary-foreground">
               <ul className="space-y-3">
                 {footerLinks.support.map(link => (
                   <li key={link.name}>
-                    {link.href.startsWith('mailto:') ? (
-                      <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
-                        {link.name}
-                      </a>
-                    ) : (
-                      <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
-                        {link.name}
-                      </Link>
-                    )}
+                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
+                      {link.name}
+                    </a>
                   </li>
                 ))}
               </ul>

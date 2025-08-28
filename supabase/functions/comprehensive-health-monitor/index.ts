@@ -50,8 +50,8 @@ async function checkSupabaseHealth(): Promise<HealthCheckResult> {
 async function checkHotelBedsHealth(): Promise<HealthCheckResult> {
   const startTime = Date.now()
   try {
-    const apiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY')
-    const secret = Deno.env.get('HOTELBEDS_HOTEL_SECRET')
+    const apiKey = Deno.env.get('HOTELBEDS_API_KEY')
+    const secret = Deno.env.get('HOTELBEDS_SECRET')
     
     if (!apiKey || !secret) {
       return {

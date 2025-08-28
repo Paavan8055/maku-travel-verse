@@ -130,15 +130,8 @@ serve(async (req) => {
     const secrets = [
       'AMADEUS_CLIENT_ID',
       'AMADEUS_CLIENT_SECRET', 
-      'HOTELBEDS_HOTEL_API_KEY',
-      'HOTELBEDS_HOTEL_SECRET',
-      'HOTELBEDS_ACTIVITY_API_KEY',
-      'HOTELBEDS_ACTIVITY_SECRET',
-      'SABRE_CLIENT_ID',
-      'SABRE_CLIENT_SECRET',
-      'SABRE_TEST_PCC',
-      'SABRE_PROD_PCC',
-      'SABRE_EPR_ID',
+      'HOTELBEDS_API_KEY',
+      'HOTELBEDS_SECRET',
       'STRIPE_SECRET_KEY'
     ];
     
