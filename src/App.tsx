@@ -28,6 +28,11 @@ import Roadmap from '@/pages/Roadmap';
 import Partners from '@/pages/Partners';
 import Loyalty from '@/pages/Loyalty';
 import Reviews from '@/pages/Reviews';
+import About from '@/pages/About';
+import Careers from '@/pages/Careers';
+import Press from '@/pages/Press';
+import PartnerPortal from '@/pages/PartnerPortal';
+import Deals from '@/pages/Deals';
 
 // Lazy load admin pages
 const AdminRealtimeMetrics = React.lazy(() => import('@/pages/admin/dashboard/realtime'));
@@ -78,6 +83,13 @@ function App() {
                 <Route path="/partners" element={<Partners />} />
                 <Route path="/loyalty" element={<Loyalty />} />
                 <Route path="/reviews" element={<Reviews />} />
+                
+                {/* Additional Pages */}
+                <Route path="/about" element={<About />} />
+                <Route path="/careers" element={<Careers />} />
+                <Route path="/press" element={<Press />} />
+                <Route path="/partner-portal" element={<PartnerPortal />} />
+                <Route path="/deals" element={<Deals />} />
 
                 {/* Admin Routes */}
                 <Route
