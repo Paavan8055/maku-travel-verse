@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +17,7 @@ const Navbar = () => {
     user,
     signOut
   } = useAuth();
+  const { isAdmin } = useAdminStatus();
   const navigate = useNavigate();
   const {
     toast
@@ -127,10 +129,19 @@ const Navbar = () => {
                     <div className="text-sm text-muted-foreground">{user.email}</div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>Profile</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>My Bookings</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                   <DropdownMenuItem onClick={() => navigate('/dashboard')}>Profile</DropdownMenuItem>
+                   <DropdownMenuItem onClick={() => navigate('/dashboard')}>My Bookings</DropdownMenuItem>
+                   <DropdownMenuItem>Settings</DropdownMenuItem>
+                   {isAdmin && (
+                     <>
+                       <DropdownMenuSeparator />
+                       <DropdownMenuItem onClick={() => navigate('/admin-auth')}>
+                         <Shield className="mr-2 h-4 w-4" />
+                         Admin Portal
+                       </DropdownMenuItem>
+                     </>
+                   )}
+                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign out
