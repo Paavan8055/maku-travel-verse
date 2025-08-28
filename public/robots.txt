@@ -1,14 +1,24 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin
+Disallow: /api/
+Disallow: /private
+Disallow: /_next
+Disallow: /node_modules
+
+# Allow important pages
+Allow: /search
+Allow: /flights
+Allow: /hotels  
+Allow: /activities
+Allow: /gift-cards
+Allow: /partners
+Allow: /roadmap
+
+# Sitemap location
+Sitemap: https://maku.travel/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
