@@ -14,6 +14,8 @@ import { Sparkles, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { autofillService } from "@/lib/autofillService";
+import { useBookingStore } from "@/store/bookingStore";
+import logger from "@/utils/logger";
 
 const HotelGuestSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -43,17 +45,9 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Load existing data from sessionStorage on mount
+  // Load existing data from Zustand store on mount
   const getInitialData = () => {
-    try {
-      const savedData = sessionStorage.getItem('guestInfo');
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        return { ...parsed, ...initial }; // initial props take precedence
-      }
-    } catch (error) {
-      console.error('Error loading saved guest data:', error);
-    }
+    const { guestInfo } = useBookingStore.getState();
     return {
       title: "",
       firstName: "",
@@ -66,6 +60,7 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
       emailUpdates: true,
       roomPreferences: "",
       acknowledgment: false,
+      ...guestInfo,
       ...initial
     };
   };
@@ -84,7 +79,7 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
       const currentData = form.getValues();
       // Save form data to sessionStorage whenever it changes
       if (isValid) {
-        sessionStorage.setItem('guestInfo', JSON.stringify(currentData));
+        useBookingStore.getState().setGuestInfo(currentData);
       }
       onChange(currentData, isValid);
     }
@@ -105,18 +100,12 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
   const handleUpper = (value: string) => value.toUpperCase();
 
   const handleDemoFill = () => {
-    setIsAutofilling(true);
-    const mockData = autofillService.generateMockHotelGuest();
-    
-    // Reset form with mock data
-    form.reset(mockData);
-    
+    // Production app - remove demo data functionality
     toast({
-      title: "Demo data filled",
-      description: "Form has been filled with sample guest information",
+      title: "Demo data not available",
+      description: "Please enter guest information manually",
+      variant: "destructive"
     });
-    
-    setTimeout(() => setIsAutofilling(false), 500);
   };
 
   const handleUserDataFill = async () => {

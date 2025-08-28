@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logger from "@/utils/logger";
 
 // Reviews & Ratings API
 export const reviewsAPI = {
@@ -222,21 +223,6 @@ export const tipsAPI = {
   }
 };
 
-// Price Intelligence API
-export const priceAPI = {
-  async fetchPricePrediction(itemType: string, itemId: string) {
-    const { data, error } = await supabase
-      .from('price_predictions')
-      .select('*')
-      .eq('item_type', itemType)
-      .eq('item_id', itemId)
-      .gt('valid_until', new Date().toISOString())
-      .single();
-    
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
-  }
-};
 
 // Travel Analytics API
 export const analyticsAPI = {
@@ -288,7 +274,7 @@ export const activityAPI = {
         ...activity
       });
     
-    if (error) console.warn('Activity logging failed:', error);
+    if (error) logger.warn('Activity logging failed:', error);
   },
 
   async fetchRecentActivity(itemType?: string, limit = 50) {

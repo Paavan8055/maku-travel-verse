@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Star, MapPin, Calendar, Users, Wifi, Car, Utensils, Heart, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const FeaturedListings = () => {
+  const { t } = useTranslation();
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const toggleFavorite = (id: string) => {
@@ -240,7 +242,7 @@ const FeaturedListings = () => {
                       className="w-full mt-4 btn-primary"
                       onClick={() => window.location.href = `/booking/hotel?hotel=${encodeURIComponent(JSON.stringify({ id: hotel.id, name: hotel.name, pricePerNight: hotel.price }))}`}
                     >
-                      Book Now
+                       {t('booking.bookNow')}
                     </Button>
                   </CardContent>
                 </Card>

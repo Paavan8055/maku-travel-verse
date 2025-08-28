@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { fetchUserPreferences, saveUserPreferences } from "@/lib/bookingDataClient";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Plane, Hotel, Utensils, Globe, DollarSign } from "lucide-react";
+import logger from "@/utils/logger";
 
 const airlines = ["Qantas", "Virgin Australia", "Jetstar", "Emirates", "Singapore Airlines"];
 const mealOptions = ["Vegetarian", "Vegan", "Gluten-free", "Kosher", "Halal"];
@@ -48,7 +49,7 @@ export default function UserPreferencesForm() {
         });
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      logger.error('Error loading preferences:', error);
     }
   };
 

@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import logger from "@/utils/logger";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isAdmin: boolean;
+  checkingAdmin: boolean;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ data: any; error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithOAuth: (provider: 'google' | 'github' | 'twitter') => Promise<{ error: any }>;
@@ -30,6 +33,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -41,6 +46,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Check admin status when user changes
+        if (session?.user) {
+          setTimeout(() => {
+            checkAdminStatus(session.user.id);
+          }, 0);
+        } else {
+          setIsAdmin(false);
+          setCheckingAdmin(false);
+        }
       }
     );
 
@@ -52,13 +67,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
       } catch (e) {
-        console.error('Auth init error:', e);
+        logger.error('Auth init error:', e);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     init();
+
+    // Function to check admin status
+    const checkAdminStatus = async (userId: string) => {
+      if (!userId) {
+        setIsAdmin(false);
+        setCheckingAdmin(false);
+        return;
+      }
+
+      setCheckingAdmin(true);
+      try {
+        const { data, error } = await supabase.rpc('is_admin', { 
+          user_id_param: userId 
+        });
+        
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(data || false);
+        }
+      } catch (err) {
+        console.error('Admin check error:', err);
+        setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
 
     return () => {
       isMounted = false;
@@ -87,7 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { data, error };
     } catch (err) {
-      console.error('AuthContext: Signup error:', err);
+      logger.error('AuthContext: Signup error:', err);
       return { data: null, error: err as any };
     }
   };
@@ -121,6 +164,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     session,
     loading,
+    isAdmin,
+    checkingAdmin,
     signUp,
     signIn,
     signInWithOAuth,

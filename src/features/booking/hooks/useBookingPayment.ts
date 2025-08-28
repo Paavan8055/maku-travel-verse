@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import logger from "@/utils/logger";
 
 interface BookingPaymentParams {
   bookingType: 'flight' | 'hotel' | 'activity' | 'package';
@@ -44,8 +45,14 @@ export const useBookingPayment = () => {
     try {
       console.log('Creating booking payment:', params);
 
+      // Generate idempotency key for this payment
+      const idempotencyKey = `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
       const { data, error } = await supabase.functions.invoke('create-booking-payment', {
-        body: params
+        body: { 
+          ...params,
+          idempotencyKey 
+        }
       });
 
       if (error) {
@@ -71,7 +78,7 @@ export const useBookingPayment = () => {
       return data;
 
     } catch (error) {
-      console.error('Booking payment error:', error);
+      logger.error('Booking payment error:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       

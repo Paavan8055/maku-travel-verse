@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Bot, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,13 +48,6 @@ const AgenticLauncher: React.FC<AgenticLauncherProps> = ({
       >
         <StatusIcon className="h-6 w-6 text-white" />
       </Button>
-      
-      {/* Status Label */}
-      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-        <Badge variant="outline" className="text-xs animate-fade-in">
-          {label}
-        </Badge>
-      </div>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, MapPin, Star, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ interface ActivityCardProps {
 
 export const ActivityCard = ({ activity }: ActivityCardProps) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
 
   const handleSelectActivity = () => {
     // Navigate directly to activity checkout (skip intermediate pages)
@@ -89,9 +91,10 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
     <Card className="hover:shadow-md transition-shadow h-full">
       <div className="relative">
         <img
-          src={activity.images[0] || "/placeholder.svg"}
+          src={imageError ? "/placeholder.svg" : (activity.images[0] || "/placeholder.svg")}
           alt={activity.title}
           className="w-full h-48 object-cover rounded-t-lg"
+          onError={() => setImageError(true)}
         />
         <div className="absolute top-3 left-3 flex space-x-2">
           <Badge className={getCategoryColor(activity.category)}>
@@ -119,12 +122,16 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
           <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
             <div className="flex items-center space-x-1">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium text-foreground">{activity.rating}</span>
-              <span>({activity.reviewCount})</span>
+              <span className="font-medium text-foreground">
+                {activity.rating > 0 ? activity.rating.toFixed(1) : 'Not rated'}
+              </span>
+              <span>
+                {activity.reviewCount > 0 ? `(${activity.reviewCount})` : '(No reviews)'}
+              </span>
             </div>
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4" />
-              <span>{activity.duration}</span>
+              <span>{activity.duration || 'Duration not specified'}</span>
             </div>
           </div>
 
@@ -172,12 +179,18 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
             <div>
               <p className="text-sm text-muted-foreground">From</p>
               <p className="text-xl font-bold text-foreground">
-                {activity.currency}{activity.price}
+                {activity.price > 0 
+                  ? `${activity.currency}${activity.price}`
+                  : 'Price on request'
+                }
               </p>
               <p className="text-xs text-muted-foreground">per person</p>
             </div>
-            <Button onClick={handleSelectActivity}>
-              Choose Activity
+            <Button 
+              onClick={handleSelectActivity}
+              disabled={activity.price <= 0}
+            >
+              {activity.price > 0 ? 'Choose Activity' : 'Contact for Price'}
             </Button>
           </div>
         </div>

@@ -4,9 +4,12 @@ import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import { FlightBookingProgress } from "@/components/flight/FlightBookingProgress";
 import { PassengerDetailsForm, PassengerFormData } from "@/features/booking/components/PassengerDetailsForm";
 import { FlightBookingSummary } from "@/features/booking/components/FlightBookingSummary";
 import { useToast } from "@/hooks/use-toast";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
+import logger from "@/utils/logger";
 
 const FlightCheckout = () => {
   const [passengerValid, setPassengerValid] = useState(false);
@@ -69,13 +72,17 @@ const FlightCheckout = () => {
         console.log('Saved passenger info to session storage');
       }
     } catch (e) {
-      console.error('Session storage error:', e);
+      logger.error('Session storage error:', e);
     }
     
-    const search = typeof window !== 'undefined' ? window.location.search : '';
+    // Use the existing search params and add booking_type=flight
+    const currentParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    currentParams.set('booking_type', 'flight');
+    
+    const search = currentParams.toString();
     console.log('Navigating to payment with search:', search);
     
-    navigate(`/booking/payment${search}`);
+    navigate(`/booking/payment?${search}`);
   };
 
   const handleContinue = () => {
@@ -117,18 +124,25 @@ const FlightCheckout = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
+      <FlightBookingProgress currentStep={3} steps={["SELECT FLIGHTS", "REVIEW & DETAILS", "PAYMENT & CONFIRMATION"]} />
+      
       {/* Header */}
-      <div className="pt-24 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
+      <div className="pt-6 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="mb-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/flight-booking-review')} className="mb-4">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Search
+            Back to Review
           </Button>
           
-          <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Flight Booking</span></h1>
-          <p className="text-muted-foreground">
-            Enter passenger details and confirm your reservation
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Complete your <span className="hero-text">Flight Booking</span></h1>
+              <p className="text-muted-foreground">
+                Enter passenger details and confirm your reservation
+              </p>
+            </div>
+            <CurrencyDisplay variant="compact" />
+          </div>
         </div>
       </div>
 

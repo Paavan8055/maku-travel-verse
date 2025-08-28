@@ -1,27 +1,42 @@
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useAdminStatus } from "@/hooks/useAdminStatus";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast, toast } from "@/hooks/use-toast";
+import { useApiHealth } from "@/hooks/useApiHealth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
+import { useHealthMonitor } from "@/hooks/useHealthMonitor";
+
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [language, setLanguage] = useState("EN");
+  const { t } = useTranslation();
+  const { apiHealth, isActivitiesAvailable } = useApiHealth();
+  const { health, isUnhealthy } = useHealthMonitor({ 
+    enableAutoCheck: true,
+    onStatusChange: (status) => {
+      if (status.status === 'unhealthy') {
+        toast({
+          title: "Service Issues Detected",
+          description: "Some services may be temporarily unavailable",
+          variant: "destructive",
+        });
+      }
+    }
+  });
   const {
     user,
+    isAdmin,
     signOut
   } = useAuth();
-  const { isAdmin } = useAdminStatus();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast: toastFn } = useToast();
 
   const handleSignOut = async () => {
     try {
@@ -29,20 +44,20 @@ const Navbar = () => {
         error
       } = await signOut();
       if (error) {
-        toast({
+        toastFn({
           title: "Error",
           description: "Failed to sign out",
           variant: "destructive"
         });
       } else {
-        toast({
+        toastFn({
           title: "Signed out",
           description: "You have been successfully signed out"
         });
         navigate('/');
       }
     } catch (error) {
-      toast({
+      toastFn({
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive"
@@ -51,64 +66,73 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-border">
-      <div className="container mx-auto px-4">
+    <nav className="sticky top-0 z-50 bg-white border-b border-border w-full" role="navigation" aria-label="Main navigation">
+      <div className="w-full px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="text-4xl font-black font-cursive text-orange-400">maku</div>
+          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>
+            <div className="text-4xl font-black font-cursive text-orange-400" aria-label="Maku Travel - Go to homepage">maku</div>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/hotels')}>
-              <span>Hotels</span>
+          <div className="hidden md:flex items-center space-x-8" role="menubar">
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/hotels')} role="menuitem">
+              <span>{t('navigation.hotels')}</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/flights')}>
-              <Plane className="h-4 w-4" />
-              <span>Flights</span>
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/flights')} role="menuitem">
+              <Plane className="h-4 w-4" aria-hidden="true" />
+              <span>{t('navigation.flights')}</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/activities')}>
-              <MapPin className="h-4 w-4" />
-              <span>Activities</span>
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary flex items-center space-x-1" 
+              onClick={() => navigate('/search/activities')}
+              role="menuitem"
+            >
+              <MapPin className="h-4 w-4" aria-hidden="true" />
+              <span>{t('navigation.activities')}</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')}>
-              <Gift className="h-4 w-4" />
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')} role="menuitem">
+              <Gift className="h-4 w-4" aria-hidden="true" />
               <span>Gift Cards</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/roadmap')}>
-              <Rocket className="h-4 w-4" />
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/roadmap')} role="menuitem">
+              <Rocket className="h-4 w-4" aria-hidden="true" />
               <span>Roadmap</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/partners')}>
-              <UsersIcon className="h-4 w-4" />
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/partners')} role="menuitem">
+              <UsersIcon className="h-4 w-4" aria-hidden="true" />
               <span>Partners</span>
             </Button>
+            
+            {isAdmin && (
+              <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/admin')} role="menuitem">
+                <Shield className="h-4 w-4" aria-hidden="true" />
+                <span>Admin</span>
+              </Button>
+            )}
           </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
+            {/* System Health */}
+            <SystemHealthIndicator />
+            
             {/* Language Selector */}
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-16 h-8 border-none bg-transparent">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="EN">EN</SelectItem>
-                <SelectItem value="ES">ES</SelectItem>
-                <SelectItem value="FR">FR</SelectItem>
-                <SelectItem value="DE">DE</SelectItem>
-              </SelectContent>
-            </Select>
+            <LanguageSwitcher />
 
             {/* Help Link */}
-            <Button variant="ghost" className="text-foreground hover:text-primary text-sm">
-              Help
+            <Button 
+              variant="ghost" 
+              className="text-foreground hover:text-primary text-sm flex items-center space-x-1"
+              onClick={() => navigate('/help')}
+            >
+              <span>{t('navigation.help')}</span>
             </Button>
 
             {/* User Authentication */}
@@ -129,30 +153,28 @@ const Navbar = () => {
                     <div className="text-sm text-muted-foreground">{user.email}</div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                   <DropdownMenuItem onClick={() => navigate('/dashboard')}>Profile</DropdownMenuItem>
-                   <DropdownMenuItem onClick={() => navigate('/dashboard')}>My Bookings</DropdownMenuItem>
-                   <DropdownMenuItem>Settings</DropdownMenuItem>
-                   {isAdmin && (
-                     <>
-                       <DropdownMenuSeparator />
-                       <DropdownMenuItem onClick={() => navigate('/admin-auth')}>
-                         <Shield className="mr-2 h-4 w-4" />
-                         Admin Portal
-                       </DropdownMenuItem>
-                     </>
-                   )}
-                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>{t('navigation.profile')}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>My Bookings</DropdownMenuItem>
+                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
+                    <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
+                    {t('navigation.logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu> : <Button onClick={() => navigate('/auth')} className="bg-travel-ocean hover:bg-travel-ocean/90 text-white px-6">
-                Sign In
+                {t('navigation.login')}
               </Button>}
 
             {/* Mobile Menu Button */}
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden" 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={t('accessibility.menuToggle')}
+              aria-expanded={isMenuOpen}
+            >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
@@ -175,10 +197,14 @@ const Navbar = () => {
                 <Plane className="mr-2 h-4 w-4" />
                 Flights
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/search/activities');
-                setIsMenuOpen(false);
-              }}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start" 
+                onClick={() => {
+                  navigate('/search/activities');
+                  setIsMenuOpen(false);
+                }}
+              >
                 <MapPin className="mr-2 h-4 w-4" />
                 Activities
               </Button>
@@ -203,6 +229,15 @@ const Navbar = () => {
                 <UsersIcon className="mr-2 h-4 w-4" />
                 Partners
               </Button>
+              {isAdmin && (
+                <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                  navigate('/admin');
+                  setIsMenuOpen(false);
+                }}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin
+                </Button>
+              )}
             </div>
           </div>
         )}

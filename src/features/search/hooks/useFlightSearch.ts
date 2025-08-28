@@ -1,6 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { detectFlightCurrency } from "@/lib/currencyDetection";
+import logger from '@/utils/logger';
 
 interface FlightSearchCriteria {
   origin: string;
@@ -10,19 +13,39 @@ interface FlightSearchCriteria {
   passengers: number;
 }
 
+interface FareOption {
+  type: string;
+  price: number;
+  currency: string;
+  features: string[];
+  seatsAvailable?: number;
+  bookingClass?: string;
+}
+
 interface Flight {
   id: string;
   airline: string;
   airlineCode: string;
   airlineLogo?: string;
   flightNumber: string;
+  outboundFlightNumber?: string;
+  returnFlightNumber?: string;
   aircraft: string;
   origin: string;
   destination: string;
   departureTime: string;
   arrivalTime: string;
-  duration: number; // minutes
-  stops: string;
+  duration: number | string;
+  stops: number;
+  stopoverInfo?: string;
+  departure?: {
+    date?: string;
+    time?: string;
+  };
+  arrival?: {
+    date?: string;
+    time?: string;
+  };
   price: number;
   currency: string;
   availableSeats: number;
@@ -37,8 +60,10 @@ interface Flight {
     duration?: string;
     flightNumber?: string;
   }>;
+  fareOptions?: FareOption[];
+  isRoundTrip?: boolean;
+  amadeusOfferId?: string;
 }
-
 
 // Convert ISO 8601 duration (e.g., PT7H30M) to minutes
 const parseISO8601DurationToMinutes = (duration?: string): number => {
@@ -50,31 +75,58 @@ const parseISO8601DurationToMinutes = (duration?: string): number => {
   return hours * 60 + minutes;
 };
 
-export const useFlightSearch = (criteria: FlightSearchCriteria) => {
+export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!criteria.destination || !criteria.departureDate) {
+    if (!criteria || !criteria.origin || !criteria.destination || !criteria.departureDate || criteria.departureDate === "") {
+      console.log("useFlightSearch: Missing or invalid criteria", criteria);
+      setFlights([]);
+      setError(null);
+      setLoading(false);
       return;
     }
+
+    // Validate date format (should be ISO 8601 YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(criteria.departureDate)) {
+      console.error("useFlightSearch: Invalid date format", criteria.departureDate);
+      setError("Invalid departure date format. Please select a valid date.");
+      setLoading(false);
+      return;
+    }
+
+    console.log("useFlightSearch: Starting search with criteria:", criteria);
 
     const searchFlights = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // Call unified search with real providers
-        const { data, error: functionError } = await supabase.functions.invoke('unified-search', {
+        // Detect appropriate currency based on flight route
+        const currencyCode = detectFlightCurrency(criteria.origin, criteria.destination);
+        console.log(`useFlightSearch: Using currency ${currencyCode} for route ${criteria.origin}-${criteria.destination}`);
+
+        // Use provider rotation for multi-provider flight search with Sabre fallback
+        const { data, error: functionError } = await supabase.functions.invoke('provider-rotation', {
           body: {
-            type: 'flight',
-            origin: criteria.origin,
-            destination: criteria.destination,
-            departureDate: criteria.departureDate,
-            returnDate: criteria.returnDate,
-            passengers: criteria.passengers,
-            providers: ['amadeus', 'travelport']
+            searchType: 'flight',
+            params: {
+              origin: criteria.origin.toUpperCase(),
+              destination: criteria.destination.toUpperCase(),
+              departure_date: criteria.departureDate, // Use snake_case for API consistency
+              return_date: criteria.returnDate,
+              passengers: criteria.passengers || 1,
+              adults: criteria.passengers || 1,
+              children: 0,
+              infants: 0,
+              travelClass: 'ECONOMY',
+              cabin: 'ECONOMY',
+              nonStop: false,
+              currency: currencyCode
+            }
           }
         });
 
@@ -82,111 +134,102 @@ export const useFlightSearch = (criteria: FlightSearchCriteria) => {
           throw functionError;
         }
 
-        if (data?.flights && Array.isArray(data.flights)) {
-          const normalized = data.flights
-            .map((f: any) => {
-              // Amadeus-like schema
-              if (f?.airline && f?.departure && f?.arrival && f?.price) {
-                return {
-                  id: String(f.id ?? `${f.airline?.code}-${f.flightNumber}`),
-                  airline: f.airline?.name ?? f.airline?.code ?? "Airline",
-                  airlineCode: f.airline?.code ?? "XX",
-                  airlineLogo: f.airline?.logo,
-                  flightNumber: f.flightNumber ?? `${f.airline?.code ?? "XX"}${Math.floor(Math.random()*900)+100}`,
-                  aircraft: f.aircraft ?? "Unknown",
-                  origin: f.departure?.airport ?? criteria.origin,
-                  destination: f.arrival?.airport ?? criteria.destination,
-                  departureTime: f.departure?.time ?? "--:--",
-                  arrivalTime: f.arrival?.time ?? "--:--",
-                  duration: parseISO8601DurationToMinutes(f.duration),
-                  stops: String(typeof f.stops === 'number' ? f.stops : (f.stops ?? 0)),
-                  price: Math.round(Number(f.price?.amount ?? 0)),
-                  currency: f.price?.currency ?? "USD",
-                  availableSeats: f.availableSeats ?? 9,
-                  cabin: (f.cabinClass ?? "ECONOMY").toString().toLowerCase().replace(/\b\w/g, c => c.toUpperCase()),
-                  baggage: {
-                    carry: Boolean(f.baggage?.carry_on ?? true),
-                    checked: Boolean((f.baggage?.included ?? 0) > 0)
-                  },
-                  segments: Array.isArray(f.segments) ? f.segments : undefined
-                } as Flight;
-              }
-              // Already in internal shape
-              if (f?.airline && f?.origin && f?.destination && typeof f?.price === 'number') {
-                return f as Flight;
-              }
-              return null;
-            })
-            .filter(Boolean) as Flight[];
-
-          if (normalized.length > 0) {
-            setFlights(normalized);
-          } else {
-            setFlights(generateMockFlights(criteria));
+        if (data?.success && data?.data?.flights && Array.isArray(data.data.flights)) {
+          const flights = data.data.flights;
+          console.log("useFlightSearch: Provider rotation success, transforming", flights.length, "flights");
+          console.log("Used provider:", data.provider, "Fallback used:", data.fallbackUsed);
+          
+          if (flights.length === 0) {
+            console.log("useFlightSearch: No flights found in provider response");
+            setFlights([]);
+            setError("No flights found for your search criteria. Please try different dates or destinations.");
+            return;
           }
+          
+          console.log("Raw provider flights:", flights.length);
+          
+          const transformedFlights = flights.map((flight: any, index: number) => {
+            console.log(`Processing flight ${index + 1}:`, {
+              flightId: flight.id,
+              airline: flight.airline?.name,
+              price: flight.price
+            });
+
+            // Map flight data to our expected format
+            return {
+              id: flight.id,
+              airline: flight.airline?.name || flight.airline?.code || 'Unknown',
+              airlineCode: flight.airline?.code,
+              airlineLogo: flight.airline?.logo,
+              flightNumber: flight.flightNumber,
+              outboundFlightNumber: flight.outboundFlightNumber,
+              returnFlightNumber: flight.returnFlightNumber,
+              aircraft: flight.aircraft,
+              origin: flight.departure?.airport,
+              destination: flight.arrival?.airport,
+              departureTime: flight.departure?.time,
+              arrivalTime: flight.arrival?.time,
+              departure: flight.departure,
+              arrival: flight.arrival,
+              duration: flight.durationMinutes || flight.duration,
+              stops: flight.stops || 0,
+              stopoverInfo: flight.stopoverInfo,
+              price: flight.price?.amount || 0,
+              currency: flight.price?.currency || 'USD',
+              availableSeats: flight.availableSeats || 9,
+              cabin: flight.cabinClass || 'ECONOMY',
+              baggage: flight.baggage || { carry: true, checked: false },
+              segments: flight.segments || [],
+              fareOptions: [{
+                type: 'economy',
+                price: flight.price?.amount || 0,
+                currency: flight.price?.currency || 'USD',
+                features: ['Standard seat selection', 'Carry-on bag included'],
+                seatsAvailable: 9,
+                bookingClass: 'M'
+              }],
+              isRoundTrip: !!criteria.returnDate,
+              amadeusOfferId: flight.id
+            } as Flight;
+          });
+
+          console.log("useFlightSearch: Setting", transformedFlights.length, "transformed flights");
+          setFlights(transformedFlights);
         } else {
-          // Fallback to mock data for development
-          setFlights(generateMockFlights(criteria));
+          console.log("useFlightSearch: No flight data from API", data);
+          setFlights([]);
+          if (data?.error) {
+            setError(`Amadeus API Error: ${data.error}. Please try different search criteria or check back later.`);
+          } else {
+            setError("No flights found for your search criteria. Please try different dates, destinations, or check our flight alternatives.");
+          }
         }
       } catch (err) {
-        console.error("Flight search error:", err);
-        setError(err instanceof Error ? err.message : "Failed to search flights");
-        toast.error("Failed to search flights. Showing sample results.");
+        logger.error("Flight search error:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to search flights";
         
-        // Show mock data on error
-        setFlights(generateMockFlights(criteria));
+        // Provide specific error messages based on error type
+        if (errorMessage.includes('credentials') || errorMessage.includes('auth')) {
+          setError("Flight search service is temporarily unavailable due to authentication issues. Please try again in a few minutes.");
+        } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+          setError("Network connection issue. Please check your internet connection and try again.");
+        } else if (errorMessage.includes('rate limit')) {
+          setError("Too many requests. Please wait a moment before searching again.");
+        } else {
+          setError(`Amadeus Flight Search Error: ${errorMessage}. Please try different search criteria or check back later.`);
+        }
+        
+        toast.error("Flight search temporarily unavailable. Please try again in a few minutes.");
+        setFlights([]);
       } finally {
         setLoading(false);
       }
     };
 
     searchFlights();
-  }, [criteria.origin, criteria.destination, criteria.departureDate, criteria.returnDate, criteria.passengers]);
+  }, [criteria?.origin, criteria?.destination, criteria?.departureDate, criteria?.returnDate, criteria?.passengers]);
 
   return { flights, loading, error };
 };
 
-// Mock data generator for development
-const generateMockFlights = (criteria: FlightSearchCriteria): Flight[] => {
-  const airlines = [
-    { name: "Qantas", code: "QF", logo: "https://logos-world.net/wp-content/uploads/2023/01/Qantas-Logo.png" },
-    { name: "Jetstar", code: "JQ", logo: "https://logos-world.net/wp-content/uploads/2023/01/Jetstar-Logo.png" },
-    { name: "Virgin Australia", code: "VA", logo: "https://logos-world.net/wp-content/uploads/2023/01/Virgin-Australia-Logo.png" },
-    { name: "Singapore Airlines", code: "SQ", logo: "https://logos-world.net/wp-content/uploads/2023/01/Singapore-Airlines-Logo.png" },
-    { name: "Emirates", code: "EK", logo: "https://logos-world.net/wp-content/uploads/2023/01/Emirates-Logo.png" }
-  ];
-
-  const flights: Flight[] = [];
-  
-  for (let i = 0; i < 8; i++) {
-    const airline = airlines[i % airlines.length];
-    const basePrice = 300 + Math.random() * 800;
-    const duration = 120 + Math.random() * 480; // 2-10 hours
-    const stops = Math.random() < 0.3 ? "0" : Math.random() < 0.7 ? "1" : "2";
-    
-    flights.push({
-      id: `flight-${i + 1}`,
-      airline: airline.name,
-      airlineCode: airline.code,
-      airlineLogo: airline.logo,
-      flightNumber: `${airline.code}${Math.floor(Math.random() * 900) + 100}`,
-      aircraft: "Boeing 737",
-      origin: criteria.origin,
-      destination: criteria.destination,
-      departureTime: `${Math.floor(Math.random() * 12) + 6}:${Math.floor(Math.random() * 6) * 10}`,
-      arrivalTime: `${Math.floor(Math.random() * 12) + 6}:${Math.floor(Math.random() * 6) * 10}`,
-      duration: Math.round(duration),
-      stops,
-      price: Math.round(basePrice),
-      currency: "$",
-      availableSeats: Math.floor(Math.random() * 20) + 1,
-      cabin: Math.random() < 0.7 ? "Economy" : "Business",
-      baggage: {
-        carry: true,
-        checked: Math.random() < 0.8
-      }
-    });
-  }
-
-  return flights.sort((a, b) => a.price - b.price);
-};
+// Mock data generator removed - production app uses only real Amadeus data

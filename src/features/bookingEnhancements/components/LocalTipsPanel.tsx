@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchLocalInsights } from "@/lib/bookingDataClient";
 import { MapPin, Star, Utensils, Car, Camera, Info } from "lucide-react";
+import logger from "@/utils/logger";
 interface LocalInsight {
   id: string;
   location_id: string;
@@ -32,7 +33,7 @@ export default function LocalTipsPanel({
       const data = await fetchLocalInsights(locationId);
       setInsights(data);
     } catch (error) {
-      console.error('Error loading local insights:', error);
+      logger.error('Error loading local insights:', error);
     } finally {
       setLoading(false);
     }

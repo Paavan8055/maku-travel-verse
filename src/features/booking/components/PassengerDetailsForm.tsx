@@ -12,6 +12,8 @@ import { Sparkles, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { autofillService } from "@/lib/autofillService";
+import { useBookingStore } from "@/store/bookingStore";
+import logger from "@/utils/logger";
 
 // Schema for hotel guest details
 const GuestSchema = z.object({
@@ -55,20 +57,13 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Load existing data from sessionStorage on mount
+  // Load existing data from Zustand store on mount  
   const getInitialData = () => {
-    try {
-      const savedData = sessionStorage.getItem('passengerInfo');
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        return { ...parsed, ...initial }; // initial props take precedence
-      }
-    } catch (error) {
-      console.error('Error loading saved passenger data:', error);
-    }
+    const { passengerInfo } = useBookingStore.getState();
     return {
       title: "MR",
       acknowledge: false,
+      ...passengerInfo,
       ...initial
     };
   };
@@ -95,18 +90,12 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
     });
   };
   const handleDemoFill = () => {
-    setIsAutofilling(true);
-    const mockData = autofillService.generateMockPersonalData();
-    
-    // Reset form with mock data
-    reset(mockData);
-    
+    // Production app - remove demo data functionality
     toast({
-      title: "Demo data filled",
-      description: "Form has been filled with sample passenger information",
+      title: "Demo data not available",
+      description: "Please enter passenger information manually",
+      variant: "destructive"
     });
-    
-    setTimeout(() => setIsAutofilling(false), 500);
   };
 
   const handleUserDataFill = async () => {
@@ -154,7 +143,7 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   useEffect(() => {
     // Save form data to sessionStorage whenever it changes
     if (isValid && all) {
-      sessionStorage.setItem('passengerInfo', JSON.stringify(all));
+      useBookingStore.getState().setPassengerInfo(all);
     }
     onChange?.(isValid ? all : null, isValid);
   }, [all, isValid, onChange]);
@@ -234,16 +223,41 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4">
           <div>
             <Label className="mb-2 block">Date of Birth</Label>
-            <Input type="date" {...register("dateOfBirth")} />
+            <Input 
+              type="date" 
+              {...register("dateOfBirth")} 
+              max={new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+              placeholder="Select your birth date"
+              className="text-sm"
+            />
             {errors.dateOfBirth && <p className="text-xs text-destructive mt-1">{errors.dateOfBirth.message}</p>}
+            <p className="text-xs text-muted-foreground mt-1">Must be 18+ years old</p>
+          </div>
+          
+          <div>
+            <Label className="mb-2 block">Nationality (ISO Code)</Label>
+            <Input 
+              {...register("nationality")} 
+              placeholder="AU, US, UK, etc." 
+              maxLength={3}
+              onChange={e => setValue("nationality", e.target.value.toUpperCase() as any, {
+                shouldValidate: true
+              })} 
+            />
+            {errors.nationality && <p className="text-xs text-destructive mt-1">{errors.nationality.message}</p>}
           </div>
           
           <div>
             <Label className="mb-2 block">ID Document Number</Label>
-            <Input {...register("idDocument")} placeholder="Passport/ID Number" onChange={e => setValue("idDocument", e.target.value.toUpperCase() as any, {
-            shouldValidate: true
-          })} />
+            <Input 
+              {...register("idDocument")} 
+              placeholder="Passport/ID Number" 
+              onChange={e => setValue("idDocument", e.target.value.toUpperCase() as any, {
+                shouldValidate: true
+              })} 
+            />
             {errors.idDocument && <p className="text-xs text-destructive mt-1">{errors.idDocument.message}</p>}
+            <p className="text-xs text-muted-foreground mt-1">As shown on your passport or ID</p>
           </div>
         </div>
 
