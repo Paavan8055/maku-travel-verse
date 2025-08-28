@@ -17,6 +17,9 @@ const Footer = () => {
       name: "Partner Portal",
       href: "/partner-portal"
     }, {
+      name: "Admin Portal",
+      href: "/admin-auth"
+    }, {
       name: "Investor Relations",
       href: "/partners?tab=investors"
     }],
