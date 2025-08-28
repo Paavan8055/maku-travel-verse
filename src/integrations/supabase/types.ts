@@ -882,6 +882,45 @@ export type Database = {
         }
         Relationships: []
       }
+      content_images: {
+        Row: {
+          created_at: string
+          destination_id: string
+          display_order: number | null
+          id: string
+          image_caption: string | null
+          image_category: string | null
+          image_source: string | null
+          image_url: string
+          is_featured: boolean | null
+          supplier_attribution: string | null
+        }
+        Insert: {
+          created_at?: string
+          destination_id: string
+          display_order?: number | null
+          id?: string
+          image_caption?: string | null
+          image_category?: string | null
+          image_source?: string | null
+          image_url: string
+          is_featured?: boolean | null
+          supplier_attribution?: string | null
+        }
+        Update: {
+          created_at?: string
+          destination_id?: string
+          display_order?: number | null
+          id?: string
+          image_caption?: string | null
+          image_category?: string | null
+          image_source?: string | null
+          image_url?: string
+          is_featured?: boolean | null
+          supplier_attribution?: string | null
+        }
+        Relationships: []
+      }
       conversion_events: {
         Row: {
           created_at: string | null
@@ -1178,6 +1217,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      destination_content: {
+        Row: {
+          best_time_to_visit: string | null
+          content_source: string | null
+          content_status: string | null
+          continent: string | null
+          country: string
+          created_at: string
+          currency: string | null
+          description: string | null
+          destination_id: string
+          destination_name: string
+          highlights: string[] | null
+          id: string
+          language: string[] | null
+          safety_info: Json | null
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
+          supplier_data: Json | null
+          updated_at: string
+          weather_info: Json | null
+        }
+        Insert: {
+          best_time_to_visit?: string | null
+          content_source?: string | null
+          content_status?: string | null
+          continent?: string | null
+          country: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          destination_id: string
+          destination_name: string
+          highlights?: string[] | null
+          id?: string
+          language?: string[] | null
+          safety_info?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          supplier_data?: Json | null
+          updated_at?: string
+          weather_info?: Json | null
+        }
+        Update: {
+          best_time_to_visit?: string | null
+          content_source?: string | null
+          content_status?: string | null
+          continent?: string | null
+          country?: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          destination_id?: string
+          destination_name?: string
+          highlights?: string[] | null
+          id?: string
+          language?: string[] | null
+          safety_info?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          supplier_data?: Json | null
+          updated_at?: string
+          weather_info?: Json | null
+        }
+        Relationships: []
       }
       detailed_reviews: {
         Row: {
@@ -3302,6 +3410,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      poi_content: {
+        Row: {
+          admission_fee: Json | null
+          category: string
+          coordinates: Json | null
+          created_at: string
+          description: string | null
+          destination_id: string
+          id: string
+          image_urls: string[] | null
+          name: string
+          opening_hours: Json | null
+          poi_id: string
+          rating: number | null
+          review_count: number | null
+          supplier_data: Json | null
+          updated_at: string
+        }
+        Insert: {
+          admission_fee?: Json | null
+          category: string
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          destination_id: string
+          id?: string
+          image_urls?: string[] | null
+          name: string
+          opening_hours?: Json | null
+          poi_id: string
+          rating?: number | null
+          review_count?: number | null
+          supplier_data?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          admission_fee?: Json | null
+          category?: string
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string
+          id?: string
+          image_urls?: string[] | null
+          name?: string
+          opening_hours?: Json | null
+          poi_id?: string
+          rating?: number | null
+          review_count?: number | null
+          supplier_data?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       points_transactions: {
         Row: {
