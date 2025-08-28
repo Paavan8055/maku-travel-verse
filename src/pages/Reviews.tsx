@@ -2,29 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, ThumbsUp, User, MapPin, Calendar, Search } from 'lucide-react';
+import { Star, ThumbsUp, User, MapPin, Calendar, Search, TrendingUp, Award, Eye } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { EnhancedReviewsSection } from '@/components/reviews/EnhancedReviewsSection';
 
 const Reviews = () => {
   const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [newReview, setNewReview] = useState({
-    itemId: '',
-    itemType: 'hotel',
-    title: '',
-    content: '',
-    overallRating: 5,
-    cleanlinessRating: 5,
-    serviceRating: 5,
-    valueRating: 5,
-    locationRating: 5
+  const [reviewStats, setReviewStats] = useState({
+    totalReviews: 0,
+    averageRating: 0,
+    verifiedReviews: 0,
+    photosUploaded: 0
   });
 
   const categories = [
@@ -37,13 +32,18 @@ const Reviews = () => {
 
   useEffect(() => {
     fetchReviews();
+    fetchReviewStats();
   }, []);
 
   const fetchReviews = async () => {
     try {
       const { data, error } = await supabase
         .from('detailed_reviews')
-        .select('*')
+        .select(`
+          *,
+          review_photos(*)
+        `)
+        .eq('moderation_status', 'approved')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -53,50 +53,29 @@ const Reviews = () => {
     }
   };
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) {
-      toast.error('Please sign in to submit a review');
-      return;
-    }
-
+  const fetchReviewStats = async () => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('detailed_reviews')
-        .insert([{
-          user_id: user.id,
-          item_id: newReview.itemId,
-          item_type: newReview.itemType,
-          title: newReview.title,
-          content: newReview.content,
-          overall_rating: newReview.overallRating,
-          cleanliness_rating: newReview.cleanlinessRating,
-          service_rating: newReview.serviceRating,
-          value_rating: newReview.valueRating,
-          location_rating: newReview.locationRating
-        }]);
+        .select('overall_rating, is_verified, photo_urls');
 
       if (error) throw error;
 
-      toast.success('Review submitted successfully!');
-      setNewReview({
-        itemId: '',
-        itemType: 'hotel',
-        title: '',
-        content: '',
-        overallRating: 5,
-        cleanlinessRating: 5,
-        serviceRating: 5,
-        valueRating: 5,
-        locationRating: 5
-      });
-      fetchReviews();
+      const stats = {
+        totalReviews: data?.length || 0,
+        averageRating: data?.length > 0 
+          ? data.reduce((sum, review) => sum + review.overall_rating, 0) / data.length 
+          : 0,
+        verifiedReviews: data?.filter(review => review.is_verified).length || 0,
+        photosUploaded: data?.reduce((sum, review) => sum + (review.photo_urls?.length || 0), 0) || 0
+      };
+
+      setReviewStats(stats);
     } catch (error) {
-      console.error('Error submitting review:', error);
-      toast.error('Failed to submit review');
+      console.error('Error fetching review stats:', error);
     }
   };
+
 
   const renderStars = (rating: number, size: 'sm' | 'lg' = 'sm') => {
     return (
@@ -126,17 +105,58 @@ const Reviews = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Travel Reviews
+              Travel Reviews & Insights
             </h1>
             <p className="text-lg text-muted-foreground">
-              Share your experiences and discover authentic traveler insights
+              Enhanced reviews with photo uploads, verification, and supplier integration
             </p>
           </div>
 
+          {/* Review Statistics */}
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <TrendingUp className="w-6 h-6 text-primary" />
+                </div>
+                <div className="text-2xl font-bold">{reviewStats.totalReviews}</div>
+                <div className="text-sm text-muted-foreground">Total Reviews</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                </div>
+                <div className="text-2xl font-bold">{reviewStats.averageRating.toFixed(1)}</div>
+                <div className="text-sm text-muted-foreground">Average Rating</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Award className="w-6 h-6 text-green-500" />
+                </div>
+                <div className="text-2xl font-bold">{reviewStats.verifiedReviews}</div>
+                <div className="text-sm text-muted-foreground">Verified Reviews</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Eye className="w-6 h-6 text-blue-500" />
+                </div>
+                <div className="text-2xl font-bold">{reviewStats.photosUploaded}</div>
+                <div className="text-sm text-muted-foreground">Photos Uploaded</div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Tabs defaultValue="browse" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="browse">Browse Reviews</TabsTrigger>
-              <TabsTrigger value="write">Write Review</TabsTrigger>
+              <TabsTrigger value="demo">Enhanced Demo</TabsTrigger>
+              <TabsTrigger value="insights">Review Insights</TabsTrigger>
             </TabsList>
 
             <TabsContent value="browse">
@@ -186,6 +206,12 @@ const Reviews = () => {
                                 <Calendar className="w-4 h-4" />
                                 <span>{new Date(review.created_at).toLocaleDateString()}</span>
                                 <Badge variant="outline">{review.item_type}</Badge>
+                                {review.is_verified && (
+                                  <Badge variant="secondary">Verified</Badge>
+                                )}
+                                {review.photo_urls?.length > 0 && (
+                                  <Badge variant="outline">📷 {review.photo_urls.length}</Badge>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -256,159 +282,109 @@ const Reviews = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="write">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Write a Review</CardTitle>
-                  <p className="text-muted-foreground">
-                    Share your travel experience to help other travelers
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmitReview} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-4">
+            <TabsContent value="demo">
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Enhanced Reviews Demo</CardTitle>
+                    <p className="text-muted-foreground">
+                      Experience our new enhanced review system with photo uploads, verification, and moderation
+                    </p>
+                  </CardHeader>
+                </Card>
+
+                <EnhancedReviewsSection
+                  itemType="hotel"
+                  itemId="demo-hotel-123"
+                  itemName="Grand Plaza Hotel Sydney"
+                  canReview={true}
+                  bookingId="demo-booking-456"
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="insights">
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Review Analytics & Insights</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Booking/Item ID
-                        </label>
-                        <Input
-                          value={newReview.itemId}
-                          onChange={(e) => setNewReview({...newReview, itemId: e.target.value})}
-                          placeholder="e.g., hotel-123, flight-456"
-                          required
-                        />
+                        <h3 className="font-semibold mb-3">Review Categories</h3>
+                        <div className="space-y-2">
+                          {categories.map(category => {
+                            const count = reviews.filter(r => r.item_type === category.value || category.value === 'all').length;
+                            return (
+                              <div key={category.value} className="flex justify-between items-center">
+                                <span>{category.label}</span>
+                                <Badge variant="outline">{count}</Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Category
-                        </label>
-                        <select
-                          value={newReview.itemType}
-                          onChange={(e) => setNewReview({...newReview, itemType: e.target.value})}
-                          className="w-full p-2 border rounded-md"
-                        >
-                          <option value="hotel">Hotel</option>
-                          <option value="flight">Flight</option>
-                          <option value="activity">Activity</option>
-                          <option value="restaurant">Restaurant</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Review Title
-                      </label>
-                      <Input
-                        value={newReview.title}
-                        onChange={(e) => setNewReview({...newReview, title: e.target.value})}
-                        placeholder="Summarize your experience"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Review Content
-                      </label>
-                      <Textarea
-                        value={newReview.content}
-                        onChange={(e) => setNewReview({...newReview, content: e.target.value})}
-                        placeholder="Share details about your experience..."
-                        rows={4}
-                        required
-                      />
-                    </div>
-
-                    {/* Ratings */}
-                    <div className="space-y-4">
-                      <h3 className="font-semibold">Rate Your Experience</h3>
                       
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium mb-2 block">
-                            Overall Rating
-                          </label>
-                          <div className="flex items-center space-x-2">
-                            {renderStars(newReview.overallRating, 'lg')}
-                            <select
-                              value={newReview.overallRating}
-                              onChange={(e) => setNewReview({...newReview, overallRating: parseInt(e.target.value)})}
-                              className="ml-2 p-1 border rounded"
-                            >
-                              {[1,2,3,4,5].map(rating => (
-                                <option key={rating} value={rating}>{rating}</option>
-                              ))}
-                            </select>
+                      <div>
+                        <h3 className="font-semibold mb-3">Verification Status</h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span>Verified Reviews</span>
+                            <Badge variant="secondary">{reviews.filter(r => r.is_verified).length}</Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span>Unverified Reviews</span>
+                            <Badge variant="outline">{reviews.filter(r => !r.is_verified).length}</Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span>With Photos</span>
+                            <Badge variant="outline">{reviews.filter(r => r.photo_urls?.length > 0).length}</Badge>
                           </div>
                         </div>
-
-                        {newReview.itemType === 'hotel' && (
-                          <>
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">
-                                Cleanliness
-                              </label>
-                              <div className="flex items-center space-x-2">
-                                {renderStars(newReview.cleanlinessRating, 'lg')}
-                                <select
-                                  value={newReview.cleanlinessRating}
-                                  onChange={(e) => setNewReview({...newReview, cleanlinessRating: parseInt(e.target.value)})}
-                                  className="ml-2 p-1 border rounded"
-                                >
-                                  {[1,2,3,4,5].map(rating => (
-                                    <option key={rating} value={rating}>{rating}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">
-                                Service
-                              </label>
-                              <div className="flex items-center space-x-2">
-                                {renderStars(newReview.serviceRating, 'lg')}
-                                <select
-                                  value={newReview.serviceRating}
-                                  onChange={(e) => setNewReview({...newReview, serviceRating: parseInt(e.target.value)})}
-                                  className="ml-2 p-1 border rounded"
-                                >
-                                  {[1,2,3,4,5].map(rating => (
-                                    <option key={rating} value={rating}>{rating}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">
-                                Value for Money
-                              </label>
-                              <div className="flex items-center space-x-2">
-                                {renderStars(newReview.valueRating, 'lg')}
-                                <select
-                                  value={newReview.valueRating}
-                                  onChange={(e) => setNewReview({...newReview, valueRating: parseInt(e.target.value)})}
-                                  className="ml-2 p-1 border rounded"
-                                >
-                                  {[1,2,3,4,5].map(rating => (
-                                    <option key={rating} value={rating}>{rating}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                          </>
-                        )}
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
 
-                    <Button type="submit" size="lg" className="w-full">
-                      Submit Review
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Enhancements</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                        <div>
+                          <h4 className="font-medium">Photo Upload System</h4>
+                          <p className="text-sm text-muted-foreground">Users can now upload up to 5 photos per review with automatic moderation</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                        <div>
+                          <h4 className="font-medium">Booking Verification</h4>
+                          <p className="text-sm text-muted-foreground">Reviews are automatically verified against confirmed bookings</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                        <div>
+                          <h4 className="font-medium">Supplier Integration</h4>
+                          <p className="text-sm text-muted-foreground">Enhanced data from Amadeus, Sabre, and HotelBeds APIs</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                        <div>
+                          <h4 className="font-medium">Content Moderation</h4>
+                          <p className="text-sm text-muted-foreground">AI-powered content moderation with admin approval workflow</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

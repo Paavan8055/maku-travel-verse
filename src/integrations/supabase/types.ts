@@ -1300,9 +1300,14 @@ export type Database = {
           item_id: string
           item_type: string
           location_rating: number | null
+          moderation_status: string | null
+          moderator_notes: string | null
           overall_rating: number
+          photo_urls: string[] | null
           photos: Json | null
+          review_source: string | null
           service_rating: number | null
+          supplier_verified: boolean | null
           title: string
           travel_date: string | null
           updated_at: string | null
@@ -1321,9 +1326,14 @@ export type Database = {
           item_id: string
           item_type: string
           location_rating?: number | null
+          moderation_status?: string | null
+          moderator_notes?: string | null
           overall_rating: number
+          photo_urls?: string[] | null
           photos?: Json | null
+          review_source?: string | null
           service_rating?: number | null
+          supplier_verified?: boolean | null
           title: string
           travel_date?: string | null
           updated_at?: string | null
@@ -1342,9 +1352,14 @@ export type Database = {
           item_id?: string
           item_type?: string
           location_rating?: number | null
+          moderation_status?: string | null
+          moderator_notes?: string | null
           overall_rating?: number
+          photo_urls?: string[] | null
           photos?: Json | null
+          review_source?: string | null
           service_rating?: number | null
+          supplier_verified?: boolean | null
           title?: string
           travel_date?: string | null
           updated_at?: string | null
