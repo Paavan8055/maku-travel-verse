@@ -13,9 +13,9 @@ export const Navbar: React.FC = () => {
   const { providerHealth, isLoading, getOverallHealth } = useProviderHealth();
 
   const navigationItems = [
-    { path: '/flights', label: 'Flights', icon: Plane },
-    { path: '/hotels', label: 'Hotels', icon: Building },
-    { path: '/activities', label: 'Activities', icon: MapPin },
+    { path: '/search/flights', label: 'Flights', icon: Plane },
+    { path: '/search/hotels', label: 'Hotels', icon: Building },
+    { path: '/search/activities', label: 'Activities', icon: MapPin },
   ];
 
   const overallHealth = getOverallHealth();
@@ -51,7 +51,7 @@ export const Navbar: React.FC = () => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
-              const searchType = item.path.substring(1) as 'flight' | 'hotel' | 'activity';
+              const searchType = item.path.split('/')[2] as 'flight' | 'hotel' | 'activity';
               const providers = getHealthProviders(searchType);
 
               return (
@@ -135,7 +135,7 @@ export const Navbar: React.FC = () => {
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
-                const searchType = item.path.substring(1) as 'flight' | 'hotel' | 'activity';
+                const searchType = item.path.split('/')[2] as 'flight' | 'hotel' | 'activity';
                 const providers = getHealthProviders(searchType);
 
                 return (
