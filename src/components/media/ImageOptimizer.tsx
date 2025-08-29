@@ -37,18 +37,14 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
 
   // Generate optimized image URL
   const getOptimizedSrc = useCallback((originalSrc: string) => {
-    // Check if it's already an optimized URL
-    if (originalSrc.includes('w_') || originalSrc.includes('q_')) {
-      return originalSrc;
-    }
-
     // For Cloudinary URLs
     if (originalSrc.includes('cloudinary.com')) {
       const parts = originalSrc.split('/upload/');
       if (parts.length === 2) {
         const transforms = [];
-        if (width) transforms.push(`w_${width}`);
-        if (height) transforms.push(`h_${height}`);
+        if (width) transforms.push(`w_${Math.round(width)}`);
+        if (height) transforms.push(`h_${Math.round(height)}`);
+        transforms.push(`c_fill`); // Crop to exact dimensions
         transforms.push(`q_${quality}`);
         transforms.push('f_auto'); // Auto format (WebP when supported)
         
@@ -56,25 +52,43 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       }
     }
 
-    // For Unsplash URLs - improve optimization
+    // For Unsplash URLs - improve optimization with exact sizing
     if (originalSrc.includes('unsplash.com')) {
       const url = new URL(originalSrc);
-      if (width) url.searchParams.set('w', width.toString());
-      if (height) url.searchParams.set('h', height.toString());
-      url.searchParams.set('q', Math.min(quality, 75).toString()); // Lower quality for better compression
+      // Use exact display dimensions to avoid waste
+      if (width) url.searchParams.set('w', Math.round(width).toString());
+      if (height) url.searchParams.set('h', Math.round(height).toString());
+      url.searchParams.set('q', Math.min(quality, 75).toString());
       url.searchParams.set('fm', 'webp'); // Force WebP format
       url.searchParams.set('fit', 'crop');
       url.searchParams.set('auto', 'format,compress');
+      // Add device pixel ratio optimization
+      const dpr = window.devicePixelRatio || 1;
+      if (dpr > 1) {
+        url.searchParams.set('dpr', Math.min(dpr, 2).toString()); // Cap at 2x for performance
+      }
+      return url.toString();
+    }
+
+    // For local assets, add responsive sizing parameters
+    if (originalSrc.startsWith('/') || originalSrc.includes(window.location.origin)) {
+      const url = new URL(originalSrc, window.location.origin);
+      if (width) url.searchParams.set('w', Math.round(width).toString());
+      if (height) url.searchParams.set('h', Math.round(height).toString());
+      url.searchParams.set('q', quality.toString());
       return url.toString();
     }
 
     // For other CDNs or basic optimization
-    const url = new URL(originalSrc, window.location.origin);
-    if (width) url.searchParams.set('w', width.toString());
-    if (height) url.searchParams.set('h', height.toString());
-    url.searchParams.set('q', quality.toString());
-    
-    return url.toString();
+    try {
+      const url = new URL(originalSrc);
+      if (width) url.searchParams.set('w', Math.round(width).toString());
+      if (height) url.searchParams.set('h', Math.round(height).toString());
+      url.searchParams.set('q', quality.toString());
+      return url.toString();
+    } catch {
+      return originalSrc;
+    }
   }, [width, height, quality]);
 
   // Generate WebP source for modern browsers
