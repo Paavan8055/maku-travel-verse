@@ -63,7 +63,7 @@ const PartnerPortal = () => {
       occupancy: 87,
       images: 24,
       lastUpdated: "2 hours ago",
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop"
+      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop&fm=webp&q=80"
     },
     {
       id: "2", 
@@ -77,7 +77,7 @@ const PartnerPortal = () => {
       occupancy: 92,
       images: 18,
       lastUpdated: "5 hours ago",
-      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&h=150&fit=crop"
+      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&h=150&fit=crop&fm=webp&q=80"
     },
     {
       id: "3",
@@ -91,7 +91,7 @@ const PartnerPortal = () => {
       occupancy: 75,
       images: 12,
       lastUpdated: "1 day ago",
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&h=150&fit=crop"
+      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&h=150&fit=crop&fm=webp&q=80"
     }
   ];
 
