@@ -28,7 +28,7 @@ const FeaturedListings = () => {
       originalPrice: 450,
       rating: 4.8,
       reviews: 1234,
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=200&fit=crop&fm=webp&q=80",
       amenities: [Wifi, Car, Utensils],
       verified: true,
       badge: "Best Deal",
@@ -42,7 +42,7 @@ const FeaturedListings = () => {
       originalPrice: 350,
       rating: 4.9,
       reviews: 892,
-      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=300&h=200&fit=crop&fm=webp&q=80",
       amenities: [Wifi, Utensils],
       verified: true,
       badge: "Pet Friendly",
@@ -56,7 +56,7 @@ const FeaturedListings = () => {
       originalPrice: 290,
       rating: 4.7,
       reviews: 2156,
-      image: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=300&h=200&fit=crop&fm=webp&q=80",
       amenities: [Wifi, Car],
       verified: true,
       badge: "Solo Special",
@@ -70,7 +70,7 @@ const FeaturedListings = () => {
       originalPrice: 240,
       rating: 4.9,
       reviews: 756,
-      image: "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=300&h=200&fit=crop&fm=webp&q=80",
       amenities: [Wifi, Utensils],
       verified: true,
       badge: "Spiritual",
@@ -89,7 +89,7 @@ const FeaturedListings = () => {
       duration: "7h 30m",
       stops: "Direct",
       rating: 4.6,
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=200&fit=crop"
+      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=130&fit=crop&fm=webp&q=80"
     },
     {
       id: "f2",
@@ -101,7 +101,7 @@ const FeaturedListings = () => {
       duration: "11h 45m",
       stops: "Direct",
       rating: 4.8,
-      image: "https://images.unsplash.com/photo-1544168190-79c17527004f?w=400&h=200&fit=crop"
+      image: "https://images.unsplash.com/photo-1544168190-79c17527004f?w=400&h=130&fit=crop&fm=webp&q=80"
     }
   ];
 
@@ -115,7 +115,7 @@ const FeaturedListings = () => {
       duration: "8 hours",
       rating: 4.9,
       reviews: 342,
-      image: "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=400&h=300&fit=crop"
+      image: "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=300&h=200&fit=crop&fm=webp&q=80"
     },
     {
       id: "a2",
@@ -126,7 +126,7 @@ const FeaturedListings = () => {
       duration: "4 hours",
       rating: 4.8,
       reviews: 567,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop"
+      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=200&fit=crop&fm=webp&q=80"
     }
   ];
 
