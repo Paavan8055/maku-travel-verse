@@ -49,7 +49,8 @@ const HeroSection = () => {
               src={slide.image}
               alt={`${slide.title} - ${slide.subtitle}`}
               className="h-full w-full object-cover"
-              loading={index === currentSlide ? "eager" : "lazy"}
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchPriority={index === 0 ? "high" : "auto"}
               decoding="async"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
