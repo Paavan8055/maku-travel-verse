@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAccessibility } from "@/hooks/useAccessibility";
+import { ImageOptimizer } from "@/components/media/ImageOptimizer";
 import hero1 from "@/assets/hero-maldives.jpg";
 import hero2 from "@/assets/hero-swiss-alps.jpg";
 import hero3 from "@/assets/hero-tokyo.jpg";
@@ -45,13 +46,12 @@ const HeroSection = () => {
       {/* Hero Carousel */}
       <div className="relative h-full" role="region" aria-label="Image carousel" aria-live="polite">
         {heroSlides.map((slide, index) => <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`} aria-hidden={index !== currentSlide}>
-            <img
+            <ImageOptimizer
               src={slide.image}
               alt={`${slide.title} - ${slide.subtitle}`}
               className="h-full w-full object-cover"
-              loading={index === 0 ? "eager" : "lazy"}
-              fetchPriority={index === 0 ? "high" : "auto"}
-              decoding="async"
+              lazy={index !== 0}
+              quality={85}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
           </div>)}
