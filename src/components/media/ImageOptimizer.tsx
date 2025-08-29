@@ -11,6 +11,7 @@ interface ImageOptimizerProps {
   lazy?: boolean;
   quality?: number;
   placeholder?: string;
+  fetchPriority?: 'high' | 'low' | 'auto';
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -24,6 +25,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
   lazy = true,
   quality = 80,
   placeholder,
+  fetchPriority = 'auto',
   onLoad,
   onError
 }) => {
@@ -135,6 +137,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
             width={width}
             height={height}
             loading={lazy ? 'lazy' : 'eager'}
+            fetchPriority={fetchPriority}
             className={cn(
               'object-cover transition-opacity duration-300',
               isLoading ? 'opacity-0' : 'opacity-100',
