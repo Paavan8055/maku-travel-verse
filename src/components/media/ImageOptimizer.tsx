@@ -56,6 +56,18 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       }
     }
 
+    // For Unsplash URLs - improve optimization
+    if (originalSrc.includes('unsplash.com')) {
+      const url = new URL(originalSrc);
+      if (width) url.searchParams.set('w', width.toString());
+      if (height) url.searchParams.set('h', height.toString());
+      url.searchParams.set('q', Math.min(quality, 75).toString()); // Lower quality for better compression
+      url.searchParams.set('fm', 'webp'); // Force WebP format
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('auto', 'format,compress');
+      return url.toString();
+    }
+
     // For other CDNs or basic optimization
     const url = new URL(originalSrc, window.location.origin);
     if (width) url.searchParams.set('w', width.toString());
@@ -67,17 +79,31 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
 
   // Generate WebP source for modern browsers
   const getWebPSrc = useCallback((originalSrc: string) => {
-    const optimizedSrc = getOptimizedSrc(originalSrc);
+    // For Unsplash URLs, they already return WebP when requested with fm=webp
+    if (originalSrc.includes('unsplash.com')) {
+      return getOptimizedSrc(originalSrc); // Already has WebP format
+    }
     
     // For Cloudinary, add WebP format
-    if (optimizedSrc.includes('cloudinary.com')) {
+    if (originalSrc.includes('cloudinary.com')) {
+      const optimizedSrc = getOptimizedSrc(originalSrc);
       return optimizedSrc.replace('f_auto', 'f_webp');
     }
     
+    // For local assets, just return the optimized source
+    if (originalSrc.startsWith('/') || originalSrc.includes(window.location.origin)) {
+      return getOptimizedSrc(originalSrc);
+    }
+    
     // For other sources, add WebP format parameter
-    const url = new URL(optimizedSrc, window.location.origin);
-    url.searchParams.set('format', 'webp');
-    return url.toString();
+    const optimizedSrc = getOptimizedSrc(originalSrc);
+    try {
+      const url = new URL(optimizedSrc);
+      url.searchParams.set('format', 'webp');
+      return url.toString();
+    } catch {
+      return optimizedSrc;
+    }
   }, [getOptimizedSrc]);
 
   // Intersection Observer for lazy loading
