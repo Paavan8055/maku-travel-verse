@@ -124,6 +124,30 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
   const optimizedSrc = getOptimizedSrc(src);
   const webpSrc = getWebPSrc(src);
 
+  // For non-lazy images, render immediately without conditional logic
+  if (!lazy) {
+    return (
+      <picture>
+        <source srcSet={webpSrc} type="image/webp" />
+        <img
+          src={optimizedSrc}
+          alt={alt}
+          width={width}
+          height={height}
+          loading="eager"
+          fetchPriority={fetchPriority}
+          className={cn(
+            'object-cover transition-opacity duration-300',
+            isLoading ? 'opacity-0' : 'opacity-100',
+            className
+          )}
+          onLoad={handleLoad}
+          onError={handleError}
+        />
+      </picture>
+    );
+  }
+
   return (
     <div 
       ref={imgRef}
@@ -141,7 +165,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
             alt={alt}
             width={width}
             height={height}
-            loading={lazy ? 'lazy' : 'eager'}
+            loading="lazy"
             fetchPriority={fetchPriority}
             className={cn(
               'object-cover transition-opacity duration-300',
