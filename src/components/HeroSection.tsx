@@ -52,8 +52,8 @@ const HeroSection = () => {
               width={1920}
               height={1080}
               className="h-full w-full object-cover"
-              lazy={index !== currentSlide}
-              fetchPriority={index === currentSlide ? "high" : "auto"}
+              lazy={index !== 0}
+              fetchPriority={index === 0 ? "high" : "auto"}
               quality={85}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
