@@ -52,7 +52,7 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       price: 180,
       originalPrice: 240,
       rating: 4.9,
-      image: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=300&h=200&fit=crop&fm=webp&q=80',
       reasons: ['Matches your spiritual travel preference', 'Highly rated meditation facilities', 'Similar to your previous bookings'],
       savings: '25% off',
       urgency: '3 rooms left at this price'
@@ -65,7 +65,7 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       location: 'Tromso, Norway',
       price: 350,
       rating: 4.8,
-      image: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=400&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=300&h=200&fit=crop&fm=webp&q=80',
       reasons: ['#1 trending destination this month', 'Perfect for Northern Lights viewing', 'Booking surge: +200%'],
       urgency: 'Booking fast'
     },
@@ -78,7 +78,7 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       price: 220,
       originalPrice: 320,
       rating: 4.7,
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=200&fit=crop&fm=webp&q=80',
       reasons: ['Kids stay free', 'Family-friendly amenities', 'Pool and beach access'],
       savings: '31% off',
       urgency: 'Sale ends in 2 days'
@@ -91,7 +91,7 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       location: 'Tokyo, Japan',
       price: 280,
       rating: 4.6,
-      image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=300&h=200&fit=crop&fm=webp&q=80',
       reasons: ['Similar to "Tokyo hotels"', 'Central location', 'Business traveler favorite'],
     }
   ];
