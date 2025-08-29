@@ -161,7 +161,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
           width={width}
           height={height}
           loading="eager"
-          fetchPriority={fetchPriority}
+          {...{ fetchpriority: fetchPriority }}
           className={cn(
             'object-cover transition-opacity duration-300',
             isLoading ? 'opacity-0' : 'opacity-100',
