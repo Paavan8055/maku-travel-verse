@@ -82,7 +82,12 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
 
   // Intersection Observer for lazy loading
   useEffect(() => {
-    if (!lazy || isInView) return;
+    if (!lazy) {
+      setIsInView(true);
+      return;
+    }
+    
+    if (isInView) return;
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
