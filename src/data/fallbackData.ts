@@ -77,8 +77,8 @@ export const fallbackHotelData = {
       starRating: 4,
       amenities: ["WiFi", "Pool", "Gym", "Restaurant", "Spa"],
       images: [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=200&fit=crop&fm=webp&q=80",
+        "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=300&h=200&fit=crop&fm=webp&q=80"
       ],
       price: {
         amount: 185,
@@ -110,8 +110,8 @@ export const fallbackHotelData = {
       starRating: 5,
       amenities: ["WiFi", "Concierge", "Business Center", "Restaurant", "Bar"],
       images: [
-        "https://images.unsplash.com/photo-1549294413-26f195200c16?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1549294413-26f195200c16?w=300&h=200&fit=crop&fm=webp&q=80",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=300&h=200&fit=crop&fm=webp&q=80"
       ],
       price: {
         amount: 295,
@@ -160,8 +160,8 @@ export const fallbackActivityData = {
         reviews: 12540
       },
       images: [
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop&fm=webp&q=80",
+        "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=300&h=200&fit=crop&fm=webp&q=80"
       ],
       highlights: [
         "360-degree views of Sydney",
@@ -187,8 +187,8 @@ export const fallbackActivityData = {
         reviews: 8920
       },
       images: [
-        "https://images.unsplash.com/photo-1548586744-7c4c9b26e5fd?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1575089976121-8ed7b2a54265?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1548586744-7c4c9b26e5fd?w=300&h=200&fit=crop&fm=webp&q=80",
+        "https://images.unsplash.com/photo-1575089976121-8ed7b2a54265?w=300&h=200&fit=crop&fm=webp&q=80"
       ],
       highlights: [
         "Expert guide commentary",
