@@ -93,32 +93,56 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
 
   // Generate WebP source for modern browsers
   const getWebPSrc = useCallback((originalSrc: string) => {
-    // For Unsplash URLs, they already return WebP when requested with fm=webp
+    // For Unsplash URLs, ensure WebP format is explicitly requested
     if (originalSrc.includes('unsplash.com')) {
-      return getOptimizedSrc(originalSrc); // Already has WebP format
+      const url = new URL(originalSrc);
+      // Use exact display dimensions to avoid waste
+      if (width) url.searchParams.set('w', Math.round(width).toString());
+      if (height) url.searchParams.set('h', Math.round(height).toString());
+      url.searchParams.set('q', Math.min(quality, 75).toString());
+      url.searchParams.set('fm', 'webp'); // Explicit WebP format
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('auto', 'format,compress');
+      // Add device pixel ratio optimization
+      const dpr = window.devicePixelRatio || 1;
+      if (dpr > 1) {
+        url.searchParams.set('dpr', Math.min(dpr, 2).toString());
+      }
+      return url.toString();
     }
     
     // For Cloudinary, add WebP format
     if (originalSrc.includes('cloudinary.com')) {
-      const optimizedSrc = getOptimizedSrc(originalSrc);
-      return optimizedSrc.replace('f_auto', 'f_webp');
+      const parts = originalSrc.split('/upload/');
+      if (parts.length === 2) {
+        const transforms = [];
+        if (width) transforms.push(`w_${Math.round(width)}`);
+        if (height) transforms.push(`h_${Math.round(height)}`);
+        transforms.push(`c_fill`);
+        transforms.push(`q_${quality}`);
+        transforms.push('f_webp'); // Explicit WebP format
+        
+        return `${parts[0]}/upload/${transforms.join(',')}/${parts[1]}`;
+      }
     }
     
-    // For local assets, just return the optimized source
+    // For local assets, return the same source (browser will use WebP if available via picture element)
     if (originalSrc.startsWith('/') || originalSrc.includes(window.location.origin)) {
       return getOptimizedSrc(originalSrc);
     }
     
-    // For other sources, add WebP format parameter
-    const optimizedSrc = getOptimizedSrc(originalSrc);
+    // For other sources, try to add WebP format parameter
     try {
-      const url = new URL(optimizedSrc);
+      const url = new URL(originalSrc);
+      if (width) url.searchParams.set('w', Math.round(width).toString());
+      if (height) url.searchParams.set('h', Math.round(height).toString());
+      url.searchParams.set('q', quality.toString());
       url.searchParams.set('format', 'webp');
       return url.toString();
     } catch {
-      return optimizedSrc;
+      return getOptimizedSrc(originalSrc);
     }
-  }, [getOptimizedSrc]);
+  }, [width, height, quality, getOptimizedSrc]);
 
   // Intersection Observer for lazy loading
   useEffect(() => {
