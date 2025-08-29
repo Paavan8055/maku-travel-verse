@@ -1,6 +1,7 @@
 import { Users, User, Dog, Sparkles, ArrowRight, Star, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ImageOptimizer } from "@/components/media/ImageOptimizer";
 
 const MarketplaceSection = () => {
   const marketplaces = [
@@ -70,10 +71,13 @@ const MarketplaceSection = () => {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="relative h-48 overflow-hidden">
-                <img
+                <ImageOptimizer
                   src={marketplace.image}
                   alt={marketplace.name}
+                  width={400}
+                  height={192}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  quality={80}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 
