@@ -25,7 +25,7 @@ const MarketplaceSection = () => {
       features: ["Solo-friendly", "Bangkok hostels", "Melbourne boutique", "Singapore business"],
       destinations: "1,800+ reviews",
       deals: "Special solo rates",
-      image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=200&fit=crop&fm=webp&q=80"
+      image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=200&fit=crop&fm=webp&q=70"
     },
     {
       id: "pet",
@@ -36,7 +36,7 @@ const MarketplaceSection = () => {
       features: ["Pet-friendly hotels", "Byron Bay resorts", "Adelaide vineyards", "Perth beachfront"],
       destinations: "1,200+ verified",
       deals: "Pets stay free",
-      image: "https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=400&h=200&fit=crop&fm=webp&q=80"
+      image: "https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=400&h=200&fit=crop&fm=webp&q=70"
     },
     {
       id: "spiritual",
@@ -47,7 +47,7 @@ const MarketplaceSection = () => {
       features: ["Rishikesh ashrams", "Ubud wellness", "Chiang Mai temples", "Sacred sites"],
       destinations: "800+ retreats",
       deals: "Wellness packages",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop&fm=webp&q=80"
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop&fm=webp&q=70"
     }
   ];
 
