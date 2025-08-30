@@ -16,7 +16,9 @@ async function testProviderAuth(provider: 'amadeus' | 'sabre' | 'hotelbeds'): Pr
 }> {
   const result = {
     provider,
-    credentialsValid: validateProviderCredentials(provider),
+    credentialsValid: provider === 'hotelbeds' ? 
+      validateHotelBedsCredentials('hotel') : 
+      validateProviderCredentials(provider),
     authSuccess: false,
     environment: ENV_CONFIG.isProduction ? 'production' : 'test',
     error: undefined as string | undefined
@@ -82,15 +84,16 @@ async function testSabreAuth(): Promise<void> {
 
 async function testHotelbedsAuth(): Promise<void> {
   // HotelBeds uses API key authentication - test with a simple info request
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY')!;
-  const secret = Deno.env.get('HOTELBEDS_SECRET')!;
+  const apiKey = Deno.env.get('HOTELBEDS_HOTEL_API_KEY')!;
+  const secret = Deno.env.get('HOTELBEDS_HOTEL_SECRET')!;
   const timestamp = Math.floor(Date.now() / 1000);
   
-  // Create signature for HotelBeds
-  const crypto = await import('node:crypto');
-  const signature = crypto.createHash('sha256')
-    .update(apiKey + secret + timestamp)
-    .digest('hex');
+  // Create signature for HotelBeds using Web Crypto API
+  const encoder = new TextEncoder();
+  const data = encoder.encode(apiKey + secret + timestamp);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
   const response = await fetch(`${ENV_CONFIG.hotelbeds.baseUrl}/hotel-content-api/1.0/types/boards`, {
     headers: {
