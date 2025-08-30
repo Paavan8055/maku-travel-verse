@@ -56,11 +56,19 @@
     <!-- Optimized font loading - preload key font files directly -->
     <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/playfairdisplay/v39/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2" as="font" type="font/woff2" crossorigin>
-    <!-- Non-blocking Google Fonts CSS load -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Non-blocking Google Fonts CSS load with media attribute trick -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'; this.onload=null;">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap"></noscript>
-    <!-- Non-blocking critical CSS load -->
-    <link rel="preload" as="style" href="/assets/index-BMz1xXiY.css" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <!-- Inline critical CSS for font-family fallbacks to prevent FOUT -->
+    <style>
+      body { font-family: ui-sans-serif, system-ui, sans-serif; }
+      .font-playfair { font-family: Georgia, serif; }
+      .font-dancing { font-family: cursive; }
+    </style>
+    
+    <!-- Non-blocking critical CSS load with media attribute trick -->
+    <link rel="stylesheet" href="/assets/index-BMz1xXiY.css" media="print" onload="this.media='all'; this.onload=null;">
     <noscript><link rel="stylesheet" href="/assets/index-BMz1xXiY.css"></noscript>
     <!-- Preload critical hero image for LCP optimization -->
     <link rel="preload" as="image" href="/assets/hero-maldives-L_A0_YZq.jpg" fetchpriority="high">
