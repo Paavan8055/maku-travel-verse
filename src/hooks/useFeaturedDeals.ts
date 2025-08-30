@@ -172,25 +172,29 @@ const FALLBACK_DATA: FeaturedDealsState = {
 export const useFeaturedDeals = () => {
   const [state, setState] = useState<FeaturedDealsState>(FALLBACK_DATA);
 
-  const transformApiData = useCallback((apiData: any, type: string): FeaturedDeal[] => {
-    if (!apiData?.data || !Array.isArray(apiData.data)) return [];
+  const transformApiData = useCallback((apiResponse: any, type: string): FeaturedDeal[] => {
+    // Check if we have API response data (even if it's demo data)
+    const apiData = apiResponse?.data?.data || apiResponse?.data?.[`${type}s`] || apiResponse?.data;
     
-    return apiData.data.slice(0, 4).map((item: any, index: number) => {
-      const baseId = `${type}_${Date.now()}_${index}`;
+    if (!Array.isArray(apiData)) return [];
+    
+    return apiData.slice(0, 4).map((item: any, index: number) => {
+      const isDemo = item.isDemoData || apiResponse?.data?.meta?.isDemoData;
+      const baseId = `${type}_${isDemo ? 'demo' : 'live'}_${Date.now()}_${index}`;
       
       if (type === 'hotel') {
         return {
           id: baseId,
           type: 'hotel' as const,
-          name: item.hotel?.name || item.name || `Premium Hotel ${index + 1}`,
-          location: item.hotel?.address?.cityName || item.cityName || 'Prime Location',
-          price: Math.round(item.offers?.[0]?.price?.total || item.price?.total || 150 + (index * 50)),
-          originalPrice: Math.round((item.offers?.[0]?.price?.total || item.price?.total || 150 + (index * 50)) * 1.3),
-          rating: 4.5 + (Math.random() * 0.4),
-          reviews: Math.floor(Math.random() * 1000) + 200,
+          name: item.name || `Premium Hotel ${index + 1}`,
+          location: item.address || item.location || item.city || 'Prime Location',
+          price: Math.round(item.price?.amount || 150 + (index * 50)),
+          originalPrice: Math.round((item.price?.amount || 150 + (index * 50)) * 1.3),
+          rating: item.rating?.score || item.rating || (4.5 + (Math.random() * 0.4)),
+          reviews: item.rating?.reviews || Math.floor(Math.random() * 1000) + 200,
           image: `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=192&fit=crop&fm=webp&q=70&sig=${index}`,
           verified: true,
-          badge: ['Best Deal', 'Top Rated', 'Exclusive', 'Limited Time'][index % 4],
+          badge: isDemo ? 'Demo Data' : ['Best Deal', 'Top Rated', 'Exclusive', 'Limited Time'][index % 4],
           marketplace: ['Family', 'Solo', 'Pet', 'Spiritual'][index % 4]
         };
       }
@@ -199,15 +203,15 @@ export const useFeaturedDeals = () => {
         return {
           id: baseId,
           type: 'flight' as const,
-          name: `${item.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || 'SYD'} to ${item.itineraries?.[0]?.segments?.[0]?.arrival?.iataCode || 'MEL'}`,
-          from: item.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || 'SYD',
-          to: item.itineraries?.[0]?.segments?.[0]?.arrival?.iataCode || 'MEL',
+          name: `${item.departure?.airport || item.from || 'SYD'} to ${item.arrival?.airport || item.to || 'MEL'}`,
+          from: item.departure?.city || item.from || 'Sydney',
+          to: item.arrival?.city || item.to || 'Melbourne',
           location: 'Flight Route',
-          price: Math.round(item.price?.total || item.grandTotal || 200 + (index * 100)),
-          originalPrice: Math.round((item.price?.total || item.grandTotal || 200 + (index * 100)) * 1.25),
-          airline: item.validatingAirlineCodes?.[0] || 'Airline',
-          duration: item.itineraries?.[0]?.duration || '2h 30m',
-          stops: item.itineraries?.[0]?.segments?.length === 1 ? 'Direct' : `${item.itineraries[0].segments.length - 1} stop`,
+          price: Math.round(item.price?.amount || 200 + (index * 100)),
+          originalPrice: Math.round((item.price?.amount || 200 + (index * 100)) * 1.25),
+          airline: item.airline || 'Demo Airways',
+          duration: item.duration || '2h 30m',
+          stops: item.stops || 'Direct',
           rating: 4.4 + (Math.random() * 0.5),
           image: `https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=300&h=130&fit=crop&fm=webp&q=70&sig=${index}`
         };
@@ -217,13 +221,13 @@ export const useFeaturedDeals = () => {
         return {
           id: baseId,
           type: 'activity' as const,
-          name: item.name || item.title || `Exciting Activity ${index + 1}`,
-          location: item.geoCode?.latitude ? 'City Center' : item.location || 'Popular Destination',
-          price: Math.round(item.price?.amount || item.price || 80 + (index * 40)),
-          originalPrice: Math.round((item.price?.amount || item.price || 80 + (index * 40)) * 1.4),
+          name: item.name || `Exciting Activity ${index + 1}`,
+          location: item.location || 'Sydney',
+          price: Math.round(item.price?.amount || 80 + (index * 40)),
+          originalPrice: Math.round((item.price?.amount || 80 + (index * 40)) * 1.4),
           duration: item.duration || `${2 + index} hours`,
-          rating: 4.6 + (Math.random() * 0.3),
-          reviews: Math.floor(Math.random() * 500) + 100,
+          rating: item.rating?.score || (4.6 + (Math.random() * 0.3)),
+          reviews: item.rating?.reviews || Math.floor(Math.random() * 500) + 100,
           image: `https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=300&h=200&fit=crop&fm=webp&q=80&sig=${index}`
         };
       }
@@ -306,29 +310,38 @@ export const useFeaturedDeals = () => {
       let newActivities = FALLBACK_DATA.activities;
       
       // Process hotel results
-      if (hotelResult.status === 'fulfilled' && hotelResult.value?.data?.success) {
+      if (hotelResult.status === 'fulfilled' && hotelResult.value?.data) {
         const transformed = transformApiData(hotelResult.value.data, 'hotel');
         if (transformed.length > 0) {
-          newHotels = [...transformed, ...FALLBACK_DATA.hotels.slice(transformed.length)].slice(0, 4);
-          logger.info('✅ Featured deals: Using real hotel data', { count: transformed.length });
+          newHotels = transformed;
+          logger.info('✅ Featured deals: Using hotel data', { 
+            count: transformed.length,
+            isDemo: hotelResult.value.data?.meta?.isDemoData 
+          });
         }
       }
       
       // Process flight results
-      if (flightResult.status === 'fulfilled' && flightResult.value?.data?.success) {
+      if (flightResult.status === 'fulfilled' && flightResult.value?.data) {
         const transformed = transformApiData(flightResult.value.data, 'flight');
         if (transformed.length > 0) {
-          newFlights = [...transformed, ...FALLBACK_DATA.flights.slice(transformed.length)].slice(0, 2);
-          logger.info('✅ Featured deals: Using real flight data', { count: transformed.length });
+          newFlights = transformed;
+          logger.info('✅ Featured deals: Using flight data', { 
+            count: transformed.length,
+            isDemo: flightResult.value.data?.meta?.isDemoData 
+          });
         }
       }
       
       // Process activity results
-      if (activityResult.status === 'fulfilled' && activityResult.value?.data?.success) {
+      if (activityResult.status === 'fulfilled' && activityResult.value?.data) {
         const transformed = transformApiData(activityResult.value.data, 'activity');
         if (transformed.length > 0) {
-          newActivities = [...transformed, ...FALLBACK_DATA.activities.slice(transformed.length)].slice(0, 2);
-          logger.info('✅ Featured deals: Using real activity data', { count: transformed.length });
+          newActivities = transformed;
+          logger.info('✅ Featured deals: Using activity data', { 
+            count: transformed.length,
+            isDemo: activityResult.value.data?.meta?.isDemoData 
+          });
         }
       }
       
@@ -342,9 +355,12 @@ export const useFeaturedDeals = () => {
       });
       
       logger.info('✅ Featured deals refresh completed', {
-        hotelsReal: newHotels.some(h => h.id.includes(Date.now().toString())),
-        flightsReal: newFlights.some(f => f.id.includes(Date.now().toString())),
-        activitiesReal: newActivities.some(a => a.id.includes(Date.now().toString()))
+        hotelsCount: newHotels.length,
+        flightsCount: newFlights.length,  
+        activitiesCount: newActivities.length,
+        hasApiData: newHotels.some(h => h.id.includes('demo') || h.id.includes('live')) ||
+                    newFlights.some(f => f.id.includes('demo') || f.id.includes('live')) ||
+                    newActivities.some(a => a.id.includes('demo') || a.id.includes('live'))
       });
       
     } catch (error) {

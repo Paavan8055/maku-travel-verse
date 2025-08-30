@@ -27,7 +27,15 @@ const FeaturedListings = () => {
   };
 
   const isRealTimeData = (id: string) => {
-    return id.includes(Date.now().toString().slice(0, 8));
+    return id.includes('live') || id.includes('demo');
+  };
+
+  const isLiveData = (id: string) => {
+    return id.includes('live');
+  };
+
+  const isDemoData = (id: string) => {
+    return id.includes('demo');
   };
 
   return (
@@ -90,10 +98,15 @@ const FeaturedListings = () => {
                       <Badge variant="secondary" className="bg-travel-coral text-white">
                         {hotel.badge}
                       </Badge>
-                      {isRealTimeData(hotel.id) && (
+                      {isLiveData(hotel.id) && (
                         <Badge variant="secondary" className="bg-green-500 text-white text-xs">
                           <Zap className="h-3 w-3 mr-1" />
                           Live
+                        </Badge>
+                      )}
+                      {isDemoData(hotel.id) && (
+                        <Badge variant="secondary" className="bg-blue-500 text-white text-xs">
+                          API Demo
                         </Badge>
                       )}
                     </div>
@@ -198,12 +211,19 @@ const FeaturedListings = () => {
                         <div className="text-2xl font-bold">{flight.from} → {flight.to}</div>
                         <div className="text-white/90">{flight.airline}</div>
                       </div>
-                      {isRealTimeData(flight.id) && (
-                        <Badge variant="secondary" className="bg-green-500 text-white text-xs">
-                          <Zap className="h-3 w-3 mr-1" />
-                          Live
-                        </Badge>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {isLiveData(flight.id) && (
+                          <Badge variant="secondary" className="bg-green-500 text-white text-xs">
+                            <Zap className="h-3 w-3 mr-1" />
+                            Live
+                          </Badge>
+                        )}
+                        {isDemoData(flight.id) && (
+                          <Badge variant="secondary" className="bg-blue-500 text-white text-xs">
+                            API Demo
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -270,12 +290,19 @@ const FeaturedListings = () => {
                       <div className="text-white">
                         <div className="flex items-start justify-between mb-1">
                           <h3 className="font-bold text-lg flex-1">{activity.name}</h3>
-                          {isRealTimeData(activity.id) && (
-                            <Badge variant="secondary" className="bg-green-500 text-white text-xs ml-2">
-                              <Zap className="h-3 w-3 mr-1" />
-                              Live
-                            </Badge>
-                          )}
+                          <div className="flex flex-col gap-1 ml-2">
+                            {isLiveData(activity.id) && (
+                              <Badge variant="secondary" className="bg-green-500 text-white text-xs">
+                                <Zap className="h-3 w-3 mr-1" />
+                                Live
+                              </Badge>
+                            )}
+                            {isDemoData(activity.id) && (
+                              <Badge variant="secondary" className="bg-blue-500 text-white text-xs">
+                                API Demo
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center text-white/90 text-sm">
                           <MapPin className="h-4 w-4 mr-1" />
