@@ -58,11 +58,13 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       // Use exact display dimensions to avoid waste - round to match display
       if (width) url.searchParams.set('w', Math.round(width).toString());
       if (height) url.searchParams.set('h', Math.round(height).toString());
-      url.searchParams.set('q', '75'); // Better compression for file size
+      url.searchParams.set('q', '70'); // Better compression for file size  
       url.searchParams.set('fm', 'webp'); // Force WebP format
       url.searchParams.set('fit', 'crop');
-      url.searchParams.set('auto', 'compress'); // Focus on compression
+      url.searchParams.set('auto', 'compress,format'); // Auto compress and format
+      url.searchParams.set('cs', 'tinysrgb'); // Smaller color space
       // Remove DPR to avoid oversizing - use exact dimensions
+      url.searchParams.delete('dpr');
       return url.toString();
     }
 
@@ -95,11 +97,13 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       // Use exact display dimensions to avoid waste - round to match display
       if (width) url.searchParams.set('w', Math.round(width).toString());
       if (height) url.searchParams.set('h', Math.round(height).toString());
-      url.searchParams.set('q', '75'); // Better compression
+      url.searchParams.set('q', '70'); // Better compression
       url.searchParams.set('fm', 'webp'); // Explicit WebP format
       url.searchParams.set('fit', 'crop');
-      url.searchParams.set('auto', 'compress'); // Focus on compression
+      url.searchParams.set('auto', 'compress,format'); // Auto compress and format
+      url.searchParams.set('cs', 'tinysrgb'); // Smaller color space
       // Remove DPR to avoid oversizing - use exact dimensions for best file size
+      url.searchParams.delete('dpr');
       return url.toString();
     }
     
