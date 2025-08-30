@@ -1,3 +1,4 @@
+
 import { Users, User, Dog, Sparkles, ArrowRight, Star, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,7 +64,7 @@ const MarketplaceSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {marketplaces.map((marketplace, index) => (
             <Card 
               key={marketplace.id} 
@@ -103,27 +104,27 @@ const MarketplaceSection = () => {
                 </div>
               </div>
 
-              <CardContent className="p-6">
-                <h3 className="text-2xl font-bold mb-3 font-['Playfair_Display']">
+              <CardContent className="p-4">
+                <h3 className="text-xl font-bold mb-2 font-['Playfair_Display']">
                   {marketplace.name}
                 </h3>
                 
-                <p className="text-muted-foreground mb-4 leading-relaxed">
+                <p className="text-muted-foreground mb-3 leading-relaxed text-sm">
                   {marketplace.description}
                 </p>
 
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                  {marketplace.features.map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-center text-sm">
+                <div className="grid grid-cols-1 gap-1 mb-4">
+                  {marketplace.features.slice(0, 2).map((feature, featureIndex) => (
+                    <div key={featureIndex} className="flex items-center text-xs">
                       <Star className="h-3 w-3 text-travel-gold mr-2 flex-shrink-0" />
                       <span>{feature}</span>
                     </div>
                   ))}
                 </div>
 
-                <Button className="w-full btn-primary group">
-                  Explore {marketplace.name}
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <Button className="w-full btn-primary group text-sm py-2">
+                  Explore
+                  <ArrowRight className="ml-2 h-3 w-3 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </CardContent>
             </Card>
