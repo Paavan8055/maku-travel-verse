@@ -53,17 +53,28 @@ export const CurrencyProvider: React.FC<React.PropsWithChildren<{}>> = ({ childr
 
   useEffect(() => {
     let mounted = true;
-    // Public free rates API (no key). Base USD for simpler conversion logic
-    fetch("https://api.exchangerate.host/latest?base=USD")
-      .then((r) => r.json())
-      .then((j) => {
-        if (!mounted) return;
-        if (j && j.rates) {
-          setRates({ USD: 1, ...j.rates });
-        }
-      })
-      .catch(() => {/* ignore and keep defaults */});
-    return () => { mounted = false; };
+    
+    // Defer currency API call to avoid blocking critical path
+    const loadRates = () => {
+      // Public free rates API (no key). Base USD for simpler conversion logic
+      fetch("https://api.exchangerate.host/latest?base=USD")
+        .then((r) => r.json())
+        .then((j) => {
+          if (!mounted) return;
+          if (j && j.rates) {
+            setRates({ USD: 1, ...j.rates });
+          }
+        })
+        .catch(() => {/* ignore and keep defaults */});
+    };
+    
+    // Defer to next tick to not block initial render
+    const timer = setTimeout(loadRates, 0);
+    
+    return () => { 
+      mounted = false; 
+      clearTimeout(timer);
+    };
   }, []);
 
   const convert = useMemo(() => {
