@@ -60,16 +60,42 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'; this.onload=null;">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap"></noscript>
     
-    <!-- Inline critical CSS for font-family fallbacks to prevent FOUT -->
+    <!-- Inline critical CSS for immediate FCP -->
     <style>
-      body { font-family: ui-sans-serif, system-ui, sans-serif; }
-      .font-playfair { font-family: Georgia, serif; }
-      .font-dancing { font-family: cursive; }
+      /* Critical reset and layout */
+      *{margin:0;padding:0;box-sizing:border-box}
+      html,body{width:100vw;height:100vh;overflow-x:hidden}
+      
+      /* Essential color variables for immediate rendering */
+      :root{
+        --background:0 0% 100%;--foreground:230 15% 15%;
+        --primary:210 100% 50%;--primary-foreground:0 0% 100%;
+        --secondary:210 40% 98%;--muted:210 40% 96%;
+        --border:214 32% 91%;--accent:210 40% 98%;
+      }
+      
+      /* Critical font families */
+      body{font-family:ui-sans-serif,system-ui,sans-serif;background:hsl(var(--background));color:hsl(var(--foreground))}
+      .font-playfair{font-family:Georgia,serif}
+      .font-dancing{font-family:cursive}
+      
+      /* Critical layout classes */
+      .min-h-screen{min-height:100vh}
+      .bg-background{background-color:hsl(var(--background))}
+      .relative{position:relative}
+      .h-screen{height:100vh}
+      .w-full{width:100%}
+      .overflow-hidden{overflow:hidden}
+      
+      /* Prevent layout shift */
+      #root{min-height:100vh}
     </style>
     
     <!-- Non-blocking critical CSS load with media attribute trick -->
     <link rel="stylesheet" href="/assets/index-BMz1xXiY.css" media="print" onload="this.media='all'; this.onload=null;">
     <noscript><link rel="stylesheet" href="/assets/index-BMz1xXiY.css"></noscript>
+    <!-- Preload critical JavaScript for faster execution -->
+    <link rel="modulepreload" href="/src/main.tsx">
     <!-- Preload critical hero image for LCP optimization -->
     <link rel="preload" as="image" href="/assets/hero-maldives-L_A0_YZq.jpg" fetchpriority="high">
     <!-- Additional preload for WebP version if supported -->
