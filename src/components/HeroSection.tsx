@@ -52,9 +52,9 @@ const HeroSection = () => {
               width={1400}
               height={1000}
               className="h-full w-full object-cover"
-              lazy={index !== 0}
-              fetchPriority={index === 0 ? "high" : "auto"}
-              quality={85}
+              lazy={false}
+              fetchPriority={index === 0 ? "high" : "low"}
+              quality={index === 0 ? 90 : 75}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
           </div>)}

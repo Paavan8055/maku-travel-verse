@@ -123,9 +123,9 @@
     <!-- Non-blocking critical CSS load with media attribute trick -->
     <link rel="stylesheet" href="/assets/index-BMz1xXiY.css" media="print" onload="this.media='all'; this.onload=null;">
     <noscript><link rel="stylesheet" href="/assets/index-BMz1xXiY.css"></noscript>
-    <!-- Critical resource preloading for LCP optimization -->
-    <link rel="preload" href="/assets/hero-maldives-L_A0_YZq.jpg" as="image" fetchpriority="high">
-    <link rel="preload" href="/assets/hero-maldives-L_A0_YZq.webp" as="image" fetchpriority="high" type="image/webp">
+    <!-- Critical resource preloading for immediate LCP -->
+    <link rel="preload" href="/assets/hero-maldives-L_A0_YZq.jpg" as="image" fetchpriority="high" media="(max-width: 768px)">
+    <link rel="preload" href="/assets/hero-maldives-L_A0_YZq.webp" as="image" fetchpriority="high" type="image/webp" media="(min-width: 769px)">
     <link rel="modulepreload" href="/src/main.tsx" fetchpriority="high">
     
   </head>
