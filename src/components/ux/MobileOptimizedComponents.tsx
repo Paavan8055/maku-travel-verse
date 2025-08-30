@@ -325,10 +325,13 @@ export const MobileTabNavigation = ({
   useEffect(() => {
     const activeTabElement = tabRefs.current[activeTab];
     if (activeTabElement) {
-      const { offsetLeft, offsetWidth } = activeTabElement;
-      setIndicatorStyle({
-        left: offsetLeft,
-        width: offsetWidth,
+      // Use requestAnimationFrame to avoid forced reflow
+      requestAnimationFrame(() => {
+        const { offsetLeft, offsetWidth } = activeTabElement;
+        setIndicatorStyle({
+          left: offsetLeft,
+          width: offsetWidth,
+        });
       });
     }
   }, [activeTab]);
