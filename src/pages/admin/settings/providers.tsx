@@ -1,6 +1,7 @@
 import React from 'react';
 import { EmergencyProviderPanel } from '@/components/admin/EmergencyProviderPanel';
 import { ProviderCredentialStatus } from '@/components/admin/ProviderCredentialStatus';
+import { ProviderConfiguration } from '@/components/admin/ProviderConfiguration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Settings, Shield } from 'lucide-react';
@@ -57,16 +58,7 @@ const AdminProvidersSettingsPage = () => {
         </TabsContent>
 
         <TabsContent value="configuration" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Provider Configuration</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Advanced provider configuration options coming soon...
-              </p>
-            </CardContent>
-          </Card>
+          <ProviderConfiguration />
         </TabsContent>
       </Tabs>
     </div>
