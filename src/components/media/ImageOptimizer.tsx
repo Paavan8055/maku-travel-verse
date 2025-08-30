@@ -122,9 +122,11 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       }
     }
     
-    // For local assets, return the same source (browser will use WebP if available via picture element)
+    // For local assets, generate WebP version
     if (originalSrc.startsWith('/') || originalSrc.includes(window.location.origin)) {
-      return getOptimizedSrc(originalSrc);
+      // Convert extension to .webp for local assets
+      const webpSrc = originalSrc.replace(/\.(jpe?g|png)$/i, '.webp');
+      return webpSrc;
     }
     
     // For other sources, try to add WebP format parameter
