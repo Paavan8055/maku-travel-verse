@@ -37,6 +37,14 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
 
   // Generate optimized image URL
   const getOptimizedSrc = useCallback((originalSrc: string) => {
+    // Check if this is a Vite-processed local asset (contains hash)
+    const isViteAsset = originalSrc.includes('-') && /[a-f0-9]{8}/.test(originalSrc) && originalSrc.startsWith('/assets/');
+    
+    // For Vite-processed local assets, use as-is (already optimized)
+    if (isViteAsset) {
+      return originalSrc;
+    }
+    
     // For Cloudinary URLs
     if (originalSrc.includes('cloudinary.com')) {
       const parts = originalSrc.split('/upload/');
@@ -68,13 +76,10 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       return url.toString();
     }
 
-    // For local assets, add responsive sizing parameters
+    // For other local assets (non-Vite processed)
     if (originalSrc.startsWith('/') || originalSrc.includes(window.location.origin)) {
-      const url = new URL(originalSrc, window.location.origin);
-      if (width) url.searchParams.set('w', Math.round(width).toString());
-      if (height) url.searchParams.set('h', Math.round(height).toString());
-      url.searchParams.set('q', quality.toString());
-      return url.toString();
+      // Don't modify URLs for local assets that might not support query params
+      return originalSrc;
     }
 
     // For other CDNs or basic optimization
@@ -91,6 +96,14 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
 
   // Generate WebP source for modern browsers
   const getWebPSrc = useCallback((originalSrc: string) => {
+    // Check if this is a Vite-processed local asset (contains hash)
+    const isViteAsset = originalSrc.includes('-') && /[a-f0-9]{8}/.test(originalSrc) && originalSrc.startsWith('/assets/');
+    
+    // For Vite-processed local assets, use as-is (no WebP conversion available)
+    if (isViteAsset) {
+      return originalSrc;
+    }
+    
     // For Unsplash URLs, ensure WebP format is explicitly requested
     if (originalSrc.includes('unsplash.com')) {
       const url = new URL(originalSrc);
@@ -122,11 +135,9 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       }
     }
     
-    // For local assets, generate WebP version
+    // For other local assets, don't attempt WebP conversion
     if (originalSrc.startsWith('/') || originalSrc.includes(window.location.origin)) {
-      // Convert extension to .webp for local assets
-      const webpSrc = originalSrc.replace(/\.(jpe?g|png)$/i, '.webp');
-      return webpSrc;
+      return originalSrc;
     }
     
     // For other sources, try to add WebP format parameter
