@@ -70,23 +70,27 @@ export const MobileTestingSuite = () => {
         }
       }
 
-      // Test touch targets
+      // Test touch targets - use requestAnimationFrame to avoid forced reflow
       const buttons = document.querySelectorAll('button');
-      buttons.forEach((button, index) => {
-        const rect = button.getBoundingClientRect();
-        if (rect.height < 44 || rect.width < 44) {
-          issues.push(`Button ${index + 1} too small for touch (${rect.width}x${rect.height})`);
-        }
+      requestAnimationFrame(() => {
+        buttons.forEach((button, index) => {
+          const rect = button.getBoundingClientRect();
+          if (rect.height < 44 || rect.width < 44) {
+            issues.push(`Button ${index + 1} too small for touch (${rect.width}x${rect.height})`);
+          }
+        });
       });
 
-      // Test text readability
+      // Test text readability - use requestAnimationFrame to avoid forced reflow  
       const textElements = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6');
-      textElements.forEach((element, index) => {
-        const styles = window.getComputedStyle(element);
-        const fontSize = parseFloat(styles.fontSize);
-        if (fontSize < 16 && currentWidth < 768) {
-          issues.push(`Text element ${index + 1} too small on mobile (${fontSize}px)`);
-        }
+      requestAnimationFrame(() => {
+        textElements.forEach((element, index) => {
+          const styles = window.getComputedStyle(element);
+          const fontSize = parseFloat(styles.fontSize);
+          if (fontSize < 16 && currentWidth < 768) {
+            issues.push(`Text element ${index + 1} too small on mobile (${fontSize}px)`);
+          }
+        });
       });
 
       return {
