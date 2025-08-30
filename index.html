@@ -65,8 +65,8 @@
         background-repeat: no-repeat;
       }
     </style>
-    <!-- Truly non-blocking Google Fonts with improved loading -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Non-blocking Google Fonts with optimized loading strategy -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap&text=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap"></noscript>
     
     <!-- Comprehensive inline critical CSS for immediate rendering -->
@@ -167,17 +167,29 @@
       }
     </style>
     
-    <!-- Defer non-critical CSS to reduce unused styles -->
-    <link rel="preload" href="/assets/index-BMz1xXiY.css" as="style" onload="this.onload=null;this.rel='stylesheet'" media="(min-width: 1px)">
+    <!-- Defer non-critical CSS with improved loading strategy -->
+    <link rel="preload" href="/assets/index-BMz1xXiY.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="/assets/index-BMz1xXiY.css"></noscript>
     
-    <!-- Additional optimization: Load remaining CSS after initial render -->
+    <!-- Optimized CSS loading script -->
     <script>
-      // Load full CSS after critical path
-      setTimeout(() => {
-        const link = document.querySelector('link[href*="index-BMz1xXiY.css"]');
-        if (link && link.media) link.media = 'all';
-      }, 100);
+      // Ensure CSS loads immediately after critical path
+      (function() {
+        const fontLink = document.querySelector('link[href*="fonts.googleapis.com"]');
+        const cssLink = document.querySelector('link[href*="index-BMz1xXiY.css"]');
+        
+        if (fontLink && !fontLink.sheet) {
+          fontLink.addEventListener('load', function() {
+            document.documentElement.classList.add('fonts-loaded');
+          });
+        }
+        
+        if (cssLink && !cssLink.sheet) {
+          cssLink.addEventListener('load', function() {
+            document.documentElement.classList.add('css-loaded');
+          });
+        }
+      })();
     </script>
     <!-- Critical resource preloading for immediate LCP discovery -->
     <link rel="preload" href="/assets/hero-maldives-L_A0_YZq.jpg" as="image" fetchpriority="high">
