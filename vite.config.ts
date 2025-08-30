@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: ['es2020', 'chrome80', 'firefox78', 'safari14', 'edge79'], // Modern browsers supporting ES6+
     rollupOptions: {
       output: {
         // Add timestamp to force cache invalidation
