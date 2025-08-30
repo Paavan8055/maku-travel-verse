@@ -89,7 +89,7 @@ const FeaturedListings = () => {
       duration: "7h 30m",
       stops: "Direct",
       rating: 4.6,
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=130&fit=crop&fm=webp&q=80"
+      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=300&h=130&fit=crop&fm=webp&q=70"
     },
     {
       id: "f2",
@@ -101,7 +101,7 @@ const FeaturedListings = () => {
       duration: "11h 45m",
       stops: "Direct",
       rating: 4.8,
-      image: "https://images.unsplash.com/photo-1544168190-79c17527004f?w=400&h=130&fit=crop&fm=webp&q=80"
+      image: "https://images.unsplash.com/photo-1544168190-79c17527004f?w=300&h=130&fit=crop&fm=webp&q=70"
     }
   ];
 

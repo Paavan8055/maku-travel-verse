@@ -49,12 +49,12 @@ const HeroSection = () => {
             <ImageOptimizer
               src={slide.image}
               alt={`${slide.title} - ${slide.subtitle}`}
-              width={1400}
-              height={1000}
+              width={1340}
+              height={940}
               className="h-full w-full object-cover"
               lazy={false}
               fetchPriority={index === 0 ? "high" : "low"}
-              quality={index === 0 ? 90 : 75}
+              quality={index === 0 ? 85 : 70}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
           </div>)}
