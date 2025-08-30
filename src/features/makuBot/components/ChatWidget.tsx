@@ -35,7 +35,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userVertical = 'Solo' }) => {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      // Use requestAnimationFrame to avoid forced reflow
+      requestAnimationFrame(() => {
+        if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+        }
+      });
     }
   }, [messages]);
 
