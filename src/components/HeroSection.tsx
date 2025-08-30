@@ -49,8 +49,8 @@ const HeroSection = () => {
             <ImageOptimizer
               src={slide.image}
               alt={`${slide.title} - ${slide.subtitle}`}
-              width={1920}
-              height={1080}
+              width={1400}
+              height={1000}
               className="h-full w-full object-cover"
               lazy={index !== 0}
               fetchPriority={index === 0 ? "high" : "auto"}
