@@ -1,10 +1,11 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProviderTestResult {
@@ -19,7 +20,32 @@ export const EmergencyProviderPanel = () => {
   const [results, setResults] = useState<ProviderTestResult[]>([]);
   const [resetResult, setResetResult] = useState<string>('');
   const [rotationResult, setRotationResult] = useState<any>(null);
+  const [autoLoading, setAutoLoading] = useState(true);
   const { toast } = useToast();
+
+  // Auto-load authentication test results on component mount
+  useEffect(() => {
+    const loadAuthenticationStatus = async () => {
+      setAutoLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('emergency-provider-fix', {
+          body: { action: 'test_auth' }
+        });
+
+        if (error) throw error;
+
+        if (data?.results) {
+          setResults(data.results);
+        }
+      } catch (error) {
+        console.error('Auto-load authentication test failed:', error);
+      } finally {
+        setAutoLoading(false);
+      }
+    };
+
+    loadAuthenticationStatus();
+  }, []);
 
   const executeEmergencyAction = async (action: string) => {
     setLoading(true);
@@ -41,9 +67,10 @@ export const EmergencyProviderPanel = () => {
         
         case 'test_auth':
           setResults(data.results || []);
+          const summary = data.summary || { working: 0, total: 0 };
           toast({
             title: "Authentication Test Complete",
-            description: `${data.summary.working}/${data.summary.total} providers working`,
+            description: `${summary.working}/${summary.total} providers working`,
           });
           break;
         
@@ -104,9 +131,9 @@ export const EmergencyProviderPanel = () => {
               variant="outline"
               className="h-20 flex flex-col gap-2"
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-              <span>Test Authentication</span>
-              <span className="text-xs opacity-80">Check all provider credentials</span>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              <span>Refresh Authentication</span>
+              <span className="text-xs opacity-80">Re-test all provider credentials</span>
             </Button>
 
             <Button 
@@ -130,40 +157,51 @@ export const EmergencyProviderPanel = () => {
         </CardContent>
       </Card>
 
-      {results.length > 0 && (
+      {/* Auto-loaded or manually tested authentication results */}
+      {(autoLoading || results.length > 0) && (
         <Card>
           <CardHeader>
-            <CardTitle>Authentication Test Results</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Provider Authentication Status</span>
+              {autoLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {results.map((result) => (
-                <div key={result.provider} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {result.authSuccess ? (
-                      <CheckCircle className="h-5 w-5 text-success" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-destructive" />
-                    )}
-                    <span className="font-medium capitalize">{result.provider}</span>
+            {autoLoading ? (
+              <div className="text-center py-4">
+                <div className="text-muted-foreground">Testing provider authentication...</div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {results.map((result) => (
+                  <div key={result.provider} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {result.authSuccess ? (
+                        <CheckCircle className="h-5 w-5 text-success" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-destructive" />
+                      )}
+                      <span className="font-medium capitalize">{result.provider}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={result.authSuccess ? "default" : "destructive"}>
+                        {result.authSuccess ? "Working" : "Failed"}
+                      </Badge>
+                      {result.error && (
+                        <span className="text-sm text-muted-foreground max-w-xs truncate">
+                          {result.error}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={result.authSuccess ? "default" : "destructive"}>
-                      {result.authSuccess ? "Working" : "Failed"}
-                    </Badge>
-                    {result.error && (
-                      <span className="text-sm text-muted-foreground max-w-xs truncate">
-                        {result.error}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
+      {/* Provider rotation test results */}
       {rotationResult && (
         <Card>
           <CardHeader>
