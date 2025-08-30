@@ -221,7 +221,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
             alt={alt}
             width={width}
             height={height}
-            loading="lazy"
+            loading={lazy ? "lazy" : "eager"}
             fetchPriority={fetchPriority}
             className={cn(
               'object-cover transition-opacity duration-300',
