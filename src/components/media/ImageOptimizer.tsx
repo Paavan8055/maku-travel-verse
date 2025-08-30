@@ -55,18 +55,14 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
     // For Unsplash URLs - improve optimization with exact sizing
     if (originalSrc.includes('unsplash.com')) {
       const url = new URL(originalSrc);
-      // Use exact display dimensions to avoid waste
+      // Use exact display dimensions to avoid waste - round to match display
       if (width) url.searchParams.set('w', Math.round(width).toString());
       if (height) url.searchParams.set('h', Math.round(height).toString());
-      url.searchParams.set('q', Math.min(quality, 75).toString());
+      url.searchParams.set('q', '75'); // Better compression for file size
       url.searchParams.set('fm', 'webp'); // Force WebP format
       url.searchParams.set('fit', 'crop');
-      url.searchParams.set('auto', 'format,compress');
-      // Add device pixel ratio optimization
-      const dpr = window.devicePixelRatio || 1;
-      if (dpr > 1) {
-        url.searchParams.set('dpr', Math.min(dpr, 2).toString()); // Cap at 2x for performance
-      }
+      url.searchParams.set('auto', 'compress'); // Focus on compression
+      // Remove DPR to avoid oversizing - use exact dimensions
       return url.toString();
     }
 
@@ -96,18 +92,14 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
     // For Unsplash URLs, ensure WebP format is explicitly requested
     if (originalSrc.includes('unsplash.com')) {
       const url = new URL(originalSrc);
-      // Use exact display dimensions to avoid waste
+      // Use exact display dimensions to avoid waste - round to match display
       if (width) url.searchParams.set('w', Math.round(width).toString());
       if (height) url.searchParams.set('h', Math.round(height).toString());
-      url.searchParams.set('q', Math.min(quality, 75).toString());
+      url.searchParams.set('q', '75'); // Better compression
       url.searchParams.set('fm', 'webp'); // Explicit WebP format
       url.searchParams.set('fit', 'crop');
-      url.searchParams.set('auto', 'format,compress');
-      // Add device pixel ratio optimization
-      const dpr = window.devicePixelRatio || 1;
-      if (dpr > 1) {
-        url.searchParams.set('dpr', Math.min(dpr, 2).toString());
-      }
+      url.searchParams.set('auto', 'compress'); // Focus on compression
+      // Remove DPR to avoid oversizing - use exact dimensions for best file size
       return url.toString();
     }
     
