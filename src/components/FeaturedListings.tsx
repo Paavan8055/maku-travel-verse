@@ -76,7 +76,21 @@ const FeaturedListings = () => {
 
           <TabsContent value="hotels">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {hotels.map((hotel, index) => (
+              {loading ? (
+                // Hotel loading placeholders
+                [...Array(4)].map((_, index) => (
+                  <Card key={`hotel-skeleton-${index}`} className="travel-card overflow-hidden animate-pulse">
+                    <div className="h-48 bg-muted"></div>
+                    <CardContent className="p-4">
+                      <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-muted rounded w-1/2 mb-3"></div>
+                      <div className="h-3 bg-muted rounded w-2/3 mb-4"></div>
+                      <div className="h-8 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                hotels.map((hotel, index) => (
                 <Card 
                   key={hotel.id} 
                   className="travel-card overflow-hidden group cursor-pointer animate-fadeIn"
@@ -186,13 +200,27 @@ const FeaturedListings = () => {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
+                ))
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="flights">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {flights.map((flight, index) => (
+              {loading ? (
+                // Flight loading placeholders
+                [...Array(2)].map((_, index) => (
+                  <Card key={`flight-skeleton-${index}`} className="travel-card overflow-hidden animate-pulse">
+                    <div className="h-32 bg-muted"></div>
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-muted rounded w-1/2 mb-3"></div>
+                      <div className="h-6 bg-muted rounded w-3/4 mb-4"></div>
+                      <div className="h-8 bg-muted rounded w-full"></div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                flights.map((flight, index) => (
                 <Card 
                   key={flight.id} 
                   className="travel-card overflow-hidden animate-fadeIn"
@@ -266,13 +294,28 @@ const FeaturedListings = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              ))
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="activities">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activities.map((activity, index) => (
+              {loading ? (
+                // Activity loading placeholders
+                [...Array(3)].map((_, index) => (
+                  <Card key={`activity-skeleton-${index}`} className="travel-card overflow-hidden animate-pulse">
+                    <div className="h-48 bg-muted"></div>
+                    <CardContent className="p-4">
+                      <div className="h-4 bg-muted rounded w-2/3 mb-2"></div>
+                      <div className="h-3 bg-muted rounded w-1/2 mb-3"></div>
+                      <div className="h-6 bg-muted rounded w-3/4 mb-4"></div>
+                      <div className="h-8 bg-muted rounded w-full"></div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                activities.map((activity, index) => (
                 <Card 
                   key={activity.id} 
                   className="travel-card overflow-hidden group cursor-pointer animate-fadeIn"
@@ -348,7 +391,8 @@ const FeaturedListings = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              ))
+              )}
             </div>
           </TabsContent>
         </Tabs>
