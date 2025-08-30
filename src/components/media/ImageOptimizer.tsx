@@ -213,7 +213,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       )}
       style={{ width, height }}
     >
-      {isInView && !hasError ? (
+      {(!lazy || isInView) && !hasError ? (
         <picture>
           <source srcSet={webpSrc} type="image/webp" />
           <img
