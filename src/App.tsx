@@ -68,6 +68,7 @@ const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnos
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
 const AdminFeatureFlagsPage = createLazyRoute(() => import("./components/admin/FeatureFlags").then(m => ({ default: m.FeatureFlags })));
 const AdminEnvironmentPage = createLazyRoute(() => import("./components/admin/EnvironmentConfiguration").then(m => ({ default: m.EnvironmentConfiguration })));
+const AdminProvidersSettingsPage = createLazyRoute(() => import("./pages/admin/settings/providers"));
 const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
 
 const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
@@ -174,9 +175,10 @@ const App = () => (
                           {/* Security Routes */}
                           <Route path="security/access" element={<AdminSecurityPage />} />
                           
-                          {/* Settings Routes */}
-                          <Route path="settings/features" element={<AdminFeatureFlagsPage />} />
-                          <Route path="settings/environment" element={<AdminEnvironmentPage />} />
+                           {/* Settings Routes */}
+                           <Route path="settings/features" element={<AdminFeatureFlagsPage />} />
+                           <Route path="settings/environment" element={<AdminEnvironmentPage />} />
+                           <Route path="settings/providers" element={<AdminProvidersSettingsPage />} />
                           
                           
                           <Route path="emergency" element={<SecureAdminPanelPage />} />
