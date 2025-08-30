@@ -11,6 +11,7 @@ import { CredentialManagementPanel } from "@/components/admin/CredentialManageme
 import { ProviderCredentialStatus } from "@/components/admin/ProviderCredentialStatus";
 import { HotelBedsCredentialTest } from "@/components/admin/HotelBedsCredentialTest";
 import { ProductionDiagnostics } from "@/components/diagnostics/ProductionDiagnostics";
+import { EmergencyProviderPanel } from "@/components/admin/EmergencyProviderPanel";
 
 interface CredentialTestResult {
   provider: string;
@@ -144,6 +145,7 @@ export default function AdminDiagnostics() {
         </TabsList>
 
         <TabsContent value="recovery" className="space-y-6 mt-6">
+          <EmergencyProviderPanel />
           <Phase3RecoveryPanel />
           <ProductionDiagnostics />
         </TabsContent>
