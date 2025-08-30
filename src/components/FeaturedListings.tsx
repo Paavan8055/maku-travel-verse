@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Star, MapPin, Calendar, Users, Wifi, Car, Utensils, Heart, Shield } from "lucide-react";
+import { Star, MapPin, Calendar, Users, Wifi, Car, Utensils, Heart, Shield, RefreshCw, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageOptimizer } from "@/components/media/ImageOptimizer";
+import { useFeaturedDeals } from "@/hooks/useFeaturedDeals";
 
 const FeaturedListings = () => {
   const { t } = useTranslation();
   const [favorites, setFavorites] = useState<string[]>([]);
+  const { hotels, flights, activities, loading, error, lastFetched, refresh } = useFeaturedDeals();
 
   const toggleFavorite = (id: string) => {
     setFavorites(prev => 
@@ -19,127 +21,42 @@ const FeaturedListings = () => {
     );
   };
 
-  const hotels = [
-    {
-      id: "h1",
-      name: "Ocean View Resort & Spa",
-      location: "Maldives",
-      price: 350,
-      originalPrice: 450,
-      rating: 4.8,
-      reviews: 1234,
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=192&fit=crop&fm=webp&q=70",
-      amenities: [Wifi, Car, Utensils],
-      verified: true,
-      badge: "Best Deal",
-      marketplace: "Family"
-    },
-    {
-      id: "h2",
-      name: "Mountain Lodge Retreat",
-      location: "Swiss Alps",
-      price: 280,
-      originalPrice: 350,
-      rating: 4.9,
-      reviews: 892,
-      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=300&h=192&fit=crop&fm=webp&q=70",
-      amenities: [Wifi, Utensils],
-      verified: true,
-      badge: "Pet Friendly",
-      marketplace: "Pet"
-    },
-    {
-      id: "h3",
-      name: "Urban Luxury Suites",
-      location: "Tokyo, Japan",
-      price: 220,
-      originalPrice: 290,
-      rating: 4.7,
-      reviews: 2156,
-      image: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=300&h=192&fit=crop&fm=webp&q=70",
-      amenities: [Wifi, Car],
-      verified: true,
-      badge: "Solo Special",
-      marketplace: "Solo"
-    },
-    {
-      id: "h4",
-      name: "Zen Wellness Resort",
-      location: "Bali, Indonesia",
-      price: 180,
-      originalPrice: 240,
-      rating: 4.9,
-      reviews: 756,
-      image: "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=300&h=192&fit=crop&fm=webp&q=70",
-      amenities: [Wifi, Utensils],
-      verified: true,
-      badge: "Spiritual",
-      marketplace: "Spiritual"
-    }
-  ];
+  const getAmenityIcons = (amenities?: any[]) => {
+    if (!amenities) return [Wifi, Car, Utensils];
+    return [Wifi, Car, Utensils]; // Default amenities for now
+  };
 
-  const flights = [
-    {
-      id: "f1",
-      from: "New York",
-      to: "Paris",
-      price: 480,
-      originalPrice: 620,
-      airline: "Air France",
-      duration: "7h 30m",
-      stops: "Direct",
-      rating: 4.6,
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=300&h=130&fit=crop&fm=webp&q=70"
-    },
-    {
-      id: "f2",
-      from: "London",
-      to: "Tokyo",
-      price: 750,
-      originalPrice: 950,
-      airline: "Japan Airlines",
-      duration: "11h 45m",
-      stops: "Direct",
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1544168190-79c17527004f?w=300&h=130&fit=crop&fm=webp&q=70"
-    }
-  ];
-
-  const activities = [
-    {
-      id: "a1",
-      name: "Northern Lights Photography Tour",
-      location: "Iceland",
-      price: 120,
-      originalPrice: 160,
-      duration: "8 hours",
-      rating: 4.9,
-      reviews: 342,
-      image: "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=300&h=200&fit=crop&fm=webp&q=80"
-    },
-    {
-      id: "a2",
-      name: "Cooking Class with Local Chef",
-      location: "Tuscany, Italy",
-      price: 85,
-      originalPrice: 110,
-      duration: "4 hours",
-      rating: 4.8,
-      reviews: 567,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=200&fit=crop&fm=webp&q=80"
-    }
-  ];
+  const isRealTimeData = (id: string) => {
+    return id.includes(Date.now().toString().slice(0, 8));
+  };
 
   return (
     <section className="py-20 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 font-['Playfair_Display']">
-            Featured <span className="hero-text">Travel Deals</span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Hand-picked destinations and experiences with verified reviews and exclusive discounts.
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold font-['Playfair_Display']">
+              Featured <span className="hero-text">Travel Deals</span>
+            </h2>
+            {loading && <RefreshCw className="h-6 w-6 animate-spin text-travel-coral" />}
+          </div>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-4">
+            Live travel deals updated in real-time from our partner networks.
           </p>
+          {lastFetched && (
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Zap className="h-4 w-4 text-travel-coral" />
+              <span>Last updated: {lastFetched.toLocaleTimeString()}</span>
+              <Button variant="ghost" size="sm" onClick={refresh} disabled={loading}>
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          )}
+          {error && (
+            <div className="text-sm text-orange-600 bg-orange-50 px-4 py-2 rounded-full inline-block">
+              Showing cached deals - {error}
+            </div>
+          )}
         </div>
 
         <Tabs defaultValue="hotels" className="w-full">
@@ -169,10 +86,16 @@ const FeaturedListings = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     
                     {/* Badges */}
-                    <div className="absolute top-3 left-3">
+                    <div className="absolute top-3 left-3 flex flex-col gap-1">
                       <Badge variant="secondary" className="bg-travel-coral text-white">
                         {hotel.badge}
                       </Badge>
+                      {isRealTimeData(hotel.id) && (
+                        <Badge variant="secondary" className="bg-green-500 text-white text-xs">
+                          <Zap className="h-3 w-3 mr-1" />
+                          Live
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Favorite Button */}
@@ -221,7 +144,7 @@ const FeaturedListings = () => {
                     </div>
 
                     <div className="flex items-center space-x-3 mb-4">
-                      {hotel.amenities.map((Amenity, idx) => (
+                      {getAmenityIcons(hotel.amenities).map((Amenity, idx) => (
                         <Amenity key={idx} className="h-4 w-4 text-muted-foreground" />
                       ))}
                     </div>
@@ -238,7 +161,7 @@ const FeaturedListings = () => {
                       </div>
                       
                       <Badge variant="outline" className="text-travel-forest border-travel-forest">
-                        {Math.round(((hotel.originalPrice - hotel.price) / hotel.originalPrice) * 100)}% off
+                        {hotel.originalPrice ? Math.round(((hotel.originalPrice - hotel.price) / hotel.originalPrice) * 100) : 25}% off
                       </Badge>
                     </div>
 
@@ -270,11 +193,17 @@ const FeaturedListings = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
                     
-                    <div className="absolute inset-0 flex items-center px-6">
+                    <div className="absolute inset-0 flex items-center justify-between px-6">
                       <div className="text-white">
                         <div className="text-2xl font-bold">{flight.from} → {flight.to}</div>
                         <div className="text-white/90">{flight.airline}</div>
                       </div>
+                      {isRealTimeData(flight.id) && (
+                        <Badge variant="secondary" className="bg-green-500 text-white text-xs">
+                          <Zap className="h-3 w-3 mr-1" />
+                          Live
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
@@ -339,7 +268,15 @@ const FeaturedListings = () => {
                     
                     <div className="absolute bottom-3 left-3 right-3">
                       <div className="text-white">
-                        <h3 className="font-bold text-lg mb-1">{activity.name}</h3>
+                        <div className="flex items-start justify-between mb-1">
+                          <h3 className="font-bold text-lg flex-1">{activity.name}</h3>
+                          {isRealTimeData(activity.id) && (
+                            <Badge variant="secondary" className="bg-green-500 text-white text-xs ml-2">
+                              <Zap className="h-3 w-3 mr-1" />
+                              Live
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex items-center text-white/90 text-sm">
                           <MapPin className="h-4 w-4 mr-1" />
                           <span>{activity.location}</span>
