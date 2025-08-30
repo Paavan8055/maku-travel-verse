@@ -148,6 +148,16 @@
       document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => document.body.classList.remove('loading'), 150);
       });
+      
+      // Defer Stripe loading until actually needed
+      window.loadStripe = function() {
+        if (!window.Stripe) {
+          const script = document.createElement('script');
+          script.src = 'https://js.stripe.com/v3';
+          script.async = true;
+          document.head.appendChild(script);
+        }
+      };
     </script>
     <script type="module" src="/src/main.tsx" async></script>
   </body>
