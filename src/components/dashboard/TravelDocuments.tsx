@@ -80,23 +80,23 @@ export function TravelDocuments() {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+      <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <FileText className="h-5 w-5 text-primary" />
             Travel Documents
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex-1 flex flex-col space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+            <div key={i} className="flex items-center justify-between p-3 border border-border/30 rounded-lg bg-muted/30">
               <div className="space-y-2">
                 <Skeleton className="h-4 w-48" />
                 <Skeleton className="h-3 w-32" />
               </div>
               <div className="flex gap-2">
+                <Skeleton className="h-8 w-16" />
                 <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-8 w-24" />
               </div>
             </div>
           ))}
@@ -107,18 +107,18 @@ export function TravelDocuments() {
 
   if (documents.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+      <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <FileText className="h-5 w-5 text-primary" />
             Travel Documents
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No travel documents available</p>
-            <p className="text-sm">Your tickets and confirmations will appear here once you have confirmed bookings</p>
+        <CardContent className="flex-1 flex flex-col justify-center">
+          <div className="text-center py-6 text-muted-foreground">
+            <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
+            <p className="font-medium mb-1">No documents available</p>
+            <p className="text-xs">Your tickets and confirmations will appear here</p>
           </div>
         </CardContent>
       </Card>
@@ -126,104 +126,81 @@ export function TravelDocuments() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
+    <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <FileText className="h-5 w-5 text-primary" />
           Travel Documents
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {documents.map(doc => (
-          <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-primary/10">
+      <CardContent className="flex-1 flex flex-col space-y-3">
+        {documents.slice(0, 2).map(doc => (
+          <div key={doc.id} className="flex items-center justify-between p-3 border border-border/30 rounded-lg hover:bg-muted/50 transition-colors bg-muted/30">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
                 {doc.type === 'flight' ? (
-                  <Plane className="h-5 w-5 text-primary" />
+                  <Plane className="h-4 w-4 text-primary" />
                 ) : (
-                  <Hotel className="h-5 w-5 text-primary" />
+                  <Hotel className="h-4 w-4 text-primary" />
                 )}
               </div>
               
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-medium">{doc.title}</h4>
+                  <h4 className="font-medium text-sm truncate">{doc.title}</h4>
                   <Badge 
                     variant={doc.status === 'confirmed' ? 'default' : 'secondary'}
-                    className="text-xs"
+                    className="text-xs px-2 py-0"
                   >
                     {doc.status}
                   </Badge>
                 </div>
                 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <FileText className="h-3 w-3" />
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1 truncate">
+                    <FileText className="h-3 w-3 flex-shrink-0" />
                     {doc.bookingReference}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(doc.date), 'MMM dd, yyyy')}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {doc.destination}
+                    <Calendar className="h-3 w-3 flex-shrink-0" />
+                    {format(new Date(doc.date), 'MMM dd')}
                   </span>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 flex-shrink-0">
               {doc.type === 'flight' && doc.hasTicket && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleView(doc.id, 'ticket')}
-                    className="flex items-center gap-1"
-                  >
-                    <Eye className="h-3 w-3" />
-                    View Ticket
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(doc.id, 'ticket')}
-                    disabled={downloadingDoc === `${doc.id}-ticket`}
-                    className="flex items-center gap-1"
-                  >
-                    <Download className="h-3 w-3" />
-                    {downloadingDoc === `${doc.id}-ticket` ? 'Downloading...' : 'Download'}
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(doc.id, 'ticket')}
+                  disabled={downloadingDoc === `${doc.id}-ticket`}
+                  className="text-xs px-2 py-1 h-auto"
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
               )}
               
               {doc.hasConfirmation && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleView(doc.id, 'confirmation')}
-                    className="flex items-center gap-1"
-                  >
-                    <Eye className="h-3 w-3" />
-                    View
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(doc.id, 'confirmation')}
-                    disabled={downloadingDoc === `${doc.id}-confirmation`}
-                    className="flex items-center gap-1"
-                  >
-                    <Download className="h-3 w-3" />
-                    {downloadingDoc === `${doc.id}-confirmation` ? 'Downloading...' : 'Download'}
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(doc.id, 'confirmation')}
+                  disabled={downloadingDoc === `${doc.id}-confirmation`}
+                  className="text-xs px-2 py-1 h-auto"
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
               )}
             </div>
           </div>
         ))}
+        {documents.length > 2 && (
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground mt-2">
+            View all {documents.length} documents
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
