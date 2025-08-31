@@ -161,11 +161,11 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-6">
-            <TravelWeatherWidget destinations={destinations} />
+            <TravelDocuments />
           </div>
 
-          {/* Row 2: Recent Bookings + Travel Documents */}
-          <div className="lg:col-span-6">
+          {/* Row 2: Recent Bookings - Full Width */}
+          <div className="lg:col-span-12">
             <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -221,10 +221,6 @@ export default function Dashboard() {
                 )}
               </CardContent>
             </Card>
-          </div>
-
-          <div className="lg:col-span-6">
-            <TravelDocuments />
           </div>
 
           {/* Row 3: Dream Destinations - Full Width */}
