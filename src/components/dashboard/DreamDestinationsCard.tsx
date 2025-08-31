@@ -74,46 +74,48 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
             <ScrollArea className="h-full">
               <div className="space-y-3 pr-4">
                 {destinations.map((destination) => (
-                  <div key={destination.id} className="group">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-border/30">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span className="font-semibold text-foreground text-sm truncate">{destination.name}</span>
-                          <span className="text-xs text-muted-foreground">{destination.country}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 mb-2">
-                          <Star className="h-3 w-3 text-accent fill-accent" />
-                          <span className="text-xs text-muted-foreground">{destination.category}</span>
-                          {destination.avg_daily_cost && (
-                            <span className="text-xs font-medium text-primary">
-                              ${destination.avg_daily_cost}/day
-                            </span>
+                  <Card key={destination.id} className="group border border-border/50 hover:border-border transition-colors">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                            <span className="font-semibold text-foreground text-sm truncate">{destination.name}</span>
+                            <span className="text-xs text-muted-foreground">{destination.country}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 mb-2">
+                            <Star className="h-3 w-3 text-accent fill-accent" />
+                            <span className="text-xs text-muted-foreground">{destination.category}</span>
+                            {destination.avg_daily_cost && (
+                              <span className="text-xs font-medium text-primary">
+                                ${destination.avg_daily_cost}/day
+                              </span>
+                            )}
+                          </div>
+                          
+                          {destination.highlights && destination.highlights.length > 0 && (
+                            <div className="flex gap-1 flex-wrap">
+                              {destination.highlights.slice(0, 2).map((highlight, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs px-2 py-0">
+                                  {highlight}
+                                </Badge>
+                              ))}
+                            </div>
                           )}
                         </div>
                         
-                        {destination.highlights && destination.highlights.length > 0 && (
-                          <div className="flex gap-1 flex-wrap">
-                            {destination.highlights.slice(0, 2).map((highlight, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs px-2 py-0">
-                                {highlight}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onExplore(destination)}
+                          className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
                       </div>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onExplore(destination)}
-                        className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </ScrollArea>
