@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -10,81 +10,18 @@ import {
   Plane, 
   Hotel, 
   CheckCircle,
-  ArrowRight,
   Plus,
   Camera,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react';
-import { useAuth } from '@/features/auth/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-
-interface Trip {
-  id: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  status: 'planning' | 'booked' | 'traveling' | 'completed';
-  type: 'business' | 'leisure' | 'family' | 'solo';
-  budget: number;
-  spent: number;
-  activities: number;
-  photos?: string[];
-  rating?: number;
-  daysUntil?: number;
-}
+import { useTrips } from '@/hooks/useTrips';
+import { CreateTripDialog } from './CreateTripDialog';
 
 export const TripTimeline: React.FC<{ className?: string }> = ({ className }) => {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { trips, loading, error } = useTrips();
   const navigate = useNavigate();
-
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockTrips: Trip[] = [
-      {
-        id: '1',
-        destination: 'Tokyo, Japan',
-        startDate: '2024-03-15',
-        endDate: '2024-03-22',
-        status: 'booked',
-        type: 'leisure',
-        budget: 3500,
-        spent: 2100,
-        activities: 8,
-        daysUntil: 12
-      },
-      {
-        id: '2',
-        destination: 'Bali, Indonesia',
-        startDate: '2024-01-10',
-        endDate: '2024-01-17',
-        status: 'completed',
-        type: 'leisure',
-        budget: 2200,
-        spent: 2350,
-        activities: 12,
-        photos: ['/placeholder.svg'],
-        rating: 5
-      },
-      {
-        id: '3',
-        destination: 'Sydney, Australia',
-        startDate: '2024-05-01',
-        endDate: '2024-05-08',
-        status: 'planning',
-        type: 'family',
-        budget: 4000,
-        spent: 0,
-        activities: 0,
-        daysUntil: 45
-      }
-    ];
-    
-    setTrips(mockTrips);
-    setLoading(false);
-  }, [user]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -130,14 +67,25 @@ export const TripTimeline: React.FC<{ className?: string }> = ({ className }) =>
   if (loading) {
     return (
       <div className={className}>
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-muted rounded w-1/3"></div>
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-muted rounded"></div>
-            ))}
-          </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-muted-foreground">Loading your trips...</span>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={className}>
+        <Card className="border-destructive/20">
+          <CardContent className="py-12 text-center">
+            <p className="text-destructive mb-4">Failed to load trips: {error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -152,10 +100,13 @@ export const TripTimeline: React.FC<{ className?: string }> = ({ className }) =>
           </h2>
           <p className="text-muted-foreground">Track your travel journey</p>
         </div>
-        <Button onClick={() => navigate('/search')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Plan New Trip
-        </Button>
+        <div className="flex gap-2">
+          <CreateTripDialog />
+          <Button onClick={() => navigate('/search')} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Plan New Trip
+          </Button>
+        </div>
       </div>
 
       {/* Upcoming Trips */}
@@ -177,7 +128,7 @@ export const TripTimeline: React.FC<{ className?: string }> = ({ className }) =>
                       <div>
                         <h4 className="text-lg font-semibold">{trip.destination}</h4>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
+                          {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
                         </p>
                       </div>
                     </div>
@@ -210,7 +161,7 @@ export const TripTimeline: React.FC<{ className?: string }> = ({ className }) =>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
                       <p className="text-2xl font-bold text-travel-coral">
-                        {trip.activities}
+                        {trip.activities_count}
                       </p>
                       <p className="text-xs text-muted-foreground">Activities Planned</p>
                     </div>
@@ -261,7 +212,7 @@ export const TripTimeline: React.FC<{ className?: string }> = ({ className }) =>
                     <div>
                       <h4 className="font-semibold">{trip.destination}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
+                        {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
                       </p>
                     </div>
                     {trip.rating && (
@@ -274,7 +225,7 @@ export const TripTimeline: React.FC<{ className?: string }> = ({ className }) =>
 
                   <div className="flex justify-between text-sm mb-3">
                     <span>Total Spent: ${trip.spent.toLocaleString()}</span>
-                    <span>{trip.activities} Activities</span>
+                    <span>{trip.activities_count} Activities</span>
                   </div>
 
                   <Button variant="outline" size="sm" className="w-full">
@@ -294,10 +245,7 @@ export const TripTimeline: React.FC<{ className?: string }> = ({ className }) =>
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Start Your Travel Journey</h3>
             <p className="text-muted-foreground mb-6">Plan your first trip and begin collecting memories!</p>
-            <Button onClick={() => navigate('/search')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Plan Your First Trip
-            </Button>
+            <CreateTripDialog />
           </CardContent>
         </Card>
       )}
