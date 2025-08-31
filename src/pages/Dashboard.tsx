@@ -9,7 +9,7 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { useBookings, Booking } from '@/hooks/useBookings';
 import { TravelCountdown } from '@/components/dashboard/TravelCountdown';
 import { TravelWeatherWidget } from '@/components/dashboard/TravelWeatherWidget';
-import { TravelInspirationCard } from '@/components/dashboard/TravelInspirationCard';
+import { DreamDestinationsCard } from '@/components/dashboard/DreamDestinationsCard';
 import { DetailedBookingCard } from '@/components/dashboard/DetailedBookingCard';
 import { TravelDocuments } from '@/components/dashboard/TravelDocuments';
 
@@ -228,7 +228,7 @@ export default function Dashboard() {
           </div>
 
           <div className="md:col-span-2 xl:col-span-4 h-full">
-            <TravelInspirationCard onExplore={handleExploreDestination} />
+            <DreamDestinationsCard onExplore={handleExploreDestination} />
           </div>
         </div>
       </div>
