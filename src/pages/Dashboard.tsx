@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Clock, MapPin } from 'lucide-react';
@@ -30,6 +31,47 @@ export default function Dashboard() {
       setRecentBookings([]);
     }
   }, [bookings]);
+
+  // Get upcoming trip for countdown
+  const getUpcomingTrip = () => {
+    if (!bookings || bookings.length === 0) return null;
+    
+    const upcomingBookings = bookings.filter(booking => {
+      const checkInDate = booking.check_in_date || booking.booking_data?.departure_date;
+      return checkInDate && new Date(checkInDate) > new Date();
+    }).sort((a, b) => {
+      const dateA = new Date(a.check_in_date || a.booking_data?.departure_date);
+      const dateB = new Date(b.check_in_date || b.booking_data?.departure_date);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    return upcomingBookings[0] || null;
+  };
+
+  // Get destinations for weather widget
+  const getDestinations = () => {
+    if (!bookings || bookings.length === 0) return [];
+    
+    const destinations: string[] = [];
+    bookings.forEach(booking => {
+      const destination = booking.booking_data?.destination || 
+                         booking.booking_data?.hotel?.city ||
+                         booking.booking_data?.arrival_city;
+      if (destination && !destinations.includes(destination)) {
+        destinations.push(destination);
+      }
+    });
+    
+    return destinations.slice(0, 3); // Limit to 3 destinations
+  };
+
+  const upcomingTrip = getUpcomingTrip();
+  const destinations = getDestinations();
+
+  const handleExploreDestination = (destination: any) => {
+    // Navigate to destination page or search
+    navigate(`/search?destination=${encodeURIComponent(destination.name)}`);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
@@ -86,15 +128,27 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
           {/* Travel Countdown */}
           <div className="xl:col-span-1">
-            <TravelCountdown bookings={bookings} />
+            {upcomingTrip ? (
+              <TravelCountdown 
+                destination={upcomingTrip.booking_data?.destination || upcomingTrip.booking_data?.hotel?.city || 'Your Destination'}
+                departureDate={upcomingTrip.check_in_date || upcomingTrip.booking_data?.departure_date || new Date().toISOString()}
+                bookingType={upcomingTrip.booking_type}
+              />
+            ) : (
+              <TravelCountdown 
+                destination="Your Next Adventure"
+                departureDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()} // 7 days from now
+                bookingType="upcoming"
+              />
+            )}
           </div>
 
           {/* Weather Widget */}
           <div className="xl:col-span-1">
-            <TravelWeatherWidget bookings={bookings} />
+            <TravelWeatherWidget destinations={destinations} />
           </div>
 
-          {/* Travel Documents - Updated section */}
+          {/* Travel Documents */}
           <div className="xl:col-span-1">
             <TravelDocuments />
           </div>
@@ -134,7 +188,7 @@ export default function Dashboard() {
 
           {/* Travel Inspiration */}
           <div className="xl:col-span-1">
-            <TravelInspirationCard />
+            <TravelInspirationCard onExplore={handleExploreDestination} />
           </div>
         </div>
       </div>
