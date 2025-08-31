@@ -1,305 +1,515 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Navbar } from '@/components/layout/Navbar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { useTravelFunds } from '@/hooks/useTravelFunds';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { AnimatedLoadingState } from '@/components/ux/EnhancedUserExperience';
+import { Users, Target, Calendar, TrendingUp, PlusCircle, Coins, Copy, Share2, UserPlus } from 'lucide-react';
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { 
-  PiggyBank, 
-  Users, 
-  Target, 
-  Calendar, 
-  Plus, 
-  Sparkles,
-  Trophy,
-  Gift,
-  ArrowRight,
-  DollarSign
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-const TravelFundPage = () => {
+const TravelFundPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { funds, loading, createFund, addFunds, joinFundByCode } = useTravelFunds();
+  const [activeTab, setActiveTab] = useState('create');
   
-  const [fundName, setFundName] = useState("");
-  const [targetAmount, setTargetAmount] = useState("");
-  const [targetDate, setTargetDate] = useState("");
-  const [description, setDescription] = useState("");
-  const [fundType, setFundType] = useState("");
-  const [activeTab, setActiveTab] = useState("create");
+  // Form states
+  const [fundName, setFundName] = useState('');
+  const [targetAmount, setTargetAmount] = useState('');
+  const [targetDate, setTargetDate] = useState('');
+  const [description, setDescription] = useState('');
+  const [fundType, setFundType] = useState('');
+  const [destination, setDestination] = useState('');
+  
+  // Add money states
+  const [selectedFundId, setSelectedFundId] = useState('');
+  const [addAmount, setAddAmount] = useState('');
+  
+  // Join fund state
+  const [joinCode, setJoinCode] = useState('');
 
-  const handleCreateFund = () => {
-    if (!fundName || !targetAmount || !targetDate || !fundType) {
+  const handleCreateFund = async () => {
+    if (!fundName || !targetAmount || !fundType) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields to create your travel fund.",
+        description: "Please fill in all required fields.",
         variant: "destructive"
       });
       return;
     }
 
-    toast({
-      title: "Fund Created!",
-      description: `Your "${fundName}" travel fund has been created successfully.`,
-    });
+    const fundData = {
+      name: fundName,
+      description,
+      target_amount: parseFloat(targetAmount),
+      fund_type: fundType as 'personal' | 'group' | 'family',
+      deadline: targetDate || undefined,
+      destination: destination || undefined,
+    };
 
-    // Navigate to dashboard after creation
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1500);
+    const result = await createFund(fundData);
+    
+    if (result) {
+      // Reset form
+      setFundName('');
+      setTargetAmount('');
+      setTargetDate('');
+      setDescription('');
+      setFundType('');
+      setDestination('');
+      setActiveTab('existing');
+    }
   };
 
-  const existingFunds = [
-    {
-      id: 1,
-      name: "Bali Family Trip 2025",
-      target: 4500,
-      current: 2850,
-      members: 4,
-      deadline: "2025-07-15",
-      type: "Family"
-    },
-    {
-      id: 2,
-      name: "Solo Japan Adventure",
-      target: 3200,
-      current: 1200,
-      members: 1,
-      deadline: "2025-09-01",
-      type: "Solo"
+  const handleAddMoney = async () => {
+    if (!selectedFundId || !addAmount) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a fund and enter an amount.",
+        variant: "destructive"
+      });
+      return;
     }
-  ];
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <div className="pt-24 pb-6 px-6 bg-gradient-to-b from-muted/30 to-background">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-['Playfair_Display']">
-              Travel Fund Manager
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Save together, travel together. Create collaborative savings goals with family and friends.
-            </p>
-          </div>
+    const result = await addFunds(selectedFundId, parseFloat(addAmount));
+    
+    if (result) {
+      setSelectedFundId('');
+      setAddAmount('');
+    }
+  };
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <Card className="travel-card">
-              <CardContent className="p-4 text-center">
-                <DollarSign className="h-8 w-8 text-travel-gold mx-auto mb-2" />
-                <div className="text-2xl font-bold">AUD 1.2M</div>
-                <div className="text-sm text-muted-foreground">Total Deposited</div>
-              </CardContent>
-            </Card>
-            <Card className="travel-card">
-              <CardContent className="p-4 text-center">
-                <Users className="h-8 w-8 text-travel-ocean mx-auto mb-2" />
-                <div className="text-2xl font-bold">3,200</div>
-                <div className="text-sm text-muted-foreground">Active Groups</div>
-              </CardContent>
-            </Card>
-            <Card className="travel-card">
-              <CardContent className="p-4 text-center">
-                <Target className="h-8 w-8 text-travel-adventure mx-auto mb-2" />
-                <div className="text-2xl font-bold">AUD 750</div>
-                <div className="text-sm text-muted-foreground">Avg. Fund Size</div>
-              </CardContent>
-            </Card>
-            <Card className="travel-card">
-              <CardContent className="p-4 text-center">
-                <Trophy className="h-8 w-8 text-travel-coral mx-auto mb-2" />
-                <div className="text-2xl font-bold">89%</div>
-                <div className="text-sm text-muted-foreground">Success Rate</div>
-              </CardContent>
-            </Card>
-          </div>
+  const handleJoinFund = async () => {
+    if (!joinCode) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter a fund code.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const result = await joinFundByCode(joinCode);
+    
+    if (result) {
+      setJoinCode('');
+      setActiveTab('existing');
+    }
+  };
+
+  const copyFundCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast({
+      title: "Copied!",
+      description: "Fund code copied to clipboard.",
+      variant: "default"
+    });
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>Authentication Required</CardTitle>
+              <CardDescription>
+                Please log in to access your travel funds.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => navigate('/auth')} className="w-full">
+                Log In
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
+    );
+  }
 
-      <div className="max-w-6xl mx-auto px-6 pb-20">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+  // Calculate stats from real funds
+  const calculateStats = () => {
+    const totalDeposited = funds.reduce((sum, fund) => sum + (fund.balance || 0), 0);
+    const activeGroups = funds.filter(fund => fund.status === 'active' || !fund.status).length;
+    const averageFundSize = funds.length > 0 ? totalDeposited / funds.length : 0;
+    const successRate = 85; // Placeholder until we track completed funds
+    
+    return {
+      totalDeposited,
+      activeGroups,
+      averageFundSize,
+      successRate
+    };
+  };
+
+  const stats = calculateStats();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            Travel Fund Manager
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Create collaborative savings goals, track contributions, and make your dream destinations a reality together.
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <Coins className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">${stats.totalDeposited.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Total Deposited</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-secondary/20">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <Users className="h-8 w-8 text-secondary" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.activeGroups}</p>
+                  <p className="text-sm text-muted-foreground">Active Groups</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-accent/20">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <Target className="h-8 w-8 text-accent" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">${stats.averageFundSize.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Avg Fund Size</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.successRate.toFixed(0)}%</p>
+                  <p className="text-sm text-muted-foreground">Success Rate</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="create">Create New Fund</TabsTrigger>
             <TabsTrigger value="existing">My Funds</TabsTrigger>
+            <TabsTrigger value="add-money">Add Money</TabsTrigger>
+            <TabsTrigger value="join">Join Fund</TabsTrigger>
           </TabsList>
 
+          {/* Create Fund Tab */}
           <TabsContent value="create" className="space-y-6">
-            <Card className="travel-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PiggyBank className="h-5 w-5" />
-                  Create Your Travel Fund
-                </CardTitle>
+                <CardTitle>Create New Travel Fund</CardTitle>
+                <CardDescription>
+                  Set up a collaborative savings goal for your next adventure
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="fundName">Fund Name *</Label>
-                      <Input
-                        id="fundName"
-                        placeholder="e.g., Bali Family Adventure 2025"
-                        value={fundName}
-                        onChange={(e) => setFundName(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="targetAmount">Target Amount (AUD) *</Label>
-                      <Input
-                        id="targetAmount"
-                        type="number"
-                        placeholder="5000"
-                        value={targetAmount}
-                        onChange={(e) => setTargetAmount(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="targetDate">Target Date *</Label>
-                      <Input
-                        id="targetDate"
-                        type="date"
-                        value={targetDate}
-                        onChange={(e) => setTargetDate(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="fundType">Fund Type *</Label>
-                      <Select value={fundType} onValueChange={setFundType}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select fund type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="family">Family Adventures</SelectItem>
-                          <SelectItem value="solo">Solo Journeys</SelectItem>
-                          <SelectItem value="pet">Pet-Friendly Travel</SelectItem>
-                          <SelectItem value="spiritual">Spiritual Retreats</SelectItem>
-                          <SelectItem value="group">Group Travel</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="fundName">Fund Name *</Label>
+                    <Input
+                      id="fundName"
+                      value={fundName}
+                      onChange={(e) => setFundName(e.target.value)}
+                      placeholder="e.g., Bali Adventure 2024"
+                      className="mt-1"
+                    />
                   </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        placeholder="Tell us about your dream trip..."
-                        rows={8}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                      />
-                    </div>
+                  
+                  <div>
+                    <Label htmlFor="destination">Destination</Label>
+                    <Input
+                      id="destination"
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      placeholder="e.g., Bali, Indonesia"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="targetAmount">Target Amount ($) *</Label>
+                    <Input
+                      id="targetAmount"
+                      type="number"
+                      value={targetAmount}
+                      onChange={(e) => setTargetAmount(e.target.value)}
+                      placeholder="5000"
+                      className="mt-1"
+                      min="1"
+                      step="0.01"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="targetDate">Target Date</Label>
+                    <Input
+                      id="targetDate"
+                      type="date"
+                      value={targetDate}
+                      onChange={(e) => setTargetDate(e.target.value)}
+                      className="mt-1"
+                    />
                   </div>
                 </div>
 
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Fund Benefits
-                  </h3>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Collaborative saving with family and friends</li>
-                    <li>• Milestone rewards and achievement badges</li>
-                    <li>• Progress tracking and goal visualization</li>
-                    <li>• Exclusive deals when you reach your target</li>
-                    <li>• Secure savings with 2.5% annual interest</li>
+                <div>
+                  <Label htmlFor="fundType">Fund Type *</Label>
+                  <Select value={fundType} onValueChange={setFundType}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select fund type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Personal Travel Fund</SelectItem>
+                      <SelectItem value="group">Group Travel Fund</SelectItem>
+                      <SelectItem value="family">Family Travel Fund</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Tell others about your travel plans..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">Fund Benefits:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Collaborative saving with progress tracking</li>
+                    <li>• Secure fund management and transactions</li>
+                    <li>• Easy sharing with family and friends</li>
+                    <li>• Real-time updates on contributions</li>
                   </ul>
                 </div>
 
-                <Button 
-                  className="w-full btn-primary" 
-                  size="lg"
-                  onClick={handleCreateFund}
-                >
+                <Button onClick={handleCreateFund} className="w-full" disabled={!fundName || !targetAmount || !fundType}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
                   Create Travel Fund
-                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* Existing Funds Tab */}
           <TabsContent value="existing" className="space-y-6">
-            {existingFunds.length > 0 ? (
+            {loading ? (
+              <AnimatedLoadingState />
+            ) : (
               <div className="grid gap-6">
-                {existingFunds.map((fund) => (
-                  <Card key={fund.id} className="travel-card">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-xl font-semibold">{fund.name}</h3>
-                          <Badge variant="secondary">{fund.type}</Badge>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-travel-ocean">
-                            AUD {fund.current.toLocaleString()}
+                {funds.length > 0 ? (
+                  funds.map((fund) => {
+                    const progress = (fund.target_amount && fund.target_amount > 0) ? 
+                      (fund.balance / fund.target_amount) * 100 : 0;
+                    
+                    return (
+                      <Card key={fund.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+                        <CardHeader className="pb-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-xl">{fund.name || 'Unnamed Fund'}</CardTitle>
+                              <CardDescription className="mt-1 capitalize">
+                                {fund.fund_type?.replace('_', ' ') || 'Personal'} Fund
+                                {fund.destination && ` • ${fund.destination}`}
+                              </CardDescription>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Balance</p>
+                              <p className="text-2xl font-bold text-primary">${fund.balance.toLocaleString()}</p>
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            of AUD {fund.target.toLocaleString()}
+                        </CardHeader>
+                        
+                        <CardContent className="space-y-4">
+                          {fund.target_amount && (
+                            <div>
+                              <div className="flex justify-between text-sm mb-2">
+                                <span>${fund.balance.toLocaleString()} saved</span>
+                                <span>${fund.target_amount.toLocaleString()} goal</span>
+                              </div>
+                              <Progress value={Math.min(progress, 100)} className="h-3" />
+                            </div>
+                          )}
+                          
+                          {fund.fund_code && (
+                            <div className="bg-muted/50 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm text-muted-foreground">Fund Code</p>
+                                  <p className="font-mono font-semibold">{fund.fund_code}</p>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyFundCode(fund.fund_code!)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex gap-2">
+                            <Button 
+                              className="flex-1"
+                              onClick={() => {
+                                setSelectedFundId(fund.id);
+                                setActiveTab('add-money');
+                              }}
+                            >
+                              Add Money
+                            </Button>
+                            <Button variant="outline" className="flex-1">
+                              <Share2 className="mr-2 h-4 w-4" />
+                              Share
+                            </Button>
                           </div>
-                        </div>
-                      </div>
-
-                      <Progress 
-                        value={(fund.current / fund.target) * 100} 
-                        className="mb-4"
-                      />
-
-                      <div className="flex justify-between items-center text-sm text-muted-foreground mb-4">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {fund.members} member{fund.members > 1 ? 's' : ''}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          Due: {new Date(fund.deadline).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          View Details
-                        </Button>
-                        <Button size="sm" className="btn-primary">
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add Money
-                        </Button>
-                      </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Travel Funds Yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Create your first travel fund to start saving for your dream destination!
+                      </p>
+                      <Button onClick={() => setActiveTab('create')}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create Your First Fund
+                      </Button>
                     </CardContent>
                   </Card>
-                ))}
+                )}
               </div>
-            ) : (
-              <Card className="travel-card">
-                <CardContent className="p-12 text-center">
-                  <PiggyBank className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No Travel Funds Yet</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Create your first travel fund to start saving for your dream trip.
-                  </p>
-                  <Button 
-                    onClick={() => setActiveTab("create")}
-                    className="btn-primary"
-                  >
-                    Create Your First Fund
-                  </Button>
-                </CardContent>
-              </Card>
             )}
+          </TabsContent>
+
+          {/* Add Money Tab */}
+          <TabsContent value="add-money" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Money to Fund</CardTitle>
+                <CardDescription>
+                  Contribute to one of your active travel funds
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="selectFund">Select Fund</Label>
+                  <Select value={selectedFundId} onValueChange={setSelectedFundId}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Choose a fund to contribute to" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {funds.map((fund) => (
+                        <SelectItem key={fund.id} value={fund.id}>
+                          {fund.name || 'Unnamed Fund'} - ${fund.balance.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="addAmount">Amount ($)</Label>
+                  <Input
+                    id="addAmount"
+                    type="number"
+                    value={addAmount}
+                    onChange={(e) => setAddAmount(e.target.value)}
+                    placeholder="100"
+                    className="mt-1"
+                    min="0.01"
+                    step="0.01"
+                  />
+                </div>
+
+                <Button onClick={handleAddMoney} className="w-full" disabled={!selectedFundId || !addAmount}>
+                  <Coins className="mr-2 h-4 w-4" />
+                  Add ${addAmount || '0'} to Fund
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Join Fund Tab */}
+          <TabsContent value="join" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Join an Existing Fund</CardTitle>
+                <CardDescription>
+                  Enter a fund code to join a collaborative travel fund
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="joinCode">Fund Code</Label>
+                  <Input
+                    id="joinCode"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    placeholder="Enter fund code (e.g., ABC123XYZ)"
+                    className="mt-1 font-mono"
+                  />
+                </div>
+
+                <Button onClick={handleJoinFund} className="w-full" disabled={!joinCode}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Join Fund
+                </Button>
+
+                <div className="bg-muted/50 rounded-lg p-4 mt-4">
+                  <h4 className="font-semibold mb-2">How to get a fund code:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Ask the fund creator to share their fund code</li>
+                    <li>• Fund codes are found in the fund details</li>
+                    <li>• Each fund has a unique code for joining</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
