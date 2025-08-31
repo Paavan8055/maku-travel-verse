@@ -141,10 +141,10 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Main Dashboard Grid - Restructured for better alignment */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
-          {/* Row 1: Key Travel Information */}
-          <div className="xl:col-span-4 h-full">
+        {/* Main Dashboard Grid - Optimized Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Row 1: Travel Countdown + Weather Widget */}
+          <div className="lg:col-span-6">
             {upcomingTrip ? (
               <TravelCountdown 
                 destination={upcomingTrip.booking_data?.destination || upcomingTrip.booking_data?.hotel?.city || 'Your Destination'}
@@ -160,16 +160,12 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="xl:col-span-4 h-full">
+          <div className="lg:col-span-6">
             <TravelWeatherWidget destinations={destinations} />
           </div>
 
-          <div className="xl:col-span-4 h-full">
-            <TravelDocuments />
-          </div>
-
-          {/* Row 2: Recent Bookings and Travel Inspiration */}
-          <div className="md:col-span-2 xl:col-span-8 h-full">
+          {/* Row 2: Recent Bookings + Travel Documents */}
+          <div className="lg:col-span-6">
             <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -227,7 +223,12 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <div className="md:col-span-2 xl:col-span-4 h-full">
+          <div className="lg:col-span-6">
+            <TravelDocuments />
+          </div>
+
+          {/* Row 3: Dream Destinations - Full Width */}
+          <div className="lg:col-span-12">
             <DreamDestinationsCard onExplore={handleExploreDestination} />
           </div>
         </div>
