@@ -34,6 +34,7 @@ const TravelFundPage = () => {
   const [targetDate, setTargetDate] = useState("");
   const [description, setDescription] = useState("");
   const [fundType, setFundType] = useState("");
+  const [activeTab, setActiveTab] = useState("create");
 
   const handleCreateFund = () => {
     if (!fundName || !targetAmount || !targetDate || !fundType) {
@@ -127,7 +128,7 @@ const TravelFundPage = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 pb-20">
-        <Tabs defaultValue="create" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="create">Create New Fund</TabsTrigger>
             <TabsTrigger value="existing">My Funds</TabsTrigger>
@@ -291,7 +292,7 @@ const TravelFundPage = () => {
                     Create your first travel fund to start saving for your dream trip.
                   </p>
                   <Button 
-                    onClick={() => document.querySelector('[value="create"]')?.click()}
+                    onClick={() => setActiveTab("create")}
                     className="btn-primary"
                   >
                     Create Your First Fund
