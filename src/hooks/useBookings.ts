@@ -14,6 +14,11 @@ export interface Booking {
   created_at: string;
   updated_at: string;
   booking_data: any;
+  check_in_date?: string;
+  check_out_date?: string;
+  guest_count?: number;
+  items?: any[];
+  latest_payment?: any;
 }
 
 export const useBookings = () => {
@@ -61,7 +66,12 @@ export const useBookings = () => {
             currency: item.currency,
             created_at: item.created_at,
             updated_at: item.updated_at,
-            booking_data: item.booking_data
+            booking_data: item.booking_data,
+            check_in_date: item.check_in_date,
+            check_out_date: item.check_out_date,
+            guest_count: item.guest_count,
+            items: item.items,
+            latest_payment: item.latest_payment
           })) as Booking[];
         }
       }
