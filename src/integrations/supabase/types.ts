@@ -4513,6 +4513,57 @@ export type Database = {
         }
         Relationships: []
       }
+      trips: {
+        Row: {
+          activities_count: number | null
+          budget: number | null
+          created_at: string
+          destination: string
+          end_date: string
+          id: string
+          photos: Json | null
+          rating: number | null
+          spent: number | null
+          start_date: string
+          status: string
+          trip_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activities_count?: number | null
+          budget?: number | null
+          created_at?: string
+          destination: string
+          end_date: string
+          id?: string
+          photos?: Json | null
+          rating?: number | null
+          spent?: number | null
+          start_date: string
+          status: string
+          trip_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activities_count?: number | null
+          budget?: number | null
+          created_at?: string
+          destination?: string
+          end_date?: string
+          id?: string
+          photos?: Json | null
+          rating?: number | null
+          spent?: number | null
+          start_date?: string
+          status?: string
+          trip_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_activity_logs: {
         Row: {
           activity_type: string
@@ -4823,6 +4874,10 @@ export type Database = {
       auto_anonymize_old_guest_bookings: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      calculate_days_until_trip: {
+        Args: { start_date: string }
+        Returns: number
       }
       cancel_booking: {
         Args: { p_booking_id: string }
