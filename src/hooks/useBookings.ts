@@ -39,12 +39,31 @@ export const useBookings = () => {
         throw fetchError;
       }
 
-      // Parse the JSON response if it's a string
+      // Handle the response data properly
       let bookingsData: Booking[] = [];
-      if (typeof data === 'string') {
-        bookingsData = JSON.parse(data);
-      } else if (Array.isArray(data)) {
-        bookingsData = data;
+      if (data) {
+        // If data is a string, parse it
+        if (typeof data === 'string') {
+          try {
+            bookingsData = JSON.parse(data) as Booking[];
+          } catch (parseError) {
+            logger.error('Error parsing booking data:', parseError);
+            bookingsData = [];
+          }
+        } else if (Array.isArray(data)) {
+          // If data is already an array, cast it properly
+          bookingsData = data.map((item: any) => ({
+            id: item.id,
+            booking_reference: item.booking_reference,
+            status: item.status,
+            booking_type: item.booking_type,
+            total_amount: item.total_amount,
+            currency: item.currency,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            booking_data: item.booking_data
+          })) as Booking[];
+        }
       }
 
       setBookings(bookingsData);
