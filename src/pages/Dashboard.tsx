@@ -1,402 +1,229 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/features/auth/context/AuthContext';
 import { useBookings } from '@/hooks/useBookings';
-import { useTrips } from '@/hooks/useTrips';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { TripTimeline } from '@/components/dashboard/TripTimeline';
+import { BookingManagementDashboard } from '@/components/dashboard/BookingManagementDashboard';
 import { 
-  Plane, 
-  Building, 
-  MapPin, 
   Calendar, 
-  CreditCard, 
-  TrendingUp,
+  Plane, 
+  Hotel, 
+  Activity, 
   Plus,
+  MapPin,
   Clock,
   CheckCircle,
-  AlertCircle,
-  Search,
-  User,
-  Bookmark,
-  Settings
+  AlertCircle
 } from 'lucide-react';
-import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { bookings, loading: bookingsLoading } = useBookings();
-  const { trips, loading: tripsLoading } = useTrips();
+  const { bookings, loading, error } = useBookings();
   const navigate = useNavigate();
 
-  // Calculate stats
-  const totalBookings = bookings.length;
-  const confirmedBookings = bookings.filter(b => b.status === 'confirmed').length;
-  const pendingBookings = bookings.filter(b => b.status === 'pending').length;
-  const totalSpent = bookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
-  
-  const upcomingTrips = trips.filter(trip => 
-    new Date(trip.start_date) > new Date() && trip.status !== 'completed'
-  );
-  const completedTrips = trips.filter(trip => trip.status === 'completed').length;
-
-  const recentBookings = bookings
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
-
-  const getStatusColor = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800';
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return <Clock className="h-4 w-4 text-yellow-600" />;
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return <AlertCircle className="h-4 w-4 text-red-600" />;
       default:
-        return 'bg-gray-100 text-gray-800';
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
-  const getBookingIcon = (type: string) => {
-    switch (type.toLowerCase()) {
+  const getBookingTypeIcon = (type: string) => {
+    switch (type) {
       case 'flight':
-        return <Plane className="h-4 w-4" />;
+        return <Plane className="h-5 w-5 text-primary" />;
       case 'hotel':
-        return <Building className="h-4 w-4" />;
+        return <Hotel className="h-5 w-5 text-primary" />;
       case 'activity':
-        return <MapPin className="h-4 w-4" />;
+        return <Activity className="h-5 w-5 text-primary" />;
       default:
-        return <Calendar className="h-4 w-4" />;
+        return <MapPin className="h-5 w-5 text-primary" />;
     }
   };
 
-  const quickActions = [
-    {
-      icon: <Search className="h-5 w-5" />,
-      label: 'Search Flights',
-      action: () => navigate('/flights'),
-      color: 'bg-blue-500 hover:bg-blue-600'
-    },
-    {
-      icon: <Building className="h-5 w-5" />,
-      label: 'Find Hotels',
-      action: () => navigate('/hotels'),
-      color: 'bg-green-500 hover:bg-green-600'
-    },
-    {
-      icon: <MapPin className="h-5 w-5" />,
-      label: 'Book Activities',
-      action: () => navigate('/activities'),
-      color: 'bg-purple-500 hover:bg-purple-600'
-    },
-    {
-      icon: <Plus className="h-5 w-5" />,
-      label: 'Plan Trip',
-      action: () => navigate('/trips/new'),
-      color: 'bg-orange-500 hover:bg-orange-600'
-    }
-  ];
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
-  if (bookingsLoading || tripsLoading) {
-    return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const upcomingBookings = bookings.filter(booking => {
+    if (!booking.check_in_date) return false;
+    const checkInDate = new Date(booking.check_in_date);
+    return checkInDate > new Date() && booking.status === 'confirmed';
+  });
+
+  const recentBookings = bookings.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Welcome back, {user?.user_metadata?.firstName || 'Traveler'}!</h1>
-            <p className="text-muted-foreground mt-1">
-              Here's what's happening with your travels
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
-              <User className="h-4 w-4 mr-2" />
-              Profile
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/settings')}>
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalBookings}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                {confirmedBookings} confirmed
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Upcoming Trips</CardTitle>
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{upcomingTrips.length}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <Clock className="h-3 w-3 mr-1" />
-                {completedTrips} completed
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalSpent.toLocaleString()}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                This year
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingBookings}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <Clock className="h-3 w-3 mr-1" />
-                Need attention
-              </div>
-            </CardContent>
-          </Card>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6 space-y-8">
+        {/* Welcome Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">
+            Welcome back{user?.email ? `, ${user.email.split('@')[0]}` : ''}!
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your bookings and plan your next adventure
+          </p>
         </div>
 
         {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button 
+            onClick={() => navigate('/search')} 
+            className="h-16 text-left justify-start space-x-3"
+          >
+            <Plane className="h-6 w-6" />
+            <div>
+              <div className="font-semibold">Book Flights</div>
+              <div className="text-sm opacity-80">Find and book flights</div>
+            </div>
+          </Button>
+          
+          <Button 
+            onClick={() => navigate('/hotels')} 
+            variant="outline" 
+            className="h-16 text-left justify-start space-x-3"
+          >
+            <Hotel className="h-6 w-6" />
+            <div>
+              <div className="font-semibold">Book Hotels</div>
+              <div className="text-sm opacity-80">Find accommodations</div>
+            </div>
+          </Button>
+          
+          <Button 
+            onClick={() => navigate('/activities')} 
+            variant="outline" 
+            className="h-16 text-left justify-start space-x-3"
+          >
+            <Activity className="h-6 w-6" />
+            <div>
+              <div className="font-semibold">Activities</div>
+              <div className="text-sm opacity-80">Discover experiences</div>
+            </div>
+          </Button>
+        </div>
+
+        {/* Recent Bookings */}
         <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Recent Bookings
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={() => navigate('/bookings')}>
+              View All
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className={`h-20 flex-col gap-2 ${action.color} text-white border-none hover:text-white`}
-                  onClick={action.action}
-                >
-                  {action.icon}
-                  <span className="text-sm">{action.label}</span>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading bookings...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-destructive">Error loading bookings: {error}</p>
+              </div>
+            ) : recentBookings.length === 0 ? (
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No bookings yet</h3>
+                <p className="text-muted-foreground mb-4">Start planning your next adventure!</p>
+                <Button onClick={() => navigate('/search')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Make Your First Booking
                 </Button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      {getBookingTypeIcon(booking.booking_type)}
+                      <div>
+                        <p className="font-semibold">{booking.booking_reference}</p>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {booking.booking_type} • {formatDate(booking.check_in_date)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <p className="font-semibold">
+                          {booking.currency} {booking.total_amount}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(booking.status)}
+                        <Badge 
+                          variant={
+                            booking.status === 'confirmed' ? 'default' : 
+                            booking.status === 'pending' ? 'secondary' : 
+                            'destructive'
+                          }
+                          className="capitalize"
+                        >
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="bookings">Recent Bookings</TabsTrigger>
-            <TabsTrigger value="trips">Upcoming Trips</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Recent Activity */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {recentBookings.length > 0 ? (
-                    recentBookings.map((booking) => (
-                      <div key={booking.id} className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted">
-                          {getBookingIcon(booking.booking_type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {booking.booking_type} booking
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {booking.booking_reference}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            ${booking.total_amount || 0}
-                          </span>
-                        </div>
+        {/* Upcoming Travel */}
+        {upcomingBookings.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plane className="h-5 w-5" />
+                Upcoming Travel
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {upcomingBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      {getBookingTypeIcon(booking.booking_type)}
+                      <div>
+                        <p className="font-semibold">{booking.booking_reference}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Departing {formatDate(booking.check_in_date)}
+                        </p>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-muted-foreground text-center py-4">
-                      No recent bookings
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Upcoming Events */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Upcoming Events</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {upcomingTrips.length > 0 ? (
-                    upcomingTrips.slice(0, 5).map((trip) => (
-                      <div key={trip.id} className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
-                          <MapPin className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {trip.destination}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(trip.start_date), 'MMM dd, yyyy')}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-muted-foreground">
-                            {trip.daysUntil} days
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground mb-4">No upcoming trips</p>
-                      <Button size="sm" onClick={() => navigate('/trips/new')}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Plan a Trip
-                      </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="bookings" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {bookings.length > 0 ? (
-                  <div className="space-y-4">
-                    {bookings.map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-                            {getBookingIcon(booking.booking_type)}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{booking.booking_reference}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {booking.booking_type} • {format(new Date(booking.created_at), 'MMM dd, yyyy')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <p className="font-semibold">${booking.total_amount || 0}</p>
-                            <p className="text-sm text-muted-foreground">{booking.currency}</p>
-                          </div>
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No bookings yet</p>
-                    <Button onClick={() => navigate('/flights')}>
-                      <Search className="h-4 w-4 mr-2" />
-                      Start Booking
+                    <Button variant="outline" size="sm">
+                      View Details
                     </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          <TabsContent value="trips" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Trips</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {upcomingTrips.length > 0 ? (
-                  <div className="space-y-4">
-                    {upcomingTrips.map((trip) => (
-                      <div key={trip.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
-                            <MapPin className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{trip.destination}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(trip.start_date), 'MMM dd')} - {format(new Date(trip.end_date), 'MMM dd, yyyy')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <p className="font-semibold">{trip.daysUntil} days</p>
-                            <p className="text-sm text-muted-foreground">until departure</p>
-                          </div>
-                          <Badge variant="outline">
-                            {trip.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No upcoming trips</p>
-                    <Button onClick={() => navigate('/trips/new')}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Plan Your First Trip
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Trip Timeline Component */}
+        <TripTimeline />
       </div>
     </div>
   );
