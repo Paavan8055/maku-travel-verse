@@ -1,403 +1,278 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/features/auth/context/AuthContext';
-import { useBookings } from '@/hooks/useBookings';
-import { useTrips } from '@/hooks/useTrips';
 import { 
   Plane, 
   Building, 
   MapPin, 
-  Calendar, 
-  CreditCard, 
-  TrendingUp,
-  Plus,
-  Clock,
-  CheckCircle,
-  AlertCircle,
+  Car,
+  Calendar,
+  Users,
+  CreditCard,
+  Bell,
   Search,
-  User,
-  Bookmark,
-  Settings
+  Plus,
+  TrendingUp,
+  Clock,
+  Star
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import { useAuth } from '@/hooks/useAuth';
+import { useBookings } from '@/hooks/useBookings';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { bookings, loading: bookingsLoading } = useBookings();
-  const { trips, loading: tripsLoading } = useTrips();
-  const navigate = useNavigate();
-
-  // Calculate stats
-  const totalBookings = bookings.length;
-  const confirmedBookings = bookings.filter(b => b.status === 'confirmed').length;
-  const pendingBookings = bookings.filter(b => b.status === 'pending').length;
-  const totalSpent = bookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
   
-  const upcomingTrips = trips.filter(trip => 
-    new Date(trip.start_date) > new Date() && trip.status !== 'completed'
-  );
-  const completedTrips = trips.filter(trip => trip.status === 'completed').length;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: 'Your flight to Bali is confirmed!', time: '2 hours ago' },
+    { id: 2, message: 'Special hotel deals in Rome', time: 'Yesterday' },
+  ]);
 
-  const recentBookings = bookings
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const handleSearch = () => {
+    // Implement search logic here, e.g., navigate to search page
+    console.log('Searching for:', searchTerm);
+    navigate(`/search?q=${searchTerm}`);
   };
 
-  const getBookingIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'flight':
-        return <Plane className="h-4 w-4" />;
-      case 'hotel':
-        return <Building className="h-4 w-4" />;
-      case 'activity':
-        return <MapPin className="h-4 w-4" />;
-      default:
-        return <Calendar className="h-4 w-4" />;
-    }
+  const handleNotificationClick = (id: number) => {
+    // Mark notification as read or navigate to details
+    console.log('Notification clicked:', id);
   };
 
   const quickActions = [
-    {
-      icon: <Search className="h-5 w-5" />,
-      label: 'Search Flights',
-      action: () => navigate('/flights'),
-      color: 'bg-blue-500 hover:bg-blue-600'
+    { 
+      icon: Plane, 
+      label: 'Book Flight', 
+      description: 'Find and book flights',
+      onClick: () => navigate('/search/flights')
     },
-    {
-      icon: <Building className="h-5 w-5" />,
-      label: 'Find Hotels',
-      action: () => navigate('/hotels'),
-      color: 'bg-green-500 hover:bg-green-600'
+    { 
+      icon: Building, 
+      label: 'Book Hotel', 
+      description: 'Find and book hotels',
+      onClick: () => navigate('/search/hotels')
     },
-    {
-      icon: <MapPin className="h-5 w-5" />,
-      label: 'Book Activities',
-      action: () => navigate('/activities'),
-      color: 'bg-purple-500 hover:bg-purple-600'
+    { 
+      icon: MapPin, 
+      label: 'Activities', 
+      description: 'Discover local activities',
+      onClick: () => navigate('/search/activities')
     },
-    {
-      icon: <Plus className="h-5 w-5" />,
-      label: 'Plan Trip',
-      action: () => navigate('/trips/new'),
-      color: 'bg-orange-500 hover:bg-orange-600'
-    }
+    { 
+      icon: Car, 
+      label: 'Car Rental', 
+      description: 'Rent a car for your trip',
+      onClick: () => navigate('/search/cars')
+    },
   ];
 
-  if (bookingsLoading || tripsLoading) {
-    return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Welcome back, {user?.user_metadata?.firstName || 'Traveler'}!</h1>
-            <p className="text-muted-foreground mt-1">
-              Here's what's happening with your travels
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
-              <User className="h-4 w-4 mr-2" />
-              Profile
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/settings')}>
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalBookings}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                {confirmedBookings} confirmed
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <main className="pt-24 pb-8">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Welcome Section */}
+          <section className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-semibold">
+                  Welcome back, {user?.name || 'Guest'}!
+                </h1>
+                <p className="text-muted-foreground">
+                  Explore new destinations and plan your next adventure.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Upcoming Trips</CardTitle>
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{upcomingTrips.length}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <Clock className="h-3 w-3 mr-1" />
-                {completedTrips} completed
+              <div className="space-x-2">
+                <Button variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Trip
+                </Button>
+                <Button variant="secondary" onClick={() => setShowNotifications(!showNotifications)}>
+                  <Bell className="h-4 w-4" />
+                  {notifications.length > 0 && (
+                    <Badge className="ml-2">{notifications.length}</Badge>
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalSpent.toLocaleString()}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                This year
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingBookings}</div>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <Clock className="h-3 w-3 mr-1" />
-                Need attention
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <Card className="absolute right-6 mt-2 w-80 shadow-md">
+                <CardHeader>
+                  <CardTitle>Notifications</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  {notifications.length > 0 ? (
+                    <ul className="space-y-2">
+                      {notifications.map((notification) => (
+                        <li
+                          key={notification.id}
+                          className="flex items-center justify-between p-2 hover:bg-secondary cursor-pointer"
+                          onClick={() => handleNotificationClick(notification.id)}
+                        >
+                          <div>
+                            <p className="text-sm font-medium">{notification.message}</p>
+                            <p className="text-xs text-muted-foreground">{notification.time}</p>
+                          </div>
+                          <Star className="h-4 w-4 text-yellow-500" />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No new notifications.</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </section>
+          
+          {/* Quick Actions */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className={`h-20 flex-col gap-2 ${action.color} text-white border-none hover:text-white`}
-                  onClick={action.action}
+                <Card 
+                  key={index} 
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={action.onClick}
                 >
-                  {action.icon}
-                  <span className="text-sm">{action.label}</span>
-                </Button>
+                  <CardContent className="p-4 text-center">
+                    <action.icon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                    <h3 className="font-medium mb-1">{action.label}</h3>
+                    <p className="text-sm text-muted-foreground">{action.description}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="bookings">Recent Bookings</TabsTrigger>
-            <TabsTrigger value="trips">Upcoming Trips</TabsTrigger>
-          </TabsList>
+          {/* Recent Bookings */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Recent Bookings</h2>
+            {bookingsLoading ? (
+              <p>Loading bookings...</p>
+            ) : bookings.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {bookings.map((booking) => (
+                  <Card key={booking.id}>
+                    <CardHeader>
+                      <CardTitle>{booking.type}</CardTitle>
+                      <CardDescription>
+                        {new Date(booking.date).toLocaleDateString()}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p>Confirmation: {booking.confirmation}</p>
+                      <p>Status: {booking.status}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p>No recent bookings found.</p>
+            )}
+          </section>
 
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Recent Activity */}
+          {/* Travel Inspiration */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Travel Inspiration</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {recentBookings.length > 0 ? (
-                    recentBookings.map((booking) => (
-                      <div key={booking.id} className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted">
-                          {getBookingIcon(booking.booking_type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {booking.booking_type} booking
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {booking.booking_reference}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            ${booking.total_amount || 0}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-muted-foreground text-center py-4">
-                      No recent bookings
-                    </p>
-                  )}
+                <CardContent className="p-4">
+                  <h3 className="font-medium mb-1">Explore Europe</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Discover the best of Europe with our curated travel guides.
+                  </p>
                 </CardContent>
               </Card>
-
-              {/* Upcoming Events */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Upcoming Events</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {upcomingTrips.length > 0 ? (
-                    upcomingTrips.slice(0, 5).map((trip) => (
-                      <div key={trip.id} className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
-                          <MapPin className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {trip.destination}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(trip.start_date), 'MMM dd, yyyy')}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-muted-foreground">
-                            {trip.daysUntil} days
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground mb-4">No upcoming trips</p>
-                      <Button size="sm" onClick={() => navigate('/trips/new')}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Plan a Trip
-                      </Button>
-                    </div>
-                  )}
+                <CardContent className="p-4">
+                  <h3 className="font-medium mb-1">Beach Getaways</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Find your perfect beach escape with our top-rated resorts.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-medium mb-1">City Adventures</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Experience the vibrant city life with our urban adventure tours.
+                  </p>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </section>
 
-          <TabsContent value="bookings" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {bookings.length > 0 ? (
-                  <div className="space-y-4">
-                    {bookings.map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-                            {getBookingIcon(booking.booking_type)}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{booking.booking_reference}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {booking.booking_type} • {format(new Date(booking.created_at), 'MMM dd, yyyy')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <p className="font-semibold">${booking.total_amount || 0}</p>
-                            <p className="text-sm text-muted-foreground">{booking.currency}</p>
-                          </div>
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+          {/* Dashboard Statistics */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">Dashboard Statistics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Total Bookings</h3>
+                    <Building className="h-4 w-4 text-muted-foreground" />
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No bookings yet</p>
-                    <Button onClick={() => navigate('/flights')}>
-                      <Search className="h-4 w-4 mr-2" />
-                      Start Booking
-                    </Button>
+                  <p className="text-3xl font-bold">42</p>
+                  <p className="text-sm text-muted-foreground">
+                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
+                    +12% from last month
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Active Users</h3>
+                    <Users className="h-4 w-4 text-muted-foreground" />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="trips" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Trips</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {upcomingTrips.length > 0 ? (
-                  <div className="space-y-4">
-                    {upcomingTrips.map((trip) => (
-                      <div key={trip.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
-                            <MapPin className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{trip.destination}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(trip.start_date), 'MMM dd')} - {format(new Date(trip.end_date), 'MMM dd, yyyy')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <p className="font-semibold">{trip.daysUntil} days</p>
-                            <p className="text-sm text-muted-foreground">until departure</p>
-                          </div>
-                          <Badge variant="outline">
-                            {trip.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                  <p className="text-3xl font-bold">234</p>
+                  <p className="text-sm text-muted-foreground">
+                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
+                    +8% from last month
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Revenue</h3>
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No upcoming trips</p>
-                    <Button onClick={() => navigate('/trips/new')}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Plan Your First Trip
-                    </Button>
+                  <p className="text-3xl font-bold">$12,500</p>
+                  <p className="text-sm text-muted-foreground">
+                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
+                    +15% from last month
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Avg. Booking Time</h3>
+                    <Clock className="h-4 w-4 text-muted-foreground" />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+                  <p className="text-3xl font-bold">7.5 mins</p>
+                  <p className="text-sm text-muted-foreground">
+                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
+                    -5% from last month
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        </div>
+      </main>
     </div>
   );
 };
