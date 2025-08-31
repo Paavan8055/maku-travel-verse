@@ -47,8 +47,20 @@ export const useTrips = () => {
       if (error) throw error;
 
       const tripsWithDaysUntil = data?.map(trip => ({
-        ...trip,
-        photos: trip.photos || [],
+        id: trip.id,
+        user_id: trip.user_id,
+        destination: trip.destination,
+        start_date: trip.start_date,
+        end_date: trip.end_date,
+        status: trip.status as 'planning' | 'booked' | 'traveling' | 'completed',
+        trip_type: trip.trip_type as 'business' | 'leisure' | 'family' | 'solo',
+        budget: trip.budget || 0,
+        spent: trip.spent || 0,
+        activities_count: trip.activities_count || 0,
+        photos: Array.isArray(trip.photos) ? trip.photos as string[] : [],
+        rating: trip.rating || undefined,
+        created_at: trip.created_at,
+        updated_at: trip.updated_at,
         daysUntil: calculateDaysUntil(trip.start_date)
       })) || [];
 
