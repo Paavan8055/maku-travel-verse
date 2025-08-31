@@ -184,7 +184,7 @@ const Dashboard = () => {
           </section>
 
           {/* Travel Inspiration */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-2xl font-semibold mb-4">Travel Inspiration</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
@@ -208,65 +208,6 @@ const Dashboard = () => {
                   <h3 className="font-medium mb-1">City Adventures</h3>
                   <p className="text-sm text-muted-foreground">
                     Experience the vibrant city life with our urban adventure tours.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </section>
-
-          {/* Dashboard Statistics */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-4">Dashboard Statistics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Total Bookings</h3>
-                    <Building className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-3xl font-bold">{bookings.length}</p>
-                  <p className="text-sm text-muted-foreground">
-                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
-                    +12% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Active Users</h3>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-3xl font-bold">234</p>
-                  <p className="text-sm text-muted-foreground">
-                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
-                    +8% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Revenue</h3>
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-3xl font-bold">$12,500</p>
-                  <p className="text-sm text-muted-foreground">
-                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
-                    +15% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Avg. Booking Time</h3>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-3xl font-bold">7.5 mins</p>
-                  <p className="text-sm text-muted-foreground">
-                    <TrendingUp className="h-4 w-4 inline-block mr-1" />
-                    -5% from last month
                   </p>
                 </CardContent>
               </Card>
