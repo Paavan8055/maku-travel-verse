@@ -74,60 +74,77 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-muted/20">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8 pt-24">
+      <div className="container mx-auto px-4 py-8 pt-24 max-w-7xl">
         {/* Travel Header */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm rounded-full shadow-sm mb-4 border border-border/50">
             <MapPin className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-muted-foreground">Your Travel Hub</span>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent mb-2">
             Welcome back, {user?.user_metadata?.first_name || 'Traveler'}!
           </h1>
           <p className="text-muted-foreground text-lg">Ready for your next adventure?</p>
         </div>
 
         {/* Quick Travel Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-white/80 backdrop-blur-sm shadow-sm hover:scale-105 transition-transform">
-            <CardContent className="p-4 flex flex-col items-center justify-center space-y-2">
-              <Button variant="secondary" className="w-full h-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 border border-border/50">
+            <CardContent className="p-4">
+              <Button 
+                variant="secondary" 
+                className="w-full h-10 text-sm font-medium"
+                onClick={() => navigate('/flights')}
+              >
                 Find Flights
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-sm shadow-sm hover:scale-105 transition-transform">
-            <CardContent className="p-4 flex flex-col items-center justify-center space-y-2">
-              <Button variant="secondary" className="w-full h-10">
+          <Card className="bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 border border-border/50">
+            <CardContent className="p-4">
+              <Button 
+                variant="secondary" 
+                className="w-full h-10 text-sm font-medium"
+                onClick={() => navigate('/search')}
+              >
                 Discover Hotels
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-sm shadow-sm hover:scale-105 transition-transform">
-            <CardContent className="p-4 flex flex-col items-center justify-center space-y-2">
-              <Button variant="secondary" className="w-full h-10">
+          <Card className="bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 border border-border/50">
+            <CardContent className="p-4">
+              <Button 
+                variant="secondary" 
+                className="w-full h-10 text-sm font-medium"
+                onClick={() => navigate('/activities')}
+              >
                 Explore Activities
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 backdrop-blur-sm shadow-sm hover:scale-105 transition-transform">
-            <CardContent className="p-4 flex flex-col items-center justify-center space-y-2">
-              <Button variant="secondary" className="w-full h-10">
+          <Card className="bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 border border-border/50">
+            <CardContent className="p-4">
+              <Button 
+                variant="secondary" 
+                className="w-full h-10 text-sm font-medium"
+                onClick={() => navigate('/trips')}
+              >
                 Plan a Trip
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-          {/* Travel Countdown */}
-          <div className="xl:col-span-1">
+        {/* Main Dashboard Grid - Restructured for better alignment */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
+          {/* Row 1: Key Travel Information */}
+          <div className="xl:col-span-4 h-full">
             {upcomingTrip ? (
               <TravelCountdown 
                 destination={upcomingTrip.booking_data?.destination || upcomingTrip.booking_data?.hotel?.city || 'Your Destination'}
@@ -137,57 +154,80 @@ export default function Dashboard() {
             ) : (
               <TravelCountdown 
                 destination="Your Next Adventure"
-                departureDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()} // 7 days from now
+                departureDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}
                 bookingType="upcoming"
               />
             )}
           </div>
 
-          {/* Weather Widget */}
-          <div className="xl:col-span-1">
+          <div className="xl:col-span-4 h-full">
             <TravelWeatherWidget destinations={destinations} />
           </div>
 
-          {/* Travel Documents */}
-          <div className="xl:col-span-1">
+          <div className="xl:col-span-4 h-full">
             <TravelDocuments />
           </div>
 
-          {/* Recent Bookings */}
-          <div className="xl:col-span-2">
-            <Card className="h-full">
-              <CardHeader>
+          {/* Row 2: Recent Bookings and Travel Inspiration */}
+          <div className="md:col-span-2 xl:col-span-8 h-full">
+            <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
+              <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <Clock className="h-5 w-5 text-primary" />
                     Recent Bookings
                   </CardTitle>
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/bookings')}>
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/bookings')} className="text-sm">
                     View All
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {loading ? (
-                    <p>Loading bookings...</p>
-                  ) : error ? (
-                    <p>Error: {error}</p>
-                  ) : recentBookings.length > 0 ? (
-                    recentBookings.map((booking) => (
-                      <DetailedBookingCard key={booking.id} booking={booking} onViewDetails={(bookingId) => navigate(`/bookings/${bookingId}`)} />
-                    ))
-                  ) : (
-                    <p>No recent bookings found.</p>
-                  )}
-                </div>
+              <CardContent className="flex-1 flex flex-col">
+                {loading ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                      <p className="text-muted-foreground">Loading bookings...</p>
+                    </div>
+                  </div>
+                ) : error ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-destructive mb-2">Error loading bookings</p>
+                      <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                        Try Again
+                      </Button>
+                    </div>
+                  </div>
+                ) : recentBookings.length > 0 ? (
+                  <div className="flex-1 flex flex-col">
+                    <div className="space-y-4 flex-1">
+                      {recentBookings.map((booking) => (
+                        <DetailedBookingCard 
+                          key={booking.id} 
+                          booking={booking} 
+                          onViewDetails={(bookingId) => navigate(`/bookings/${bookingId}`)} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                      <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground mb-4">No recent bookings found</p>
+                      <Button onClick={() => navigate('/search')} className="px-6">
+                        Start Planning Your Trip
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Travel Inspiration */}
-          <div className="xl:col-span-1">
+          <div className="md:col-span-2 xl:col-span-4 h-full">
             <TravelInspirationCard onExplore={handleExploreDestination} />
           </div>
         </div>

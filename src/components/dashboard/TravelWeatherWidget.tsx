@@ -40,15 +40,15 @@ export const TravelWeatherWidget: React.FC<TravelWeatherWidgetProps> = ({ destin
   if (weatherData.length === 0) return null;
 
   return (
-    <Card className="travel-card bg-gradient-to-br from-travel-sky/10 to-travel-ocean/10">
-      <CardContent className="p-4">
+    <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5">
+      <CardContent className="p-6 flex-1 flex flex-col">
         <div className="flex items-center gap-2 mb-4">
-          <Thermometer className="h-5 w-5 text-travel-ocean" />
+          <Thermometer className="h-5 w-5 text-primary" />
           <h3 className="font-semibold text-foreground">Weather Updates</h3>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4 flex-1">
           {weatherData.slice(0, 2).map((weather, index) => (
-            <div key={index} className="flex items-center justify-between">
+            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/30">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">{weather.destination}</span>
@@ -59,6 +59,11 @@ export const TravelWeatherWidget: React.FC<TravelWeatherWidgetProps> = ({ destin
               </div>
             </div>
           ))}
+          {weatherData.length === 0 && (
+            <div className="flex-1 flex items-center justify-center text-center">
+              <p className="text-muted-foreground text-sm">No destination weather available</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
