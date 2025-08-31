@@ -1,10 +1,12 @@
-
 import { Users, User, Dog, Sparkles, ArrowRight, Star, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageOptimizer } from "@/components/media/ImageOptimizer";
+import { useNavigate } from "react-router-dom";
 
 const MarketplaceSection = () => {
+  const navigate = useNavigate();
+
   const marketplaces = [
     {
       id: "family",
@@ -145,11 +147,19 @@ const MarketplaceSection = () => {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <Button variant="secondary" className="btn-secondary">
+                  <Button 
+                    variant="secondary" 
+                    className="btn-secondary"
+                    onClick={() => navigate('/travel-fund')}
+                  >
                     Start Saving Today
                   </Button>
                   
-                  <Button variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20">
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                    onClick={() => navigate('/travel-fund')}
+                  >
                     Learn More
                   </Button>
                 </div>
