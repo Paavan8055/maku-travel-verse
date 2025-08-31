@@ -20,7 +20,7 @@ import {
   Star
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/context/AuthContext';
 import { useBookings } from '@/hooks/useBookings';
 
 const Dashboard = () => {
@@ -84,7 +84,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-semibold">
-                  Welcome back, {user?.name || 'Guest'}!
+                  Welcome back, {user?.user_metadata?.name || user?.email || 'Guest'}!
                 </h1>
                 <p className="text-muted-foreground">
                   Explore new destinations and plan your next adventure.
@@ -165,14 +165,15 @@ const Dashboard = () => {
                 {bookings.map((booking) => (
                   <Card key={booking.id}>
                     <CardHeader>
-                      <CardTitle>{booking.type}</CardTitle>
+                      <CardTitle>{booking.booking_type}</CardTitle>
                       <CardDescription>
-                        {new Date(booking.date).toLocaleDateString()}
+                        {new Date(booking.created_at).toLocaleDateString()}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p>Confirmation: {booking.confirmation}</p>
+                      <p>Reference: {booking.booking_reference}</p>
                       <p>Status: {booking.status}</p>
+                      <p>Amount: {booking.currency} {booking.total_amount}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -223,7 +224,7 @@ const Dashboard = () => {
                     <h3 className="font-medium">Total Bookings</h3>
                     <Building className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <p className="text-3xl font-bold">42</p>
+                  <p className="text-3xl font-bold">{bookings.length}</p>
                   <p className="text-sm text-muted-foreground">
                     <TrendingUp className="h-4 w-4 inline-block mr-1" />
                     +12% from last month
