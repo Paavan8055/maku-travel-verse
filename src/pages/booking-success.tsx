@@ -23,10 +23,10 @@ const BookingSuccessPage = () => {
       try {
         setLoading(true);
         
-        const { data, error } = await supabase.functions.invoke('verify-payment-and-complete-booking', {
+        const { data, error } = await supabase.functions.invoke('verify-booking-payment', {
           body: {
-            payment_intent_id: sessionId,
-            booking_id: bookingId
+            bookingId: bookingId,
+            sessionId: sessionId
           }
         });
 
