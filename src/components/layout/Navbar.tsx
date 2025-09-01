@@ -16,7 +16,9 @@ export const Navbar: React.FC = () => {
     location.pathname.startsWith(path)
   ) || location.pathname.startsWith('/search');
   
-  const { providerHealth, isLoading, getOverallHealth } = useProviderHealth();
+  // Only call provider health hook when on search routes
+  const providerHealthHook = isSearchRoute ? useProviderHealth() : null;
+  const { providerHealth = [], isLoading = false, getOverallHealth = () => 'unknown' } = providerHealthHook || {};
 
   const navigationItems = [
     { path: '/flights', label: 'Flights', icon: Plane },
@@ -62,7 +64,13 @@ export const Navbar: React.FC = () => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
-              const searchType = item.path.substring(1) as 'flight' | 'hotel' | 'activity';
+              // Convert plural path to singular searchType
+              const pathToSearchType = {
+                flights: 'flight',
+                hotels: 'hotel', 
+                activities: 'activity'
+              } as const;
+              const searchType = pathToSearchType[item.path.substring(1) as keyof typeof pathToSearchType] || 'flight';
               const providers = getHealthProviders(searchType);
 
               return (
@@ -152,7 +160,13 @@ export const Navbar: React.FC = () => {
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
-                const searchType = item.path.substring(1) as 'flight' | 'hotel' | 'activity';
+                // Convert plural path to singular searchType
+                const pathToSearchType = {
+                  flights: 'flight',
+                  hotels: 'hotel',
+                  activities: 'activity'
+                } as const;
+                const searchType = pathToSearchType[item.path.substring(1) as keyof typeof pathToSearchType] || 'flight';
                 const providers = getHealthProviders(searchType);
 
                 return (
