@@ -2,15 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { SignUpForm } from '@/features/auth/components/SignUpForm';
 import { LoginForm } from '@/features/auth/components/LoginForm';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 
 const Auth = () => {
   const { user, loading } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+  
+  // Set initial signup state based on URL parameter
+  const [isSignUp, setIsSignUp] = useState(() => searchParams.get('tab') === 'signup');
 
   // Get the intended destination after login
   const from = location.state?.from?.pathname || '/';
+
+  // Handle form switching with URL parameter updates
+  const handleSwitchToSignUp = () => {
+    setIsSignUp(true);
+    setSearchParams({ tab: 'signup' });
+  };
+
+  const handleSwitchToLogin = () => {
+    setIsSignUp(false);
+    setSearchParams({});
+  };
 
   // Redirect authenticated users to their intended destination
   useEffect(() => {
@@ -44,9 +58,9 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
       <div className="w-full max-w-md">
         {isSignUp ? (
-          <SignUpForm onSwitchToLogin={() => setIsSignUp(false)} />
+          <SignUpForm onSwitchToLogin={handleSwitchToLogin} />
         ) : (
-          <LoginForm onSwitchToSignUp={() => setIsSignUp(true)} />
+          <LoginForm onSwitchToSignUp={handleSwitchToSignUp} />
         )}
       </div>
     </div>
