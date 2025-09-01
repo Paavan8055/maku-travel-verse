@@ -33,7 +33,7 @@ export const Navbar: React.FC = () => {
     }
 
     return providerHealth.filter(p => 
-      providerMap[searchType].includes(p.provider)
+      p && p.provider && providerMap[searchType].includes(p.provider)
     ).slice(0, 2); // Show top 2 providers
   };
 
