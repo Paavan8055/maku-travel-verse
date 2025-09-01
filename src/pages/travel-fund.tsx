@@ -47,6 +47,7 @@ const TravelFundPage: React.FC = () => {
   
   // Loading state for payment processing
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
 
   const handleCreateFund = async () => {
     if (!fundName || !targetAmount || !fundType) {
@@ -102,6 +103,19 @@ const TravelFundPage: React.FC = () => {
     }
 
     setIsProcessingPayment(true);
+    setRedirectUrl(null);
+
+    // Timeout protection - clear loading state after 5 seconds if still processing
+    const timeoutId = setTimeout(() => {
+      setIsProcessingPayment(false);
+      if (redirectUrl) {
+        toast({
+          title: "Redirect issue detected",
+          description: "Click the payment button below to continue manually.",
+          variant: "default",
+        });
+      }
+    }, 5000);
 
     try {
       console.log('Processing payment for fund:', selectedFundId, 'amount:', amount);
@@ -111,6 +125,8 @@ const TravelFundPage: React.FC = () => {
       
       if (error) {
         console.error('Payment error:', error);
+        clearTimeout(timeoutId);
+        setIsProcessingPayment(false);
         toast({
           title: "Payment failed",
           description: error.message || "Unable to process payment. Please try again.",
@@ -121,6 +137,7 @@ const TravelFundPage: React.FC = () => {
 
       if (paymentData?.url) {
         console.log('Redirecting to Stripe checkout:', paymentData.url);
+        setRedirectUrl(paymentData.url);
         
         toast({
           title: "Redirecting to payment",
@@ -128,11 +145,26 @@ const TravelFundPage: React.FC = () => {
           variant: "default",
         });
         
-        // Use direct redirect instead of popup to avoid popup blockers
-        window.location.href = paymentData.url;
+        // Clear loading state before redirect
+        setIsProcessingPayment(false);
+        clearTimeout(timeoutId);
+        
+        // Attempt redirect
+        try {
+          window.location.href = paymentData.url;
+        } catch (redirectError) {
+          console.error('Redirect failed:', redirectError);
+          toast({
+            title: "Redirect failed",
+            description: "Please use the payment button below to continue.",
+            variant: "default",
+          });
+        }
         return; // Don't clear form fields since we're redirecting
       } else {
         console.error('No payment URL received');
+        clearTimeout(timeoutId);
+        setIsProcessingPayment(false);
         toast({
           title: "Payment error",
           description: "No payment URL received. Please try again.",
@@ -141,17 +173,14 @@ const TravelFundPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Unexpected error:', err);
+      clearTimeout(timeoutId);
+      setIsProcessingPayment(false);
       toast({
         title: "Payment error",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsProcessingPayment(false);
     }
-    
-    setSelectedFundId('');
-    setAddAmount('');
   };
 
   const handleJoinFund = async () => {
@@ -643,6 +672,22 @@ const TravelFundPage: React.FC = () => {
                     </>
                   )}
                 </Button>
+                
+                {/* Fallback manual payment button */}
+                {redirectUrl && (
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800 mb-2">
+                      Automatic redirect didn't work? Click the button below to complete your payment:
+                    </p>
+                    <Button 
+                      onClick={() => window.open(redirectUrl, '_blank')} 
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      Complete Payment Manually
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
