@@ -38,9 +38,19 @@ export const travelFundClient = {
       .from('funds')
       .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .order('id', { ascending: false }); // Use id instead of created_at since that column doesn't exist
 
-    return { data: data as TravelFund[], error };
+    // Add default values for missing properties
+    const enrichedData = data?.map(fund => ({
+      ...fund,
+      name: (fund as any).name || 'Travel Fund',
+      status: (fund as any).status || 'active',
+      currency: (fund as any).currency || 'USD',
+      fund_type: (fund as any).fund_type || 'personal',
+      balance: fund.balance || 0
+    })) || [];
+
+    return { data: enrichedData as TravelFund[], error };
   },
 
   // Create a new travel fund
