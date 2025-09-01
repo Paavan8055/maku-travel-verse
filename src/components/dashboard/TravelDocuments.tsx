@@ -236,32 +236,21 @@ export function TravelDocuments() {
             </div>
             
             <div className="flex items-center gap-1 flex-shrink-0">
-              {doc.type === 'flight' && doc.hasTicket && (
+              {/* Dynamic Ticket/Confirmation Button */}
+              {(doc.hasTicket || doc.hasConfirmation) && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleDownload(doc.id, 'ticket')}
-                  disabled={downloadingDoc === `${doc.id}-ticket`}
+                  onClick={() => handleDownload(doc.id, doc.type === 'flight' ? 'ticket' : 'confirmation')}
+                  disabled={downloadingDoc === `${doc.id}-${doc.type === 'flight' ? 'ticket' : 'confirmation'}`}
                   className="text-xs px-2 py-1 h-auto"
                 >
                   <Download className="h-3 w-3 mr-1" />
-                  Ticket
+                  {doc.type === 'flight' ? 'Ticket' : 'Confirmation'}
                 </Button>
               )}
               
-              {doc.type === 'hotel' && doc.hasConfirmation && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownload(doc.id, 'confirmation')}
-                  disabled={downloadingDoc === `${doc.id}-confirmation`}
-                  className="text-xs px-2 py-1 h-auto"
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  Hotel
-                </Button>
-              )}
-              
+              {/* Tax Invoice Button */}
               {doc.hasConfirmation && (
                 <Button
                   variant="outline"
@@ -271,7 +260,7 @@ export function TravelDocuments() {
                   className="text-xs px-2 py-1 h-auto"
                 >
                   <Receipt className="h-3 w-3 mr-1" />
-                  Invoice
+                  Tax Invoice
                 </Button>
               )}
             </div>

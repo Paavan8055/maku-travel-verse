@@ -27,6 +27,11 @@ export const Navbar: React.FC = () => {
       activity: ['hotelbeds-activity', 'sabre-activity', 'amadeus-activity']
     };
 
+    // Add null check to prevent TypeError
+    if (!providerHealth) {
+      return [];
+    }
+
     return providerHealth.filter(p => 
       providerMap[searchType].includes(p.provider)
     ).slice(0, 2); // Show top 2 providers
