@@ -82,13 +82,15 @@ export const Navbar: React.FC = () => {
                     <div className="space-y-2">
                       {providers.length > 0 ? (
                         providers.map((provider) => (
-                          <ProviderHealthBadge
-                            key={provider.provider}
-                            provider={provider.provider.split('-')[0].toUpperCase()}
-                            status={provider.status}
-                            responseTime={provider.responseTime}
-                            className="mr-2"
-                          />
+                          provider && provider.provider ? (
+                            <ProviderHealthBadge
+                              key={provider.provider}
+                              provider={provider.provider.split('-')[0].toUpperCase()}
+                              status={provider.status}
+                              responseTime={provider.responseTime}
+                              className="mr-2"
+                            />
+                          ) : null
                         ))
                       ) : (
                         <div className="text-xs text-gray-500">
@@ -163,12 +165,14 @@ export const Navbar: React.FC = () => {
                     <div className="px-4 pb-2">
                       <div className="flex flex-wrap gap-2">
                         {providers.map((provider) => (
-                          <ProviderHealthBadge
-                            key={provider.provider}
-                            provider={provider.provider.split('-')[0].toUpperCase()}
-                            status={provider.status}
-                            responseTime={provider.responseTime}
-                          />
+                          provider && provider.provider ? (
+                            <ProviderHealthBadge
+                              key={provider.provider}
+                              provider={provider.provider.split('-')[0].toUpperCase()}
+                              status={provider.status}
+                              responseTime={provider.responseTime}
+                            />
+                          ) : null
                         ))}
                       </div>
                     </div>
