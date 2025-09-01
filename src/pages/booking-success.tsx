@@ -25,8 +25,8 @@ const BookingSuccessPage = () => {
         
         const { data, error } = await supabase.functions.invoke('verify-booking-payment', {
           body: {
-            bookingId: bookingId,
-            sessionId: sessionId
+            booking_id: bookingId,
+            session_id: sessionId
           }
         });
 
