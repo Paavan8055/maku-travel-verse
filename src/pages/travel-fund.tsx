@@ -140,9 +140,12 @@ const TravelFundPage: React.FC = () => {
 
   // Calculate stats from real funds
   const calculateStats = () => {
-    const totalDeposited = funds.reduce((sum, fund) => sum + (fund.balance || 0), 0);
-    const activeGroups = funds.filter(fund => fund.status === 'active' || !fund.status).length;
-    const averageFundSize = funds.length > 0 ? totalDeposited / funds.length : 0;
+    // Ensure funds is an array before processing
+    const safeFunds = Array.isArray(funds) ? funds : [];
+    
+    const totalDeposited = safeFunds.reduce((sum, fund) => sum + (fund?.balance || 0), 0);
+    const activeGroups = safeFunds.filter(fund => (fund?.status === 'active' || !fund?.status)).length;
+    const averageFundSize = safeFunds.length > 0 ? totalDeposited / safeFunds.length : 0;
     const successRate = 85; // Placeholder until we track completed funds
     
     return {
