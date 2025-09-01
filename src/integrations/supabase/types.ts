@@ -3334,6 +3334,7 @@ export type Database = {
           payment_method_id: string | null
           status: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -3346,6 +3347,7 @@ export type Database = {
           payment_method_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -3358,6 +3360,7 @@ export type Database = {
           payment_method_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
