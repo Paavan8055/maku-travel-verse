@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Clock, MapPin, Coins } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -133,9 +133,10 @@ export default function Dashboard() {
               <Button 
                 variant="secondary" 
                 className="w-full h-10 text-sm font-medium"
-                onClick={() => navigate('/trips')}
+                onClick={() => navigate('/travel-fund')}
               >
-                Plan a Trip
+                <Coins className="mr-2 h-4 w-4" />
+                Travel Fund
               </Button>
             </CardContent>
           </Card>

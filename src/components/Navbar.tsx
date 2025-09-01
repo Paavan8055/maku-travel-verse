@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -95,6 +95,11 @@ const Navbar = () => {
               <span>{t('navigation.activities')}</span>
             </Button>
             
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/travel-fund')} role="menuitem">
+              <Coins className="h-4 w-4" aria-hidden="true" />
+              <span>Travel Fund</span>
+            </Button>
+            
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')} role="menuitem">
               <Gift className="h-4 w-4" aria-hidden="true" />
               <span>Gift Cards</span>
@@ -155,6 +160,7 @@ const Navbar = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate('/dashboard')}>{t('navigation.profile')}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/dashboard')}>My Bookings</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/travel-fund')}>Travel Funds</DropdownMenuItem>
                   <DropdownMenuItem>Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
@@ -207,6 +213,13 @@ const Navbar = () => {
               >
                 <MapPin className="mr-2 h-4 w-4" />
                 Activities
+              </Button>
+              <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                navigate('/travel-fund');
+                setIsMenuOpen(false);
+              }}>
+                <Coins className="mr-2 h-4 w-4" />
+                Travel Fund
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
                 navigate('/gift-cards');
