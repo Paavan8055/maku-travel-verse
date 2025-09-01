@@ -81,25 +81,57 @@ export function TravelDocuments() {
   };
 
   const getDocuments = (): TravelDocument[] => {
-    if (!bookings) return [];
+    console.log('🔍 TravelDocuments Debug - Raw bookings:', bookings);
     
-    return bookings.map(booking => ({
-      id: booking.id,
-      type: booking.booking_type as 'flight' | 'hotel',
-      title: booking.booking_type === 'flight' 
-        ? `Flight ${booking.booking_data?.flightNumber || 'Booking'}`
-        : booking.booking_data?.hotel?.hotel || booking.booking_data?.hotelName || 'Hotel Booking',
-      bookingReference: booking.booking_reference,
-      status: booking.status,
-      date: booking.booking_type === 'flight'
-        ? booking.booking_data?.departureDate || booking.created_at
-        : booking.booking_data?.checkInDate || booking.booking_data?.checkIn || booking.created_at,
-      destination: booking.booking_type === 'flight'
-        ? `${booking.booking_data?.origin || ''} → ${booking.booking_data?.destination || ''}`
-        : booking.booking_data?.destination || booking.booking_data?.hotel?.hotel || 'Hotel',
-      hasTicket: booking.booking_type === 'flight' && booking.status === 'confirmed',
-      hasConfirmation: booking.status === 'confirmed'
-    })).filter(doc => doc.hasTicket || doc.hasConfirmation);
+    if (!bookings) {
+      console.log('❌ No bookings data available');
+      return [];
+    }
+    
+    console.log('📊 Processing', bookings.length, 'total bookings');
+    
+    const allDocuments = bookings.map(booking => {
+      const doc = {
+        id: booking.id,
+        type: booking.booking_type as 'flight' | 'hotel',
+        title: booking.booking_type === 'flight' 
+          ? `Flight ${booking.booking_data?.flightNumber || 'Booking'}`
+          : booking.booking_data?.hotel?.hotel || booking.booking_data?.hotelName || 'Hotel Booking',
+        bookingReference: booking.booking_reference,
+        status: booking.status,
+        date: booking.booking_type === 'flight'
+          ? booking.booking_data?.departureDate || booking.created_at
+          : booking.booking_data?.checkInDate || booking.booking_data?.checkIn || booking.created_at,
+        destination: booking.booking_type === 'flight'
+          ? `${booking.booking_data?.origin || ''} → ${booking.booking_data?.destination || ''}`
+          : booking.booking_data?.destination || booking.booking_data?.hotel?.hotel || 'Hotel',
+        hasTicket: booking.booking_type === 'flight' && booking.status === 'confirmed',
+        hasConfirmation: booking.status === 'confirmed'
+      };
+      
+      console.log(`📋 Booking ${booking.booking_reference}:`, {
+        type: doc.type,
+        status: doc.status,
+        hasTicket: doc.hasTicket,
+        hasConfirmation: doc.hasConfirmation,
+        willShow: doc.hasTicket || doc.hasConfirmation
+      });
+      
+      return doc;
+    });
+    
+    const filteredDocuments = allDocuments.filter(doc => doc.hasTicket || doc.hasConfirmation);
+    
+    console.log('📊 Summary:', {
+      totalBookings: bookings.length,
+      documentsAfterFilter: filteredDocuments.length,
+      statusBreakdown: bookings.reduce((acc, booking) => {
+        acc[booking.status] = (acc[booking.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    });
+    
+    return filteredDocuments;
   };
 
   const documents = getDocuments();
