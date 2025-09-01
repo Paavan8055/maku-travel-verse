@@ -10,6 +10,12 @@ import { cn } from '@/lib/utils';
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Only load provider health on search-related routes
+  const isSearchRoute = ['/flights', '/hotels', '/activities'].some(path => 
+    location.pathname.startsWith(path)
+  ) || location.pathname.startsWith('/search');
+  
   const { providerHealth, isLoading, getOverallHealth } = useProviderHealth();
 
   const navigationItems = [
@@ -74,49 +80,53 @@ export const Navbar: React.FC = () => {
                     <span>{item.label}</span>
                   </Link>
                   
-                  {/* Provider Health Tooltip */}
-                  <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 w-64">
-                    <div className="text-xs font-medium text-gray-900 dark:text-white mb-2">
-                      Provider Status
+                  {/* Provider Health Tooltip - Only show on search routes */}
+                  {isSearchRoute && (
+                    <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 w-64">
+                      <div className="text-xs font-medium text-gray-900 dark:text-white mb-2">
+                        Provider Status
+                      </div>
+                      <div className="space-y-2">
+                        {providers.length > 0 ? (
+                          providers.map((provider) => (
+                            provider && provider.provider ? (
+                              <ProviderHealthBadge
+                                key={provider.provider}
+                                provider={provider.provider.split('-')[0].toUpperCase()}
+                                status={provider.status}
+                                responseTime={provider.responseTime}
+                                className="mr-2"
+                              />
+                            ) : null
+                          ))
+                        ) : (
+                          <div className="text-xs text-gray-500">
+                            No provider data available
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      {providers.length > 0 ? (
-                        providers.map((provider) => (
-                          provider && provider.provider ? (
-                            <ProviderHealthBadge
-                              key={provider.provider}
-                              provider={provider.provider.split('-')[0].toUpperCase()}
-                              status={provider.status}
-                              responseTime={provider.responseTime}
-                              className="mr-2"
-                            />
-                          ) : null
-                        ))
-                      ) : (
-                        <div className="text-xs text-gray-500">
-                          No provider data available
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* System Health Badge */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                System Status:
-              </span>
-              <ProviderHealthBadge
-                provider="Overall"
-                status={overallHealth}
-                className="text-xs"
-              />
+          {/* System Health Badge - Only show on search routes */}
+          {isSearchRoute && (
+            <div className="hidden lg:flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  System Status:
+                </span>
+                <ProviderHealthBadge
+                  provider="Overall"
+                  status={overallHealth}
+                  className="text-xs"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
@@ -161,37 +171,41 @@ export const Navbar: React.FC = () => {
                       <span>{item.label}</span>
                     </Link>
                     
-                    {/* Mobile Provider Status */}
-                    <div className="px-4 pb-2">
-                      <div className="flex flex-wrap gap-2">
-                        {providers.map((provider) => (
-                          provider && provider.provider ? (
-                            <ProviderHealthBadge
-                              key={provider.provider}
-                              provider={provider.provider.split('-')[0].toUpperCase()}
-                              status={provider.status}
-                              responseTime={provider.responseTime}
-                            />
-                          ) : null
-                        ))}
+                    {/* Mobile Provider Status - Only show on search routes */}
+                    {isSearchRoute && (
+                      <div className="px-4 pb-2">
+                        <div className="flex flex-wrap gap-2">
+                          {providers.map((provider) => (
+                            provider && provider.provider ? (
+                              <ProviderHealthBadge
+                                key={provider.provider}
+                                provider={provider.provider.split('-')[0].toUpperCase()}
+                                status={provider.status}
+                                responseTime={provider.responseTime}
+                              />
+                            ) : null
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
               
-              {/* Mobile System Status */}
-              <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    System Status
-                  </span>
-                  <ProviderHealthBadge
-                    provider="Overall"
-                    status={overallHealth}
-                  />
+              {/* Mobile System Status - Only show on search routes */}
+              {isSearchRoute && (
+                <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      System Status
+                    </span>
+                    <ProviderHealthBadge
+                      provider="Overall"
+                      status={overallHealth}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}

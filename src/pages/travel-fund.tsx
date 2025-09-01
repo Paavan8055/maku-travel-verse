@@ -120,17 +120,64 @@ const TravelFundPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle>Authentication Required</CardTitle>
+          {/* Hero Section for Unauthenticated Users */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Travel Fund Manager
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+              Create collaborative savings goals, track contributions, and make your dream destinations a reality together.
+            </p>
+          </div>
+
+          {/* Preview Benefits */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <Card className="border-primary/20">
+              <CardContent className="p-6 text-center">
+                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Collaborative Saving</h3>
+                <p className="text-muted-foreground">Pool funds with family and friends for shared travel experiences</p>
+              </CardContent>
+            </Card>
+            <Card className="border-secondary/20">
+              <CardContent className="p-6 text-center">
+                <Target className="h-12 w-12 text-secondary mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Goal Tracking</h3>
+                <p className="text-muted-foreground">Set targets and watch your progress with visual indicators</p>
+              </CardContent>
+            </Card>
+            <Card className="border-accent/20">
+              <CardContent className="p-6 text-center">
+                <TrendingUp className="h-12 w-12 text-accent mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Smart Analytics</h3>
+                <p className="text-muted-foreground">Get insights on savings patterns and fund performance</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Authentication Card */}
+          <Card className="max-w-lg mx-auto">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Start Your Travel Journey</CardTitle>
               <CardDescription>
-                Please log in to access your travel funds.
+                Join thousands of travelers who are making their dreams come true through collaborative saving
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate('/auth')} className="w-full">
-                Log In
-              </Button>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Button onClick={() => navigate('/auth?tab=signup')} className="w-full">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Sign Up
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/auth')} className="w-full">
+                  Log In
+                </Button>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Already have an account? <button onClick={() => navigate('/auth')} className="text-primary hover:underline">Sign in here</button>
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
