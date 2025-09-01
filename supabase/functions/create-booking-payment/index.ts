@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
         stripe_session_id: checkoutSession.id,
         amount: amount,
         currency: currency.toUpperCase(),
-        status: 'pending'
+        status: 'requires_payment'
       });
 
     if (paymentError) {
