@@ -4,17 +4,40 @@ export interface TravelFund {
   id: string;
   user_id: string;
   balance: number;
-  name?: string;
+  name: string;
   description?: string;
   target_amount?: number;
-  currency?: string;
-  fund_type?: 'personal' | 'group' | 'family';
+  currency: string;
+  fund_type: 'personal' | 'group' | 'family';
   deadline?: string;
   destination?: string;
-  fund_code?: string;
-  status?: 'active' | 'completed' | 'cancelled';
-  created_at?: string;
-  updated_at?: string;
+  fund_code: string;
+  status: 'active' | 'completed' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FundParticipant {
+  id: string;
+  fund_id: string;
+  user_id: string;
+  role: 'owner' | 'contributor';
+  invited_by?: string;
+  joined_at: string;
+  total_contributed: number;
+}
+
+export interface FundInvitation {
+  id: string;
+  fund_id: string;
+  invited_by: string;
+  invited_email?: string;
+  invited_user_id?: string;
+  invitation_code: string;
+  status: 'pending' | 'accepted' | 'expired';
+  expires_at: string;
+  accepted_at?: string;
+  signup_completed: boolean;
 }
 
 export interface FundTransaction {
@@ -56,15 +79,15 @@ export const travelFundClient = {
       id: fund.id || '',
       user_id: fund.user_id || user.id,
       balance: Number(fund.balance) || 0,
-      name: (fund as any).name || 'Travel Fund',
-      status: (fund as any).status || 'active',
+      name: fund.name || 'Travel Fund',
+      status: fund.status || 'active',
       currency: (fund as any).currency || 'USD',
       fund_type: (fund as any).fund_type || 'personal',
+      fund_code: (fund as any).fund_code || '',
       target_amount: (fund as any).target_amount || undefined,
       description: (fund as any).description || undefined,
       deadline: (fund as any).deadline || undefined,
       destination: (fund as any).destination || undefined,
-      fund_code: (fund as any).fund_code || undefined,
       created_at: (fund as any).created_at || undefined,
       updated_at: (fund as any).updated_at || undefined
     }));
@@ -89,23 +112,18 @@ export const travelFundClient = {
 
     console.log('Creating fund with data:', fundData);
 
-    // Generate a unique fund code
-    const fundCode = Math.random().toString(36).substring(2, 15).toUpperCase();
-
     const { data, error } = await supabase
       .from('funds')
       .insert({
         user_id: user.id,
         balance: 0,
-        // Note: Add other fields when database schema supports them
-        // name: fundData.name,
-        // description: fundData.description,
-        // target_amount: fundData.target_amount,
-        // currency: fundData.currency || 'USD',
-        // fund_type: fundData.fund_type,
-        // deadline: fundData.deadline,
-        // destination: fundData.destination,
-        // fund_code: fundCode
+        name: fundData.name,
+        description: fundData.description,
+        target_amount: fundData.target_amount,
+        currency: fundData.currency || 'USD',
+        fund_type: fundData.fund_type,
+        deadline: fundData.deadline,
+        destination: fundData.destination
       })
       .select()
       .single();
@@ -173,31 +191,75 @@ export const travelFundClient = {
     }
   },
 
-  // Join fund by code (placeholder for future implementation)
+  // Join fund by code
   async joinFundByCode(fundCode: string): Promise<{ data: TravelFund | null; error: any }> {
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) return { data: null, error: 'User not authenticated' };
 
     console.log('Joining fund with code:', fundCode);
 
-    // For now, return error since fund_code column doesn't exist yet
-    return { 
-      data: null, 
-      error: 'Join by code feature is not yet implemented. Please create your own fund for now.' 
-    };
+    try {
+      // Find fund by code
+      const { data: fund, error: fundError } = await supabase
+        .from('funds')
+        .select('*')
+        .eq('fund_code', fundCode)
+        .eq('status', 'active')
+        .single();
 
-    /* When fund_code column is added to database schema:
-    const { data: fund, error } = await supabase
-      .from('funds')
-      .select('*')
-      .eq('fund_code', fundCode)
-      .single();
+      if (fundError || !fund) {
+        return { data: null, error: 'Fund not found or invalid code' };
+      }
 
-    if (error || !fund) {
-      return { data: null, error: 'Fund not found or invalid code' };
+      return { data: fund as TravelFund, error: null };
+    } catch (err) {
+      console.error('Unexpected error in joinFundByCode:', err);
+      return { data: null, error: err };
     }
+  },
 
-    return { data: fund as TravelFund, error: null };
-    */
+  // Process payment for fund deposit (integrates with existing Stripe infrastructure)
+  async processPayment(fundId: string, amount: number): Promise<{ data: any; error: any }> {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return { data: null, error: 'User not authenticated' };
+
+    try {
+      // Get fund details
+      const { data: fund, error: fundError } = await supabase
+        .from('funds')
+        .select('*')
+        .eq('id', fundId)
+        .single();
+
+      if (fundError || !fund) {
+        return { data: null, error: 'Fund not found' };
+      }
+
+      // Call Stripe payment function (same as booking payments)
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-booking-payment', {
+        body: {
+          bookingType: 'travel-fund',
+          fundId,
+          fundName: (fund as any).name || 'Travel Fund',
+          amount,
+          currency: 'USD', // Default currency
+          customerInfo: {
+            email: user.email,
+            firstName: user.user_metadata?.first_name || '',
+            lastName: user.user_metadata?.last_name || ''
+          }
+        }
+      });
+
+      if (paymentError) {
+        console.error('Payment error:', paymentError);
+        return { data: null, error: paymentError };
+      }
+
+      return { data: paymentData, error: null };
+    } catch (err) {
+      console.error('Error processing payment:', err);
+      return { data: null, error: err };
+    }
   }
 };

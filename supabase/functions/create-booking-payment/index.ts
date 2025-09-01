@@ -9,8 +9,8 @@ const corsHeaders = {
 
 interface BookingPaymentPayload {
   bookingId?: string;
-  bookingType: 'hotel' | 'flight' | 'activity' | 'package';
-  bookingData: any;
+  bookingType: 'hotel' | 'flight' | 'activity' | 'package' | 'travel-fund';
+  bookingData?: any;
   amount: number;
   currency: string;
   customerInfo: {
@@ -27,6 +27,9 @@ interface BookingPaymentPayload {
   }>;
   addOnsTotal?: number;
   paymentMethod?: 'card' | 'fund' | 'split';
+  // Travel fund specific fields
+  fundId?: string;
+  fundName?: string;
 }
 
 Deno.serve(async (req) => {
@@ -69,10 +72,14 @@ Deno.serve(async (req) => {
       customerInfo,
       selectedAddOns = [],
       addOnsTotal = 0,
-      paymentMethod = 'card'
+      paymentMethod = 'card',
+      fundId,
+      fundName
     }: BookingPaymentPayload = await req.json();
 
-    if (!bookingType || !bookingData || !amount || !customerInfo?.email) {
+    // For travel-fund payments, bookingData is optional
+    if (!bookingType || !amount || !customerInfo?.email || 
+        (bookingType !== 'travel-fund' && !bookingData)) {
       return new Response(
         JSON.stringify({ error: 'Missing required parameters' }),
         { 
@@ -95,12 +102,19 @@ Deno.serve(async (req) => {
         booking_type: bookingType,
         total_amount: amount,
         currency: currency.toUpperCase(),
-        booking_data: {
-          ...bookingData,
-          customerInfo,
-          selectedAddOns,
-          addOnsTotal
-        }
+        booking_data: bookingType === 'travel-fund' 
+          ? {
+              fundId,
+              fundName,
+              customerInfo,
+              depositAmount: amount
+            }
+          : {
+              ...bookingData,
+              customerInfo,
+              selectedAddOns,
+              addOnsTotal
+            }
       };
 
       const { data: booking, error: bookingError } = await supabaseClient
@@ -127,9 +141,13 @@ Deno.serve(async (req) => {
     const origin = req.headers.get('origin') || 'https://iomeddeasarntjhqzndu.supabase.co';
 
     // Create Stripe Checkout Session
+    const productName = bookingType === 'travel-fund' 
+      ? `Travel Fund Deposit - ${fundName || 'Fund'}`
+      : `${bookingType.charAt(0).toUpperCase() + bookingType.slice(1)} Booking`;
+      
     const checkoutSessionData = new URLSearchParams({
       'line_items[0][price_data][currency]': currency.toLowerCase(),
-      'line_items[0][price_data][product_data][name]': `${bookingType.charAt(0).toUpperCase() + bookingType.slice(1)} Booking`,
+      'line_items[0][price_data][product_data][name]': productName,
       'line_items[0][price_data][unit_amount]': amountCents.toString(),
       'line_items[0][quantity]': '1',
       mode: 'payment',
@@ -140,6 +158,10 @@ Deno.serve(async (req) => {
       'metadata[user_id]': user?.id || 'guest',
       'metadata[payment_method]': paymentMethod
     });
+    
+    if (bookingType === 'travel-fund' && fundId) {
+      checkoutSessionData.append('metadata[fund_id]', fundId);
+    }
 
     if (customerInfo.email) {
       checkoutSessionData.append('customer_email', customerInfo.email);
@@ -183,7 +205,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         bookingId: finalBookingId,
-        checkoutUrl: checkoutSession.url,
+        url: checkoutSession.url, // Changed from checkoutUrl for consistency
         sessionId: checkoutSession.id,
         payment: {
           method: paymentMethod,
@@ -194,7 +216,8 @@ Deno.serve(async (req) => {
           reference: `${bookingType.toUpperCase()}${Date.now()}`,
           status: 'pending',
           amount: amount,
-          currency: currency.toUpperCase()
+          currency: currency.toUpperCase(),
+          ...(bookingType === 'travel-fund' && { fundId, fundName })
         }
       }),
       {
