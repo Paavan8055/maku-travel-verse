@@ -250,6 +250,62 @@ serve(async (req) => {
       logger.error('Failed to update booking status:', updateError);
     }
 
+    // Handle travel fund balance update
+    if (booking.booking_type === 'travel-fund') {
+      try {
+        const { fundId, depositAmount } = booking.booking_data;
+        
+        if (fundId && depositAmount) {
+          // Update travel fund balance - First get current balance, then update
+          const { data: currentFund, error: getCurrentError } = await supabaseClient
+            .from('funds')
+            .select('balance')
+            .eq('id', fundId)
+            .single();
+
+          if (getCurrentError) {
+            logger.error('Failed to get current fund balance:', getCurrentError);
+          } else {
+            const newBalance = (currentFund.balance || 0) + depositAmount;
+            
+            const { error: fundUpdateError } = await supabaseClient
+              .from('funds')
+              .update({ 
+                balance: newBalance,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', fundId);
+
+            if (fundUpdateError) {
+              logger.error('Failed to update travel fund balance:', fundUpdateError);
+            } else {
+              logger.info(`✅ Travel fund ${fundId} balance updated with ${depositAmount} (new balance: ${newBalance})`);
+            }
+          }
+
+          // Create fund transaction record
+          const { error: transactionError } = await supabaseClient
+            .from('fund_transactions')
+            .insert({
+              user_id: booking.user_id,
+              amount: depositAmount,
+              type: 'deposit',
+              status: 'completed',
+              stripe_session_id: paymentDetails.stripe_session_id
+            });
+
+          if (transactionError) {
+            logger.error('Failed to create fund transaction:', transactionError);
+          } else {
+            logger.info('✅ Fund transaction recorded');
+          }
+        }
+      } catch (fundError) {
+        logger.error('Travel fund update error:', fundError);
+        // Don't fail the entire request if fund update fails
+      }
+    }
+
     // Create provider booking confirmation (enhance existing booking)
     let providerConfirmation = null;
     
