@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { ShareFundDialog } from '@/components/travel-fund/ShareFundDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useTravelFunds } from '@/hooks/useTravelFunds';
 import { travelFundClient } from '@/lib/travelFundClient';
@@ -37,6 +38,9 @@ const TravelFundPage: React.FC = () => {
   
   // Join fund state
   const [joinCode, setJoinCode] = useState('');
+  
+  // Share fund state
+  const [shareFundId, setShareFundId] = useState<string | null>(null);
 
   const handleCreateFund = async () => {
     if (!fundName || !targetAmount || !fundType) {
@@ -512,25 +516,7 @@ const TravelFundPage: React.FC = () => {
                             <Button 
                               variant="outline" 
                               className="flex-1"
-                              onClick={() => {
-                                const shareText = `Join my travel fund "${fund.name}" using code: ${fund.fund_code}`;
-                                const shareUrl = `${window.location.origin}/travel-fund?join=${fund.fund_code}`;
-                                
-                                if (navigator.share) {
-                                  navigator.share({
-                                    title: `Join ${fund.name}`,
-                                    text: shareText,
-                                    url: shareUrl
-                                  });
-                                } else {
-                                  navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-                                  toast({
-                                    title: "Share link copied!",
-                                    description: "Fund details copied to clipboard.",
-                                    variant: "default"
-                                  });
-                                }
-                              }}
+                              onClick={() => setShareFundId(fund.id)}
                             >
                               <Share2 className="mr-2 h-4 w-4" />
                               Share
@@ -645,6 +631,14 @@ const TravelFundPage: React.FC = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        {/* Share Fund Dialog */}
+        {shareFundId && (
+          <ShareFundDialog
+            fund={funds.find(f => f.id === shareFundId)!}
+            open={!!shareFundId}
+            onOpenChange={(open) => !open && setShareFundId(null)}
+          />
+        )}
       </div>
     </div>
   );
