@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, Eye, Plane, Hotel, FileText, Calendar, MapPin } from 'lucide-react';
+import { Download, Eye, Plane, Hotel, FileText, Calendar, MapPin, Receipt } from 'lucide-react';
 import { useBookings } from '@/hooks/useBookings';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -28,7 +27,7 @@ export function TravelDocuments() {
   const { bookings, loading } = useBookings();
   const [downloadingDoc, setDownloadingDoc] = useState<string | null>(null);
 
-  const handleDownload = async (bookingId: string, docType: 'ticket' | 'confirmation') => {
+  const handleDownload = async (bookingId: string, docType: 'ticket' | 'confirmation' | 'invoice') => {
     setDownloadingDoc(`${bookingId}-${docType}`);
     
     try {
@@ -55,7 +54,16 @@ export function TravelDocuments() {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       
-      const filename = `${docType === 'ticket' ? 'e-ticket' : 'confirmation'}-${booking.booking_reference}.pdf`;
+      let filename = '';
+      if (docType === 'ticket') {
+        filename = booking.booking_type === 'flight' 
+          ? `e-ticket-${booking.booking_reference}.pdf`
+          : `hotel-confirmation-${booking.booking_reference}.pdf`;
+      } else if (docType === 'invoice') {
+        filename = `tax-invoice-${booking.booking_reference}.pdf`;
+      } else {
+        filename = `confirmation-${booking.booking_reference}.pdf`;
+      }
       
       const link = document.createElement('a');
       link.href = url;
@@ -241,7 +249,7 @@ export function TravelDocuments() {
                 </Button>
               )}
               
-              {doc.hasConfirmation && (
+              {doc.type === 'hotel' && doc.hasConfirmation && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -250,7 +258,20 @@ export function TravelDocuments() {
                   className="text-xs px-2 py-1 h-auto"
                 >
                   <Download className="h-3 w-3 mr-1" />
-                  Confirmation
+                  Hotel
+                </Button>
+              )}
+              
+              {doc.hasConfirmation && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(doc.id, 'invoice')}
+                  disabled={downloadingDoc === `${doc.id}-invoice`}
+                  className="text-xs px-2 py-1 h-auto"
+                >
+                  <Receipt className="h-3 w-3 mr-1" />
+                  Invoice
                 </Button>
               )}
             </div>
