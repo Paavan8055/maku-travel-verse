@@ -52,7 +52,7 @@ const HeroSection = () => {
               width={1671}
               height={940}
               className="h-full w-full object-cover"
-              lazy={index !== 0}
+              lazy={false}
               fetchPriority={index === 0 ? "high" : "low"}
               quality={index === 0 ? 85 : 70}
             />
