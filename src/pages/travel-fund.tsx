@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useTravelFunds } from '@/hooks/useTravelFunds';
+import { travelFundClient } from '@/lib/travelFundClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { AnimatedLoadingState } from '@/components/ux/EnhancedUserExperience';
 import { Users, Target, Calendar, TrendingUp, PlusCircle, Coins, Copy, Share2, UserPlus } from 'lucide-react';
@@ -19,7 +20,7 @@ const TravelFundPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { funds, loading, createFund, addFunds, joinFundByCode } = useTravelFunds();
+  const { funds, loading, createFund, refetch } = useTravelFunds();
   const [activeTab, setActiveTab] = useState('create');
   
   // Form states
@@ -80,29 +81,89 @@ const TravelFundPage: React.FC = () => {
       return;
     }
 
-    const result = await addFunds(selectedFundId, parseFloat(addAmount));
-    
-    if (result) {
-      setSelectedFundId('');
-      setAddAmount('');
-    }
-  };
-
-  const handleJoinFund = async () => {
-    if (!joinCode) {
+    const amount = parseFloat(addAmount);
+    if (amount <= 0) {
       toast({
-        title: "Missing Information",
-        description: "Please enter a fund code.",
-        variant: "destructive"
+        title: "Invalid amount",
+        description: "Please enter a valid amount greater than 0.",
+        variant: "destructive",
       });
       return;
     }
 
-    const result = await joinFundByCode(joinCode);
+    try {
+      // Use the new payment integration with Stripe
+      const { data: paymentData, error } = await travelFundClient.processPayment(selectedFundId, amount);
+      
+      if (error) {
+        console.error('Payment error:', error);
+        toast({
+          title: "Payment failed",
+          description: error.message || "Unable to process payment. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (paymentData?.url) {
+        // Redirect to Stripe checkout
+        window.open(paymentData.url, '_blank');
+        toast({
+          title: "Redirecting to payment",
+          description: "You'll be redirected to complete your payment securely.",
+          variant: "default",
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast({
+        title: "Payment error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
     
-    if (result) {
+    setSelectedFundId('');
+    setAddAmount('');
+  };
+
+  const handleJoinFund = async () => {
+    if (!joinCode.trim()) {
+      toast({
+        title: "Missing code",
+        description: "Please enter a valid fund code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await travelFundClient.joinFundByCode(joinCode.trim().toUpperCase());
+      
+      if (error) {
+        toast({
+          title: "Unable to join fund",
+          description: error.message || "Invalid fund code or fund not found.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Successfully joined fund!",
+        description: `You've joined "${data?.name}". You can now contribute to this travel fund.`,
+        variant: "default",
+      });
+      
+      refetch(); // Refresh the funds list
       setJoinCode('');
       setActiveTab('existing');
+    } catch (err) {
+      toast({
+        title: "Error joining fund",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

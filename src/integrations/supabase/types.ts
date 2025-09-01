@@ -1988,17 +1988,47 @@ export type Database = {
       funds: {
         Row: {
           balance: number | null
+          created_at: string | null
+          deadline: string | null
+          description: string | null
+          destination: string | null
+          fund_code: string | null
+          fund_type: string | null
           id: string
+          name: string | null
+          status: string | null
+          target_amount: number | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           balance?: number | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          destination?: string | null
+          fund_code?: string | null
+          fund_type?: string | null
           id?: string
+          name?: string | null
+          status?: string | null
+          target_amount?: number | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           balance?: number | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          destination?: string | null
+          fund_code?: string | null
+          fund_type?: string | null
           id?: string
+          name?: string | null
+          status?: string | null
+          target_amount?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4978,6 +5008,10 @@ export type Database = {
         Returns: Json
       }
       generate_booking_reference: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_fund_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
