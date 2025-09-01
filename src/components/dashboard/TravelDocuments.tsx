@@ -236,7 +236,8 @@ export function TravelDocuments() {
                   disabled={downloadingDoc === `${doc.id}-ticket`}
                   className="text-xs px-2 py-1 h-auto"
                 >
-                  <Download className="h-3 w-3" />
+                  <Download className="h-3 w-3 mr-1" />
+                  Ticket
                 </Button>
               )}
               
@@ -248,7 +249,8 @@ export function TravelDocuments() {
                   disabled={downloadingDoc === `${doc.id}-confirmation`}
                   className="text-xs px-2 py-1 h-auto"
                 >
-                  <Download className="h-3 w-3" />
+                  <Download className="h-3 w-3 mr-1" />
+                  Confirmation
                 </Button>
               )}
             </div>
