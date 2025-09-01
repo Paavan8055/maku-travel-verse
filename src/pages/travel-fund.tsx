@@ -15,7 +15,7 @@ import { useTravelFunds } from '@/hooks/useTravelFunds';
 import { travelFundClient } from '@/lib/travelFundClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { AnimatedLoadingState } from '@/components/ux/EnhancedUserExperience';
-import { Users, Target, Calendar, TrendingUp, PlusCircle, Coins, Copy, Share2, UserPlus } from 'lucide-react';
+import { Users, Target, Calendar, TrendingUp, PlusCircle, Coins, Copy, Share2, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 const TravelFundPage: React.FC = () => {
   const navigate = useNavigate();
@@ -41,6 +41,9 @@ const TravelFundPage: React.FC = () => {
   
   // Share fund state
   const [shareFundId, setShareFundId] = useState<string | null>(null);
+  
+  // Show fund code state
+  const [showFundCodes, setShowFundCodes] = useState<{ [key: string]: boolean }>({});
 
   const handleCreateFund = async () => {
     if (!fundName || !targetAmount || !fundType) {
@@ -178,6 +181,13 @@ const TravelFundPage: React.FC = () => {
       description: "Fund code copied to clipboard.",
       variant: "default"
     });
+  };
+
+  const toggleFundCodeVisibility = (fundId: string) => {
+    setShowFundCodes(prev => ({
+      ...prev,
+      [fundId]: !prev[fundId]
+    }));
   };
 
   if (!user) {
@@ -490,15 +500,26 @@ const TravelFundPage: React.FC = () => {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-sm text-muted-foreground">Fund Code</p>
-                                  <p className="font-mono font-semibold">{fund.fund_code}</p>
+                                  <p className="font-mono font-semibold">
+                                    {showFundCodes[fund.id] ? fund.fund_code : '••••••••••'}
+                                  </p>
                                 </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => copyFundCode(fund.fund_code!)}
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => toggleFundCodeVisibility(fund.id)}
+                                  >
+                                    {showFundCodes[fund.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => copyFundCode(fund.fund_code!)}
+                                  >
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           )}
