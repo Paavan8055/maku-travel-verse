@@ -137,9 +137,31 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingId, sessionId, paymentIntentId } = await req.json();
+    // Parse request body and add debug logging
+    const requestBody = await req.json();
+    logger.info('Raw request body received:', requestBody);
+    
+    const { bookingId, sessionId, paymentIntentId } = requestBody;
+    
+    // Debug log the extracted parameters
+    logger.info('Extracted parameters:', {
+      bookingId: bookingId,
+      sessionId: sessionId,
+      paymentIntentId: paymentIntentId,
+      bookingIdType: typeof bookingId,
+      sessionIdType: typeof sessionId,
+      paymentIntentIdType: typeof paymentIntentId
+    });
     
     if (!bookingId || (!sessionId && !paymentIntentId)) {
+      logger.error('Parameter validation failed:', {
+        bookingId: bookingId,
+        sessionId: sessionId,
+        paymentIntentId: paymentIntentId,
+        hasBookingId: !!bookingId,
+        hasSessionId: !!sessionId,
+        hasPaymentIntentId: !!paymentIntentId
+      });
       throw new Error('Missing required parameters');
     }
 
