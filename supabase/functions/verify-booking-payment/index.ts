@@ -137,11 +137,16 @@ serve(async (req) => {
   }
 
   try {
-    // Parse request body and add debug logging
+    // Parse request body and extract snake_case parameters from frontend
     const requestBody = await req.json();
     logger.info('Raw request body received:', requestBody);
     
-    const { bookingId, sessionId, paymentIntentId } = requestBody;
+    const { booking_id, session_id, payment_intent_id } = requestBody;
+    
+    // Convert to camelCase for internal use
+    const bookingId = booking_id;
+    const sessionId = session_id;
+    const paymentIntentId = payment_intent_id;
     
     // Debug log the extracted parameters
     logger.info('Extracted parameters:', {
