@@ -44,6 +44,9 @@ const TravelFundPage: React.FC = () => {
   
   // Show fund code state
   const [showFundCodes, setShowFundCodes] = useState<{ [key: string]: boolean }>({});
+  
+  // Loading state for payment processing
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const handleCreateFund = async () => {
     if (!fundName || !targetAmount || !fundType) {
@@ -98,7 +101,11 @@ const TravelFundPage: React.FC = () => {
       return;
     }
 
+    setIsProcessingPayment(true);
+
     try {
+      console.log('Processing payment for fund:', selectedFundId, 'amount:', amount);
+      
       // Use the new payment integration with Stripe
       const { data: paymentData, error } = await travelFundClient.processPayment(selectedFundId, amount);
       
@@ -113,12 +120,23 @@ const TravelFundPage: React.FC = () => {
       }
 
       if (paymentData?.url) {
-        // Redirect to Stripe checkout
-        window.open(paymentData.url, '_blank');
+        console.log('Redirecting to Stripe checkout:', paymentData.url);
+        
         toast({
           title: "Redirecting to payment",
           description: "You'll be redirected to complete your payment securely.",
           variant: "default",
+        });
+        
+        // Use direct redirect instead of popup to avoid popup blockers
+        window.location.href = paymentData.url;
+        return; // Don't clear form fields since we're redirecting
+      } else {
+        console.error('No payment URL received');
+        toast({
+          title: "Payment error",
+          description: "No payment URL received. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (err) {
@@ -128,6 +146,8 @@ const TravelFundPage: React.FC = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessingPayment(false);
     }
     
     setSelectedFundId('');
@@ -606,9 +626,22 @@ const TravelFundPage: React.FC = () => {
                   />
                 </div>
 
-                <Button onClick={handleAddMoney} className="w-full" disabled={!selectedFundId || !addAmount}>
-                  <Coins className="mr-2 h-4 w-4" />
-                  Add ${addAmount || '0'} to Fund
+                <Button 
+                  onClick={handleAddMoney} 
+                  className="w-full" 
+                  disabled={!selectedFundId || !addAmount || isProcessingPayment}
+                >
+                  {isProcessingPayment ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                      Processing Payment...
+                    </>
+                  ) : (
+                    <>
+                      <Coins className="mr-2 h-4 w-4" />
+                      Add ${addAmount || '0'} to Fund
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
