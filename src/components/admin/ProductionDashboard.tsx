@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { PaymentTimeoutMonitor } from '@/components/admin/PaymentTimeoutMonitor';
+import { NotificationCenter } from '@/components/admin/NotificationCenter';
 import { 
   Activity, 
   AlertTriangle, 
@@ -375,6 +377,11 @@ export const ProductionDashboard = () => {
         </TabsContent>
 
         <TabsContent value="webhooks" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PaymentTimeoutMonitor />
+            <NotificationCenter />
+          </div>
+          
           <Card>
             <CardHeader>
               <CardTitle>Webhook Processing</CardTitle>
