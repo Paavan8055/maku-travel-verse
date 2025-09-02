@@ -9,7 +9,8 @@ import { DirectProviderTest } from '@/components/debug/DirectProviderTest';
 import HotelBedsMonitoringDashboard from '@/components/admin/HotelBedsMonitoringDashboard';
 import { CredentialTestSuite } from '@/components/admin/CredentialTestSuite';
 import { FoundationRepairPanel } from '@/components/testing/FoundationRepairPanel';
-import { TestTube, Play, BarChart3, Settings, Globe, Shield, Wrench } from 'lucide-react';
+import { ProviderHealthMonitor } from '@/components/admin/ProviderHealthMonitor';
+import { TestTube, Play, BarChart3, Settings, Globe, Shield, Wrench, Activity } from 'lucide-react';
 
 const AdminTestingPage = () => {
   return (
@@ -21,8 +22,12 @@ const AdminTestingPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="foundation" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+      <Tabs defaultValue="health-monitor" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="health-monitor" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Health Monitor
+          </TabsTrigger>
           <TabsTrigger value="foundation" className="flex items-center gap-2">
             <Wrench className="h-4 w-4" />
             Foundation
@@ -52,6 +57,10 @@ const AdminTestingPage = () => {
             A/B Testing
           </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="health-monitor">
+            <ProviderHealthMonitor />
+          </TabsContent>
 
           <TabsContent value="foundation">
             <FoundationRepairPanel />

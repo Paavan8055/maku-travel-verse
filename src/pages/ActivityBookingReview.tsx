@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { ActivityBookingProgress } from "@/components/activity/ActivityBookingProgress";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import logger from "@/utils/logger";
 
 interface ActivityOffer {
@@ -56,7 +57,7 @@ const ActivityBookingReview = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadActivityData = () => {
+    const loadActivityData = async () => {
       try {
         // Try to get activity data from session storage first
         const storedActivity = sessionStorage.getItem('selectedActivityOffer');
@@ -82,69 +83,152 @@ const ActivityBookingReview = () => {
           return;
         }
 
-        // Create sample activity data from params
+        // Attempt to get real activity data from provider
         const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
         const selectedTime = searchParams.get('time') || '10:00';
         const adults = parseInt(searchParams.get('adults') || '2');
         const children = parseInt(searchParams.get('children') || '0');
-        const price = parseFloat(searchParams.get('price') || '89');
+        const destination = searchParams.get('destination') || 'sydney';
 
-        const mockActivity: ActivityOffer = {
-          id: offerId,
-          activityId,
-          name: `Sydney Harbour Bridge Climb Experience`,
-          description: "Experience the thrill of climbing the iconic Sydney Harbour Bridge with breathtaking panoramic views of the harbour, city skyline, and beyond.",
-          location: {
-            city: "Sydney",
-            address: "3 Cumberland Street, The Rocks NSW 2000",
-            coordinates: {
-              latitude: -33.8523,
-              longitude: 151.2108
+        // Try to fetch live activity data from provider rotation
+        const searchActivities = async () => {
+          try {
+            const { data: activitySearchData, error } = await supabase.functions.invoke('provider-rotation', {
+              body: {
+                searchType: 'activity',
+                params: {
+                  destination,
+                  date: selectedDate,
+                  participants: adults + children,
+                  radius: 20
+                }
+              }
+            });
+
+            if (error) {
+              throw new Error(`Provider search failed: ${error.message}`);
             }
-          },
-          category: "Adventure & Outdoor",
-          duration: "3.5 hours",
-          rating: 4.8,
-          reviewCount: 2847,
-          images: [
-            "/placeholder.svg",
-            "/placeholder.svg",
-            "/placeholder.svg"
-          ],
-          highlights: [
-            "Climb the world-famous Sydney Harbour Bridge",
-            "360-degree views of Sydney Harbour and city skyline",
-            "Professional guide and safety equipment included",
-            "Commemorative certificate and group photo",
-            "Learn about the bridge's fascinating history"
-          ],
-          included: [
-            "Professional climbing guide",
-            "All safety equipment and harness",
-            "Commemorative certificate",
-            "Group photo at the summit",
-            "Pre-climb preparation and briefing"
-          ],
-          excluded: [
-            "Hotel pickup and drop-off",
-            "Food and beverages",
-            "Personal photography (cameras not permitted)",
-            "Gratuities (optional)"
-          ],
-          price: {
-            total: price * (adults + children * 0.8),
-            currency: "AUD",
-            perPerson: price
-          },
-          participants: { adults, children },
-          selectedDate,
-          selectedTime,
-          cancellationPolicy: "Free cancellation up to 72 hours before the activity starts",
-          offerId
+
+            if (activitySearchData?.success && activitySearchData?.data?.activities?.length > 0) {
+              // Find the specific activity offer by ID
+              const selectedActivity = activitySearchData.data.activities.find((activity: any) => 
+                activity.id === activityId || activity.code === activityId
+              );
+
+              if (selectedActivity) {
+                // Transform provider data to our format
+                const providerActivity: ActivityOffer = {
+                  id: selectedActivity.id || offerId,
+                  activityId: selectedActivity.code || activityId,
+                  name: selectedActivity.name || "Activity Experience",
+                  description: selectedActivity.description || "Exciting activity experience with professional guides",
+                  location: {
+                    city: selectedActivity.destination?.name || destination,
+                    address: selectedActivity.location?.address || "Location details will be provided",
+                    coordinates: {
+                      latitude: selectedActivity.location?.latitude || -33.8688,
+                      longitude: selectedActivity.location?.longitude || 151.2093
+                    }
+                  },
+                  category: selectedActivity.category?.name || "Adventure & Outdoor",
+                  duration: selectedActivity.duration || "3-4 hours",
+                  rating: selectedActivity.rating || 4.5,
+                  reviewCount: selectedActivity.reviewCount || 0,
+                  images: selectedActivity.images?.map((img: any) => img.url) || ["/placeholder.svg"],
+                  highlights: selectedActivity.highlights || [
+                    "Professional guided experience",
+                    "All necessary equipment included",
+                    "Small group size for personalized attention"
+                  ],
+                  included: selectedActivity.included || [
+                    "Professional guide",
+                    "All equipment",
+                    "Safety briefing"
+                  ],
+                  excluded: selectedActivity.excluded || [
+                    "Hotel transfers",
+                    "Personal expenses",
+                    "Gratuities"
+                  ],
+                  price: {
+                    total: parseFloat(selectedActivity.price?.total || selectedActivity.priceFrom || '89') * (adults + children * 0.8),
+                    currency: selectedActivity.price?.currency || "AUD",
+                    perPerson: parseFloat(selectedActivity.price?.adult || selectedActivity.priceFrom || '89')
+                  },
+                  participants: { adults, children },
+                  selectedDate,
+                  selectedTime,
+                  cancellationPolicy: selectedActivity.cancellationPolicy || "Free cancellation up to 24 hours before activity",
+                  offerId: selectedActivity.id || offerId
+                };
+
+                setActivityOffer(providerActivity);
+                setLoading(false);
+                logger.info('Successfully loaded live activity data from provider');
+                return;
+              }
+            }
+
+            // If no specific activity found, show error
+            throw new Error('Activity not found in search results');
+
+          } catch (providerError) {
+            logger.warn('Provider search failed, falling back to cached data:', providerError);
+            
+            // Fallback: Try to create basic activity structure from params
+            const price = parseFloat(searchParams.get('price') || '89');
+            const fallbackActivity: ActivityOffer = {
+              id: offerId,
+              activityId,
+              name: `Activity Experience`,
+              description: "Activity details will be confirmed upon booking.",
+              location: {
+                city: destination === 'sydney' ? 'Sydney' : destination,
+                address: "Location details pending",
+                coordinates: {
+                  latitude: -33.8688,
+                  longitude: 151.2093
+                }
+              },
+              category: "Experience",
+              duration: "Duration to be confirmed",
+              rating: 4.0,
+              reviewCount: 0,
+              images: ["/placeholder.svg"],
+              highlights: [
+                "Experience details will be confirmed",
+                "Professional service included"
+              ],
+              included: [
+                "Details will be confirmed at booking"
+              ],
+              excluded: [
+                "Details will be confirmed at booking"
+              ],
+              price: {
+                total: price * (adults + children * 0.8),
+                currency: "AUD",
+                perPerson: price
+              },
+              participants: { adults, children },
+              selectedDate,
+              selectedTime,
+              cancellationPolicy: "Cancellation policy will be confirmed",
+              offerId
+            };
+
+            setActivityOffer(fallbackActivity);
+            setLoading(false);
+            
+            toast({
+              title: "Limited activity data available",
+              description: "Using cached information. Full details will be confirmed at booking.",
+              variant: "default",
+            });
+          }
         };
 
-        setActivityOffer(mockActivity);
-        setLoading(false);
+        await searchActivities();
       } catch (error) {
         logger.error('Error loading activity data:', error);
         toast({
