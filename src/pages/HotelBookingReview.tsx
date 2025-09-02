@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { HotelBookingProgress } from "@/components/hotel/HotelBookingProgress";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import logger from "@/utils/logger";
 
 interface HotelOffer {
@@ -57,7 +58,7 @@ const HotelBookingReview = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadHotelData = () => {
+    const loadHotelData = async () => {
       try {
         // Try to get hotel data from session storage first
         const storedHotel = sessionStorage.getItem('selectedHotelOffer');
@@ -83,51 +84,135 @@ const HotelBookingReview = () => {
           return;
         }
 
-        // Create sample hotel data from params
+        // Attempt to get real hotel data from provider
         const checkIn = searchParams.get('checkIn') || new Date().toISOString().split('T')[0];
         const checkOut = searchParams.get('checkOut') || new Date(Date.now() + 86400000).toISOString().split('T')[0];
         const adults = parseInt(searchParams.get('adults') || '2');
         const children = parseInt(searchParams.get('children') || '0');
-        const price = parseFloat(searchParams.get('price') || '299');
+        const destination = searchParams.get('destination') || 'SYD';
 
-        const mockHotel: HotelOffer = {
-          id: offerId,
-          hotelId,
-          name: `Hotel ${hotelId.toUpperCase()}`,
-          address: "123 Premium Street",
-          city: "Sydney",
-          country: "Australia",
-          rating: 4,
-          reviewScore: 8.5,
-          totalReviews: 1247,
-          roomType: "Deluxe Room",
-          roomDescription: "Spacious room with city view, king bed, and modern amenities",
-          boardType: "Room Only",
-          images: [
-            "/placeholder.svg",
-            "/placeholder.svg",
-            "/placeholder.svg"
-          ],
-          amenities: ["Free WiFi", "Parking", "Restaurant", "Pool", "Fitness Center", "Spa"],
-          price: {
-            total: price,
-            currency: "AUD",
-            breakdown: {
-              roomRate: price * 0.85,
-              taxes: price * 0.12,
-              fees: price * 0.03
+        // Try to fetch live hotel data from provider rotation
+        const searchHotels = async () => {
+          try {
+            const { data: hotelSearchData, error } = await supabase.functions.invoke('provider-rotation', {
+              body: {
+                searchType: 'hotel',
+                params: {
+                  destination,
+                  checkInDate: checkIn,
+                  checkOutDate: checkOut,
+                  adults,
+                  children,
+                  rooms: 1
+                }
+              }
+            });
+
+            if (error) {
+              throw new Error(`Provider search failed: ${error.message}`);
             }
-          },
-          cancellationPolicy: "Free cancellation until 24 hours before check-in",
-          checkIn,
-          checkOut,
-          guests: { adults, children },
-          nights: Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)),
-          offerId
+
+            if (hotelSearchData?.success && hotelSearchData?.data?.offers?.length > 0) {
+              // Find the specific hotel offer by ID
+              const selectedOffer = hotelSearchData.data.offers.find((offer: any) => 
+                offer.hotel?.hotelId === hotelId || offer.id === offerId
+              );
+
+              if (selectedOffer) {
+                // Transform provider data to our format
+                const providerHotel: HotelOffer = {
+                  id: selectedOffer.id || offerId,
+                  hotelId: selectedOffer.hotel?.hotelId || hotelId,
+                  name: selectedOffer.hotel?.name || `Hotel ${hotelId.toUpperCase()}`,
+                  address: selectedOffer.hotel?.address || "Address not available",
+                  city: selectedOffer.hotel?.address?.cityName || destination,
+                  country: selectedOffer.hotel?.address?.countryCode || "AU",
+                  latitude: selectedOffer.hotel?.geoCode?.latitude,
+                  longitude: selectedOffer.hotel?.geoCode?.longitude,
+                  rating: selectedOffer.hotel?.rating || 4,
+                  reviewScore: selectedOffer.hotel?.rating || 8.0,
+                  totalReviews: selectedOffer.hotel?.reviewCount || 100,
+                  roomType: selectedOffer.room?.type?.category || "Standard Room",
+                  roomDescription: selectedOffer.room?.description?.text || "Comfortable room with modern amenities",
+                  boardType: selectedOffer.board || "Room Only",
+                  images: selectedOffer.hotel?.media?.map((img: any) => img.uri) || ["/placeholder.svg"],
+                  amenities: selectedOffer.hotel?.amenities || ["WiFi", "Parking"],
+                  price: {
+                    total: parseFloat(selectedOffer.price?.total || selectedOffer.offers?.[0]?.price?.total || '299'),
+                    currency: selectedOffer.price?.currency || "AUD",
+                    breakdown: {
+                      roomRate: parseFloat(selectedOffer.price?.base || selectedOffer.price?.total || '299') * 0.85,
+                      taxes: parseFloat(selectedOffer.price?.taxes || '0') || parseFloat(selectedOffer.price?.total || '299') * 0.12,
+                      fees: parseFloat(selectedOffer.price?.fees || '0') || parseFloat(selectedOffer.price?.total || '299') * 0.03
+                    }
+                  },
+                  cancellationPolicy: selectedOffer.policies?.cancellation?.description || "Free cancellation until 24 hours before check-in",
+                  checkIn,
+                  checkOut,
+                  guests: { adults, children },
+                  nights: Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)),
+                  offerId: selectedOffer.id || offerId
+                };
+
+                setHotelOffer(providerHotel);
+                setLoading(false);
+                logger.info('Successfully loaded live hotel data from provider');
+                return;
+              }
+            }
+
+            // If no specific offer found, show error
+            throw new Error('Hotel offer not found in search results');
+
+          } catch (providerError) {
+            logger.warn('Provider search failed, falling back to cached data:', providerError);
+            
+            // Fallback: Try to create basic hotel structure from params
+            const price = parseFloat(searchParams.get('price') || '299');
+            const fallbackHotel: HotelOffer = {
+              id: offerId,
+              hotelId,
+              name: `Hotel ${hotelId.toUpperCase()}`,
+              address: "Address pending live data",
+              city: destination === 'SYD' ? 'Sydney' : destination,
+              country: "Australia",
+              rating: 4,
+              reviewScore: 8.0,
+              totalReviews: 0,
+              roomType: "Standard Room",
+              roomDescription: "Room details will be confirmed",
+              boardType: "Room Only",
+              images: ["/placeholder.svg"],
+              amenities: ["WiFi", "Standard amenities"],
+              price: {
+                total: price,
+                currency: "AUD",
+                breakdown: {
+                  roomRate: price * 0.85,
+                  taxes: price * 0.12,
+                  fees: price * 0.03
+                }
+              },
+              cancellationPolicy: "Cancellation policy will be confirmed",
+              checkIn,
+              checkOut,
+              guests: { adults, children },
+              nights: Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)),
+              offerId
+            };
+
+            setHotelOffer(fallbackHotel);
+            setLoading(false);
+            
+            toast({
+              title: "Limited hotel data available",
+              description: "Using cached information. Full details will be confirmed at booking.",
+              variant: "default",
+            });
+          }
         };
 
-        setHotelOffer(mockHotel);
-        setLoading(false);
+        await searchHotels();
       } catch (error) {
         logger.error('Error loading hotel data:', error);
         toast({
