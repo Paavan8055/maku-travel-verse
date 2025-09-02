@@ -5,9 +5,10 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Shield, Clock } from 'lucide-react';
+import { CreditCard, Shield, Clock, AlertTriangle, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import logger from "@/utils/logger";
+import { usePaymentTimeout } from '@/hooks/usePaymentTimeout';
 
 const PaymentForm = () => {
   const stripe = useStripe();
@@ -20,6 +21,21 @@ const PaymentForm = () => {
   const clientSecret = searchParams.get('client_secret');
   const paymentType = searchParams.get('type');
   const redirectTo = searchParams.get('redirect_to');
+
+  // Extract payment intent ID from client secret
+  const paymentIntentId = clientSecret?.split('_secret_')[0] || null;
+
+  // Payment timeout management
+  const paymentTimeout = usePaymentTimeout(paymentIntentId, {
+    timeoutMinutes: 10,
+    warningMinutes: 8,
+    onTimeout: () => {
+      navigate('/booking-failure?reason=timeout');
+    },
+    onWarning: (remainingMinutes) => {
+      logger.info('Payment session warning', { remainingMinutes, paymentIntentId });
+    }
+  });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -77,8 +93,56 @@ const PaymentForm = () => {
     }
   };
 
+  // Prevent form submission if expired
+  if (paymentTimeout.isExpired) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <h4 className="font-semibold text-destructive">Session Expired</h4>
+          </div>
+          <p className="text-sm text-destructive">
+            Your payment session has expired. Please start a new booking.
+          </p>
+        </div>
+        <Button onClick={() => navigate('/dashboard')} variant="outline">
+          Return to Dashboard
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Payment Timer */}
+      <div className={`rounded-lg p-4 border transition-colors ${
+        paymentTimeout.isWarning 
+          ? 'bg-destructive/10 border-destructive/20' 
+          : 'bg-muted/50 border-border'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Clock className={`h-4 w-4 ${paymentTimeout.isWarning ? 'text-destructive' : 'text-muted-foreground'}`} />
+            <span className={`text-sm font-medium ${paymentTimeout.isWarning ? 'text-destructive' : 'text-muted-foreground'}`}>
+              Session: {paymentTimeout.formatTime()}
+            </span>
+          </div>
+          {paymentTimeout.canExtend && paymentTimeout.isWarning && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => paymentTimeout.extendSession(5)}
+              className="h-8 px-3"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              +5 min
+            </Button>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-4">
         {paymentType === 'trial' && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
