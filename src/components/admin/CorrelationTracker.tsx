@@ -22,62 +22,8 @@ interface CorrelationData {
   user_id?: string;
 }
 
-// Mock data for when the table doesn't exist or is empty
-const generateMockData = (): CorrelationData[] => [
-  {
-    id: '1',
-    correlation_id: 'corr_' + Math.random().toString(36).substr(2, 9),
-    request_type: 'hotel_search',
-    status: 'completed',
-    created_at: new Date(Date.now() - 300000).toISOString(),
-    completed_at: new Date(Date.now() - 280000).toISOString(),
-    duration_ms: 20000,
-    request_data: {
-      destination: 'Sydney',
-      checkIn: '2025-08-25',
-      checkOut: '2025-08-26',
-      guests: 2
-    },
-    response_data: {
-      results: 45,
-      provider: 'amadeus'
-    },
-    user_id: 'user_123'
-  },
-  {
-    id: '2',
-    correlation_id: 'corr_' + Math.random().toString(36).substr(2, 9),
-    request_type: 'flight_search',
-    status: 'in_progress',
-    created_at: new Date(Date.now() - 120000).toISOString(),
-    duration_ms: undefined,
-    request_data: {
-      origin: 'SYD',
-      destination: 'MEL',
-      departure: '2025-08-30',
-      passengers: 1
-    },
-    user_id: 'user_456'
-  },
-  {
-    id: '3',
-    correlation_id: 'corr_' + Math.random().toString(36).substr(2, 9),
-    request_type: 'activity_search',
-    status: 'failed',
-    created_at: new Date(Date.now() - 600000).toISOString(),
-    completed_at: new Date(Date.now() - 580000).toISOString(),
-    duration_ms: 20000,
-    request_data: {
-      location: 'Sydney',
-      date: '2025-08-25',
-      type: 'tours'
-    },
-    response_data: {
-      error: 'Provider timeout'
-    },
-    user_id: 'user_789'
-  }
-];
+// Helper function to generate real-time sample data if no database records exist
+const generateEmptyStateMessage = (): CorrelationData[] => [];
 
 export const CorrelationTracker = () => {
   const [correlations, setCorrelations] = useState<CorrelationData[]>([]);
@@ -110,36 +56,20 @@ export const CorrelationTracker = () => {
       const { data, error: fetchError } = await query;
 
       if (fetchError) {
-        console.warn('Supabase fetch failed, using mock data:', fetchError);
-        // Use mock data as fallback
-        let mockData = generateMockData();
-        
-        // Apply filters to mock data
-        if (filter !== 'all') {
-          mockData = mockData.filter(item => item.status === filter);
-        }
-        
-        if (searchId.trim()) {
-          mockData = mockData.filter(item => 
-            item.correlation_id.includes(searchId) || 
-            item.user_id?.includes(searchId)
-          );
-        }
-        
-        setCorrelations(mockData);
+        console.error('Failed to fetch correlation data:', fetchError);
+        setError('Unable to connect to correlation database');
+        setCorrelations([]);
         toast({
-          title: "Demo Mode",
-          description: "Showing mock correlation data for demonstration",
-          variant: "default"
+          title: "Connection Error",
+          description: "Could not load correlation tracking data",
+          variant: "destructive"
         });
       } else {
         setCorrelations(data || []);
         if (!data || data.length === 0) {
-          // If no real data, show mock data
-          setCorrelations(generateMockData());
           toast({
-            title: "Demo Mode",
-            description: "No correlation data found, showing sample data",
+            title: "No Data",
+            description: "No correlation tracking data found for the current filters",
             variant: "default"
           });
         }
@@ -147,11 +77,10 @@ export const CorrelationTracker = () => {
     } catch (error) {
       console.error('Correlation fetch error:', error);
       setError('Failed to fetch correlation data');
-      // Fallback to mock data
-      setCorrelations(generateMockData());
+      setCorrelations([]);
       toast({
-        title: "Error",
-        description: "Using sample data due to connection issues",
+        title: "Database Error",
+        description: "Unable to load correlation tracking data",
         variant: "destructive"
       });
     } finally {

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { Search, Calendar, Users, MapPin, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +15,37 @@ const SearchPage = () => {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(2);
-  const [fundBalance] = useState(1250); // Mock fund balance
+  const [fundBalance, setFundBalance] = useState(0);
+  const [loadingFunds, setLoadingFunds] = useState(true);
+  const { user } = useAuth();
+
+  // Fetch real fund balance
+  useEffect(() => {
+    const fetchFundBalance = async () => {
+      if (!user) {
+        setLoadingFunds(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('funds')
+          .select('balance')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!error && data) {
+          setFundBalance(data.balance || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch fund balance:', error);
+      } finally {
+        setLoadingFunds(false);
+      }
+    };
+
+    fetchFundBalance();
+  }, [user]);
 
   const smartSuggestions = [
     { location: "Bali, Indonesia", type: "Spiritual", savings: "15% off" },
@@ -45,17 +77,25 @@ const SearchPage = () => {
             </div>
             
             {/* Travel Fund Balance */}
-            <Card className="travel-card">
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Travel Fund Balance</p>
-                  <p className="text-2xl font-bold text-primary">${fundBalance}</p>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Manage Fund
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {user && (
+              <Card className="travel-card">
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Travel Fund Balance</p>
+                    {loadingFunds ? (
+                      <div className="animate-pulse">
+                        <div className="h-8 bg-muted rounded w-20 mx-auto mb-2"></div>
+                      </div>
+                    ) : (
+                      <p className="text-2xl font-bold text-primary">${fundBalance}</p>
+                    )}
+                    <Button variant="outline" size="sm" className="mt-2">
+                      Manage Fund
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

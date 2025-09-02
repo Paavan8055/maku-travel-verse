@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Calendar, Clock, Users, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,41 +14,79 @@ const ActivitySelect = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Mock activity data - in real app this would come from search results/API
-  const activity = {
-    id: "act_123",
-    title: "City Walking Tour with Local Guide",
-    description: "Explore the historic downtown area with an experienced local guide. Discover hidden gems, learn about the city's history, and enjoy stunning architectural views.",
-    location: "Downtown Historic District",
-    duration: "3 hours",
-    difficulty: "Easy",
-    minAge: 6,
-    maxParticipants: 15,
-    images: ["/placeholder.svg"],
-    highlights: [
-      "Professional local guide",
-      "Historic landmarks tour",
-      "Photo opportunities",
-      "Small group experience"
-    ],
-    included: [
-      "Professional guide",
-      "Walking tour",
-      "Historical insights",
-      "Photo stops"
-    ],
-    notIncluded: [
-      "Food and beverages",
-      "Transportation to meeting point",
-      "Personal expenses"
-    ],
-    meetingPoint: "Tourist Information Center, Main Street",
-    pricing: {
-      adult: 45,
-      child: 25,
-      currency: "USD"
+  // Get activity data from URL parameters or redirect to search
+  const activityId = searchParams.get('activityId');
+  const [activity, setActivity] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!activityId) {
+      navigate('/search?type=activities');
+      return;
     }
-  };
+
+    // Fetch real activity data from provider rotation
+    const fetchActivity = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('provider-rotation', {
+          body: {
+            searchType: 'activity',
+            activityId,
+            location: searchParams.get('location') || 'Sydney'
+          }
+        });
+
+        if (error) throw error;
+
+        if (data?.activity) {
+          setActivity({
+            id: data.activity.id,
+            title: data.activity.name || 'Activity Experience',
+            description: data.activity.description || 'Discover this amazing activity experience.',
+            location: data.activity.location || 'Local Area',
+            duration: data.activity.duration || '3 hours',
+            difficulty: data.activity.difficulty || 'Easy',
+            minAge: data.activity.minAge || 6,
+            maxParticipants: data.activity.maxParticipants || 15,
+            images: data.activity.images || ['/placeholder.svg'],
+            highlights: data.activity.highlights || ['Professional experience'],
+            included: data.activity.included || ['Activity experience'],
+            notIncluded: data.activity.notIncluded || ['Personal expenses'],
+            meetingPoint: data.activity.meetingPoint || 'Activity center',
+            pricing: {
+              adult: data.activity.price || 45,
+              child: data.activity.childPrice || 25,
+              currency: data.activity.currency || 'AUD'
+            }
+          });
+        } else {
+          throw new Error('Activity not found');
+        }
+      } catch (error) {
+        console.error('Failed to load activity:', error);
+        navigate('/search?type=activities&error=activity_not_found');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivity();
+  }, [activityId, navigate, searchParams]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading activity details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activity) {
+    return null;
+  }
 
   const availableTimes = [
     "09:00 AM",
