@@ -5046,6 +5046,10 @@ export type Database = {
         Args: { p_partner_id: string }
         Returns: Json
       }
+      get_payment_timeout_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_quota_aware_providers: {
         Args: { p_excluded_providers?: string[]; p_search_type: string }
         Returns: {
