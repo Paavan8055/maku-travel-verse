@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,45 +87,65 @@ export const EnhancedBookingOperations: React.FC = () => {
     }
   ];
 
-  const mockBookings = [
-    {
-      id: 'bk-001',
-      bookingReference: 'MAKU001',
-      type: 'flight',
-      status: 'confirmed',
-      customerName: 'John Doe',
-      customerEmail: 'john@example.com',
-      amount: 850,
-      currency: 'AUD',
-      createdAt: new Date('2024-01-15'),
-      lifecycle: [
-        { stage: 'Search', status: 'completed' as const, timestamp: new Date('2024-01-15T10:00:00') },
-        { stage: 'Selection', status: 'completed' as const, timestamp: new Date('2024-01-15T10:05:00') },
-        { stage: 'Payment', status: 'completed' as const, timestamp: new Date('2024-01-15T10:10:00') },
-        { stage: 'Provider Booking', status: 'completed' as const, timestamp: new Date('2024-01-15T10:12:00') },
-        { stage: 'Confirmation', status: 'current' as const, timestamp: new Date('2024-01-15T10:15:00') },
-        { stage: 'Travel', status: 'pending' as const }
-      ]
-    },
-    {
-      id: 'bk-002',
-      bookingReference: 'MAKU002',
-      type: 'hotel',
-      status: 'stuck',
-      customerName: 'Jane Smith',
-      customerEmail: 'jane@example.com',
-      amount: 450,
-      currency: 'AUD',
-      createdAt: new Date('2024-01-16'),
-      lifecycle: [
-        { stage: 'Search', status: 'completed' as const },
-        { stage: 'Selection', status: 'completed' as const },
-        { stage: 'Payment', status: 'completed' as const },
-        { stage: 'Provider Booking', status: 'failed' as const, details: 'Provider timeout after 30s' },
-        { stage: 'Confirmation', status: 'pending' as const }
-      ]
-    }
-  ];
+  const [realBookings, setRealBookings] = useState<any[]>([]);
+
+  // Fetch real bookings data
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select(`
+            id,
+            booking_reference,
+            booking_type,
+            status,
+            total_amount,
+            currency,
+            booking_data,
+            created_at,
+            updated_at
+          `)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+
+        // Transform bookings to match component interface
+        const transformedBookings = (data || []).map(booking => {
+          const customerInfo = (booking.booking_data as any)?.customerInfo || {};
+          return {
+            id: booking.id,
+            bookingReference: booking.booking_reference,
+            type: booking.booking_type,
+            status: booking.status,
+            customerName: customerInfo.firstName && customerInfo.lastName 
+              ? `${customerInfo.firstName} ${customerInfo.lastName}`
+              : 'Guest User',
+            customerEmail: customerInfo.email || 'no-email@example.com',
+            amount: booking.total_amount || 0,
+            currency: booking.currency || 'AUD',
+            createdAt: new Date(booking.created_at),
+            lifecycle: [
+              { stage: 'Search', status: 'completed' as const },
+              { stage: 'Selection', status: 'completed' as const },
+              { stage: 'Payment', status: booking.status === 'confirmed' ? 'completed' as const : 'current' as const },
+              { stage: 'Provider Booking', status: booking.status === 'confirmed' ? 'completed' as const : 'pending' as const },
+              { stage: 'Confirmation', status: booking.status === 'confirmed' ? 'completed' as const : 'pending' as const },
+              { stage: 'Travel', status: 'pending' as const }
+            ]
+          };
+        });
+
+        setRealBookings(transformedBookings);
+      } catch (error) {
+        console.error('Failed to fetch bookings:', error);
+        setRealBookings([]);
+      }
+    };
+
+    fetchBookings();
+  }, []);
 
   const performBulkOperation = useCallback(async (operationType: 'retry' | 'cancel' | 'refund') => {
     if (selectedBookings.length === 0) {
@@ -291,10 +311,10 @@ export const EnhancedBookingOperations: React.FC = () => {
                         <TableRow>
                           <TableHead className="w-12">
                             <Checkbox 
-                              checked={selectedBookings.length === mockBookings.length}
+                              checked={selectedBookings.length === realBookings.length}
                               onCheckedChange={(checked) => {
                                 if (checked) {
-                                  setSelectedBookings(mockBookings.map(b => b.id));
+                                  setSelectedBookings(realBookings.map(b => b.id));
                                 } else {
                                   setSelectedBookings([]);
                                 }
@@ -309,7 +329,7 @@ export const EnhancedBookingOperations: React.FC = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {mockBookings.map((booking) => (
+                        {realBookings.map((booking) => (
                           <TableRow key={booking.id}>
                             <TableCell>
                               <Checkbox 
@@ -405,7 +425,7 @@ export const EnhancedBookingOperations: React.FC = () => {
 
             <TabsContent value="lifecycle" className="space-y-4">
               <div className="grid gap-4">
-                {mockBookings.map(booking => (
+                {realBookings.map(booking => (
                   <Card key={booking.id}>
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between text-lg">

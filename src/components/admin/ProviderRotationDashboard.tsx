@@ -96,34 +96,41 @@ export default function ProviderRotationDashboard() {
         };
       });
 
-      const mockMetrics: RotationMetrics = {
-        totalRotations: 1247,
-        successRate: 94.2,
-        avgResponseTime: 850,
+      // Fetch real correlation tracking data for recent rotations
+      const { data: correlationData } = await supabase
+        .from('correlation_tracking')
+        .select('*')
+        .eq('request_type', 'provider_rotation')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const recentRotations = (correlationData || []).map(record => ({
+        id: record.id,
+        timestamp: record.created_at,
+        searchType: (record.request_data as any)?.searchType || 'unknown',
+        selectedProvider: (record.response_data as any)?.provider || 'unknown',
+        responseTime: record.duration_ms || 0,
+        success: record.status === 'completed',
+        fallbackUsed: (record.response_data as any)?.fallbackUsed || false
+      }));
+
+      // Calculate real metrics
+      const totalRotations = correlationData?.length || 0;
+      const successfulRotations = correlationData?.filter(r => r.status === 'completed').length || 0;
+      const successRate = totalRotations > 0 ? (successfulRotations / totalRotations) * 100 : 0;
+      const avgResponseTime = totalRotations > 0 
+        ? correlationData?.reduce((sum, r) => sum + (r.duration_ms || 0), 0) / totalRotations 
+        : 0;
+
+      const realMetrics: RotationMetrics = {
+        totalRotations,
+        successRate: Math.round(successRate * 100) / 100,
+        avgResponseTime: Math.round(avgResponseTime),
         providerStats,
-        recentRotations: [
-          {
-            id: '1',
-            timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-            searchType: 'flight',
-            selectedProvider: 'amadeus-flight',
-            responseTime: 150,
-            success: true,
-            fallbackUsed: false
-          },
-          {
-            id: '2',
-            timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-            searchType: 'hotel',
-            selectedProvider: 'sabre-hotel',
-            responseTime: 780,
-            success: true,
-            fallbackUsed: false
-          }
-        ]
+        recentRotations
       };
 
-      setMetrics(mockMetrics);
+      setMetrics(realMetrics);
     } catch (error) {
       console.error('Failed to fetch rotation metrics:', error);
       toast({

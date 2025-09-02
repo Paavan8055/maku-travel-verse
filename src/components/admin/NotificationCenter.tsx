@@ -67,73 +67,92 @@ export const NotificationCenter: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
-    // Initialize with mock data
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        title: 'Provider API Degraded',
-        message: 'Amadeus API response time increased to 5.2s (threshold: 3s)',
-        type: 'warning',
-        priority: 'high',
-        source: 'Health Monitor',
-        timestamp: new Date(Date.now() - 5 * 60 * 1000),
-        acknowledged: false,
-        resolved: false,
-        escalated: false,
-        metadata: { provider: 'amadeus', responseTime: 5200 }
-      },
-      {
-        id: '2',
-        title: 'Booking Payment Failed',
-        message: 'Payment for booking MAKU001 failed after 3 retry attempts',
-        type: 'error',
-        priority: 'critical',
-        source: 'Payment Gateway',
-        timestamp: new Date(Date.now() - 10 * 60 * 1000),
-        acknowledged: true,
-        resolved: false,
-        escalated: true,
-        metadata: { bookingRef: 'MAKU001', errorCode: 'CARD_DECLINED' }
-      },
-      {
-        id: '3',
-        title: 'System Health Check Passed',
-        message: 'All systems operational - 99.9% uptime maintained',
-        type: 'success',
-        priority: 'low',
-        source: 'Health Monitor',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        acknowledged: true,
-        resolved: true,
-        escalated: false
-      }
-    ];
+    const fetchRealNotifications = async () => {
+      try {
+        // Fetch real notifications from critical_alerts and system_logs
+        const { data: alertsData } = await supabase
+          .from('critical_alerts')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20);
 
-    const mockAlertRules: AlertRule[] = [
-      {
-        id: 'rule-1',
-        name: 'Provider Response Time Alert',
-        condition: 'response_time > 3000ms',
-        priority: 'high',
-        enabled: true,
-        channels: ['email', 'slack'],
-        escalationTime: 15,
-        recipients: ['admin@maku.travel', 'ops@maku.travel']
-      },
-      {
-        id: 'rule-2',
-        name: 'Payment Failure Alert',
-        condition: 'payment_failure_rate > 5%',
-        priority: 'critical',
-        enabled: true,
-        channels: ['email', 'slack', 'webhook'],
-        escalationTime: 5,
-        recipients: ['finance@maku.travel', 'admin@maku.travel']
-      }
-    ];
+        const { data: systemLogs } = await supabase
+          .from('system_logs')
+          .select('*')
+          .in('log_level', ['error', 'warn'])
+          .order('created_at', { ascending: false })
+          .limit(10);
 
-    setNotifications(mockNotifications);
-    setAlertRules(mockAlertRules);
+        // Transform critical alerts to notifications
+        const alertNotifications: Notification[] = (alertsData || []).map(alert => ({
+          id: alert.id,
+          title: alert.alert_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          message: alert.message,
+          type: alert.severity === 'critical' ? 'error' as const : 
+                alert.severity === 'high' ? 'warning' as const : 'info' as const,
+          priority: alert.severity as 'low' | 'medium' | 'high' | 'critical',
+          source: 'Alert System',
+          timestamp: new Date(alert.created_at),
+          acknowledged: alert.resolved,
+          resolved: alert.resolved,
+          escalated: alert.requires_manual_action,
+          metadata: { alertType: alert.alert_type }
+        }));
+
+        // Transform system logs to notifications  
+        const logNotifications: Notification[] = (systemLogs || []).map(log => ({
+          id: `log-${log.id}`,
+          title: `${log.service_name} ${log.log_level.toUpperCase()}`,
+          message: log.message,
+          type: log.log_level === 'error' ? 'error' as const : 'warning' as const,
+          priority: log.log_level === 'error' ? 'high' as 'high' : 'medium' as 'medium',
+          source: log.service_name,
+          timestamp: new Date(log.created_at),
+          acknowledged: false,
+          resolved: false,
+          escalated: false,
+          metadata: { correlationId: log.correlation_id }
+        }));
+
+        const allNotifications = [...alertNotifications, ...logNotifications]
+          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+        setNotifications(allNotifications);
+
+        // Set up real alert rules
+        const realAlertRules: AlertRule[] = [
+          {
+            id: 'rule-1',
+            name: 'Provider Response Time Alert',
+            condition: 'response_time > 3000ms',
+            priority: 'high',
+            enabled: true,
+            channels: ['email'],
+            escalationTime: 15,
+            recipients: ['admin@maku.travel']
+          },
+          {
+            id: 'rule-2',
+            name: 'Payment Failure Alert',
+            condition: 'payment_failure_rate > 5%',
+            priority: 'critical',
+            enabled: true,
+            channels: ['email'],
+            escalationTime: 5,
+            recipients: ['admin@maku.travel']
+          }
+        ];
+
+        setAlertRules(realAlertRules);
+
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+        setNotifications([]);
+        setAlertRules([]);
+      }
+    };
+
+    fetchRealNotifications();
   }, []);
 
   const acknowledgeNotification = async (id: string) => {

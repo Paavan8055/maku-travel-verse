@@ -127,35 +127,27 @@ export const ProductionDashboard = () => {
 
   const fetchApiHealthHistory = async () => {
     try {
-      // Use the enhanced notification service to get health data
-      const { data, error } = await supabase.functions.invoke('enhanced-notification-service', {
-        body: { type: 'get_health_status' }
-      });
+      // Fetch real API health data from the database
+      const { data, error } = await supabase
+        .from('api_health_logs')
+        .select('*')
+        .order('checked_at', { ascending: false })
+        .limit(20);
 
       if (error) throw error;
       
-      // For now, create mock health data until the tables are properly set up
-      const mockHealthData = [
-        {
-          id: '1',
-          provider: 'amadeus',
-          endpoint: 'auth',
-          status: 'healthy',
-          response_time_ms: 150,
-          error_message: null,
-          checked_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          provider: 'stripe',
-          endpoint: 'payments',
-          status: 'healthy',
-          response_time_ms: 200,
-          error_message: null,
-          checked_at: new Date().toISOString()
-        }
-      ];
-      setApiHealth(mockHealthData);
+      // Transform the data to match our interface
+      const healthData = (data || []).map(record => ({
+        id: record.id,
+        provider: record.provider,
+        endpoint: record.endpoint,
+        status: record.status,
+        response_time_ms: record.response_time_ms || 0,
+        error_message: record.error_message,
+        checked_at: record.checked_at
+      }));
+      
+      setApiHealth(healthData);
     } catch (error) {
       console.error('Failed to fetch API health history:', error);
       setApiHealth([]);
