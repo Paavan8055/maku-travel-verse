@@ -26,7 +26,7 @@ serve(async (req) => {
     // Parse request body for automated cleanup parameters
     const body = req.method === 'POST' ? await req.json() : {};
     const isAutomated = body.automated || false;
-    const timeoutMinutes = body.timeout_minutes || 60;
+    const timeoutMinutes = body.timeout_minutes || 2; // Reduced from 60 to 2 minutes
     
     if (isAutomated) {
       auditData.triggered_by = 'automated';
