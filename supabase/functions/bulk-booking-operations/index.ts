@@ -19,26 +19,28 @@ interface CommunicationTemplate {
   variables: string[];
 }
 
-serve(async (req) => {
+export const handler = async (req: Request, supabase?: any) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    if (!supabase) {
+      supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+    }
 
-    const { 
-      operation, 
+    const {
+      operation,
       operationType,
-      bookingIds, 
-      message, 
+      bookingIds,
+      message,
       template,
       options = {},
-      correlationId 
+      correlationId
     } = await req.json();
 
     console.log(`[BULK-OPS] ${operation} operation for ${bookingIds?.length} bookings`);
@@ -46,16 +48,16 @@ serve(async (req) => {
     switch (operation) {
       case 'bulk_operation':
         return await processBulkOperation(supabase, operationType, bookingIds, correlationId);
-      
+
       case 'bulk_communication':
         return await processBulkCommunication(supabase, bookingIds, message, template, correlationId);
-      
+
       case 'bulk_status_update':
         return await processBulkStatusUpdate(supabase, bookingIds, options.newStatus, correlationId);
-      
+
       case 'bulk_refund':
         return await processBulkRefund(supabase, bookingIds, options, correlationId);
-      
+
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid operation specified' }),
@@ -65,14 +67,16 @@ serve(async (req) => {
   } catch (error) {
     console.error('[BULK-OPS] Error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Bulk operation failed', 
-        details: error.message 
+      JSON.stringify({
+        error: 'Bulk operation failed',
+        details: error.message
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+};
+
+serve(handler);
 
 async function processBulkOperation(
   supabase: any, 
