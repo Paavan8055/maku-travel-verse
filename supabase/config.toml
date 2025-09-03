@@ -388,3 +388,12 @@ verify_jwt = false
 
 [functions.performance-optimizer]
 verify_jwt = false
+
+[functions.security-hardening]
+verify_jwt = false
+
+[functions.business-intelligence]
+verify_jwt = false
+
+[functions.scalability-manager]
+verify_jwt = false
