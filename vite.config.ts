@@ -34,4 +34,5 @@ export default defineConfig(({ mode }) => ({
     // Force cache busting with build timestamp
     __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
   },
+  envPrefix: "VITE_",
 }));
