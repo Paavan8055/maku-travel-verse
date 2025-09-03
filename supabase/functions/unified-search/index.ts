@@ -6,33 +6,69 @@ import logger from "../_shared/logger.ts";
 // Currency utilities (moved from src/utils/currency.ts for edge function compatibility)
 export const DEFAULT_CURRENCY = 'USD';
 
-const convertCurrency = async (
+interface RateCacheEntry {
+  rate: number;
+  timestamp: number;
+}
+
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+const RATE_CACHE: Record<string, RateCacheEntry> = (globalThis as any).RATE_CACHE || ((globalThis as any).RATE_CACHE = {});
+
+export const convertCurrency = async (
   amount: number,
   fromCurrency: string,
   toCurrency: string
 ): Promise<number> => {
-  // This would integrate with a real currency conversion API
-  // For now, return the amount as-is for same currency or USD rates
   if (fromCurrency === toCurrency) {
     return amount;
   }
-  
-  // Mock conversion rates - in production, use real API
-  const mockRates: Record<string, number> = {
-    'EUR_USD': 1.1,
-    'USD_EUR': 0.91,
-    'GBP_USD': 1.27,
-    'USD_GBP': 0.79,
-    'JPY_USD': 0.0067,
-    'USD_JPY': 149.5,
-    'AUD_USD': 0.67,
-    'USD_AUD': 1.49,
+
+  const cacheKey = `${fromCurrency}_${toCurrency}`;
+  const now = Date.now();
+  const cached = RATE_CACHE[cacheKey];
+  if (cached && now - cached.timestamp < CACHE_TTL) {
+    return amount * cached.rate;
+  }
+
+  const fetchRate = async (): Promise<number> => {
+    const apiKey = Deno.env.get('OPEN_EXCHANGE_RATES_API_KEY');
+    try {
+      if (apiKey) {
+        const url = `https://openexchangerates.org/api/latest.json?app_id=${apiKey}&symbols=${fromCurrency},${toCurrency}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`OpenExchangeRates error: ${res.status}`);
+        const data = await res.json();
+        const rates = data.rates || {};
+        const fromRate = fromCurrency === 'USD' ? 1 : rates[fromCurrency];
+        const toRate = toCurrency === 'USD' ? 1 : rates[toCurrency];
+        if (!fromRate || !toRate) throw new Error('Missing rate');
+        return toRate / fromRate;
+      }
+      throw new Error('Missing OPEN_EXCHANGE_RATES_API_KEY');
+    } catch (err) {
+      logger.warn('Primary currency API failed, falling back', err);
+      const url = `https://api.exchangerate.host/convert?from=${fromCurrency}&to=${toCurrency}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
+      const data = await res.json();
+      if (typeof data.result !== 'number') {
+        throw new Error('No conversion result');
+      }
+      return data.result / amount; // since result = amount * rate
+    }
   };
-  
-  const rateKey = `${fromCurrency}_${toCurrency}`;
-  const rate = mockRates[rateKey] || 1;
-  
-  return amount * rate;
+
+  try {
+    const rate = await fetchRate();
+    RATE_CACHE[cacheKey] = { rate, timestamp: now };
+    return amount * rate;
+  } catch (err) {
+    logger.warn('Currency conversion failed, using fallback', err);
+    if (cached) {
+      return amount * cached.rate;
+    }
+    return amount; // final fallback
+  }
 };
 
 
@@ -83,7 +119,7 @@ const callEdgeFunction = async (functionName: string, payload: any) => {
   return data;
 };
 
-const aggregateResults = async (results: any[], type: string) => {
+export const aggregateResults = async (results: any[], type: string) => {
   const resultKey = {
     'flight': 'flights',
     'hotel': 'hotels',
@@ -140,7 +176,8 @@ const aggregateResults = async (results: any[], type: string) => {
   return diversifiedResults;
 };
 
-serve(async (req) => {
+if (import.meta.main) {
+  serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -346,4 +383,5 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-});
+  });
+}
