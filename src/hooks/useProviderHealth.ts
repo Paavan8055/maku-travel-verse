@@ -22,30 +22,41 @@ export const useProviderHealth = () => {
 
       if (error) throw error;
 
-      const healthData = data.map((item: any) => ({
-        provider: item.provider,
-        status: getHealthStatus(item.status, item.response_time_ms, item.error_count),
-        responseTime: item.response_time_ms || 0,
-        lastChecked: item.last_checked,
-        errorCount: item.error_count || 0
+      // Handle null/undefined data safely
+      const healthData = (data || []).map((item: any) => ({
+        provider: item?.provider || 'unknown',
+        status: getHealthStatus(
+          item?.status || 'unknown', 
+          item?.response_time_ms || 0, 
+          item?.error_count || 0
+        ),
+        responseTime: item?.response_time_ms || 0,
+        lastChecked: item?.last_checked || new Date().toISOString(),
+        errorCount: item?.error_count || 0
       }));
 
       setProviderHealth(healthData);
     } catch (error) {
       console.error('Failed to fetch provider health:', error);
+      // Set empty array instead of leaving undefined
+      setProviderHealth([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const getHealthStatus = (
-    status: string, 
-    responseTime: number, 
-    errorCount: number
+    status: string | null | undefined, 
+    responseTime: number | null | undefined, 
+    errorCount: number | null | undefined
   ): 'healthy' | 'degraded' | 'unhealthy' | 'unknown' => {
-    if (status === 'unhealthy' || errorCount > 5) return 'unhealthy';
-    if (responseTime > 5000 || errorCount > 2) return 'degraded';
-    if (status === 'healthy' && responseTime < 3000) return 'healthy';
+    const safeStatus = status || 'unknown';
+    const safeResponseTime = responseTime || 0;
+    const safeErrorCount = errorCount || 0;
+    
+    if (safeStatus === 'unhealthy' || safeErrorCount > 5) return 'unhealthy';
+    if (safeResponseTime > 5000 || safeErrorCount > 2) return 'degraded';
+    if (safeStatus === 'healthy' && safeResponseTime < 3000) return 'healthy';
     return 'unknown';
   };
 
