@@ -1,9 +1,12 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HealthStatus {
   api: 'healthy' | 'unhealthy' | 'checking';
   database: 'healthy' | 'unhealthy' | 'checking';
+  apiError?: string | null;
+  databaseError?: string | null;
   lastCheck: Date | null;
 }
 
@@ -26,24 +29,82 @@ export const HealthMonitorProvider = ({ children }: { children: ReactNode }) => 
   const [status, setStatus] = useState<HealthStatus>({
     api: 'checking',
     database: 'checking',
+    apiError: null,
+    databaseError: null,
     lastCheck: null,
   });
 
   const checkHealth = async () => {
-    try {
-      // Basic health check - can be expanded later
-      setStatus({
-        api: 'healthy',
-        database: 'healthy',
-        lastCheck: new Date(),
+    // Reset to checking state before performing checks
+    setStatus({
+      api: 'checking',
+      database: 'checking',
+      apiError: null,
+      databaseError: null,
+      lastCheck: null,
+    });
+
+    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+      new Promise((resolve, reject) => {
+        const id = setTimeout(() => reject(new Error('timeout')), ms);
+        promise
+          .then((value) => {
+            clearTimeout(id);
+            resolve(value);
+          })
+          .catch((err) => {
+            clearTimeout(id);
+            reject(err);
+          });
       });
-    } catch (error) {
-      setStatus({
-        api: 'unhealthy',
-        database: 'unhealthy',
-        lastCheck: new Date(),
-      });
+
+    const apiCheck = withTimeout(
+      fetch('/api/health').then((res) => {
+        if (!res.ok) {
+          throw new Error(`API responded with status ${res.status}`);
+        }
+        return res.json();
+      }),
+      5000
+    );
+
+    const dbCheck = withTimeout(
+      supabase.from('bookings').select('id').limit(1),
+      5000
+    );
+
+    const [apiResult, dbResult] = await Promise.allSettled([apiCheck, dbCheck]);
+
+    let apiStatus: 'healthy' | 'unhealthy' = 'healthy';
+    let databaseStatus: 'healthy' | 'unhealthy' = 'healthy';
+    let apiError: string | null = null;
+    let databaseError: string | null = null;
+
+    if (apiResult.status === 'rejected') {
+      apiStatus = 'unhealthy';
+      apiError = apiResult.reason instanceof Error ? apiResult.reason.message : String(apiResult.reason);
     }
+
+    if (
+      dbResult.status === 'rejected' ||
+      (dbResult.status === 'fulfilled' && dbResult.value.error)
+    ) {
+      databaseStatus = 'unhealthy';
+      databaseError =
+        dbResult.status === 'rejected'
+          ? dbResult.reason instanceof Error
+            ? dbResult.reason.message
+            : String(dbResult.reason)
+          : dbResult.value.error?.message ?? 'unknown error';
+    }
+
+    setStatus({
+      api: apiStatus,
+      database: databaseStatus,
+      apiError,
+      databaseError,
+      lastCheck: new Date(),
+    });
   };
 
   useEffect(() => {
