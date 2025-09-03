@@ -36,6 +36,25 @@ npm i
 npm run dev
 ```
 
+## Environment configuration
+
+This project expects Supabase credentials to be provided via Vite environment variables.
+
+### Local development
+
+Create a `.env.local` file in the project root with the following values:
+
+```
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+Restart the development server after adding or modifying the file.
+
+### Production deployment
+
+Configure the same environment variables in your hosting provider (e.g., Netlify, Vercel). Consult your provider's documentation for setting build-time environment variables.
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
