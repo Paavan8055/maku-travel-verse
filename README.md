@@ -68,21 +68,36 @@ supabase functions deploy <function> --project-ref YOUR_REF
 4. Deploy via the Netlify UI or `netlify deploy --prod`.
 
 ### Vercel
-1. Connect this repository in the Vercel dashboard.
-2. Vercel uses `vercel.json` to run `npm run build` and serve the `dist` output directory.
-3. Add the following environment variables in **Project Settings → Environment Variables**:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `AMADEUS_CLIENT_ID`
-   - `AMADEUS_CLIENT_SECRET`
-   - `HOTELBEDS_API_KEY`
-   - `HOTELBEDS_API_SECRET`
-   - `SABRE_CLIENT_ID`
-   - `SABRE_CLIENT_SECRET`
-   - `STRIPE_SECRET_KEY`
-4. Preview deployments for pull requests and production builds from `main` mirror the Netlify setup.
+
+MAKU.Travel uses advanced Vercel Git integration with automated deployments, multi-environment strategy, and comprehensive monitoring.
+
+#### Quick Setup
+1. Connect this repository in the Vercel dashboard
+2. Configure GitHub Actions secrets:
+   - `VERCEL_TOKEN`: Your Vercel account token
+   - `VERCEL_ORG_ID`: Your organization ID  
+   - `VERCEL_PROJECT_ID`: Your project ID
+3. Set environment variables for each environment (Production/Staging/Preview)
+
+#### Deployment Strategy
+- **Production**: `main` branch → https://maku.travel
+- **Staging**: `develop` branch → staging environment
+- **Preview**: Pull requests → automatic preview URLs
+
+#### Environment Variables
+Set these in **Project Settings → Environment Variables**:
+- `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`
+- Provider API keys (Amadeus, HotelBeds, Sabre)
+- `STRIPE_SECRET_KEY`
+
+#### Advanced Features
+- Automated health checks and rollback
+- Security headers and performance optimization
+- Multi-regional deployment (Sydney region)
+- Asset caching and edge function optimization
+
+For detailed setup instructions, see [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md)
 
 ## Tests
 Run the Vitest suite with:
