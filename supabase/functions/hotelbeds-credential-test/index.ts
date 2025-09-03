@@ -1,11 +1,8 @@
+import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { getHotelBedsCredentials, validateHotelBedsCredentials } from "../_shared/config.ts";
 import logger from "../_shared/simpleLogger.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 // Test HotelBeds credentials without making actual API calls
 serve(async (req) => {
