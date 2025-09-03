@@ -130,7 +130,7 @@ export async function supabaseFetch<T>(
   body?: any,
   schema?: z.ZodSchema<T>
 ): Promise<T> {
-  const supabaseUrl = 'https://iomeddeasarntjhqzndu.supabase.co';
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const url = `${supabaseUrl}/functions/v1/${functionName}`;
   
   return apiFetch(
