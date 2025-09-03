@@ -1,27 +1,56 @@
-name: Automated Booking Cleanup
+name: Emergency Automated Booking Cleanup
 
 on:
   schedule:
-    # Run every 2 minutes
+    # Run every 2 minutes for emergency stabilization
     - cron: '*/2 * * * *'
   workflow_dispatch: # Allow manual triggering
 
 jobs:
-  cleanup:
+  emergency-cleanup:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
-      - name: Trigger Enhanced Cleanup
+      - name: Emergency Enhanced Cleanup
         run: |
-          response=$(curl -s -X POST \
+          echo "Starting emergency cleanup at $(date)"
+          
+          # First try enhanced cleanup
+          enhanced_response=$(curl -s -w "%{http_code}" -X POST \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{"trigger": "github_actions", "correlationId": "'$(date +%s)'", "cleanupType": "automated"}' \
             "https://iomeddeasarntjhqzndu.supabase.co/functions/v1/enhanced-cleanup")
-          echo "Cleanup response: $response"
-          if echo "$response" | grep -q '"success":false'; then
-            echo "Cleanup failed"
-            exit 1
+          
+          enhanced_http_code="${enhanced_response: -3}"
+          enhanced_body="${enhanced_response%???}"
+          
+          echo "Enhanced cleanup HTTP code: $enhanced_http_code"
+          echo "Enhanced cleanup response: $enhanced_body"
+          
+          # If enhanced cleanup fails, try legacy cleanup
+          if [ "$enhanced_http_code" != "200" ]; then
+            echo "Enhanced cleanup failed, trying legacy cleanup"
+            
+            legacy_response=$(curl -s -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{"automated": true, "timeout_minutes": 2}' \
+              "https://iomeddeasarntjhqzndu.supabase.co/functions/v1/fix-stuck-bookings")
+            
+            legacy_http_code="${legacy_response: -3}"
+            legacy_body="${legacy_response%???}"
+            
+            echo "Legacy cleanup HTTP code: $legacy_http_code"
+            echo "Legacy cleanup response: $legacy_body"
+            
+            if [ "$legacy_http_code" != "200" ]; then
+              echo "Both cleanup methods failed!"
+              exit 1
+            fi
           fi
+          
+          echo "Emergency cleanup completed successfully at $(date)"
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
