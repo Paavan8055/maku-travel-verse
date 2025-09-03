@@ -60,20 +60,28 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   // Load existing data from Zustand store on mount  
   const getInitialData = (): Partial<PassengerFormData> => {
     const { passengerInfo } = useBookingStore.getState();
-    return {
-      title: "MR" as const,
+    const defaultData: Partial<PassengerFormData> = {
+      title: "MR",
       acknowledge: false,
       email: "",
-      phone: "",
+      phone: "", 
       firstName: "",
       lastName: "",
       specialRequests: "",
       dateOfBirth: "",
       nationality: "",
-      idDocument: "",
-      ...passengerInfo,
-      ...initial
+      idDocument: ""
     };
+    
+    // Safely merge passengerInfo and initial, ensuring title is properly typed
+    if (passengerInfo) {
+      Object.assign(defaultData, passengerInfo);
+    }
+    if (initial) {
+      Object.assign(defaultData, initial);
+    }
+    
+    return defaultData;
   };
 
   const {
