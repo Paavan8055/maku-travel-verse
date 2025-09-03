@@ -33,6 +33,7 @@ const breadcrumbMapping: BreadcrumbMapping = {
   'access': 'Access Control',
   'audit': 'Audit Logs',
   'compliance': 'Compliance Status',
+  'analytics': 'Analytics',
   'features': 'Feature Flags',
   'environment': 'Environment Config',
   'realtime': 'Real-time Metrics',
