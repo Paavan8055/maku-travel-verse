@@ -8,10 +8,10 @@ echo "📦 Checking dependency versions..."
 
 # Check date-fns version
 DATE_FNS_VERSION=$(npm list date-fns --depth=0 2>/dev/null | grep date-fns | cut -d'@' -f2 | cut -d' ' -f1 || echo "not found")
-if [[ "$DATE_FNS_VERSION" == 3.6.0* ]]; then
+if [[ "$DATE_FNS_VERSION" == 4.1.* ]]; then
     echo "✅ date-fns: $DATE_FNS_VERSION"
 else
-    echo "❌ date-fns version incorrect: $DATE_FNS_VERSION (expected 3.6.0)"
+    echo "❌ date-fns version incorrect: $DATE_FNS_VERSION (expected 4.1.x)"
     exit 1
 fi
 
