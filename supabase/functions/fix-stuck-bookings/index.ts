@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+export async function handler(req: Request, supabase?: any, stripe?: any) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -27,38 +27,44 @@ serve(async (req) => {
     const body = req.method === 'POST' ? await req.json() : {};
     const isAutomated = body.automated || false;
     const timeoutMinutes = body.timeout_minutes || 2; // Reduced from 60 to 2 minutes
-    
+
     if (isAutomated) {
       auditData.triggered_by = 'automated';
     }
 
     // Initialize clients
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    
-    if (!supabaseUrl || !supabaseServiceKey || !stripeSecretKey) {
-      throw new Error('Missing required configuration');
+    if (!supabase) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error('Missing required configuration');
+      }
+      supabase = createClient(supabaseUrl, supabaseServiceKey);
     }
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
 
-    logger.info('Starting stuck bookings recovery process', { 
-      automated: isAutomated, 
-      timeoutMinutes 
+    if (!stripe) {
+      const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+      if (!stripeSecretKey) {
+        throw new Error('Missing required configuration');
+      }
+      stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
+    }
+
+    logger.info('Starting stuck bookings recovery process', {
+      automated: isAutomated,
+      timeoutMinutes
     });
 
     // Find stuck bookings (pending for more than specified timeout)
     const timeoutAgo = new Date(Date.now() - timeoutMinutes * 60 * 1000);
-    
+
     const { data: stuckBookings, error: fetchError } = await supabase
       .from('bookings')
       .select(`
-        id, 
-        booking_reference, 
-        status, 
-        booking_data, 
+        id,
+        booking_reference,
+        status,
+        booking_data,
         created_at,
         payments(stripe_payment_intent_id, status)
       `)
@@ -71,14 +77,14 @@ serve(async (req) => {
 
     logger.info(`Found ${stuckBookings?.length || 0} stuck bookings to process`);
 
-    const recoveryResults = [];
+    const recoveryResults: any[] = [];
     auditData.bookings_processed = stuckBookings?.length || 0;
-    
+
     for (const booking of stuckBookings || []) {
       try {
         const result = await recoverStuckBooking(booking, stripe, supabase, isAutomated);
         recoveryResults.push(result);
-        
+
         // Track cleanup metrics
         if (result.status === 'failed' || result.status === 'expired') {
           auditData.bookings_expired++;
@@ -86,7 +92,7 @@ serve(async (req) => {
         if (result.payment_cancelled) {
           auditData.payments_cancelled++;
         }
-        
+
         logger.info('Processed stuck booking:', result);
       } catch (error) {
         auditData.errors_encountered++;
@@ -126,7 +132,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         summary,
-        results: recoveryResults
+        results: recoveryResults,
+        triggered_by: auditData.triggered_by
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -134,7 +141,7 @@ serve(async (req) => {
     );
   } catch (error) {
     logger.error('Error in fix-stuck-bookings:', error);
-    
+
     return new Response(
       JSON.stringify({
         success: false,
@@ -146,7 +153,11 @@ serve(async (req) => {
       }
     );
   }
-});
+}
+
+if (import.meta.main) {
+  serve(handler);
+}
 
 async function recoverStuckBooking(booking: any, stripe: Stripe, supabase: any, isAutomated = false) {
   const paymentIntentId = booking.booking_data?.stripe_payment_intent_id;
