@@ -18,9 +18,9 @@ interface UsePerformanceOptimizerOptions {
 export const usePerformanceOptimizer = (options: UsePerformanceOptimizerOptions) => {
   const {
     componentName,
-    enableMonitoring = true,
+    enableMonitoring = false, // EMERGENCY: Disabled by default
     reportToAnalytics = false,
-    memoryThreshold = 50
+    memoryThreshold = 80 // EMERGENCY: Increased threshold
   } = options;
 
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
@@ -33,6 +33,7 @@ export const usePerformanceOptimizer = (options: UsePerformanceOptimizerOptions)
   const startTimeRef = useRef<number>(0);
   const renderCountRef = useRef<number>(0);
   const memoryCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMemoryMonitoringDisabled = useRef<boolean>(false);
 
   const startRender = useCallback(() => {
     if (!enableMonitoring) return;
@@ -61,18 +62,41 @@ export const usePerformanceOptimizer = (options: UsePerformanceOptimizerOptions)
   }, [enableMonitoring, reportToAnalytics, componentName]);
 
   const checkMemoryUsage = useCallback(() => {
+    // EMERGENCY: Circuit breaker pattern - disable if memory already high
+    if (isMemoryMonitoringDisabled.current) return;
+    
     if (typeof performance !== 'undefined' && 'memory' in performance) {
       const memory = (performance as any).memory;
       const memoryUsage = Math.round((memory.usedJSHeapSize / memory.totalJSHeapSize) * 100);
+      
+      // EMERGENCY: Auto-disable monitoring if memory is critically high
+      if (memoryUsage > 90) {
+        isMemoryMonitoringDisabled.current = true;
+        if (memoryCheckIntervalRef.current) {
+          clearInterval(memoryCheckIntervalRef.current);
+          memoryCheckIntervalRef.current = null;
+        }
+        console.error(`CRITICAL: Memory usage ${memoryUsage}% - disabling monitoring for ${componentName}`);
+        return;
+      }
       
       setMetrics(prev => ({
         ...prev,
         memoryUsage
       }));
 
-      // Warn if memory usage is too high
+      // EMERGENCY: Enhanced warnings
       if (memoryUsage > memoryThreshold) {
         console.warn(`High memory usage in ${componentName}: ${memoryUsage}%`);
+        
+        // Auto-disable at 85%
+        if (memoryUsage > 85) {
+          isMemoryMonitoringDisabled.current = true;
+          if (memoryCheckIntervalRef.current) {
+            clearInterval(memoryCheckIntervalRef.current);
+            memoryCheckIntervalRef.current = null;
+          }
+        }
       }
     }
   }, [componentName, memoryThreshold]);
@@ -109,14 +133,23 @@ export const usePerformanceOptimizer = (options: UsePerformanceOptimizerOptions)
   }, []);
 
   useEffect(() => {
-    if (!enableMonitoring) return;
+    // EMERGENCY: Only monitor if explicitly enabled and memory not already high
+    if (!enableMonitoring || isMemoryMonitoringDisabled.current) {
+      // Force cleanup any existing intervals
+      if (memoryCheckIntervalRef.current) {
+        clearInterval(memoryCheckIntervalRef.current);
+        memoryCheckIntervalRef.current = null;
+      }
+      return;
+    }
 
-    // Check memory usage periodically
-    memoryCheckIntervalRef.current = setInterval(checkMemoryUsage, 5000);
+    // EMERGENCY: Debounced memory checking - reduce frequency to every 10 seconds
+    memoryCheckIntervalRef.current = setInterval(checkMemoryUsage, 10000);
 
     return () => {
       if (memoryCheckIntervalRef.current) {
         clearInterval(memoryCheckIntervalRef.current);
+        memoryCheckIntervalRef.current = null;
       }
     };
   }, [enableMonitoring, checkMemoryUsage]);
