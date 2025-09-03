@@ -1,150 +1,75 @@
-# Welcome to your Lovable project
+# Maku Travel OTA
 
-## Project info
+Maku Travel is an open-source Online Travel Agency built with Vite, React and Supabase. It provides a unified booking experience for flights, hotels and activities while monitoring provider health and costs in real time.
 
-**URL**: https://lovable.dev/projects/70b60dfe-602f-470b-aa3d-b4fc2fe1e77e
+## Features
+- Search and book flights, hotels and activities
+- Personalized offers and saved travel preferences
+- Stripe-powered checkout with vaulted payment methods
+- Provider rotation, quota monitoring and circuit breakers
+- Admin dashboard for system metrics and provider analytics
 
-## How can I edit this code?
+## Provider API integrations
+Edge functions in `supabase/functions` wrap external providers and expose simple REST endpoints. Current integrations include:
 
-There are several ways of editing your application.
+- **Amadeus** – flight, hotel and activity data
+- **Sabre** – PNR management and flight booking
+- **HotelBeds** – hotel content and availability
+- **Stripe** – payments and webhooks
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/70b60dfe-602f-470b-aa3d-b4fc2fe1e77e) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-## Environment configuration
-
-This project expects Supabase credentials to be provided via Vite environment variables.
-
-### Local development
-
-Create a `.env.local` file in the project root with the following values:
+## Environment variables
+### Frontend (`.env.local`)
+Create a `.env.local` in the project root so Vite can load your Supabase credentials:
 
 ```
 VITE_SUPABASE_URL=your-supabase-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-Restart the development server after adding or modifying the file.
+### Edge functions (`supabase/.env`)
+Edge functions use service-role credentials and provider API keys. Copy `.env.example` to `supabase/.env` and fill in values such as:
 
-The Supabase client reads these values via `import.meta.env`, so they must be
-available at build time.
+```
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+AMADEUS_CLIENT_ID=...
+AMADEUS_CLIENT_SECRET=...
+HOTELBEDS_API_KEY=...
+HOTELBEDS_API_SECRET=...
+SABRE_CLIENT_ID=...
+SABRE_CLIENT_SECRET=...
+STRIPE_SECRET_KEY=...
+```
 
-### Production deployment
+Restart the dev server after creating or updating environment files.
 
-Configure the same environment variables in your hosting provider (e.g., Netlify, Vercel). Consult your provider's documentation for setting build-time environment variables.
+## Running locally
+1. Install dependencies: `npm install`
+2. Start the Vite dev server: `npm run dev`
+3. Run edge functions locally: `supabase functions serve <function> --env-file supabase/.env`
+4. Visit [http://localhost:5173](http://localhost:5173) to use the app.
+5. Access the admin dashboard at [http://localhost:5173/admin](http://localhost:5173/admin) and sign in with a Supabase user marked as an admin.
 
-**Edit a file directly in GitHub**
+## Deployment
+### Supabase
+Apply migrations and deploy edge functions:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+supabase db push
+supabase functions deploy <function> --project-ref YOUR_REF
+# or deploy all functions
+./scripts/deploy.sh
+```
 
-**Use GitHub Codespaces**
+### Netlify
+1. Connect this repository in the Netlify dashboard.
+2. Set build command to `npm run build` and publish directory to `dist`.
+3. Configure the same environment variables used locally (Supabase keys, provider API keys, Stripe keys, etc.).
+4. Deploy via the Netlify UI or `netlify deploy --prod`.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Tests
+Run the Vitest suite with:
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/70b60dfe-602f-470b-aa3d-b4fc2fe1e77e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-
-## Database & Booking Enhancements
-
-### New Booking Tables & APIs
-
-1. **Review and run migrations:**
-   ```bash
-   supabase db push
-   ```
-
-2. **Deploy edge functions:**
-   ```bash
-   supabase functions deploy validate-passport generate-offers --project-ref YOUR_REF
-   ```
-
-3. **Components available:**
-   - `UserPreferencesForm` - Capture and update user travel preferences
-   - `PaymentVault` - Manage saved payment methods  
-   - `OffersWidget` - Display dynamic offers and discounts
-   - `LocalTipsPanel` - Show local insights and tips
-
-### Database Tables Created
-
-- `user_preferences` - Store user travel preferences (airlines, seat class, etc.)
-- `payment_methods` - Securely store payment method details
-- `passport_info` - Store passport information and verification status
-- `saved_favorites` - User's favorite hotels, flights, and experiences
-- `visa_documents` - Track visa applications and documentation
-- `dynamic_offers` - Time-limited offers and discounts
-- `local_insights` - Community-curated local tips and advice
-
-### Integrating Booking Enhancements
-
-1. **Deploy edge functions:**
-   ```bash
-   supabase functions deploy validate-passport generate-offers --project-ref YOUR_REF
-   ```
-
-2. **Run tests:**
-   ```bash
-   npm test
-   ```
-
-3. **Restart your dev server and enjoy one-click, personalized booking!**
-
-### Unified Search Integration
-
-1. Add search pages and components under `/src/pages/search/` and `/src/features/search/`.
-
-2. Deploy Supabase functions:
-   ```bash
-   supabase functions deploy flight-search hotel-search activity-search --project-ref YOUR_REF
-   ```
-
-3. Restart dev server and verify styles match existing layout/colors.
+```
+npm test
+```
