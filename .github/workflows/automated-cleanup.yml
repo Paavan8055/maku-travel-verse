@@ -1,0 +1,27 @@
+name: Automated Booking Cleanup
+
+on:
+  schedule:
+    # Run every 2 minutes
+    - cron: '*/2 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Enhanced Cleanup
+        run: |
+          response=$(curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"trigger": "github_actions", "correlationId": "'$(date +%s)'"}' \
+            "https://iomeddeasarntjhqzndu.supabase.co/functions/v1/cron-cleanup-trigger")
+          echo "Cleanup response: $response"
+          if echo "$response" | grep -q '"success":false'; then
+            echo "Cleanup failed"
+            exit 1
+          fi
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

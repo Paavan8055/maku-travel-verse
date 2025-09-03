@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PaymentTimeoutMonitor } from '@/components/admin/PaymentTimeoutMonitor';
 import { NotificationCenter } from '@/components/admin/NotificationCenter';
+import { CleanupActions } from '@/components/admin/CleanupActions';
 import { 
   Activity, 
   AlertTriangle, 
@@ -381,6 +382,8 @@ export const ProductionDashboard = () => {
             <PaymentTimeoutMonitor />
             <NotificationCenter />
           </div>
+          
+          <CleanupActions />
           
           <Card>
             <CardHeader>
