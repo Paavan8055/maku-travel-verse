@@ -9,6 +9,8 @@ import { PerformanceValidationDashboard } from '@/components/testing/Performance
 import { HealthCheckValidator } from '@/components/testing/HealthCheckValidator';
 import { ProductionValidationSuite } from '@/components/testing/ProductionValidationSuite';
 import { ComprehensiveTestSuite } from '@/components/testing/ComprehensiveTestSuite';
+import { RealTimeMetricsCard } from '@/components/admin/RealTimeMetricsCard';
+import { SecurityAuditPanel } from '@/components/admin/SecurityAuditPanel';
 
 export default function Testing() {
   const [activeTab, setActiveTab] = useState('e2e');
@@ -24,7 +26,11 @@ export default function Testing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="phase4" className="flex items-center gap-2">
+              <Gauge className="h-4 w-4" />
+              Phase 4
+            </TabsTrigger>
             <TabsTrigger value="comprehensive" className="flex items-center gap-2">
               <TestTube className="h-4 w-4" />
               All Tests
@@ -50,6 +56,32 @@ export default function Testing() {
               Production
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="phase4" className="space-y-6">
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <RealTimeMetricsCard />
+            </div>
+            
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Security & Compliance Audit</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SecurityAuditPanel />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Comprehensive Testing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ComprehensiveTestSuite />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           <TabsContent value="comprehensive" className="space-y-6">
             <Card>

@@ -358,3 +358,9 @@ verify_jwt = false
 
 [functions.amadeus-order-create]
 verify_jwt = false
+
+[functions.comprehensive-testing]
+verify_jwt = true
+
+[functions.track-performance]
+verify_jwt = false
