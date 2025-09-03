@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run && deno test --allow-env supabase/functions/**/index.test.ts",
     "check:supabase-version": "node scripts/check-supabase-version.mjs"
   },
   "dependencies": {

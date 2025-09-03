@@ -432,3 +432,5 @@ serve(async (req) => {
     );
   }
 });
+
+export { searchHotels, transformAmadeusHotels };
