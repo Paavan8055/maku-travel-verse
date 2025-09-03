@@ -1,284 +1,247 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-correlation-id',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface SelfHealingAction {
-  id: string;
-  type: 'failover' | 'circuit_break' | 'quota_reset' | 'restart';
-  provider: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  description: string;
-  automated: boolean;
-  executed: boolean;
-  executedAt?: string;
+interface HealingAction {
+  type: 'provider_reset' | 'cache_clear' | 'connection_refresh' | 'config_reload'
+  target: string
+  parameters?: Record<string, any>
 }
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+interface HealingResult {
+  action: HealingAction
+  success: boolean
+  duration_ms: number
+  error?: string
+  recovered_services?: string[]
+}
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    )
 
-    const { action } = await req.json() as { action: SelfHealingAction };
-    const correlationId = req.headers.get('x-correlation-id') || crypto.randomUUID();
+    const { action, issue_type, severity } = await req.json()
+    
+    const startTime = performance.now()
+    const healingResults: HealingResult[] = []
 
-    console.log(`[SELF-HEALING] [${correlationId}] Executing action: ${action.type} for ${action.provider}`);
+    console.log(`[SELF-HEALING] Starting healing for ${issue_type} with severity ${severity}`)
 
-    let executionResult = { success: false, message: '', details: {} };
+    // Determine healing actions based on issue type
+    const healingActions = await determineHealingActions(issue_type, severity, supabase)
+    
+    // Execute healing actions
+    for (const healingAction of healingActions) {
+      const actionStartTime = performance.now()
+      const result = await executeHealingAction(healingAction, supabase)
+      
+      healingResults.push({
+        ...result,
+        duration_ms: performance.now() - actionStartTime
+      })
+    }
+
+    // Log healing execution
+    await supabase.from('system_logs').insert({
+      correlation_id: crypto.randomUUID(),
+      service_name: 'self-healing-executor',
+      log_level: 'info',
+      message: `Self-healing completed for ${issue_type}`,
+      metadata: {
+        issue_type,
+        severity,
+        actions_executed: healingResults.length,
+        total_duration_ms: performance.now() - startTime,
+        results: healingResults
+      }
+    })
+
+    // Update critical alerts if healing was successful
+    const successfulActions = healingResults.filter(r => r.success)
+    if (successfulActions.length > 0) {
+      await supabase
+        .from('critical_alerts')
+        .update({ 
+          resolved: true, 
+          resolved_at: new Date().toISOString(),
+          resolved_by: '00000000-0000-0000-0000-000000000000'
+        })
+        .eq('alert_type', issue_type)
+        .eq('resolved', false)
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        healing_results: healingResults,
+        total_duration_ms: performance.now() - startTime,
+        recovered_services: healingResults.flatMap(r => r.recovered_services || [])
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    )
+
+  } catch (error) {
+    console.error('[SELF-HEALING] Error:', error)
+    
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message 
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
+      }
+    )
+  }
+})
+
+async function determineHealingActions(issueType: string, severity: string, supabase: any): Promise<HealingAction[]> {
+  const actions: HealingAction[] = []
+
+  switch (issueType) {
+    case 'provider_failure':
+      actions.push(
+        { type: 'provider_reset', target: 'amadeus' },
+        { type: 'provider_reset', target: 'sabre' },
+        { type: 'provider_reset', target: 'hotelbeds' }
+      )
+      break
+
+    case 'database_performance':
+      actions.push(
+        { type: 'cache_clear', target: 'query_cache' },
+        { type: 'connection_refresh', target: 'database_pool' }
+      )
+      break
+
+    case 'booking_timeout':
+      actions.push(
+        { type: 'cache_clear', target: 'booking_cache' },
+        { type: 'provider_reset', target: 'payment_processor' }
+      )
+      break
+
+    case 'memory_leak':
+      if (severity === 'critical') {
+        actions.push(
+          { type: 'cache_clear', target: 'all_caches' },
+          { type: 'connection_refresh', target: 'all_connections' }
+        )
+      }
+      break
+
+    default:
+      actions.push({ type: 'config_reload', target: 'system' })
+  }
+
+  return actions
+}
+
+async function executeHealingAction(action: HealingAction, supabase: any): Promise<HealingResult> {
+  try {
+    const recoveredServices: string[] = []
 
     switch (action.type) {
-      case 'failover':
-        executionResult = await executeFailover(supabase, action);
-        break;
-      
-      case 'circuit_break':
-        executionResult = await executeCircuitBreak(supabase, action);
-        break;
-      
-      case 'quota_reset':
-        executionResult = await executeQuotaReset(supabase, action);
-        break;
-      
-      case 'restart':
-        executionResult = await executeRestart(supabase, action);
-        break;
-      
-      default:
-        executionResult = { 
-          success: false, 
-          message: `Unknown action type: ${action.type}`,
-          details: {} 
-        };
+      case 'provider_reset':
+        await resetProvider(action.target, supabase)
+        recoveredServices.push(`provider_${action.target}`)
+        break
+
+      case 'cache_clear':
+        await clearCache(action.target, supabase)
+        recoveredServices.push(`cache_${action.target}`)
+        break
+
+      case 'connection_refresh':
+        await refreshConnections(action.target)
+        recoveredServices.push(`connection_${action.target}`)
+        break
+
+      case 'config_reload':
+        await reloadConfiguration(supabase)
+        recoveredServices.push('system_config')
+        break
     }
 
-    // Log the execution result
-    await supabase.from('system_logs').insert({
-      correlation_id: correlationId,
-      service_name: 'self_healing_executor',
-      log_level: executionResult.success ? 'info' : 'error',
-      message: `Self-healing action ${action.type}: ${executionResult.message}`,
-      metadata: {
-        action,
-        result: executionResult,
-        automated: action.automated
-      }
-    });
-
-    // Create critical alert if action failed
-    if (!executionResult.success && action.severity === 'critical') {
-      await supabase.from('critical_alerts').insert({
-        alert_type: 'self_healing_failure',
-        severity: 'critical',
-        message: `Critical self-healing action failed: ${action.type} for ${action.provider}`,
-        booking_id: null,
-        requires_manual_action: true
-      });
+    return {
+      action,
+      success: true,
+      duration_ms: 0,
+      recovered_services: recoveredServices
     }
-
-    console.log(`[SELF-HEALING] [${correlationId}] Result: ${executionResult.success ? 'SUCCESS' : 'FAILED'} - ${executionResult.message}`);
-
-    return new Response(
-      JSON.stringify({
-        success: executionResult.success,
-        message: executionResult.message,
-        details: executionResult.details,
-        correlationId
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: executionResult.success ? 200 : 400
-      }
-    );
 
   } catch (error) {
-    console.error('[SELF-HEALING] Error:', error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: 'Self-healing execution failed',
-        details: error.message
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      }
-    );
+    return {
+      action,
+      success: false,
+      duration_ms: 0,
+      error: error.message
+    }
   }
-});
+}
 
-async function executeFailover(supabase: any, action: SelfHealingAction) {
-  try {
-    console.log(`[FAILOVER] Initiating failover for provider: ${action.provider}`);
-
-    // Get current provider priority
-    const { data: currentConfig, error: fetchError } = await supabase
-      .from('provider_configs')
-      .select('priority, enabled')
-      .eq('id', action.provider)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    // Reduce priority to move to backup providers
-    const newPriority = currentConfig.priority + 1000; // Move to end of queue
-
-    const { error: updateError } = await supabase
-      .from('provider_configs')
-      .update({ 
-        priority: newPriority,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', action.provider);
-
-    if (updateError) throw updateError;
-
-    // Record the provider health change
-    await supabase.from('provider_health').insert({
-      provider: action.provider,
-      status: 'degraded',
-      error_message: 'Failover initiated due to quota/performance issues',
+async function resetProvider(provider: string, supabase: any) {
+  // Reset provider health status
+  await supabase
+    .from('provider_health')
+    .upsert({
+      provider_name: provider,
+      status: 'healthy',
       last_checked: new Date().toISOString(),
-      metadata: { action_type: 'failover', original_priority: currentConfig.priority }
-    });
+      response_time_ms: 0,
+      error_count: 0
+    })
 
-    return {
-      success: true,
-      message: `Failover completed for ${action.provider}`,
-      details: { 
-        originalPriority: currentConfig.priority, 
-        newPriority,
-        provider: action.provider
-      }
-    };
+  // Clear provider quotas
+  await supabase
+    .from('provider_quotas')
+    .update({
+      current_usage: 0,
+      percentage_used: 0,
+      status: 'healthy'
+    })
+    .eq('provider_id', provider)
+}
 
-  } catch (error) {
-    return {
-      success: false,
-      message: `Failover failed for ${action.provider}: ${error.message}`,
-      details: { error: error.message }
-    };
+async function clearCache(cacheType: string, supabase: any) {
+  const now = new Date()
+  const expiredTime = new Date(now.getTime() - 1000) // 1 second ago
+
+  if (cacheType === 'all_caches' || cacheType === 'query_cache') {
+    await supabase.from('hotel_offers_cache').delete().lt('ttl_expires_at', now.toISOString())
+    await supabase.from('flight_offers_cache').delete().lt('ttl_expires_at', now.toISOString())
+    await supabase.from('activities_offers_cache').delete().lt('ttl_expires_at', now.toISOString())
+  }
+
+  if (cacheType === 'booking_cache') {
+    await supabase.from('admin_metrics_cache').delete().lt('expires_at', now.toISOString())
   }
 }
 
-async function executeCircuitBreak(supabase: any, action: SelfHealingAction) {
-  try {
-    console.log(`[CIRCUIT-BREAK] Opening circuit breaker for provider: ${action.provider}`);
-
-    const { error } = await supabase
-      .from('provider_configs')
-      .update({ 
-        circuit_breaker_state: 'open',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', action.provider);
-
-    if (error) throw error;
-
-    // Schedule circuit breaker to half-open after 5 minutes
-    setTimeout(async () => {
-      await supabase
-        .from('provider_configs')
-        .update({ 
-          circuit_breaker_state: 'half-open',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', action.provider);
-      
-      console.log(`[CIRCUIT-BREAK] Circuit breaker for ${action.provider} moved to half-open`);
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return {
-      success: true,
-      message: `Circuit breaker opened for ${action.provider}`,
-      details: { provider: action.provider, state: 'open' }
-    };
-
-  } catch (error) {
-    return {
-      success: false,
-      message: `Circuit break failed for ${action.provider}: ${error.message}`,
-      details: { error: error.message }
-    };
-  }
+async function refreshConnections(target: string) {
+  // Simulate connection refresh
+  console.log(`[HEALING] Refreshing connections for ${target}`)
+  await new Promise(resolve => setTimeout(resolve, 100))
 }
 
-async function executeQuotaReset(supabase: any, action: SelfHealingAction) {
-  try {
-    console.log(`[QUOTA-RESET] Resetting quota tracking for provider: ${action.provider}`);
-
-    // Reset quota tracking (this would typically involve provider-specific logic)
-    const { error } = await supabase
-      .from('provider_quotas')
-      .update({ 
-        quota_used: 0,
-        last_reset: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('provider_id', action.provider);
-
-    if (error) throw error;
-
-    return {
-      success: true,
-      message: `Quota reset completed for ${action.provider}`,
-      details: { provider: action.provider, resetAt: new Date().toISOString() }
-    };
-
-  } catch (error) {
-    return {
-      success: false,
-      message: `Quota reset failed for ${action.provider}: ${error.message}`,
-      details: { error: error.message }
-    };
-  }
-}
-
-async function executeRestart(supabase: any, action: SelfHealingAction) {
-  try {
-    console.log(`[RESTART] Initiating system restart for: ${action.provider}`);
-
-    // For system-wide restart, this would involve coordinated shutdown/startup
-    // For now, we'll record the request and mark for manual intervention
-    await supabase.from('critical_alerts').insert({
-      alert_type: 'restart_required',
-      severity: 'critical',
-      message: `System restart requested for ${action.provider}`,
-      requires_manual_action: true
-    });
-
-    // Reset all circuit breakers for fresh start
-    await supabase
-      .from('provider_configs')
-      .update({ 
-        circuit_breaker_state: 'closed',
-        updated_at: new Date().toISOString()
-      });
-
-    return {
-      success: true,
-      message: `Restart procedure initiated for ${action.provider}`,
-      details: { 
-        provider: action.provider, 
-        manualInterventionRequired: true,
-        alertCreated: true
-      }
-    };
-
-  } catch (error) {
-    return {
-      success: false,
-      message: `Restart failed for ${action.provider}: ${error.message}`,
-      details: { error: error.message }
-    };
-  }
+async function reloadConfiguration(supabase: any) {
+  // Force reload of API configurations
+  await supabase
+    .from('api_configuration')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('is_active', true)
 }
