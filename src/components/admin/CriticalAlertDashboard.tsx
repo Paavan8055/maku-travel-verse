@@ -21,14 +21,14 @@ import { useToast } from '@/hooks/use-toast';
 interface CriticalAlert {
   id: string;
   alert_type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: string;
   message: string;
   created_at: string;
-  resolved: boolean;
-  resolved_at?: string;
-  resolved_by?: string;
-  metadata: any;
-  requires_manual_action: boolean;
+  resolved: boolean | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  requires_manual_action: boolean | null;
+  booking_id: string | null;
 }
 
 interface AlertConfiguration {
@@ -62,10 +62,7 @@ export const CriticalAlertDashboard = () => {
         .limit(50);
 
       if (error) throw error;
-      setAlerts((data || []).map(alert => ({
-        ...alert,
-        metadata: alert.metadata || {}
-      })));
+      setAlerts(data || []);
     } catch (error) {
       console.error('Error fetching alerts:', error);
       toast({
