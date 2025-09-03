@@ -156,7 +156,7 @@ export const EnhancedBookingOperations: React.FC = () => {
     setIsProcessing(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('booking-integrity-manager', {
+      const { data, error } = await supabase.functions.invoke('bulk-booking-operations', {
         body: {
           operation: 'bulk_operation',
           operationType,
@@ -200,7 +200,7 @@ export const EnhancedBookingOperations: React.FC = () => {
     try {
       const template = communicationTemplates.find(t => t.id === selectedTemplate);
       
-      const { data, error } = await supabase.functions.invoke('booking-integrity-manager', {
+      const { data, error } = await supabase.functions.invoke('bulk-booking-operations', {
         body: {
           operation: 'bulk_communication',
           bookingIds: selectedBookings,

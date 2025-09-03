@@ -12,7 +12,16 @@ verify_jwt = false
 [functions.provider-quota-monitor]
 verify_jwt = false
 
-[functions.production-readiness]
+[functions.emergency-system-recovery]
+verify_jwt = true
+
+[functions.critical-booking-alerts]
+verify_jwt = true
+
+[functions.bulk-booking-operations]
+verify_jwt = true
+
+[functions.automated-recovery-scheduler]
 verify_jwt = false
 
 [functions.hotelbeds-monitoring]
