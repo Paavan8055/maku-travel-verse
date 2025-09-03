@@ -1,30 +1,17 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, vi } from '@/test-utils';
+import { setupStandardMocks, clearAllMocks } from '@/test-utils/testSetup';
 import FavoritesSidebar from '../FavoritesSidebar';
-import { vi } from 'vitest';
 import React from 'react';
 
-vi.mock('@/features/auth/hooks/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'user1' } })
-}));
-
-const toast = vi.fn();
-vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({ toast })
-}));
-
-vi.mock('@/lib/bookingDataClient', () => ({
-  fetchUserFavorites: vi.fn()
-}));
-
-import { fetchUserFavorites } from '@/lib/bookingDataClient';
-
 describe('FavoritesSidebar', () => {
+  const { toast, fetchUserFavorites } = setupStandardMocks();
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    clearAllMocks();
   });
 
   it('loads favorites on mount', async () => {
-    (fetchUserFavorites as any).mockResolvedValue([]);
+    fetchUserFavorites.mockResolvedValue([]);
 
     render(<FavoritesSidebar />);
 
@@ -34,7 +21,7 @@ describe('FavoritesSidebar', () => {
   });
 
   it('shows error toast on failure', async () => {
-    (fetchUserFavorites as any).mockRejectedValue(new Error('fail'));
+    fetchUserFavorites.mockRejectedValue(new Error('fail'));
 
     render(<FavoritesSidebar />);
 
