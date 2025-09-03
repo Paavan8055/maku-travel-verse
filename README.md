@@ -51,6 +51,9 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 Restart the development server after adding or modifying the file.
 
+The Supabase client reads these values via `import.meta.env`, so they must be
+available at build time.
+
 ### Production deployment
 
 Configure the same environment variables in your hosting provider (e.g., Netlify, Vercel). Consult your provider's documentation for setting build-time environment variables.
