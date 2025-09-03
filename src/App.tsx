@@ -67,6 +67,9 @@ const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/us
 const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
 const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnostics"));
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
+const AdminAuditPage = createLazyRoute(() => import("./pages/admin/security/audit"));
+const AdminSearchAnalyticsPage = createLazyRoute(() => import("./pages/admin/analytics/search"));
+const AdminCompliancePage = createLazyRoute(() => import("./pages/admin/compliance/index"));
 const AdminFeatureFlagsPage = createLazyRoute(() => import("./components/admin/FeatureFlags").then(m => ({ default: m.FeatureFlags })));
 const AdminEnvironmentPage = createLazyRoute(() => import("./components/admin/EnvironmentConfiguration").then(m => ({ default: m.EnvironmentConfiguration })));
 const AdminProvidersSettingsPage = createLazyRoute(() => import("./pages/admin/settings/providers"));
@@ -176,6 +179,11 @@ const App = () => (
                                          
                           {/* Security Routes */}
                           <Route path="security/access" element={<AdminSecurityPage />} />
+                          <Route path="security/audit" element={<AdminAuditPage />} />
+                          <Route path="compliance" element={<AdminCompliancePage />} />
+                          
+                          {/* Analytics Routes */}
+                          <Route path="analytics/search" element={<AdminSearchAnalyticsPage />} />
                           
                            {/* Settings Routes */}
                            <Route path="settings/features" element={<AdminFeatureFlagsPage />} />

@@ -68,7 +68,7 @@ const adminMenuItems = [{
     icon: Activity
   }, {
     title: 'Search Analytics',
-    url: '/admin/operations/search',
+    url: '/admin/analytics/search',
     icon: Search
   }]
 }, {
@@ -84,7 +84,7 @@ const adminMenuItems = [{
     icon: FileText
   }, {
     title: 'Compliance Status',
-    url: '/admin/security/compliance',
+    url: '/admin/compliance',
     icon: UserCheck
   }]
 }, {
