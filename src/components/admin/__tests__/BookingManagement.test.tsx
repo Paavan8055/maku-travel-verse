@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BookingManagement } from '../BookingManagement';
-import { supabase } from '@/integrations/supabase/client';
 import { vi, expect } from 'vitest';
 import React from 'react';
 
@@ -29,8 +28,6 @@ const bookings = [
   }
 ];
 
-const inserts: any[] = [];
-
 vi.mock('@/utils/logger', () => ({ default: { info: vi.fn(), error: vi.fn() } }));
 
 vi.mock('@/integrations/supabase/client', () => {
@@ -45,40 +42,27 @@ vi.mock('@/integrations/supabase/client', () => {
           })
         };
       }
-      if (table === 'test_results') {
-        return {
-          insert: (data: any) => {
-            inserts.push(data);
-            return Promise.resolve({ data: null, error: null });
-          }
-        };
-      }
       return {};
     }
   } as any;
   return { supabase };
 });
 
-async function logResult(name: string, passed: boolean) {
-  await supabase.from('test_results').insert({ test_name: name, status: passed ? 'passed' : 'failed' });
+function logResult(name: string, passed: boolean) {
+  console.log(`Test: ${name} - ${passed ? 'PASSED' : 'FAILED'}`);
 }
 
 describe('BookingManagement', () => {
-  beforeEach(() => {
-    inserts.length = 0;
-  });
-
   it('displays bookings from supabase', async () => {
     const testName = 'BookingManagement displays bookings';
     try {
       render(<BookingManagement />);
       expect(await screen.findByText('AAA111')).toBeInTheDocument();
-      await logResult(testName, true);
+      logResult(testName, true);
     } catch (err) {
-      await logResult(testName, false);
+      logResult(testName, false);
       throw err;
     }
-    expect(inserts.find(r => r.test_name === testName)?.status).toBe('passed');
   });
 
   it('filters bookings by search term', async () => {
@@ -89,12 +73,10 @@ describe('BookingManagement', () => {
       const input = screen.getByPlaceholderText('Search by booking reference or ID...');
       fireEvent.change(input, { target: { value: 'BBB222' } });
       expect(screen.queryByText('AAA111')).not.toBeInTheDocument();
-      await logResult(testName, true);
+      logResult(testName, true);
     } catch (err) {
-      await logResult(testName, false);
+      logResult(testName, false);
       throw err;
     }
-    expect(inserts.find(r => r.test_name === testName)?.status).toBe('passed');
   });
 });
-

@@ -34,14 +34,6 @@ Deno.test("bulk booking retry operation", async () => {
       if (table === 'booking_status_history') {
         return { insert: () => Promise.resolve({ data: null, error: null }) };
       }
-      if (table === 'test_results') {
-        return {
-          insert: (data: any) => {
-            inserts.push(data);
-            return Promise.resolve({ data: null, error: null });
-          }
-        };
-      }
       return {};
     },
     functions: { invoke: () => Promise.resolve({ data: {}, error: null }) }
@@ -62,10 +54,7 @@ Deno.test("bulk booking retry operation", async () => {
 
   assertEquals(data.results[0].status, 'success');
 
-  await supabaseStub.from('test_results').insert({
-    test_name: 'bulk booking retry operation',
-    status: data.results[0].status === 'success' ? 'passed' : 'failed'
-  });
-  assertEquals(inserts[0].status, 'passed');
+  console.log(`Test: bulk booking retry operation - ${data.results[0].status === 'success' ? 'PASSED' : 'FAILED'}`);
+  assertEquals(data.results[0].status, 'success');
 });
 
