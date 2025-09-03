@@ -1,13 +1,10 @@
+import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import logger from "../_shared/logger.ts";
 import { ENV_CONFIG } from "../_shared/config.ts";
 import { getSabreAccessToken } from "../_shared/sabre.ts";
 import { generateHotelBedsSignature } from "../_shared/hotelbeds.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 interface ComplianceTestResult {
   provider: string;
