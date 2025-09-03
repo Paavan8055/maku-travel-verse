@@ -8,6 +8,7 @@ import { MobileTestingSuite } from '@/components/testing/MobileTestingSuite';
 import { PerformanceValidationDashboard } from '@/components/testing/PerformanceValidationDashboard';
 import { HealthCheckValidator } from '@/components/testing/HealthCheckValidator';
 import { ProductionValidationSuite } from '@/components/testing/ProductionValidationSuite';
+import { ComprehensiveTestSuite } from '@/components/testing/ComprehensiveTestSuite';
 
 export default function Testing() {
   const [activeTab, setActiveTab] = useState('e2e');
@@ -23,7 +24,11 @@ export default function Testing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="comprehensive" className="flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              All Tests
+            </TabsTrigger>
             <TabsTrigger value="e2e" className="flex items-center gap-2">
               <TestTube className="h-4 w-4" />
               E2E Tests
@@ -45,6 +50,25 @@ export default function Testing() {
               Production
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="comprehensive" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TestTube className="h-5 w-5" />
+                  Comprehensive Test Suite
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Badge variant="outline">All Categories</Badge>
+                  <Badge variant="outline">Automated Testing</Badge>
+                  <Badge variant="outline">Performance Monitoring</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ComprehensiveTestSuite />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="e2e" className="space-y-6">
             <Card>

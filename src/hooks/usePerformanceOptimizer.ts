@@ -1,171 +1,161 @@
-import { useEffect, useCallback, useRef } from 'react';
-import { useErrorHandler } from './useErrorHandler';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PerformanceMetrics {
-  component: string;
   renderTime: number;
-  memoryUsage?: number;
-  timestamp: number;
+  memoryUsage: number;
+  rerenderCount: number;
+  lastRenderTime: number;
 }
 
 interface UsePerformanceOptimizerOptions {
   componentName: string;
   enableMonitoring?: boolean;
-  memoryThreshold?: number; // MB
   reportToAnalytics?: boolean;
+  memoryThreshold?: number;
 }
 
-export const usePerformanceOptimizer = ({
-  componentName,
-  enableMonitoring = true,
-  memoryThreshold = 50,
-  reportToAnalytics = false
-}: UsePerformanceOptimizerOptions) => {
-  const { handleError } = useErrorHandler();
-  const renderStart = useRef<number>(0);
-  const renderCount = useRef<number>(0);
-  const lastReportTime = useRef<number>(0);
+export const usePerformanceOptimizer = (options: UsePerformanceOptimizerOptions) => {
+  const {
+    componentName,
+    enableMonitoring = true,
+    reportToAnalytics = false,
+    memoryThreshold = 50
+  } = options;
 
-  // Performance measurement
+  const [metrics, setMetrics] = useState<PerformanceMetrics>({
+    renderTime: 0,
+    memoryUsage: 0,
+    rerenderCount: 0,
+    lastRenderTime: 0
+  });
+
+  const startTimeRef = useRef<number>(0);
+  const renderCountRef = useRef<number>(0);
+  const memoryCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const startRender = useCallback(() => {
     if (!enableMonitoring) return;
-    renderStart.current = performance.now();
+    startTimeRef.current = performance.now();
   }, [enableMonitoring]);
 
   const endRender = useCallback(() => {
-    if (!enableMonitoring || !renderStart.current) return;
+    if (!enableMonitoring || startTimeRef.current === 0) return;
     
-    const renderTime = performance.now() - renderStart.current;
-    renderCount.current += 1;
-    
-    // Get memory usage if available
-    const memory = (performance as any).memory;
-    const memoryUsage = memory ? Math.round(memory.usedJSHeapSize / 1024 / 1024) : undefined;
-    
-    const metrics: PerformanceMetrics = {
-      component: componentName,
+    const renderTime = performance.now() - startTimeRef.current;
+    renderCountRef.current += 1;
+
+    setMetrics(prev => ({
+      ...prev,
       renderTime,
-      memoryUsage,
-      timestamp: Date.now()
-    };
+      lastRenderTime: renderTime,
+      rerenderCount: renderCountRef.current
+    }));
 
-    // Log performance issues
-    if (renderTime > 100) {
-      console.warn(`[Performance] Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms`);
+    // Report to analytics if enabled and render time is significant
+    if (reportToAnalytics && renderTime > 100) {
+      reportPerformanceMetrics(renderTime);
     }
 
-    if (memoryUsage && memoryUsage > memoryThreshold) {
-      console.warn(`[Performance] High memory usage in ${componentName}: ${memoryUsage}MB`);
+    startTimeRef.current = 0;
+  }, [enableMonitoring, reportToAnalytics, componentName]);
+
+  const checkMemoryUsage = useCallback(() => {
+    if (typeof performance !== 'undefined' && 'memory' in performance) {
+      const memory = (performance as any).memory;
+      const memoryUsage = Math.round((memory.usedJSHeapSize / memory.totalJSHeapSize) * 100);
+      
+      setMetrics(prev => ({
+        ...prev,
+        memoryUsage
+      }));
+
+      // Warn if memory usage is too high
+      if (memoryUsage > memoryThreshold) {
+        console.warn(`High memory usage in ${componentName}: ${memoryUsage}%`);
+      }
     }
+  }, [componentName, memoryThreshold]);
 
-    // Report to analytics (throttled to once per minute)
-    if (reportToAnalytics && Date.now() - lastReportTime.current > 60000) {
-      lastReportTime.current = Date.now();
-      reportMetrics(metrics);
-    }
-
-    renderStart.current = 0;
-  }, [componentName, enableMonitoring, memoryThreshold, reportToAnalytics]);
-
-  // Report metrics to backend
-  const reportMetrics = useCallback(async (metrics: PerformanceMetrics) => {
+  const reportPerformanceMetrics = async (renderTime: number) => {
     try {
-      // Send to analytics endpoint (if implemented)
-      fetch('/api/performance-metrics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metrics)
-      }).catch(() => {
-        // Silently fail - don't disrupt user experience
+      await supabase.functions.invoke('track-performance', {
+        body: {
+          component: componentName,
+          renderTime,
+          memoryUsage: metrics.memoryUsage,
+          rerenderCount: renderCountRef.current,
+          timestamp: new Date().toISOString()
+        }
       });
     } catch (error) {
-      // Log but don't throw
-      console.debug('Failed to report performance metrics:', error);
+      console.error('Failed to report performance metrics:', error);
     }
-  }, []);
+  };
 
-  // Memory cleanup helper
-  const cleanup = useCallback(() => {
-    // Force garbage collection if available (development only)
-    if (typeof window !== 'undefined' && (window as any).gc && process.env.NODE_ENV === 'development') {
+  const optimizeComponent = useCallback(() => {
+    // Force garbage collection if available (dev mode)
+    if (typeof window !== 'undefined' && (window as any).gc) {
       (window as any).gc();
     }
-  }, []);
 
-  // Lazy loading helper
-  const createLazyLoader = useCallback(<T,>(
-    loader: () => Promise<T>,
-    fallback?: T
-  ) => {
-    return async (): Promise<T> => {
-      try {
-        const start = performance.now();
-        const result = await loader();
-        const loadTime = performance.now() - start;
-        
-        if (loadTime > 1000) {
-          console.warn(`[Performance] Slow lazy load in ${componentName}: ${loadTime.toFixed(2)}ms`);
-        }
-        
-        return result;
-      } catch (error) {
-        handleError({
-          error,
-          options: {
-            context: `lazy-load-${componentName}`,
-            showToast: false
-          }
-        });
-        
-        if (fallback !== undefined) {
-          return fallback;
-        }
-        throw error;
-      }
-    };
-  }, [componentName, handleError]);
-
-  // Image optimization helper
-  const optimizeImage = useCallback((src: string, options?: {
-    width?: number;
-    height?: number;
-    quality?: number;
-    format?: 'webp' | 'avif' | 'jpg';
-  }) => {
-    const { width, height, quality = 80, format = 'webp' } = options || {};
+    // Reset render count
+    renderCountRef.current = 0;
     
-    // If using a CDN like Imagekit or Cloudinary, construct optimized URL
-    if (src.includes('imagekit.io') || src.includes('cloudinary.com')) {
-      let optimizedSrc = src;
-      
-      if (width || height) {
-        const dimensions = `w_${width || 'auto'},h_${height || 'auto'}`;
-        optimizedSrc = src.replace(/\/upload\//, `/upload/${dimensions},q_${quality},f_${format}/`);
-      }
-      
-      return optimizedSrc;
+    // Clear any pending timers
+    if (memoryCheckIntervalRef.current) {
+      clearInterval(memoryCheckIntervalRef.current);
     }
-    
-    // Fallback to original
-    return src;
   }, []);
 
-  // Auto-cleanup on unmount
   useEffect(() => {
+    if (!enableMonitoring) return;
+
+    // Check memory usage periodically
+    memoryCheckIntervalRef.current = setInterval(checkMemoryUsage, 5000);
+
     return () => {
-      cleanup();
+      if (memoryCheckIntervalRef.current) {
+        clearInterval(memoryCheckIntervalRef.current);
+      }
     };
-  }, [cleanup]);
+  }, [enableMonitoring, checkMemoryUsage]);
+
+  const optimizeImage = useCallback((imgElement: HTMLImageElement) => {
+    // Add lazy loading and optimize image
+    imgElement.loading = 'lazy';
+    imgElement.decoding = 'async';
+  }, []);
+
+  const createLazyLoader = useCallback(() => {
+    // Create intersection observer for lazy loading
+    return new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+          }
+        }
+      });
+    });
+  }, []);
+
+  const cleanup = useCallback(() => {
+    optimizeComponent();
+    // Additional cleanup if needed
+  }, [optimizeComponent]);
 
   return {
+    metrics,
     startRender,
     endRender,
-    cleanup,
-    createLazyLoader,
+    optimizeComponent,
     optimizeImage,
-    metrics: {
-      renderCount: renderCount.current,
-      componentName
-    }
+    createLazyLoader,
+    cleanup,
+    isHighMemoryUsage: metrics.memoryUsage > memoryThreshold,
+    isSlowRender: metrics.lastRenderTime > 16.67 // 60fps threshold
   };
 };
