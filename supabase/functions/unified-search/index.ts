@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.53.0";
 import logger from "../_shared/logger.ts";
+import SecurityValidator from "../_shared/securityUtils.ts";
 
 // Currency utilities (moved from src/utils/currency.ts for edge function compatibility)
 export const DEFAULT_CURRENCY = 'USD';
@@ -182,8 +183,45 @@ if (import.meta.main) {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const ip =
+    req.headers.get('x-forwarded-for') ??
+    req.headers.get('cf-connecting-ip') ??
+    'anonymous';
+  const rate = SecurityValidator.checkRateLimit(ip, 60, 60_000);
+  if (!rate.allowed) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Rate limit exceeded' }),
+      { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
-    const params: SearchParams = await req.json();
+    const requestData = await req.json().catch(() => ({}));
+    const { valid, errors, sanitizedData } = SecurityValidator.validateInput(
+      requestData,
+      {
+        type: { required: true, type: 'string', enum: ['flight', 'hotel', 'activity', 'car', 'transfer'] },
+        origin: { type: 'string', minLength: 2, maxLength: 100 },
+        destination: { required: true, type: 'string', minLength: 2, maxLength: 100 },
+        departureDate: { type: 'date' },
+        returnDate: { type: 'date' },
+        checkIn: { type: 'date' },
+        checkOut: { type: 'date' },
+        passengers: { type: 'number', min: 1, max: 9 },
+        guests: { type: 'number', min: 1, max: 9 },
+        rooms: { type: 'number', min: 1, max: 9 },
+        providers: { type: 'array' }
+      }
+    );
+
+    if (!valid) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid input', details: errors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const params: SearchParams = sanitizedData as SearchParams;
     const { type, providers = ['amadeus', 'hotelbeds', 'sabre', 'travelport'] } = params;
 
     logger.info('Unified search:', { type, providers, ...params });

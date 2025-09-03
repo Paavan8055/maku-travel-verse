@@ -4,13 +4,13 @@ project_id = "iomeddeasarntjhqzndu"
 verify_jwt = true
 
 [functions.production-readiness]
-verify_jwt = false
+verify_jwt = true
 
 [functions.unified-health-monitor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.provider-quota-monitor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.emergency-system-recovery]
 verify_jwt = true
@@ -22,13 +22,13 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.automated-recovery-scheduler]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-monitoring]
-verify_jwt = false
+verify_jwt = true
 
 [functions.comprehensive-health-monitor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-photos]
 verify_jwt = false
@@ -102,10 +102,10 @@ port = 54330
 verify_jwt = true
 
 [functions.create-booking-payment]
-verify_jwt = false
+verify_jwt = true
 
 [functions.stripe-webhook]
-verify_jwt = false
+verify_jwt = true
 
 [functions.unified-search]
 verify_jwt = false
@@ -174,7 +174,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.amadeus-health]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-search]
 verify_jwt = false
@@ -210,7 +210,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.create-card-payment-intent]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-hotel-booking]
 verify_jwt = true
@@ -219,31 +219,31 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.create-gift-card]
-verify_jwt = false
+verify_jwt = true
 
 [functions.validate-gift-card]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-gift-card-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-booking-confirmation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.guest-booking-lookup]
-verify_jwt = false
+verify_jwt = true
 
 [functions.get-stripe-publishable-key]
-verify_jwt = false
+verify_jwt = true
 
 [functions.security-cleanup]
-verify_jwt = false
+verify_jwt = true
 
 [functions.rate-limiter]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ai-training-anonymizer]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-offers]
 verify_jwt = false
@@ -252,19 +252,19 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.performance-monitor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-activity-booking]
 verify_jwt = true
 
 [functions.test-deployment]
-verify_jwt = false
+verify_jwt = true
 
 [functions.deployment-validator]
-verify_jwt = false
+verify_jwt = true
 
 [functions.critical-debug]
-verify_jwt = false
+verify_jwt = true
 
 [analytics]
 enabled = false
@@ -273,28 +273,28 @@ vector_port = 54328
 backend = "postgres"
 
 [functions.comprehensive-health-monitor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.configure-auth-security]
-verify_jwt = false
+verify_jwt = true
 
 [functions.production-booking-manager]
-verify_jwt = false
+verify_jwt = true
 
 [functions.booking-integrity-manager]
 verify_jwt = true
 
 [functions.enhanced-stripe-webhook]
-verify_jwt = false
+verify_jwt = true
 
 [functions.provider-rotation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-activities]
 verify_jwt = false
 
 [functions.credential-test]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-checkrates]
 verify_jwt = true
@@ -303,31 +303,31 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.hotelbeds-reconfirmation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-content]
 verify_jwt = true
 
 [functions.hotelbeds-monitoring]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-cancel-booking]
 verify_jwt = true
 
 [functions.environment-config]
-verify_jwt = false
+verify_jwt = true
 
 [functions.error-tracking]
-verify_jwt = false
+verify_jwt = true
 
 [functions.log-system-event]
-verify_jwt = false
+verify_jwt = true
 
 [functions.test-provider-rotation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-credential-test]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-flight-booking]
 verify_jwt = true
@@ -351,7 +351,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.sabre-air-ticket]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-activities]
 verify_jwt = false
@@ -366,34 +366,34 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.amadeus-order-create]
-verify_jwt = false
+verify_jwt = true
 
 [functions.comprehensive-testing]
 verify_jwt = true
 
 [functions.track-performance]
-verify_jwt = false
+verify_jwt = true
 
 [functions.enhanced-provider-health]
-verify_jwt = false
+verify_jwt = true
 
 [functions.test-infrastructure-activation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.self-healing-executor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.advanced-alerting]
-verify_jwt = false
+verify_jwt = true
 
 [functions.performance-optimizer]
-verify_jwt = false
+verify_jwt = true
 
 [functions.security-hardening]
-verify_jwt = false
+verify_jwt = true
 
 [functions.business-intelligence]
-verify_jwt = false
+verify_jwt = true
 
 [functions.scalability-manager]
-verify_jwt = false
+verify_jwt = true
