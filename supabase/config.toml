@@ -379,3 +379,12 @@ verify_jwt = false
 
 [functions.test-infrastructure-activation]
 verify_jwt = false
+
+[functions.self-healing-executor]
+verify_jwt = false
+
+[functions.advanced-alerting]
+verify_jwt = false
+
+[functions.performance-optimizer]
+verify_jwt = false
