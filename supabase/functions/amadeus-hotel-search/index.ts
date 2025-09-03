@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 import logger from "../_shared/logger.ts";
+import SecurityValidator from "../_shared/securityUtils.ts";
 import { ENV_CONFIG } from "../_shared/config.ts";
 import { getAmadeusAccessToken } from "../_shared/amadeus.ts";
 
@@ -257,6 +258,18 @@ function transformAmadeusHotels(hotelsData: any[]): any[] {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const ip =
+    req.headers.get('x-forwarded-for') ??
+    req.headers.get('cf-connecting-ip') ??
+    'anonymous';
+  const rate = SecurityValidator.checkRateLimit(ip, 30, 60_000);
+  if (!rate.allowed) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Rate limit exceeded' }),
+      { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   const requestId = crypto.randomUUID().substring(0, 8);
