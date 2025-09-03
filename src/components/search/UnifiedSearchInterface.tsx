@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import type { UnifiedSearchItem, UnifiedSearchResults } from '@/types/unified-search';
 
 interface SearchParams {
   type: 'flight' | 'hotel' | 'activity' | 'car' | 'transfer';
@@ -46,7 +47,7 @@ export default function UnifiedSearchInterface() {
   });
   
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<UnifiedSearchResults | null>(null);
 
   const handleSearch = async () => {
     if (!searchParams.destination) {
@@ -77,7 +78,7 @@ export default function UnifiedSearchInterface() {
         throw error;
       }
 
-      setResults(data);
+      setResults(data as UnifiedSearchResults);
       
       toast({
         title: "Search Complete",
@@ -147,6 +148,8 @@ export default function UnifiedSearchInterface() {
   const renderResults = () => {
     if (!results) return null;
 
+    const typedResults = results as UnifiedSearchResults;
+
     const resultKey = {
       'flight': 'flights',
       'hotel': 'hotels',
@@ -155,14 +158,14 @@ export default function UnifiedSearchInterface() {
       'transfer': 'transfers'
     }[searchParams.type] || 'items';
 
-    const items = results[resultKey] || [];
+    const items = (typedResults[resultKey as keyof UnifiedSearchResults] as UnifiedSearchItem[]) || [];
 
     return (
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Search Results</CardTitle>
           <div className="flex gap-2">
-            {Object.entries(results.resultCounts || {}).map(([provider, count]) => (
+            {Object.entries(typedResults.resultCounts || {}).map(([provider, count]) => (
               provider !== 'total' && (
                 <Badge key={provider} variant="secondary">
                   {provider}: {count as number}
@@ -173,7 +176,7 @@ export default function UnifiedSearchInterface() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {items.slice(0, 10).map((item: any, index: number) => (
+            {items.slice(0, 10).map((item: UnifiedSearchItem, index: number) => (
               <div key={index} className="border rounded-lg p-4">
                 <div className="flex justify-between items-start">
                   <div>
@@ -209,8 +212,8 @@ export default function UnifiedSearchInterface() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={searchParams.type} onValueChange={(value) => 
-            setSearchParams({ ...searchParams, type: value as any })
+          <Tabs value={searchParams.type} onValueChange={(value) =>
+            setSearchParams({ ...searchParams, type: value as SearchParams['type'] })
           }>
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="flight" className="flex items-center gap-2">
