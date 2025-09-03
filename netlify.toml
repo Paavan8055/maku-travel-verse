@@ -112,12 +112,15 @@
   [headers.values]
     Cache-Control = "public, max-age=300, must-revalidate"
 
-# TEMPORARILY DISABLED for troubleshooting redirect loop
-# [[redirects]]
-#   from = "https://maku.travel/*"
-#   to = "https://www.maku.travel/:splat"
-#   status = 301
-#   force = true
+
+# Redirect the apex domain to the canonical www host.
+# Scoped to production so deploy previews and branch deploys
+# don't get caught in a redirect loop.
+[[context.production.redirects]]
+  from = "https://maku.travel/*"
+  to = "https://www.maku.travel/:splat"
+  status = 301
+  force = true
 
 [[redirects]]
   from = "/*"
