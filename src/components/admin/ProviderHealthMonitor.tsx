@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useProviderHealth } from '@/hooks/useProviderHealth';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { 
   Activity, 
   CheckCircle, 
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const ProviderHealthMonitor = () => {
+const ProviderHealthMonitorContent = () => {
   const { providerHealth, isLoading, getProvidersByType, getOverallHealth, refresh } = useProviderHealth();
   const [emergencyRecoveryRunning, setEmergencyRecoveryRunning] = useState(false);
 
@@ -85,8 +86,8 @@ export const ProviderHealthMonitor = () => {
   };
 
   const overallHealth = getOverallHealth();
-  const criticalProviders = providerHealth.filter(p => p.status === 'unhealthy');
-  const degradedProviders = providerHealth.filter(p => p.status === 'degraded');
+  const criticalProviders = (providerHealth || []).filter(p => p?.status === 'unhealthy');
+  const degradedProviders = (providerHealth || []).filter(p => p?.status === 'degraded');
 
   return (
     <div className="space-y-6">
@@ -140,7 +141,7 @@ export const ProviderHealthMonitor = () => {
               </Badge>
             </div>
             <div className="text-sm text-muted-foreground">
-              {providerHealth.length} providers monitored
+              {(providerHealth || []).length} providers monitored
             </div>
           </div>
 
@@ -220,39 +221,62 @@ export const ProviderHealthMonitor = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {providerHealth.map((provider) => (
-              <div key={provider.provider} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  {getHealthIcon(provider.status)}
-                  <div>
-                    <h4 className="font-medium">{provider.provider.replace('-', ' ').toUpperCase()}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Last checked: {new Date(provider.lastChecked).toLocaleTimeString()}
-                    </p>
+            {(providerHealth || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No provider health data available
+              </p>
+            ) : (
+              (providerHealth || []).map((provider) => (
+                <div key={provider?.provider || 'unknown'} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {getHealthIcon(provider?.status || 'unknown')}
+                    <div>
+                      <h4 className="font-medium">{(provider?.provider || 'unknown').replace('-', ' ').toUpperCase()}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Last checked: {provider?.lastChecked ? new Date(provider.lastChecked).toLocaleTimeString() : 'Never'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="font-medium">{provider?.responseTime || 0}ms</div>
+                      <div className="text-muted-foreground">Response</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-medium">{provider?.errorCount || 0}</div>
+                      <div className="text-muted-foreground">Errors</div>
+                    </div>
+                    <Badge 
+                      variant={provider?.status === 'healthy' ? 'default' : 'destructive'}
+                      className={provider?.status === 'healthy' ? 'bg-green-500' : ''}
+                    >
+                      {provider?.status || 'unknown'}
+                    </Badge>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="text-center">
-                    <div className="font-medium">{provider.responseTime}ms</div>
-                    <div className="text-muted-foreground">Response</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium">{provider.errorCount}</div>
-                    <div className="text-muted-foreground">Errors</div>
-                  </div>
-                  <Badge 
-                    variant={provider.status === 'healthy' ? 'default' : 'destructive'}
-                    className={provider.status === 'healthy' ? 'bg-green-500' : ''}
-                  >
-                    {provider.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+};
+
+export const ProviderHealthMonitor = () => {
+  return (
+    <ErrorBoundary
+      fallback={
+        <Alert className="m-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Provider health monitoring is temporarily unavailable. Please refresh the page or try again later.
+          </AlertDescription>
+        </Alert>
+      }
+    >
+      <ProviderHealthMonitorContent />
+    </ErrorBoundary>
   );
 };
