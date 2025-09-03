@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.53.0";
 import logger from "../_shared/logger.ts";
+import { convertCurrency, DEFAULT_CURRENCY } from "../../../src/utils/currency.ts";
 
 
 interface SearchParams {
@@ -51,10 +52,10 @@ const callEdgeFunction = async (functionName: string, payload: any) => {
   return data;
 };
 
-const aggregateResults = (results: any[], type: string) => {
+const aggregateResults = async (results: any[], type: string) => {
   const resultKey = {
     'flight': 'flights',
-    'hotel': 'hotels', 
+    'hotel': 'hotels',
     'activity': 'activities',
     'car': 'cars',
     'transfer': 'transfers'
@@ -64,25 +65,45 @@ const aggregateResults = (results: any[], type: string) => {
     .filter(result => result && result.success)
     .flatMap(result => result[resultKey] || []);
 
-  // Sort by price (lowest first) and add source diversity
-  const sortedItems = allItems.sort((a, b) => {
-    const priceA = a.price?.amount || a.pricePerNight || 0;
-    const priceB = b.price?.amount || b.pricePerNight || 0;
+  const itemsWithCurrency = await Promise.all(allItems.map(async (item) => {
+    const amount = item.price?.amount ?? item.pricePerNight ?? item.totalPrice ?? 0;
+    const originalCurrency = item.price?.currency || item.currency || item.price?.currencyCode || DEFAULT_CURRENCY;
+
+    let normalizedAmount = amount;
+    try {
+      normalizedAmount = await convertCurrency(amount, originalCurrency, DEFAULT_CURRENCY);
+    } catch (err) {
+      logger.warn('Currency conversion failed:', err);
+    }
+
+    return {
+      ...item,
+      originalCurrency,
+      normalizedPrice: normalizedAmount,
+      normalizedCurrency: DEFAULT_CURRENCY
+    };
+  }));
+
+  const sortedItems = itemsWithCurrency.sort((a, b) => {
+    const priceA = a.normalizedPrice ?? 0;
+    const priceB = b.normalizedPrice ?? 0;
     return priceA - priceB;
   });
 
-  // Ensure we have a good mix of sources
   const diversifiedResults = [];
-  const sourceTracking = { amadeus: 0, hotelbeds: 0, sabre: 0, travelport: 0 };
-  
+  const sourceTracking: Record<string, number> = { amadeus: 0, hotelbeds: 0, sabre: 0, travelport: 0 };
+
   for (const item of sortedItems) {
     const source = item.source || 'unknown';
-    if (sourceTracking[source] < 15) { // Max 15 results per source
+    if (!sourceTracking[source]) {
+      sourceTracking[source] = 0;
+    }
+    if (sourceTracking[source] < 15) {
       diversifiedResults.push(item);
       sourceTracking[source]++;
     }
-    
-    if (diversifiedResults.length >= 60) break; // Max total results
+
+    if (diversifiedResults.length >= 60) break;
   }
 
   return diversifiedResults;
@@ -256,7 +277,7 @@ serve(async (req) => {
       .map(result => result.value);
 
     // Aggregate and sort results
-    const aggregatedResults = aggregateResults(successfulResults, type);
+    const aggregatedResults = await aggregateResults(successfulResults, type);
 
     const responseKey = {
       'flight': 'flights',
