@@ -18,10 +18,7 @@ import { MobileSearchSheet } from "@/components/MobileSearchSheet";
 
 const SearchSection = () => {
   const { t } = useTranslation();
-  const { startRender, endRender } = usePerformanceOptimizer({
-    componentName: 'SearchSection',
-    enableMonitoring: true
-  });
+  // EMERGENCY: Removed duplicate performance monitoring - already handled by HomePage wrapper
   const [destination, setDestination] = useState("");
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
@@ -71,7 +68,6 @@ const [activityChildren, setActivityChildren] = useState(0);
       return; // Basic validation
     }
     
-    startRender();
     const params = new URLSearchParams();
     
     params.set("destination", destination);
@@ -89,7 +85,6 @@ const [activityChildren, setActivityChildren] = useState(0);
     params.set("guests", guests); // Keep for backward compatibility
     params.set("searched", "true");
     
-    endRender();
     window.location.href = `/search/hotels?${params.toString()}`;
   };
 

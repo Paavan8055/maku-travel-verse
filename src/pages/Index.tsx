@@ -17,7 +17,7 @@ const AgenticWidget = lazy(() => import("@/features/agenticBot/components/Agenti
 const Index = () => {
   return (
     <ErrorBoundary>
-      <PerformanceWrapper componentName="HomePage">
+      <PerformanceWrapper componentName="HomePage" enableMonitoring={false}>
         <div className="min-h-screen bg-background">
           <SessionRecoveryBanner />
           <Navbar />
