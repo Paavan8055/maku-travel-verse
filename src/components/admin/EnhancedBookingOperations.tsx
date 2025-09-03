@@ -22,7 +22,8 @@ import {
   Download,
   Eye,
   RotateCcw,
-  Send
+  Send,
+  Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { correlationId } from '@/utils/correlationId';
@@ -63,6 +64,12 @@ export const EnhancedBookingOperations: React.FC = () => {
   const [communicationText, setCommunicationText] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [alertsError, setAlertsError] = useState<string | null>(null);
+  const [alertProcessingId, setAlertProcessingId] = useState<string | null>(null);
+  const [isCheckingTriggers, setIsCheckingTriggers] = useState(false);
+
   const communicationTemplates: CommunicationTemplate[] = [
     {
       id: 'delay-notification',
@@ -88,6 +95,30 @@ export const EnhancedBookingOperations: React.FC = () => {
   ];
 
   const [realBookings, setRealBookings] = useState<any[]>([]);
+
+  const fetchAlerts = useCallback(async () => {
+    setAlertsLoading(true);
+    setAlertsError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('critical-booking-alerts', {
+        body: {
+          action: 'get_active_alerts',
+          correlationId: correlationId.getCurrentId()
+        },
+        headers: correlationId.getHeaders()
+      });
+
+      if (error) throw error;
+
+      setAlerts(data?.active_alerts || []);
+    } catch (err) {
+      console.error('Failed to fetch alerts:', err);
+      setAlertsError('Failed to load alerts');
+      toast.error('Failed to load alerts');
+    } finally {
+      setAlertsLoading(false);
+    }
+  }, []);
 
   // Fetch real bookings data
   useEffect(() => {
@@ -146,6 +177,12 @@ export const EnhancedBookingOperations: React.FC = () => {
 
     fetchBookings();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'alerts') {
+      fetchAlerts();
+    }
+  }, [activeTab, fetchAlerts]);
 
   const performBulkOperation = useCallback(async (operationType: 'retry' | 'cancel' | 'refund') => {
     if (selectedBookings.length === 0) {
@@ -225,6 +262,54 @@ export const EnhancedBookingOperations: React.FC = () => {
     }
   }, [selectedBookings, communicationText, selectedTemplate, communicationTemplates]);
 
+  const resolveAlert = useCallback(async (alertId: string) => {
+    setAlertProcessingId(alertId);
+    try {
+      const { data, error } = await supabase.functions.invoke('critical-booking-alerts', {
+        body: {
+          action: 'resolve_alert',
+          booking_id: alertId,
+          correlationId: correlationId.getCurrentId()
+        },
+        headers: correlationId.getHeaders()
+      });
+
+      if (error) throw error;
+
+      toast.success('Alert resolved');
+      fetchAlerts();
+    } catch (err) {
+      console.error('Failed to resolve alert:', err);
+      toast.error('Failed to resolve alert');
+    } finally {
+      setAlertProcessingId(null);
+    }
+  }, [fetchAlerts]);
+
+  const checkTriggers = useCallback(async () => {
+    setIsCheckingTriggers(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('critical-booking-alerts', {
+        body: {
+          action: 'check_triggers',
+          correlationId: correlationId.getCurrentId()
+        },
+        headers: correlationId.getHeaders()
+      });
+
+      if (error) throw error;
+
+      const triggered = data?.alerts_triggered || 0;
+      toast.success(triggered > 0 ? `${triggered} alerts triggered` : 'No new alerts');
+      fetchAlerts();
+    } catch (err) {
+      console.error('Failed to check triggers:', err);
+      toast.error('Failed to check alerts');
+    } finally {
+      setIsCheckingTriggers(false);
+    }
+  }, [fetchAlerts]);
+
   const getLifecycleIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -248,6 +333,32 @@ export const EnhancedBookingOperations: React.FC = () => {
         return <Badge variant="outline">Cancelled</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getAlertStyles = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return {
+          container: 'bg-red-50 border-red-200',
+          icon: 'text-red-500',
+          title: 'text-red-700',
+          sub: 'text-red-600'
+        };
+      case 'high':
+        return {
+          container: 'bg-yellow-50 border-yellow-200',
+          icon: 'text-yellow-500',
+          title: 'text-yellow-700',
+          sub: 'text-yellow-600'
+        };
+      default:
+        return {
+          container: 'bg-blue-50 border-blue-200',
+          icon: 'text-blue-500',
+          title: 'text-blue-700',
+          sub: 'text-blue-600'
+        };
     }
   };
 
@@ -473,29 +584,61 @@ export const EnhancedBookingOperations: React.FC = () => {
                   <CardTitle className="text-lg">Critical Booking Alerts</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-red-700">Booking MAKU002 stuck in Provider Booking stage</div>
-                        <div className="text-sm text-red-600">Provider timeout after 30s. Manual intervention required.</div>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        Resolve
-                      </Button>
+                  {alertsLoading ? (
+                    <div className="flex justify-center py-6">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     </div>
-
-                    <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <Clock className="h-5 w-5 text-yellow-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-yellow-700">3 bookings pending confirmation</div>
-                        <div className="text-sm text-yellow-600">Awaiting provider response for over 10 minutes.</div>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        Check Status
-                      </Button>
+                  ) : alertsError ? (
+                    <div className="text-sm text-red-500">{alertsError}</div>
+                  ) : alerts.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No active alerts</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {alerts.map(alert => {
+                        const styles = getAlertStyles(alert.severity);
+                        return (
+                          <div
+                            key={alert.id}
+                            className={`flex items-center gap-2 p-3 border rounded-lg ${styles.container}`}
+                          >
+                            <AlertTriangle className={`h-5 w-5 ${styles.icon}`} />
+                            <div className="flex-1">
+                              <div className={`font-medium ${styles.title}`}>{alert.message}</div>
+                              {alert.booking_id && (
+                                <div className={`text-sm ${styles.sub}`}>Booking {alert.booking_id}</div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => resolveAlert(alert.id)}
+                                disabled={alertProcessingId === alert.id}
+                                className="gap-2"
+                              >
+                                {alertProcessingId === alert.id && (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                )}
+                                Resolve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={checkTriggers}
+                                disabled={isCheckingTriggers}
+                                className="gap-2"
+                              >
+                                {isCheckingTriggers && (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                )}
+                                Check Status
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
