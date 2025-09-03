@@ -72,6 +72,8 @@ export function EmergencyCleanupDashboard() {
   const runManualCleanup = async () => {
     setManualCleanupRunning(true);
     try {
+      toast.info('Starting manual cleanup...');
+      
       const { data, error } = await supabase.functions.invoke('enhanced-cleanup', {
         body: {
           trigger: 'manual_emergency',
@@ -80,11 +82,25 @@ export function EmergencyCleanupDashboard() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       if (data?.success) {
-        toast.success(`Manual cleanup completed: ${data.results?.total_processed || 0} bookings processed`);
-        await fetchStatus();
+        const processed = data.results?.total_processed || 0;
+        const errors = data.results?.errors || 0;
+        
+        if (errors > 0) {
+          toast.warning(`Cleanup completed with warnings: ${processed} bookings processed, ${errors} errors`);
+        } else {
+          toast.success(`Manual cleanup completed: ${processed} bookings processed successfully`);
+        }
+        
+        // Wait a moment before refreshing to allow database changes to propagate
+        setTimeout(async () => {
+          await fetchStatus();
+        }, 2000);
       } else {
         throw new Error(data?.error || 'Cleanup failed');
       }

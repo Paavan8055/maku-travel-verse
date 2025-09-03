@@ -14,9 +14,16 @@ serve(async (req) => {
   }
 
   try {
+    // Use service role key for admin operations
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     )
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
@@ -192,16 +199,18 @@ serve(async (req) => {
     }
 
     results.total_processed = results.travel_fund_expired + results.old_bookings_expired + results.stripe_synced
-
+    
+    const executionStartTime = Date.now()
+    
     // Log audit record
-    await supabaseClient.from('cleanup_audit').insert({
+    const { error: auditError } = await supabaseClient.from('cleanup_audit').insert({
       cleanup_type: 'enhanced_comprehensive',
-      triggered_by: 'automated',
+      triggered_by: body?.trigger || 'automated',
       bookings_processed: results.total_processed,
       bookings_expired: results.travel_fund_expired + results.old_bookings_expired,
       payments_cancelled: 0, // Count handled within stripe_synced
       errors_encountered: results.errors,
-      execution_time_ms: Date.now() - Date.now(),
+      execution_time_ms: Date.now() - executionStartTime,
       details: { 
         results, 
         correlationId,
@@ -212,6 +221,10 @@ serve(async (req) => {
         }
       }
     })
+    
+    if (auditError) {
+      logger.error('Error creating audit record', auditError, { correlationId })
+    }
 
     logger.info('Enhanced cleanup completed', { correlationId, results })
 

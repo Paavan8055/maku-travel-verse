@@ -5261,7 +5261,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "partner" | "user"
-      booking_status: "pending" | "confirmed" | "cancelled"
+      booking_status: "pending" | "confirmed" | "cancelled" | "expired"
       integration_status: "connected" | "disconnected" | "error" | "pending"
       partner_type:
         | "hotel"
@@ -5406,7 +5406,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "partner", "user"],
-      booking_status: ["pending", "confirmed", "cancelled"],
+      booking_status: ["pending", "confirmed", "cancelled", "expired"],
       integration_status: ["connected", "disconnected", "error", "pending"],
       partner_type: [
         "hotel",
