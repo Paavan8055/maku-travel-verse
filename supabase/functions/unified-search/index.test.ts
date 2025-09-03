@@ -4,7 +4,7 @@ import { stub, returnsNext, FakeTime } from "https://deno.land/std@0.190.0/testi
 
 // Mock environment variables
 Deno.env.set('SUPABASE_URL', 'https://test.supabase.co');
-Deno.env.set('SUPABASE_ANON_KEY', 'test-key');
+Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'test-key');
 
 // Mock global fetch for currency API calls
 const originalFetch = globalThis.fetch;
