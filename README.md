@@ -67,6 +67,23 @@ supabase functions deploy <function> --project-ref YOUR_REF
 3. Configure the same environment variables used locally (Supabase keys, provider API keys, Stripe keys, etc.).
 4. Deploy via the Netlify UI or `netlify deploy --prod`.
 
+### Vercel
+1. Connect this repository in the Vercel dashboard.
+2. Vercel uses `vercel.json` to run `npm run build` and serve the `dist` output directory.
+3. Add the following environment variables in **Project Settings → Environment Variables**:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `AMADEUS_CLIENT_ID`
+   - `AMADEUS_CLIENT_SECRET`
+   - `HOTELBEDS_API_KEY`
+   - `HOTELBEDS_API_SECRET`
+   - `SABRE_CLIENT_ID`
+   - `SABRE_CLIENT_SECRET`
+   - `STRIPE_SECRET_KEY`
+4. Preview deployments for pull requests and production builds from `main` mirror the Netlify setup.
+
 ## Tests
 Run the Vitest suite with:
 
