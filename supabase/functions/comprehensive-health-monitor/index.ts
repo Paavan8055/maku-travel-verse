@@ -1,10 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import { ENV_CONFIG, validateProductionReadiness, getMTLSConfig } from '../_shared/config.ts'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
 
 interface HealthCheckResult {
   service: string

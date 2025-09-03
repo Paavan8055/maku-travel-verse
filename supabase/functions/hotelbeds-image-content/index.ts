@@ -1,12 +1,9 @@
+import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
 import { getHotelBedsCredentials } from "../_shared/config.ts";
 import logger from "../_shared/logger.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 const generateHotelBedsSignature = async (apiKey: string, secret: string, timestamp: number): Promise<string> => {
   const stringToSign = apiKey + secret + timestamp;
