@@ -205,19 +205,48 @@ export const EnhancedBookingOperations: React.FC = () => {
 
       if (error) throw error;
 
-      const newOperations: BookingOperation[] = selectedBookings.map(bookingId => ({
-        id: `op-${Date.now()}-${bookingId}`,
-        bookingId,
+      const results = data?.results || [];
+
+      // Show toast for each result and update booking statuses
+      results.forEach((result: any) => {
+        const identifier = result.booking_reference || result.booking_id;
+        if (result.status === 'success') {
+          toast.success(`${operationType} succeeded for booking ${identifier}`);
+        } else if (result.status === 'failed') {
+          toast.error(`${operationType} failed for booking ${identifier}: ${result.error || result.message}`);
+        } else {
+          toast(`${operationType} skipped for booking ${identifier}: ${result.message}`);
+        }
+      });
+
+      // Update real bookings with new statuses
+      setRealBookings(prev =>
+        prev.map(booking => {
+          const res = results.find((r: any) => r.booking_id === booking.id && r.status === 'success');
+          if (!res) return booking;
+          let newStatus = booking.status;
+          if (operationType === 'retry') newStatus = 'pending';
+          if (operationType === 'cancel') newStatus = 'cancelled';
+          if (operationType === 'refund') newStatus = 'refunded';
+          return { ...booking, status: newStatus };
+        })
+      );
+
+      // Track operations history
+      const operationResults: BookingOperation[] = results.map((result: any) => ({
+        id: `op-${Date.now()}-${result.booking_id}`,
+        bookingId: result.booking_id,
         operationType,
-        status: 'processing',
+        status: result.status === 'failed' ? 'failed' : 'completed',
         requestedBy: 'admin',
-        requestedAt: new Date()
+        requestedAt: new Date(),
+        completedAt: new Date(),
+        notes: result.message || result.error
       }));
 
-      setOperations(prev => [...newOperations, ...prev]);
+      setOperations(prev => [...operationResults, ...prev]);
+
       setSelectedBookings([]);
-      
-      toast.success(`${operationType} operation initiated for ${selectedBookings.length} bookings`);
     } catch (err) {
       console.error('Bulk operation failed:', err);
       toast.error('Bulk operation failed');
