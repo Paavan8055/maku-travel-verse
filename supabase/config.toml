@@ -373,3 +373,9 @@ verify_jwt = true
 
 [functions.track-performance]
 verify_jwt = false
+
+[functions.enhanced-provider-health]
+verify_jwt = false
+
+[functions.test-infrastructure-activation]
+verify_jwt = false
