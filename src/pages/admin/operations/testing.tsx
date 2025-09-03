@@ -10,6 +10,7 @@ import HotelBedsMonitoringDashboard from '@/components/admin/HotelBedsMonitoring
 import { CredentialTestSuite } from '@/components/admin/CredentialTestSuite';
 import { FoundationRepairPanel } from '@/components/testing/FoundationRepairPanel';
 import { ProviderHealthMonitor } from '@/components/admin/ProviderHealthMonitor';
+import { EmergencyCleanupDashboard } from '@/components/admin/EmergencyCleanupDashboard';
 import { TestTube, Play, BarChart3, Settings, Globe, Shield, Wrench, Activity } from 'lucide-react';
 
 const AdminTestingPage = () => {
@@ -22,8 +23,12 @@ const AdminTestingPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="health-monitor" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+      <Tabs defaultValue="emergency" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-9">
+          <TabsTrigger value="emergency" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Emergency
+          </TabsTrigger>
           <TabsTrigger value="health-monitor" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Health Monitor
@@ -57,6 +62,10 @@ const AdminTestingPage = () => {
             A/B Testing
           </TabsTrigger>
           </TabsList>
+
+        <TabsContent value="emergency">
+          <EmergencyCleanupDashboard />
+        </TabsContent>
 
           <TabsContent value="health-monitor">
             <ProviderHealthMonitor />
