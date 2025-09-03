@@ -67,7 +67,37 @@ export const HotelOffersDisplay = ({
       ...hotel
     };
     
-    setHotelBooking(selectedOffer, hotelData, [], 0);
+    // Convert HotelOffer to AmadeusHotelOffer format for store compatibility
+    const amadeusOffer = selectedOffer ? {
+      type: 'hotel-offer',
+      hotel: {
+        type: 'hotel',
+        hotelId: hotelId,
+        name: hotelName,
+        address: { lines: [], cityName: '', countryCode: '' },
+        ...hotelData
+      },
+                        available: true,
+                        offers: [{
+                          ...selectedOffer,
+                          price: {
+                            ...selectedOffer.price,
+                            fees: [],
+                            grandTotal: selectedOffer.price.total
+                          },
+                          room: {
+                            ...selectedOffer.room,
+                            description: typeof selectedOffer.room.description === 'string' 
+                              ? { text: selectedOffer.room.description, lang: 'en' }
+                              : selectedOffer.room.description
+                          }
+                        }],
+      self: selectedOffer.self
+    } : null;
+    
+    if (amadeusOffer) {
+      setHotelBooking(amadeusOffer, hotelData, [], 0);
+    }
 
     // Navigate to guest details page
     const params = new URLSearchParams({

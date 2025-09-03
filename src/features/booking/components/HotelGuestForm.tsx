@@ -78,8 +78,20 @@ export default function HotelGuestForm({ onChange, initial }: HotelGuestFormProp
     if (onChange) {
       const currentData = form.getValues();
       // Save form data to sessionStorage whenever it changes
-      if (isValid) {
-        useBookingStore.getState().setGuestInfo(currentData);
+      if (isValid && currentData.firstName && currentData.lastName && currentData.email) {
+        // Ensure required fields are present before saving
+        useBookingStore.getState().setGuestInfo({
+          firstName: currentData.firstName,
+          lastName: currentData.lastName, 
+          email: currentData.email,
+          phone: currentData.phone || '',
+          title: currentData.title,
+          arrivalTime: currentData.arrivalTime,
+          specialRequests: currentData.specialRequests,
+          roomPreferences: currentData.roomPreferences,
+          smsNotifications: currentData.smsNotifications,
+          emailUpdates: currentData.emailUpdates
+        });
       }
       onChange(currentData, isValid);
     }

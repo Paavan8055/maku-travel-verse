@@ -316,13 +316,62 @@ export const HotelCard = ({ hotel }: HotelCardProps) => {
                         offerId: selectedOffer.id
                       });
                       
-                      // Store detailed offer and add-ons using Zustand store
-                      useBookingStore.getState().setHotelBooking(
-                        selectedOffer,
-                        hotelData,
-                        selectedAddOns || [],
-                        addOnsTotal
-                      );
+                      // Convert to AmadeusHotelOffer format for store compatibility
+                      const amadeusOffer = {
+                        type: 'hotel-offer',
+                        hotel: {
+                          type: 'hotel',
+                          hotelId: hotelData.hotelId,
+                          name: hotelData.name,
+                           chainCode: hotel.amadeus?.chainCode || 'UNKNOWN',
+                           dupeId: String(hotel.amadeus?.dupeId || 0),
+                           cityCode: 'UNKNOWN',
+                           latitude: 0,
+                           longitude: 0,
+                           address: { 
+                             lines: [hotel.address || ''], 
+                             postalCode: '',
+                             cityName: '', 
+                             countryCode: '' 
+                           },
+                          ...hotelData
+                        },
+                        available: true,
+                         offers: [{
+                           ...selectedOffer,
+                           price: {
+                             ...selectedOffer.price,
+                             fees: [],
+                             grandTotal: selectedOffer.price.total
+                           },
+                           room: {
+                             ...selectedOffer.room,
+                             description: typeof selectedOffer.room.description === 'string' 
+                               ? { text: selectedOffer.room.description, lang: 'en' }
+                               : selectedOffer.room.description
+                           }
+                         }],
+                        self: selectedOffer.id
+                      };
+                      
+                       // Store detailed offer and add-ons using Zustand store
+                       const hotelBookingData = {
+                         hotel: amadeusOffer.hotel,
+                         checkInDate: selectedOffer.checkInDate,
+                         checkOutDate: selectedOffer.checkOutDate,
+                         nights: Math.ceil((new Date(selectedOffer.checkOutDate).getTime() - new Date(selectedOffer.checkInDate).getTime()) / (1000 * 60 * 60 * 24)),
+                         guestCount: selectedOffer.guests?.adults || 2,
+                         roomCount: 1,
+                         totalAmount: parseFloat(selectedOffer.price.total),
+                         currency: selectedOffer.price.currency
+                       };
+                       
+                       useBookingStore.getState().setHotelBooking(
+                         amadeusOffer,
+                         hotelBookingData,
+                         selectedAddOns || [],
+                         addOnsTotal
+                       );
                       
                       navigate(`/hotel-checkout?${params.toString()}`);
                     }}

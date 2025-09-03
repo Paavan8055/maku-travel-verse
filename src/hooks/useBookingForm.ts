@@ -11,15 +11,22 @@ interface GuestInfo {
 }
 
 interface PassengerInfo {
-  passengers: Array<{
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    passportNumber?: string;
-    nationality?: string;
-  }>;
-  contactEmail: string;
-  contactPhone: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: 'M' | 'F' | 'X';
+  title?: string;
+  middleName?: string;
+  passportNumber?: string;
+  passportExpiry?: string;
+  nationality?: string;
+  specialRequests?: string;
+  arrivalTime?: string;
+  roomPreferences?: string;
+  smsNotifications?: boolean;
+  emailUpdates?: boolean;
 }
 
 export const useBookingForm = () => {

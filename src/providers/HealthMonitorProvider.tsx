@@ -69,7 +69,7 @@ export const HealthMonitorProvider = ({ children }: { children: ReactNode }) => 
     );
 
     const dbCheck = withTimeout(
-      supabase.from('bookings').select('id').limit(1),
+      Promise.resolve(supabase.from('bookings').select('id').limit(1)),
       5000
     );
 
@@ -85,17 +85,15 @@ export const HealthMonitorProvider = ({ children }: { children: ReactNode }) => 
       apiError = apiResult.reason instanceof Error ? apiResult.reason.message : String(apiResult.reason);
     }
 
-    if (
-      dbResult.status === 'rejected' ||
-      (dbResult.status === 'fulfilled' && dbResult.value.error)
-    ) {
+    if (dbResult.status === 'rejected') {
       databaseStatus = 'unhealthy';
-      databaseError =
-        dbResult.status === 'rejected'
-          ? dbResult.reason instanceof Error
-            ? dbResult.reason.message
-            : String(dbResult.reason)
-          : dbResult.value.error?.message ?? 'unknown error';
+      databaseError = dbResult.reason instanceof Error ? dbResult.reason.message : String(dbResult.reason);
+    } else if (dbResult.status === 'fulfilled') {
+      const result = dbResult.value as { error?: { message?: string } };
+      if (result.error) {
+        databaseStatus = 'unhealthy';
+        databaseError = result.error.message ?? 'unknown error';
+      }
     }
 
     setStatus({

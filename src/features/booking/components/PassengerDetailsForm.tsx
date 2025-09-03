@@ -58,11 +58,19 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   const { user } = useAuth();
 
   // Load existing data from Zustand store on mount  
-  const getInitialData = () => {
+  const getInitialData = (): Partial<PassengerFormData> => {
     const { passengerInfo } = useBookingStore.getState();
     return {
-      title: "MR",
+      title: "MR" as const,
       acknowledge: false,
+      email: "",
+      phone: "",
+      firstName: "",
+      lastName: "",
+      specialRequests: "",
+      dateOfBirth: "",
+      nationality: "",
+      idDocument: "",
       ...passengerInfo,
       ...initial
     };
@@ -142,8 +150,19 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   const all = watch();
   useEffect(() => {
     // Save form data to sessionStorage whenever it changes
-    if (isValid && all) {
-      useBookingStore.getState().setPassengerInfo(all);
+    if (isValid && all && all.firstName && all.lastName && all.email && all.dateOfBirth) {
+      const passengerInfo = {
+        firstName: all.firstName,
+        lastName: all.lastName,
+        email: all.email,
+        phone: all.phone || '',
+        dateOfBirth: all.dateOfBirth,
+        gender: 'M' as const, // Default gender
+        title: all.title,
+        nationality: all.nationality,
+        specialRequests: all.specialRequests
+      };
+      useBookingStore.getState().setPassengerInfo(passengerInfo);
     }
     onChange?.(isValid ? all : null, isValid);
   }, [all, isValid, onChange]);
