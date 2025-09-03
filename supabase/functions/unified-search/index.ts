@@ -2,7 +2,38 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.53.0";
 import logger from "../_shared/logger.ts";
-import { convertCurrency, DEFAULT_CURRENCY } from "../../../src/utils/currency.ts";
+
+// Currency utilities (moved from src/utils/currency.ts for edge function compatibility)
+export const DEFAULT_CURRENCY = 'USD';
+
+const convertCurrency = async (
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string
+): Promise<number> => {
+  // This would integrate with a real currency conversion API
+  // For now, return the amount as-is for same currency or USD rates
+  if (fromCurrency === toCurrency) {
+    return amount;
+  }
+  
+  // Mock conversion rates - in production, use real API
+  const mockRates: Record<string, number> = {
+    'EUR_USD': 1.1,
+    'USD_EUR': 0.91,
+    'GBP_USD': 1.27,
+    'USD_GBP': 0.79,
+    'JPY_USD': 0.0067,
+    'USD_JPY': 149.5,
+    'AUD_USD': 0.67,
+    'USD_AUD': 1.49,
+  };
+  
+  const rateKey = `${fromCurrency}_${toCurrency}`;
+  const rate = mockRates[rateKey] || 1;
+  
+  return amount * rate;
+};
 
 
 interface SearchParams {
