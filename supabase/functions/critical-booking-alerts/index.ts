@@ -49,17 +49,19 @@ const ALERT_TRIGGERS: AlertTrigger[] = [
   }
 ];
 
-serve(async (req) => {
+export const handler = async (req: Request, supabase?: any) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    if (!supabase) {
+      supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+    }
 
     const { action, alert_type, booking_id, provider_id } = await req.json();
 
@@ -68,16 +70,16 @@ serve(async (req) => {
     switch (action) {
       case 'check_triggers':
         return await checkAllTriggers(supabase);
-      
+
       case 'manual_alert':
         return await createManualAlert(supabase, alert_type, booking_id, provider_id);
-      
+
       case 'resolve_alert':
         return await resolveAlert(supabase, booking_id);
-      
+
       case 'get_active_alerts':
         return await getActiveAlerts(supabase);
-      
+
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action specified' }),
@@ -87,14 +89,16 @@ serve(async (req) => {
   } catch (error) {
     console.error('[CRITICAL-ALERTS] Error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Critical alerts processing failed', 
-        details: error.message 
+      JSON.stringify({
+        error: 'Critical alerts processing failed',
+        details: error.message
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+};
+
+serve(handler);
 
 async function checkAllTriggers(supabase: any): Promise<Response> {
   const alertsTriggered = [];
