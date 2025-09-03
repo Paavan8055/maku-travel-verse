@@ -2,7 +2,7 @@
   "buildCommand": "npm run build:dev",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "installCommand": "npm ci",
+  "installCommand": "npm ci --legacy-peer-deps",
   "framework": "vite",
   "regions": ["syd1"],
   "functions": {
