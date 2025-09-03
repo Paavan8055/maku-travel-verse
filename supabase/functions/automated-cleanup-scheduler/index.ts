@@ -40,10 +40,9 @@ serve(async (req) => {
       logger.info('No recent cleanup found, triggering cleanup', { correlationId })
       
       const { data: cleanupResult, error: cleanupError } = await supabaseClient.functions.invoke('fix-stuck-bookings', {
-        body: { 
-          isAutomated: true,
-          correlationId,
-          timeoutMinutes: 10
+        body: {
+          automated: true,
+          timeout_minutes: 10
         }
       })
 
@@ -69,6 +68,13 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         )
+      }
+
+      if (cleanupResult?.triggered_by !== 'automated') {
+        logger.error('Cleanup function returned unexpected trigger source', {
+          correlationId,
+          triggeredBy: cleanupResult?.triggered_by
+        })
       }
 
       logger.info('Cleanup triggered successfully', { correlationId, result: cleanupResult })
