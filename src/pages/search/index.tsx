@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { Search, Filter, Grid, List } from "lucide-react";
@@ -21,8 +21,13 @@ const UnifiedSearchPage = () => {
   const { accessibilityProps } = useAccessibility({ announceChanges: true });
   
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [searchType, setSearchType] = useState<'all' | 'hotels' | 'flights' | 'activities' | 'cars'>(
-    (searchParams.get('type') as any) || 'all'
+  const allowedSearchTypes = ['all', 'hotels', 'flights', 'activities', 'cars'] as const;
+  type SearchType = typeof allowedSearchTypes[number];
+  const isSearchType = (value: string): value is SearchType =>
+    allowedSearchTypes.includes(value as SearchType);
+  const initialType = searchParams.get('type');
+  const [searchType, setSearchType] = useState<SearchType>(
+    initialType && isSearchType(initialType) ? initialType : 'all'
   );
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('relevance');
@@ -51,7 +56,10 @@ const UnifiedSearchPage = () => {
                 />
               </div>
               
-              <Select value={searchType} onValueChange={(value: any) => setSearchType(value)}>
+              <Select
+                value={searchType}
+                onValueChange={(value: SearchType) => setSearchType(value)}
+              >
                 <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
