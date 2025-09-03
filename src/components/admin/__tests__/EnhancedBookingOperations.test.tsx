@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { EnhancedBookingOperations } from '../EnhancedBookingOperations';
-import { supabase } from '@/integrations/supabase/client';
 import { vi, expect } from 'vitest';
 import React from 'react';
 
@@ -16,7 +15,6 @@ const mockBookingRow = {
   updated_at: new Date().toISOString()
 };
 
-const inserts: any[] = [];
 var invokeMock: any;
 
 vi.mock('@/integrations/supabase/client', () => {
@@ -45,14 +43,6 @@ vi.mock('@/integrations/supabase/client', () => {
       if (table === 'booking_status_history') {
         return { insert: () => Promise.resolve({ data: null, error: null }) };
       }
-      if (table === 'test_results') {
-        return {
-          insert: (data: any) => {
-            inserts.push(data);
-            return Promise.resolve({ data: null, error: null });
-          }
-        };
-      }
       return {};
     },
     functions: { invoke: invokeMock }
@@ -60,14 +50,13 @@ vi.mock('@/integrations/supabase/client', () => {
   return { supabase };
 });
 
-async function logResult(name: string, passed: boolean) {
-  await supabase.from('test_results').insert({ test_name: name, status: passed ? 'passed' : 'failed' });
+function logResult(name: string, passed: boolean) {
+  console.log(`Test: ${name} - ${passed ? 'PASSED' : 'FAILED'}`);
 }
 
 describe('EnhancedBookingOperations', () => {
   beforeEach(() => {
     invokeMock.mockClear();
-    inserts.length = 0;
   });
 
   it('loads bookings and displays them', async () => {
@@ -75,12 +64,11 @@ describe('EnhancedBookingOperations', () => {
     try {
       render(<EnhancedBookingOperations />);
       expect(await screen.findByText('ABC123')).toBeInTheDocument();
-      await logResult(testName, true);
+      logResult(testName, true);
     } catch (err) {
-      await logResult(testName, false);
+      logResult(testName, false);
       throw err;
     }
-    expect(inserts.find(r => r.test_name === testName)?.status).toBe('passed');
   });
 
   it('performs bulk retry operation', async () => {
@@ -98,12 +86,10 @@ describe('EnhancedBookingOperations', () => {
           expect.objectContaining({ body: expect.objectContaining({ operationType: 'retry', bookingIds: ['1'] }) })
         );
       });
-      await logResult(testName, true);
+      logResult(testName, true);
     } catch (err) {
-      await logResult(testName, false);
+      logResult(testName, false);
       throw err;
     }
-    expect(inserts.find(r => r.test_name === testName)?.status).toBe('passed');
   });
 });
-
