@@ -24,15 +24,6 @@ verify_jwt = true
 [functions.automated-recovery-scheduler]
 verify_jwt = true
 
-[functions.hotelbeds-monitoring]
-verify_jwt = true
-
-[functions.comprehensive-health-monitor]
-verify_jwt = true
-
-[functions.amadeus-hotel-photos]
-verify_jwt = false
-
 [api]
 enabled = true
 port = 54321
@@ -108,28 +99,28 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.unified-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-flight-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-list]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-offers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-details]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-photos]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-ratings]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-booking]
 verify_jwt = true
@@ -138,7 +129,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.amadeus-flight-offers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-flight-price-confirm]
 verify_jwt = true
@@ -147,58 +138,58 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.amadeus-seat-map]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-locations-autocomplete]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-hotel-autocomplete]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-points-of-interest]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-safe-place]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-activity-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-car-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-transfer-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-flight-inspiration]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-health]
 verify_jwt = true
 
 [functions.hotelbeds-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-autocomplete]
-verify_jwt = false
+verify_jwt = true
 
 [functions.activity-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.travelport-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-flight-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-hotel-search]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-locations-autocomplete]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-flight-offers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.verify-booking-payment]
 verify_jwt = true
@@ -246,7 +237,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.generate-offers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.health-check]
 verify_jwt = false
@@ -291,7 +282,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.hotelbeds-activities]
-verify_jwt = false
+verify_jwt = true
 
 [functions.credential-test]
 verify_jwt = true
@@ -348,22 +339,19 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.sabre-flight-price]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-air-ticket]
 verify_jwt = true
 
 [functions.sabre-activities]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sabre-hotel-content]
-verify_jwt = false
+verify_jwt = true
 
 [functions.hotelbeds-image-content]
-verify_jwt = false
-
-[functions.sabre-flight-price]
-verify_jwt = false
+verify_jwt = true
 
 [functions.amadeus-order-create]
 verify_jwt = true

@@ -2,6 +2,22 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.53.0";
 
+const RATE_LIMIT_WINDOW = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 60; // max requests per window
+const requests = new Map<string, { count: number; start: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = requests.get(ip);
+  if (!entry || now - entry.start > RATE_LIMIT_WINDOW) {
+    requests.set(ip, { count: 1, start: now });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return true;
+  entry.count++;
+  return false;
+}
+
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -29,6 +45,29 @@ interface ServiceHealth {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method !== 'GET') {
+    return new Response(
+      JSON.stringify({ error: 'method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const url = new URL(req.url);
+  if ([...url.searchParams.keys()].length > 0) {
+    return new Response(
+      JSON.stringify({ error: 'query parameters are not allowed' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
+  if (isRateLimited(ip)) {
+    return new Response(
+      JSON.stringify({ error: 'rate limit exceeded' }),
+      { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   const startTime = performance.now();
