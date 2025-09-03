@@ -47,7 +47,7 @@ export const convertCurrency = async (
       }
       throw new Error('Missing OPEN_EXCHANGE_RATES_API_KEY');
     } catch (err) {
-      logger.warn('Primary currency API failed, falling back', err);
+        logger.warn('Primary currency API failed, falling back', err.message);
       const url = `https://api.exchangerate.host/convert?from=${fromCurrency}&to=${toCurrency}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
@@ -64,7 +64,7 @@ export const convertCurrency = async (
     RATE_CACHE[cacheKey] = { rate, timestamp: now };
     return amount * rate;
   } catch (err) {
-    logger.warn('Currency conversion failed, using fallback', err);
+      logger.warn('Currency conversion failed, using fallback', err.message);
     if (cached) {
       return amount * cached.rate;
     }
@@ -100,20 +100,20 @@ interface SearchParams {
 
 const callEdgeFunction = async (functionName: string, payload: any) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-  
-  if (!supabaseUrl || !supabaseAnonKey) {
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Supabase configuration missing');
   }
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-  
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   const { data, error } = await supabase.functions.invoke(functionName, {
     body: payload
   });
 
   if (error) {
-    logger.warn(`${functionName} search failed:`, error);
+    logger.warn(`${functionName} search failed: ${error.message}`);
     return null;
   }
 
@@ -141,7 +141,7 @@ export const aggregateResults = async (results: any[], type: string) => {
     try {
       normalizedAmount = await convertCurrency(amount, originalCurrency, DEFAULT_CURRENCY);
     } catch (err) {
-      logger.warn('Currency conversion failed:', err);
+      logger.warn('Currency conversion failed:', err.message);
     }
 
     return {
@@ -178,9 +178,18 @@ export const aggregateResults = async (results: any[], type: string) => {
 };
 
 if (import.meta.main) {
-  serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const authHeader = req.headers.get('Authorization');
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!authHeader || !serviceKey || authHeader !== `Bearer ${serviceKey}`) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   const ip =
@@ -411,7 +420,7 @@ if (import.meta.main) {
     });
 
   } catch (error) {
-    logger.error('Unified search error:', error);
+      logger.error('Unified search error:', error.message);
     return new Response(JSON.stringify({
       success: false,
       error: error.message,
