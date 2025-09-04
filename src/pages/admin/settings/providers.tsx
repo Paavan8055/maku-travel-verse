@@ -2,9 +2,10 @@ import React from 'react';
 import { EmergencyProviderPanel } from '@/components/admin/EmergencyProviderPanel';
 import { ProviderCredentialStatus } from '@/components/admin/ProviderCredentialStatus';
 import { ProviderConfiguration } from '@/components/admin/ProviderConfiguration';
+import { SystemRecoveryOrchestrator } from '@/components/admin/SystemRecoveryOrchestrator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, Settings, Shield } from 'lucide-react';
+import { AlertTriangle, Settings, Shield, Wrench } from 'lucide-react';
 
 const AdminProvidersSettingsPage = () => {
   return (
@@ -16,8 +17,12 @@ const AdminProvidersSettingsPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="emergency" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="recovery" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="recovery" className="flex items-center gap-2">
+            <Wrench className="h-4 w-4" />
+            System Recovery
+          </TabsTrigger>
           <TabsTrigger value="emergency" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             Emergency Recovery
@@ -31,6 +36,10 @@ const AdminProvidersSettingsPage = () => {
             Configuration
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="recovery" className="space-y-6 mt-6">
+          <SystemRecoveryOrchestrator />
+        </TabsContent>
 
         <TabsContent value="emergency" className="space-y-6 mt-6">
           <Card>
