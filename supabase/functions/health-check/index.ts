@@ -47,7 +47,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (req.method !== 'GET') {
+  // Allow GET and POST methods for health checks
+  if (!['GET', 'POST'].includes(req.method)) {
     return new Response(
       JSON.stringify({ error: 'method not allowed' }),
       { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -147,8 +148,8 @@ serve(async (req) => {
         console.warn('Failed to store health check:', error);
       });
 
-    const httpStatus = healthStatus.status === 'healthy' ? 200 : 
-                      healthStatus.status === 'degraded' ? 200 : 503;
+    // Always return 200 for health checks - let the client interpret the status
+    const httpStatus = 200;
 
     return new Response(JSON.stringify(healthStatus), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

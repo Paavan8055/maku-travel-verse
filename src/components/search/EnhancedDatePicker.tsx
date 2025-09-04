@@ -170,8 +170,8 @@ export const EnhancedDatePicker = ({
                 lowest: dayClassName(new Date()),
                 goodDeal: "bg-blue-50 border-blue-200"
               }}
-              components={{
-                DayContent: ({ date }) => renderDayContent(date)
+              formatters={{
+                formatDay: (date) => renderDayContent(date) ? '' : date.getDate().toString()
               }}
             />
           </TabsContent>
