@@ -8,10 +8,17 @@ interface ImageOptimizerProps {
   width?: number;
   height?: number;
   className?: string;
+  containerClassName?: string;
   lazy?: boolean;
+  priority?: boolean;
   quality?: number;
   placeholder?: string;
+  fallback?: string;
+  blurDataURL?: string;
+  aspectRatio?: 'square' | 'video' | 'wide' | 'portrait';
+  sizes?: string;
   fetchPriority?: 'high' | 'low' | 'auto';
+  enablePerformanceTracking?: boolean;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -22,18 +29,27 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
   width,
   height,
   className,
+  containerClassName,
   lazy = true,
+  priority = false,
   quality = 80,
   placeholder,
+  fallback = '/placeholder.svg',
+  blurDataURL,
+  aspectRatio,
+  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
   fetchPriority = 'auto',
+  enablePerformanceTracking = true,
   onLoad,
   onError
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(!lazy);
+  const [isInView, setIsInView] = useState(!lazy || priority);
+  const [currentSrc, setCurrentSrc] = useState(blurDataURL || fallback);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadStartTime = useRef<number>(0);
 
   // Generate optimized image URL
   const getOptimizedSrc = useCallback((originalSrc: string) => {
@@ -153,9 +169,9 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
     }
   }, [width, height, quality, getOptimizedSrc]);
 
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading with performance tracking
   useEffect(() => {
-    if (!lazy) {
+    if (!lazy || priority) {
       setIsInView(true);
       return;
     }
@@ -167,12 +183,16 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
         const [entry] = entries;
         if (entry.isIntersecting) {
           setIsInView(true);
+          loadStartTime.current = performance.now();
+          if (enablePerformanceTracking) {
+            console.log(`Image loading started: ${src}`);
+          }
           observerRef.current?.disconnect();
         }
       },
       { 
         threshold: 0.1,
-        rootMargin: '50px'
+        rootMargin: '100px' // Increased for better UX
       }
     );
 
@@ -181,44 +201,75 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
     }
 
     return () => observerRef.current?.disconnect();
-  }, [lazy, isInView]);
+  }, [lazy, priority, isInView, src, enablePerformanceTracking]);
 
   const handleLoad = useCallback(() => {
+    setCurrentSrc(getOptimizedSrc(src));
     setIsLoading(false);
+    
+    if (enablePerformanceTracking && loadStartTime.current) {
+      const loadTime = performance.now() - loadStartTime.current;
+      console.log(`Image loaded in ${loadTime.toFixed(2)}ms: ${src}`);
+      
+      // Report slow loads
+      if (loadTime > 1000) {
+        console.warn(`Slow image load detected: ${src} (${loadTime.toFixed(2)}ms)`);
+      }
+    }
+    
     onLoad?.();
-  }, [onLoad]);
+  }, [onLoad, src, enablePerformanceTracking, getOptimizedSrc]);
 
   const handleError = useCallback(() => {
-    setIsLoading(false);
     setHasError(true);
+    setCurrentSrc(fallback);
+    setIsLoading(false);
     onError?.();
-  }, [onError]);
+  }, [onError, fallback]);
+
+  // Get aspect ratio classes
+  const aspectClasses = aspectRatio ? {
+    square: 'aspect-square',
+    video: 'aspect-video', 
+    wide: 'aspect-[16/9]',
+    portrait: 'aspect-[3/4]'
+  }[aspectRatio] : '';
 
   const optimizedSrc = getOptimizedSrc(src);
   const webpSrc = getWebPSrc(src);
 
-  // For non-lazy images, render immediately without conditional logic
-  if (!lazy) {
+  // For priority images, render immediately
+  if (priority || !lazy) {
     return (
-      <picture>
-        <source srcSet={webpSrc} type="image/webp" />
-        <img
-          src={optimizedSrc}
-          alt={alt}
-          width={width}
-          height={height}
-          loading="eager"
-          fetchPriority={fetchPriority}
-          decoding="sync"
-          className={cn(
-            'object-cover transition-opacity duration-300',
-            isLoading ? 'opacity-0' : 'opacity-100',
-            className
-          )}
-          onLoad={handleLoad}
-          onError={handleError}
-        />
-      </picture>
+      <div 
+        className={cn(
+          "relative overflow-hidden",
+          aspectClasses,
+          containerClassName
+        )}
+        style={!aspectRatio ? { width, height } : undefined}
+      >
+        <picture>
+          <source srcSet={webpSrc} type="image/webp" sizes={sizes} />
+          <img
+            src={currentSrc}
+            alt={alt}
+            width={width}
+            height={height}
+            sizes={sizes}
+            loading="eager"
+            fetchPriority={fetchPriority}
+            decoding="sync"
+            className={cn(
+              'w-full h-full object-cover transition-opacity duration-300',
+              isLoading ? 'opacity-0' : 'opacity-100',
+              className
+            )}
+            onLoad={handleLoad}
+            onError={handleError}
+          />
+        </picture>
+      </div>
     );
   }
 
@@ -227,23 +278,37 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
       ref={imgRef}
       className={cn(
         'relative overflow-hidden bg-muted',
-        className
+        aspectClasses,
+        containerClassName
       )}
-      style={{ width, height }}
+      style={!aspectRatio ? { width, height } : undefined}
     >
-      {(!lazy || isInView) && !hasError ? (
+      {/* Blur placeholder */}
+      {blurDataURL && isLoading && (
+        <img
+          src={blurDataURL}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover filter blur-sm scale-110"
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Main image */}
+      {isInView && !hasError ? (
         <picture>
-          <source srcSet={webpSrc} type="image/webp" />
+          <source srcSet={webpSrc} type="image/webp" sizes={sizes} />
           <img
-            src={optimizedSrc}
+            src={currentSrc}
             alt={alt}
             width={width}
             height={height}
-            loading={lazy ? "lazy" : "eager"}
+            sizes={sizes}
+            loading="lazy"
             fetchPriority={fetchPriority}
+            decoding="async"
             className={cn(
-              'object-cover transition-opacity duration-300',
-              isLoading ? 'opacity-0' : 'opacity-100',
+              'w-full h-full object-cover transition-all duration-500',
+              isLoading ? 'opacity-0 scale-105' : 'opacity-100 scale-100',
               className
             )}
             onLoad={handleLoad}
@@ -251,23 +316,32 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
           />
         </picture>
       ) : hasError ? (
-        <div className="flex items-center justify-center h-full bg-muted">
-          <ImageIcon className="h-8 w-8 text-muted-foreground" />
+        <div className="absolute inset-0 bg-muted/90 flex items-center justify-center">
+          <div className="text-center text-muted-foreground p-4">
+            <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+            <div className="text-sm">Failed to load image</div>
+          </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-full bg-muted">
-          {placeholder ? (
+        <div 
+          className="absolute inset-0 bg-muted animate-pulse"
+          role="img"
+          aria-label={`Loading ${alt}`}
+        >
+          {placeholder && (
             <img 
               src={placeholder} 
               alt="" 
-              className="object-cover opacity-50 blur-sm"
+              className="w-full h-full object-cover opacity-50 blur-sm"
             />
-          ) : (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Loading...</span>
-            </div>
           )}
+        </div>
+      )}
+
+      {/* Performance indicator for development */}
+      {enablePerformanceTracking && !isLoading && !hasError && process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded opacity-50">
+          ✓ Optimized
         </div>
       )}
     </div>
