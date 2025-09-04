@@ -1002,6 +1002,48 @@ export type Database = {
         }
         Relationships: []
       }
+      critical_alert_system: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       critical_alerts: {
         Row: {
           alert_type: string
@@ -4290,6 +4332,42 @@ export type Database = {
           test_result?: Json | null
           test_status?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      test_results: {
+        Row: {
+          created_at: string | null
+          environment: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          status: string
+          test_category: string
+          test_data: Json | null
+          test_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          environment?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          status: string
+          test_category: string
+          test_data?: Json | null
+          test_name: string
+        }
+        Update: {
+          created_at?: string | null
+          environment?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          status?: string
+          test_category?: string
+          test_data?: Json | null
+          test_name?: string
         }
         Relationships: []
       }
