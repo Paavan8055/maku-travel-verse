@@ -197,13 +197,44 @@ serve(async (req) => {
   try {
     const { 
       destination, 
+      cityCode,  // Add cityCode as alternate parameter
       checkIn, 
       checkOut, 
+      checkInDate,  // Add alternate date parameter names
+      checkOutDate,
       guests = 2, 
-      rooms = 1 
+      adults,  // Add alternate guest parameter
+      rooms = 1,
+      roomQuantity  // Add alternate room parameter
     } = await req.json();
 
-    logger.info('HotelBeds hotel search:', { destination, checkIn, checkOut, guests, rooms });
+    // Normalize parameters - handle different parameter names from provider-rotation
+    const normalizedDestination = destination || cityCode;
+    const normalizedCheckIn = checkIn || checkInDate;
+    const normalizedCheckOut = checkOut || checkOutDate;
+    const normalizedGuests = adults || guests;
+    const normalizedRooms = roomQuantity || rooms;
+
+    logger.info('HotelBeds hotel search:', { 
+      destination: normalizedDestination, 
+      checkIn: normalizedCheckIn, 
+      checkOut: normalizedCheckOut, 
+      guests: normalizedGuests, 
+      rooms: normalizedRooms 
+    });
+
+    // Validate required parameters
+    if (!normalizedDestination) {
+      logger.error('Missing destination parameter');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Missing destination parameter. Please provide either destination or cityCode.',
+        source: 'hotelbeds'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     // Enhanced destination code mapping
     const getCityMapping = () => {
@@ -269,13 +300,13 @@ serve(async (req) => {
     };
 
     const cityMapping = getCityMapping();
-    const destCode = cityMapping[destination.toLowerCase()];
+    const destCode = cityMapping[normalizedDestination.toLowerCase()];
     
     if (!destCode) {
-      logger.warn('Destination not found in mapping:', destination);
+      logger.warn('Destination not found in mapping:', normalizedDestination);
       return new Response(JSON.stringify({
         success: false,
-        error: `Destination "${destination}" is not supported. Please try a major city.`,
+        error: `Destination "${normalizedDestination}" is not supported. Please try a major city.`,
         source: 'hotelbeds',
         supportedDestinations: Object.keys(cityMapping).slice(0, 20) // Show some examples
       }), {
@@ -313,10 +344,10 @@ serve(async (req) => {
 
     const hotelResults = await searchHotels({
       destination: destCode,
-      checkIn,
-      checkOut,
-      adults: guests,
-      rooms
+      checkIn: normalizedCheckIn,
+      checkOut: normalizedCheckOut,
+      adults: normalizedGuests,
+      rooms: normalizedRooms
     });
 
     // Check if hotelResults has the expected structure
@@ -334,7 +365,13 @@ serve(async (req) => {
         success: true,
         source: 'hotelbeds',
         hotels: [],
-        searchCriteria: { destination, checkIn, checkOut, guests, rooms },
+        searchCriteria: { 
+          destination: normalizedDestination, 
+          checkIn: normalizedCheckIn, 
+          checkOut: normalizedCheckOut, 
+          guests: normalizedGuests, 
+          rooms: normalizedRooms 
+        },
         message: 'No hotels found for this destination and dates'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -468,7 +505,13 @@ serve(async (req) => {
       success: true,
       source: 'hotelbeds',
       hotels: transformedHotels,
-      searchCriteria: { destination, checkIn, checkOut, guests, rooms }
+      searchCriteria: { 
+        destination: normalizedDestination, 
+        checkIn: normalizedCheckIn, 
+        checkOut: normalizedCheckOut, 
+        guests: normalizedGuests, 
+        rooms: normalizedRooms 
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
