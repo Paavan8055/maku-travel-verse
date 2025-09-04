@@ -54,12 +54,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "buildCommand": "npm run build",
-  "crons": [
-    {
-      "path": "/api/health-check",
-      "schedule": "0 */5 * * * *"
-    }
-  ]
+  }
 }
