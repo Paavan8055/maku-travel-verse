@@ -339,7 +339,7 @@ export class SecurityValidator {
     if (typeof input === 'string') {
       // Remove SQL injection patterns
       return input
-        .replace(/[';--]/g, '')
+        .replace(/[';\-]|--/g, '')
         .replace(/\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b/gi, '')
         .trim();
     }
