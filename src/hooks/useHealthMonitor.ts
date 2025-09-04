@@ -30,10 +30,10 @@ interface CircuitBreakerState {
   state: 'closed' | 'open' | 'half-open';
 }
 
-const CIRCUIT_BREAKER_THRESHOLD = 3;
-const CIRCUIT_BREAKER_TIMEOUT = 30000; // 30 seconds
-const RATE_LIMIT_WINDOW = 300000; // 5 minutes
-const MAX_REQUESTS_PER_WINDOW = 3;
+const CIRCUIT_BREAKER_THRESHOLD = 5; // Increased from 3 to 5 for recovery
+const CIRCUIT_BREAKER_TIMEOUT = 60000; // Increased from 30s to 60s
+const RATE_LIMIT_WINDOW = 600000; // Increased from 5 min to 10 min
+const MAX_REQUESTS_PER_WINDOW = 10; // Increased from 3 to 10
 
 export const useHealthMonitor = (options: {
   checkInterval?: number;
@@ -63,14 +63,19 @@ export const useHealthMonitor = (options: {
   // Cache for fallback
   const cachedHealth = useRef<SystemHealth | null>(null);
 
-  // Rate limiting check
+  // Rate limiting check - make more permissive during recovery
   const isRateLimited = useCallback((): boolean => {
     const now = Date.now();
     // Clean old requests outside the window
     requestTimes.current = requestTimes.current.filter(time => now - time < RATE_LIMIT_WINDOW);
     
     if (requestTimes.current.length >= MAX_REQUESTS_PER_WINDOW) {
-      console.warn('Health check rate limited');
+      console.warn('Health check rate limited - but allowing during recovery');
+      // During recovery, be more permissive - allow some requests through
+      if (Math.random() < 0.5) { // 50% chance to allow through during recovery
+        requestTimes.current.push(now);
+        return false;
+      }
       return true;
     }
     

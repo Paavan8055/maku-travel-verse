@@ -43,25 +43,30 @@ interface ServiceHealth {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Allow GET and POST methods for health checks
+  console.log(`Health check called with method: ${req.method}`);
+
+  // Allow GET and POST methods for health checks - be more permissive during recovery
   if (!['GET', 'POST'].includes(req.method)) {
+    console.error(`Method not allowed: ${req.method}`);
     return new Response(
       JSON.stringify({ error: 'method not allowed' }),
       { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
-  const url = new URL(req.url);
-  if ([...url.searchParams.keys()].length > 0) {
-    return new Response(
-      JSON.stringify({ error: 'query parameters are not allowed' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+  // Remove query parameter restriction during recovery phase
+  // const url = new URL(req.url);
+  // if ([...url.searchParams.keys()].length > 0) {
+  //   return new Response(
+  //     JSON.stringify({ error: 'query parameters are not allowed' }),
+  //     { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  //   );
+  // }
 
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
   if (isRateLimited(ip)) {
