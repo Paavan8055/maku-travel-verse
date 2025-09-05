@@ -3,7 +3,7 @@ import { Search, Loader2 } from "lucide-react";
 import { SearchProviderIndicator } from "./ProviderStatus";
 
 interface SearchExecuteButtonProps {
-  searchType: 'flight' | 'hotel' | 'activity';
+  searchType: 'flight' | 'hotel' | 'activity' | 'flights' | 'hotels' | 'activities';
   isReady: boolean;
   isLoading: boolean;
   onExecute: () => void;
@@ -20,9 +20,20 @@ export const SearchExecuteButton = ({
   className = ""
 }: SearchExecuteButtonProps) => {
   const getButtonText = () => {
-    if (isLoading) return `Searching ${searchType}s...`;
-    if (!isReady) return `Prepare ${searchType} search`;
-    return `Search ${searchType}s`;
+    const typeMapping = {
+      flight: 'flights',
+      hotel: 'hotels', 
+      activity: 'activities',
+      flights: 'flights',
+      hotels: 'hotels',
+      activities: 'activities'
+    };
+    
+    const displayType = typeMapping[searchType as keyof typeof typeMapping] || searchType;
+    
+    if (isLoading) return `Searching ${displayType}...`;
+    if (!isReady) return `Prepare ${displayType} search`;
+    return `Search ${displayType}`;
   };
 
   const getIcon = () => {

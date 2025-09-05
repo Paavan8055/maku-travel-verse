@@ -4,7 +4,7 @@ import { CalendarIcon, MapPinIcon, UsersIcon, BedIcon, ClockIcon } from "lucide-
 import { format } from "date-fns";
 
 interface SearchSummaryProps {
-  searchType: 'flight' | 'hotel' | 'activity';
+  searchType: 'flight' | 'hotel' | 'activity' | 'flights' | 'hotels' | 'activities';
   searchParams: any;
   isReady: boolean;
   className?: string;
