@@ -8,6 +8,9 @@ import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/ui/loading-states';
 import logger from '@/utils/logger';
+import { AdminAIAssistant } from '@/features/admin/components/AdminAIAssistant';
+import { AdminProblemDetector } from '@/features/admin/components/AdminProblemDetector';
+import { AdminDataProvider } from '@/components/admin/RealTimeAdminData';
 
 interface ProviderHealth {
   provider: string;
@@ -253,12 +256,22 @@ export default function AdminDashboard() {
         </Card>
       )}
 
-      <Tabs defaultValue="providers" className="space-y-4">
+      <Tabs defaultValue="ai-assistant" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
           <TabsTrigger value="providers">Provider Health</TabsTrigger>
           <TabsTrigger value="bookings">Recent Bookings</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ai-assistant" className="space-y-4">
+          <AdminDataProvider>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AdminAIAssistant />
+              <AdminProblemDetector />
+            </div>
+          </AdminDataProvider>
+        </TabsContent>
 
         <TabsContent value="providers" className="space-y-4">
           <Card>
