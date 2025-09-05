@@ -16,7 +16,7 @@ import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import MultiCityFlightManager from "@/components/flight/MultiCityFlightManager";
-import { SabreDebugPanel } from "@/components/debug/SabreDebugPanel";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -723,12 +723,6 @@ const FlightSearchPage = () => {
         )}
       </div>
 
-      {/* Temporary Debug Panel - Remove after testing */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="container mx-auto px-4 py-8">
-          <SabreDebugPanel />
-        </div>
-      )}
 
       <FareSelectionDialog
         open={fareOpen}
