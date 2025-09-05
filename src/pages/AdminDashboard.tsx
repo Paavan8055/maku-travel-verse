@@ -14,6 +14,7 @@ import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
 import { SystemRecoveryDashboard } from '@/components/admin/SystemRecoveryDashboard';
 import { EmergencyRecoveryExecutor } from '@/components/admin/EmergencyRecoveryExecutor';
 import { EnhancedAIAssistant } from '@/features/admin/components/EnhancedAIAssistant';
+import { ProactiveIssueDetector } from '@/features/admin/components/ProactiveIssueDetector';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
