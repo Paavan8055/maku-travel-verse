@@ -675,11 +675,36 @@ const FlightSearchPage = () => {
         {error && !loading && (
           <div className="text-center py-12">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Search Error</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={handleSearch} variant="outline">
-              Try Again
-            </Button>
+            <h3 className="text-xl font-semibold mb-2">
+              {error.includes('temporarily unavailable') ? 'Service Temporarily Unavailable' : 'Search Error'}
+            </h3>
+            <div className="mb-4 space-y-2">
+              <p className="text-muted-foreground">{error}</p>
+              {error.includes('temporarily unavailable') && (
+                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mx-auto max-w-md">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    Our flight search providers are experiencing temporary issues. This usually resolves within a few minutes.
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={handleSearch} variant="outline">
+                Try Again
+              </Button>
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="ghost"
+                className="text-sm"
+              >
+                Refresh Page
+              </Button>
+            </div>
+            {error.includes('temporarily unavailable') && (
+              <p className="text-xs text-muted-foreground mt-4">
+                Last attempt: {new Date().toLocaleTimeString()}
+              </p>
+            )}
           </div>
         )}
 
