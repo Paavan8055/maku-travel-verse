@@ -141,12 +141,19 @@ export const SearchSummary = ({
   };
 
   const getTitle = () => {
-    const titles = {
-      flight: 'Flight Search Ready',
-      hotel: 'Hotel Search Ready',
-      activity: 'Activity Search Ready'
+    const typeMapping = {
+      flight: 'Flight',
+      hotel: 'Hotel', 
+      activity: 'Activity',
+      flights: 'Flight',
+      hotels: 'Hotel',
+      activities: 'Activity'
     };
-    return titles[searchType];
+    
+    const displayType = typeMapping[searchType as keyof typeof typeMapping] || 
+                       searchType.charAt(0).toUpperCase() + searchType.slice(1);
+    
+    return `${displayType} search ready`;
   };
 
   return (
