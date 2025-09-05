@@ -4,6 +4,7 @@ import { EmergencyFixPanel } from '@/components/EmergencyFixPanel';
 import { SystemHardeningPanel } from '@/components/SystemHardeningPanel';
 import { SecureAdminDashboard } from '@/components/SecureAdminDashboard';
 import { TestingFrameworkDashboard } from '@/components/TestingFrameworkDashboard';
+import { SabreDebugPanel } from '@/components/debug/SabreDebugPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
 
@@ -31,6 +32,9 @@ export const SecureAdminPanel = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <SecureAdminDashboard />
                   <TestingFrameworkDashboard />
+                </div>
+                <div className="w-full">
+                  <SabreDebugPanel />
                 </div>
               </CardContent>
             </Card>
