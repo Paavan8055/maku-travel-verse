@@ -4255,6 +4255,7 @@ export type Database = {
           duration_ms: number | null
           error_details: Json | null
           id: string
+          level: string | null
           log_level: string
           message: string
           metadata: Json | null
@@ -4269,6 +4270,7 @@ export type Database = {
           duration_ms?: number | null
           error_details?: Json | null
           id?: string
+          level?: string | null
           log_level?: string
           message: string
           metadata?: Json | null
@@ -4283,6 +4285,7 @@ export type Database = {
           duration_ms?: number | null
           error_details?: Json | null
           id?: string
+          level?: string | null
           log_level?: string
           message?: string
           metadata?: Json | null

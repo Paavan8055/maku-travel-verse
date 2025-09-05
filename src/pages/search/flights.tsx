@@ -16,6 +16,8 @@ import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import MultiCityFlightManager from "@/components/flight/MultiCityFlightManager";
+import { ProviderSystemTester } from "@/components/debug/ProviderSystemTester";
+import { DirectProviderTest } from "@/components/debug/DirectProviderTest";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -357,6 +359,12 @@ const FlightSearchPage = () => {
     <PerformanceWrapper componentName="FlightSearchPage">
       <div className="min-h-screen bg-background">
       <Navbar />
+      
+      {/* Debug Panel */}
+      <div className="container mx-auto px-4 py-4 space-y-4">
+        <ProviderSystemTester />
+        <DirectProviderTest />
+      </div>
       
       {hasSearched && (
         <FlightBookingProgress currentStep={1} />
