@@ -16,8 +16,6 @@ import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import MultiCityFlightManager from "@/components/flight/MultiCityFlightManager";
-import { ProviderSystemTester } from "@/components/debug/ProviderSystemTester";
-import { DirectProviderTest } from "@/components/debug/DirectProviderTest";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -116,13 +114,11 @@ const FlightSearchPage = () => {
   // Auto-trigger search on page load - simplified logic
   useEffect(() => {
     if (origin && destination && departureDate && !hasSearched) {
-      console.log("Auto-triggering search with:", { origin, destination, departureDate });
       setHasSearched(true);
     }
   }, [origin, destination, departureDate]);
 
   const handleSearch = () => {
-    console.log("Manual search triggered with:", currentSearchCriteria);
     setHasSearched(true);
     setShowModifySearch(false);
   };
@@ -172,7 +168,6 @@ const FlightSearchPage = () => {
   };
 
   const handleSelectFare = (flight: any, fare: any) => {
-    console.log('Flight selected:', flight, fare);
     
     // Store flight data for review page with real pricing and flight details
     const flightData = {
@@ -333,11 +328,8 @@ const FlightSearchPage = () => {
       price = parseFloat(flight.price.replace(/[^0-9.]/g, ''));
     }
     
-    console.log("Filtering flight with price:", price, "Range:", priceRange);
-    
     // Skip price filter if price is 0 or invalid
     if (price > 0 && (price < priceRange[0] || price > priceRange[1])) {
-      console.log("Flight filtered out by price:", price);
       return false;
     }
     
@@ -360,11 +352,6 @@ const FlightSearchPage = () => {
       <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Debug Panel */}
-      <div className="container mx-auto px-4 py-4 space-y-4">
-        <ProviderSystemTester />
-        <DirectProviderTest />
-      </div>
       
       {hasSearched && (
         <FlightBookingProgress currentStep={1} />
