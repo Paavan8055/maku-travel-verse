@@ -41,7 +41,7 @@ export const useHealthMonitor = (options: {
   onStatusChange?: (status: SystemHealth) => void;
 } = {}) => {
   const {
-    checkInterval = 10 * 60 * 1000, // 10 minutes - increased from too frequent checks
+    checkInterval = 30 * 60 * 1000, // 30 minutes - reduced frequency to prevent rate limiting
     enableAutoCheck = true,
     onStatusChange
   } = options;
