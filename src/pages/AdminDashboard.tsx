@@ -13,6 +13,7 @@ import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide'
 import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
 import { SystemRecoveryDashboard } from '@/components/admin/SystemRecoveryDashboard';
 import { EmergencyRecoveryExecutor } from '@/components/admin/EmergencyRecoveryExecutor';
+import { EnhancedAIAssistant } from '@/features/admin/components/EnhancedAIAssistant';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -21,7 +22,8 @@ import {
   TrendingUp,
   RefreshCw,
   Shield,
-  TestTube
+  TestTube,
+  Bot
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -113,8 +115,9 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="recovery" className="space-y-4">
+        <Tabs defaultValue="ai-assistant" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
             <TabsTrigger value="recovery">System Recovery</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="realtime">Real-Time</TabsTrigger>
@@ -125,6 +128,20 @@ const AdminDashboard = () => {
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="ai-assistant">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5" />
+                  AI Assistant for Step-by-Step Troubleshooting
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EnhancedAIAssistant />
+              </CardContent>
+            </Card>
+          </TabsContent>
           
           <TabsContent value="recovery">
         <EmergencyRecoveryExecutor />
