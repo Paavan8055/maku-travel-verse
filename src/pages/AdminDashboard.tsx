@@ -19,6 +19,9 @@ import { AdminIntegrationProvider } from '@/features/admin/context/AdminIntegrat
 import GuidedWorkflowManager from '@/features/admin/components/GuidedWorkflowManager';
 import SimplifiedAdminInterface from '@/features/admin/components/SimplifiedAdminInterface';
 import AdminTaskAssistant from '@/features/admin/components/AdminTaskAssistant';
+import { AdvancedTroubleshootingEngine } from '@/features/admin/components/AdvancedTroubleshootingEngine';
+import { KnowledgeManagementSystem } from '@/features/admin/components/KnowledgeManagementSystem';
+import { PredictiveAnalyticsDashboard } from '@/features/admin/components/PredictiveAnalyticsDashboard';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -28,7 +31,9 @@ import {
   RefreshCw,
   Shield,
   TestTube,
-  Bot
+  Bot,
+  Brain,
+  BookOpen
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -127,6 +132,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="simplified">Simplified View</TabsTrigger>
             <TabsTrigger value="workflows">Guided Workflows</TabsTrigger>
             <TabsTrigger value="tasks">Task Assistant</TabsTrigger>
+            <TabsTrigger value="troubleshooting">Advanced AI</TabsTrigger>
+            <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
+            <TabsTrigger value="predictive">Predictive Analytics</TabsTrigger>
             <TabsTrigger value="recovery">System Recovery</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="realtime">Real-Time</TabsTrigger>
@@ -162,6 +170,18 @@ const AdminDashboard = () => {
           
           <TabsContent value="tasks">
             <AdminTaskAssistant />
+          </TabsContent>
+          
+          <TabsContent value="troubleshooting">
+            <AdvancedTroubleshootingEngine />
+          </TabsContent>
+          
+          <TabsContent value="knowledge">
+            <KnowledgeManagementSystem />
+          </TabsContent>
+          
+          <TabsContent value="predictive">
+            <PredictiveAnalyticsDashboard />
           </TabsContent>
           
           <TabsContent value="recovery">
