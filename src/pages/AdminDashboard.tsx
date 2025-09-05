@@ -15,6 +15,10 @@ import { SystemRecoveryDashboard } from '@/components/admin/SystemRecoveryDashbo
 import { EmergencyRecoveryExecutor } from '@/components/admin/EmergencyRecoveryExecutor';
 import { EnhancedAIAssistant } from '@/features/admin/components/EnhancedAIAssistant';
 import { ProactiveIssueDetector } from '@/features/admin/components/ProactiveIssueDetector';
+import { AdminIntegrationProvider } from '@/features/admin/context/AdminIntegrationContext';
+import GuidedWorkflowManager from '@/features/admin/components/GuidedWorkflowManager';
+import SimplifiedAdminInterface from '@/features/admin/components/SimplifiedAdminInterface';
+import AdminTaskAssistant from '@/features/admin/components/AdminTaskAssistant';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -57,8 +61,9 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
+    <AdminIntegrationProvider>
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
@@ -119,6 +124,9 @@ const AdminDashboard = () => {
         <Tabs defaultValue="ai-assistant" className="space-y-4">
           <TabsList>
             <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
+            <TabsTrigger value="simplified">Simplified View</TabsTrigger>
+            <TabsTrigger value="workflows">Guided Workflows</TabsTrigger>
+            <TabsTrigger value="tasks">Task Assistant</TabsTrigger>
             <TabsTrigger value="recovery">System Recovery</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="realtime">Real-Time</TabsTrigger>
@@ -142,6 +150,18 @@ const AdminDashboard = () => {
                 <EnhancedAIAssistant />
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="simplified">
+            <SimplifiedAdminInterface />
+          </TabsContent>
+          
+          <TabsContent value="workflows">
+            <GuidedWorkflowManager />
+          </TabsContent>
+          
+          <TabsContent value="tasks">
+            <AdminTaskAssistant />
           </TabsContent>
           
           <TabsContent value="recovery">
@@ -222,8 +242,9 @@ const AdminDashboard = () => {
             <ProductionMonitoringDashboard />
           </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </AdminIntegrationProvider>
   );
 };
 
