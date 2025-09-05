@@ -22,6 +22,7 @@ import AdminTaskAssistant from '@/features/admin/components/AdminTaskAssistant';
 import { AdvancedTroubleshootingEngine } from '@/features/admin/components/AdvancedTroubleshootingEngine';
 import { KnowledgeManagementSystem } from '@/features/admin/components/KnowledgeManagementSystem';
 import { PredictiveAnalyticsDashboard } from '@/features/admin/components/PredictiveAnalyticsDashboard';
+import { GPT5NanoTester } from '@/features/admin/components/GPT5NanoTester';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -33,7 +34,8 @@ import {
   TestTube,
   Bot,
   Brain,
-  BookOpen
+  BookOpen,
+  Sparkles
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -135,6 +137,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="troubleshooting">Advanced AI</TabsTrigger>
             <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
             <TabsTrigger value="predictive">Predictive Analytics</TabsTrigger>
+            <TabsTrigger value="gpt5-nano">GPT-5 Nano</TabsTrigger>
             <TabsTrigger value="recovery">System Recovery</TabsTrigger>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="realtime">Real-Time</TabsTrigger>
@@ -182,6 +185,20 @@ const AdminDashboard = () => {
           
           <TabsContent value="predictive">
             <PredictiveAnalyticsDashboard />
+          </TabsContent>
+          
+          <TabsContent value="gpt5-nano">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  GPT-5 Nano Response API Tester
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <GPT5NanoTester />
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="recovery">
