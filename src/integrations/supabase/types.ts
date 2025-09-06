@@ -5157,6 +5157,107 @@ export type Database = {
           },
         ]
       }
+      support_messages: {
+        Row: {
+          attachments: Json
+          content: string
+          created_at: string
+          id: string
+          is_internal: boolean
+          message_type: string
+          sender_id: string | null
+          sender_type: string
+          ticket_id: string
+        }
+        Insert: {
+          attachments?: Json
+          content: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          message_type?: string
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id: string
+        }
+        Update: {
+          attachments?: Json
+          content?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          message_type?: string
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_agent: string | null
+          category: string
+          created_at: string
+          customer_satisfaction: number | null
+          description: string
+          escalation_level: number
+          id: string
+          metadata: Json
+          priority: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: string
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_agent?: string | null
+          category?: string
+          created_at?: string
+          customer_satisfaction?: number | null
+          description: string
+          escalation_level?: number
+          id?: string
+          metadata?: Json
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          ticket_number: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_agent?: string | null
+          category?: string
+          created_at?: string
+          customer_satisfaction?: number | null
+          description?: string
+          escalation_level?: number
+          id?: string
+          metadata?: Json
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       system_health_snapshots: {
         Row: {
           circuit_breakers_open: string[] | null
@@ -5924,6 +6025,51 @@ export type Database = {
           processed_at?: string
           response_data?: Json | null
           webhook_id?: string
+        }
+        Relationships: []
+      }
+      workflow_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          customer_satisfaction: number | null
+          escalation_level: number
+          id: string
+          session_data: Json
+          status: string
+          step_history: Json
+          updated_at: string
+          user_id: string | null
+          workflow_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          customer_satisfaction?: number | null
+          escalation_level?: number
+          id?: string
+          session_data?: Json
+          status?: string
+          step_history?: Json
+          updated_at?: string
+          user_id?: string | null
+          workflow_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          customer_satisfaction?: number | null
+          escalation_level?: number
+          id?: string
+          session_data?: Json
+          status?: string
+          step_history?: Json
+          updated_at?: string
+          user_id?: string | null
+          workflow_type?: string
         }
         Relationships: []
       }
