@@ -15,6 +15,8 @@ export { CorrelationTracker } from './CorrelationTracker';
 export { OperationalDashboard } from './OperationalDashboard';
 export { EnhancedBookingOperations } from './EnhancedBookingOperations';
 export { NotificationCenter } from './NotificationCenter';
+export { AgentManagementDashboard } from './AgentManagementDashboard';
+export { AgentTestingSuite } from './AgentTestingSuite';
 
 // Phase 4 & 5 exports
 export { ProviderPerformanceAnalytics } from '../analytics/ProviderPerformanceAnalytics';
