@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -61,51 +62,90 @@ const AgentMonitorDashboard: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Mock data - replace with real API calls
-    const mockTasks: AgentTask[] = [
-      {
-        id: '1',
-        agent_id: 'family-travel-planner',
-        user_id: 'user123',
-        intent: 'plan_complete_trip',
-        status: 'running',
-        progress: 65,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        agent_id: 'solo-travel-planner',
-        user_id: 'user456',
-        intent: 'find_accommodation',
-        status: 'completed',
-        progress: 100,
-        created_at: new Date(Date.now() - 300000).toISOString(),
-        updated_at: new Date().toISOString(),
-        result: { message: 'Found 12 solo-friendly accommodations' }
-      }
-    ];
+    const fetchData = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Fetch real tasks from database
+        const { data: tasksData, error: tasksError } = await supabase
+          .from('agentic_tasks')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
 
-    const mockStats: Record<string, AgentStats> = {
-      'family-travel-planner': {
-        total_tasks: 24,
-        active_tasks: 3,
-        success_rate: 95.8,
-        avg_completion_time: 4.2,
-        last_activity: new Date().toISOString()
-      },
-      'solo-travel-planner': {
-        total_tasks: 18,
-        active_tasks: 1,
-        success_rate: 98.1,
-        avg_completion_time: 3.8,
-        last_activity: new Date().toISOString()
+        if (tasksError) {
+          console.error('Error fetching tasks:', tasksError);
+        } else {
+          setTasks((tasksData || []) as AgentTask[]);
+        }
+
+        // Fetch agent statistics
+        const { data: memoryData, error: memoryError } = await supabase
+          .from('agentic_memory')
+          .select('agent_id')
+          .limit(1000);
+
+        if (memoryError) {
+          console.error('Error fetching memory data:', memoryError);
+        } else {
+          // Calculate agent stats from memory data
+          const stats: Record<string, AgentStats> = {};
+          
+          primaryAgents.forEach(agentId => {
+            const agentTasks = tasksData?.filter(t => t.agent_id === agentId) || [];
+            const activeTasks = agentTasks.filter(t => t.status === 'running' || t.status === 'pending');
+            const completedTasks = agentTasks.filter(t => t.status === 'completed');
+            const failedTasks = agentTasks.filter(t => t.status === 'failed');
+            
+            stats[agentId] = {
+              total_tasks: agentTasks.length,
+              active_tasks: activeTasks.length,
+              success_rate: agentTasks.length > 0 
+                ? (completedTasks.length / (completedTasks.length + failedTasks.length)) * 100 
+                : 0,
+              avg_completion_time: 3.5, // Placeholder
+              last_activity: agentTasks[0]?.updated_at || new Date().toISOString()
+            };
+          });
+          
+          setAgentStats(stats);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    setTasks(mockTasks);
-    setAgentStats(mockStats);
-    setIsLoading(false);
+    fetchData();
+
+    // Set up real-time subscription for task updates
+    const channel = supabase
+      .channel('admin-agent-monitor')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agentic_tasks'
+        },
+        (payload) => {
+          console.log('Real-time task update for admin:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setTasks(prev => [payload.new as any as AgentTask, ...prev.slice(0, 49)]);
+          } else if (payload.eventType === 'UPDATE') {
+            setTasks(prev => prev.map(task => 
+              task.id === payload.new.id ? payload.new as any as AgentTask : task
+            ));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const getStatusBadge = (status: string) => {
