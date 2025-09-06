@@ -39,7 +39,9 @@ const AGENT_CONFIGS = {
   'password-reset': { name: 'Password Reset Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   'booking-modification': { name: 'Booking Modification Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
   'refund-processing': { name: 'Refund Processing Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
-  'security-alert': { name: 'Security Alert Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'security-alert-handler': { name: 'Security Alert Handler', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'guided-workflow-orchestrator': { name: 'Guided Workflow Orchestrator', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'admin-dashboard-agent': { name: 'Admin Dashboard Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
   'user-support': { name: 'User Support Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
   'fraud-detection': { name: 'Fraud Detection Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
   'compliance-check': { name: 'Compliance Check Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
@@ -250,7 +252,11 @@ function buildAgentPrompt(agentId: string, config: any, intent: string, params: 
     
     'refund-processing': `You are a refund processing agent. Handle refund requests according to cancellation policies. Calculate refund amounts, process returns, and generate refund documentation.`,
     
-    'security-alert': `You are a security monitoring agent. Detect suspicious activities, generate security alerts, and recommend protective actions. Monitor for fraud patterns and unauthorized access.`,
+    'security-alert-handler': `You are a security alert handler agent. Process security threats, implement protective measures, and coordinate incident response. Monitor for suspicious activities and enforce security policies.`,
+    
+    'guided-workflow-orchestrator': `You are a workflow orchestration agent. Guide complex customer support processes through multi-step workflows. Route cases to appropriate agents, track progress, and ensure successful resolution.`,
+    
+    'admin-dashboard-agent': `You are an admin dashboard agent. Generate comprehensive administrative reports, aggregate system metrics, and provide executive insights. Analyze business performance and system health data.`,
     
     'system-health': `You are a system health monitoring agent. Monitor system performance, detect anomalies, and generate health reports. Track key metrics and alert on threshold breaches.`
   };
