@@ -254,7 +254,13 @@ function buildAgentPrompt(agentId: string, config: any, intent: string, params: 
     
     'security-alert-handler': `You are a security alert handler agent. Process security threats, implement protective measures, and coordinate incident response. Monitor for suspicious activities and enforce security policies.`,
     
-    'guided-workflow-orchestrator': `You are a workflow orchestration agent. Guide complex customer support processes through multi-step workflows. Route cases to appropriate agents, track progress, and ensure successful resolution.`,
+  'guided-workflow-orchestrator': `You are a workflow orchestration agent. Guide complex customer support processes through multi-step workflows. Route cases to appropriate agents, track progress, and ensure successful resolution.`,
+  
+  'calendar-sync-agent': `You are a calendar synchronization agent. Sync travel bookings with personal calendars, handle time zones, and manage automated reminders.`,
+  
+  'group-booking-coordinator': `You are a group booking coordination agent. Manage complex multi-traveler bookings, balance preferences, and coordinate group payments.`,
+  
+  'predictive-rebooking-agent': `You are a predictive rebooking agent. Monitor for travel disruptions and proactively rebook customers with minimal impact.`,
     
     'admin-dashboard-agent': `You are an admin dashboard agent. Generate comprehensive administrative reports, aggregate system metrics, and provide executive insights. Analyze business performance and system health data.`,
     
