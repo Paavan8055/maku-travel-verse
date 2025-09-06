@@ -184,6 +184,42 @@ export type Database = {
         }
         Relationships: []
       }
+      agentic_memory: {
+        Row: {
+          agent_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          memory_data: Json
+          memory_key: string
+          session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          memory_data?: Json
+          memory_key: string
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          memory_data?: Json
+          memory_key?: string
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agentic_orchestrations: {
         Row: {
           config: Json | null
@@ -5040,6 +5076,10 @@ export type Database = {
         Returns: Json
       }
       check_document_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_agent_memory: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
