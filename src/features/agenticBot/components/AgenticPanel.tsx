@@ -21,22 +21,34 @@ const AgenticPanel: React.FC<AgenticPanelProps> = ({
   const [activeTab, setActiveTab] = useState('plan');
   const { tasks, progress, createTask, cancelTask } = useAgenticTasks();
 
+  const getPrimaryAgentId = () => {
+    const agentMap = {
+      'Family': 'family-travel-planner',
+      'Solo': 'solo-travel-planner', 
+      'Pet': 'pet-travel-planner',
+      'Spiritual': 'spiritual-travel-planner'
+    };
+    return agentMap[userVertical];
+  };
+
   const handlePlanTrip = async () => {
-    // TODO: Open trip planning form
-    await createTask('plan_trip', {
+    await createTask('plan_complete_trip', {
+      agentId: getPrimaryAgentId(),
       vertical: userVertical,
-      preferences: 'budget_friendly' // TODO: Get from form
+      preferences: 'comprehensive_planning'
     });
   };
 
   const handleMonitorTrips = async () => {
-    await createTask('monitor_trips', {
-      userId: 'current_user' // TODO: Get from auth context
+    await createTask('monitor_prices', {
+      agentId: getPrimaryAgentId(),
+      userId: 'current_user'
     });
   };
 
   const handleAdjustBooking = async (bookingId: string) => {
-    await createTask('adjust_booking', {
+    await createTask('optimize_booking', {
+      agentId: getPrimaryAgentId(),
       bookingId,
       adjustmentType: 'price_optimization'
     });
@@ -55,8 +67,8 @@ const AgenticPanel: React.FC<AgenticPanelProps> = ({
             🤖
           </div>
           <div>
-            <h3 className="font-semibold text-white">Maku Agent</h3>
-            <p className="text-sm text-white/80">Your AI travel assistant</p>
+            <h3 className="font-semibold text-white">Maku {userVertical} Agent</h3>
+            <p className="text-sm text-white/80">Your specialized AI travel assistant</p>
           </div>
         </div>
         <Button
@@ -110,11 +122,11 @@ const AgenticPanel: React.FC<AgenticPanelProps> = ({
                 icon={<Plane className="h-5 w-5" />}
               />
 
-              <BookingCard
+                <BookingCard
                 title="Find Best Deals"
                 description="I'll monitor prices and book when they drop"
                 actionLabel="Monitor Prices"
-                onAction={() => createTask('monitor_prices', { vertical: userVertical })}
+                onAction={handleMonitorTrips}
                 icon={<Hotel className="h-5 w-5" />}
               />
             </div>

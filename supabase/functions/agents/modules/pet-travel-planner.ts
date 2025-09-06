@@ -1,7 +1,30 @@
 import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
 
+// Primary Pet Travel Agent - orchestrates other specialized agents
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
   const agent = new BaseAgent(supabaseClient, 'pet-travel-planner');
+  
+  // Agent delegation helper
+  const delegateToAgent = async (agentId: string, taskIntent: string, taskParams: any) => {
+    try {
+      const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/agents/${agentId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          intent: taskIntent,
+          params: taskParams
+        })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(`Failed to delegate to ${agentId}:`, error);
+      return { success: false, error: error.message };
+    }
+  };
   
   try {
     const { 
@@ -19,9 +42,26 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
       };
     }
 
+    // Delegate to specialized agents based on intent
+    if (intent === 'find_pet_transport') {
+      return await delegateToAgent('transport-advisor', 'pet_friendly_transport', { ...params, petRequirements: pets });
+    }
+    
+    if (intent === 'find_pet_accommodation') {
+      return await delegateToAgent('booking-assistant', 'pet_friendly_hotels', { ...params, pets });
+    }
+    
+    if (intent === 'pet_documentation') {
+      return await delegateToAgent('documentation-handler', 'pet_travel_docs', { destination, pets });
+    }
+    
+    if (intent === 'pet_emergency_contacts') {
+      return await delegateToAgent('emergency-helper', 'pet_vet_contacts', { destination });
+    }
+
     const petTravelHistory = await memory?.getMemory('pet-travel-planner', userId, 'pet_trips') || [];
 
-    const systemPrompt = `You are a pet travel specialist for MAKU Travel.
+    const systemPrompt = `You are the PRIMARY pet travel agent for MAKU Travel. You coordinate with specialized agents to deliver complete pet travel solutions.
     
     PET TRAVEL REQUEST:
     - Destination: ${destination}

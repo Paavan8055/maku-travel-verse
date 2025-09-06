@@ -1,8 +1,31 @@
 import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
 import { AmadeusClient, HotelBedsClient } from '../_shared/api-clients.ts';
 
+// Primary Family Travel Agent - orchestrates other specialized agents
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
   const agent = new BaseAgent(supabaseClient, 'family-travel-planner');
+  
+  // Agent delegation helper
+  const delegateToAgent = async (agentId: string, taskIntent: string, taskParams: any) => {
+    try {
+      const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/agents/${agentId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          intent: taskIntent,
+          params: taskParams
+        })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(`Failed to delegate to ${agentId}:`, error);
+      return { success: false, error: error.message };
+    }
+  };
   
   try {
     // Get family details and preferences from params
@@ -39,8 +62,25 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
       Deno.env.get('HOTELBEDS_SECRET') || 'test'
     );
 
-    // Build family-specific travel plan
-    const systemPrompt = `You are a family travel planning specialist for MAKU Travel. 
+    // Delegate to specialized agents based on intent
+    if (intent === 'find_flights') {
+      return await delegateToAgent('trip-planner', 'search_flights', { ...params, familyFriendly: true });
+    }
+    
+    if (intent === 'find_hotels') {
+      return await delegateToAgent('booking-assistant', 'search_hotels', { ...params, familyRooms: true });
+    }
+    
+    if (intent === 'monitor_prices') {
+      return await delegateToAgent('price-monitor', 'track_family_deals', params);
+    }
+    
+    if (intent === 'find_activities') {
+      return await delegateToAgent('activity-finder', 'family_activities', { ...params, childrenAges });
+    }
+
+    // Build comprehensive family-specific travel plan
+    const systemPrompt = `You are the PRIMARY family travel agent for MAKU Travel. You coordinate with specialized agents to deliver complete family travel solutions.
     
     FAMILY PROFILE:
     - Family size: ${familySize} people

@@ -1,7 +1,30 @@
 import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
 
+// Primary Spiritual Travel Agent - orchestrates other specialized agents  
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
   const agent = new BaseAgent(supabaseClient, 'spiritual-travel-planner');
+  
+  // Agent delegation helper
+  const delegateToAgent = async (agentId: string, taskIntent: string, taskParams: any) => {
+    try {
+      const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/agents/${agentId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          intent: taskIntent,
+          params: taskParams
+        })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(`Failed to delegate to ${agentId}:`, error);
+      return { success: false, error: error.message };
+    }
+  };
   
   try {
     const { 
@@ -20,9 +43,26 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
       };
     }
 
+    // Delegate to specialized agents based on intent
+    if (intent === 'find_spiritual_sites') {
+      return await delegateToAgent('destination-guide', 'spiritual_sites', { destination, spiritualTradition });
+    }
+    
+    if (intent === 'find_retreats') {
+      return await delegateToAgent('booking-assistant', 'spiritual_retreats', { destination, experience });
+    }
+    
+    if (intent === 'spiritual_guidance') {
+      return await delegateToAgent('travel-advisor', 'spiritual_etiquette', { destination, spiritualTradition });
+    }
+    
+    if (intent === 'pilgrimage_route') {
+      return await delegateToAgent('itinerary-optimizer', 'pilgrimage_path', { destination, spiritualTradition, duration });
+    }
+
     const spiritualHistory = await memory?.getMemory('spiritual-travel-planner', userId, 'spiritual_journeys') || [];
 
-    const systemPrompt = `You are a spiritual travel specialist for MAKU Travel.
+    const systemPrompt = `You are the PRIMARY spiritual travel agent for MAKU Travel. You coordinate with specialized agents to deliver complete spiritual travel solutions.
     
     SPIRITUAL JOURNEY REQUEST:
     - Destination: ${destination}

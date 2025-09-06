@@ -33,11 +33,14 @@ export const useAgenticTasks = () => {
     console.log('[Agentic] createTask called', { intent, params });
     setIsLoading(true);
 
-    // Create a new simulated task
+    // Extract agent ID from params (for primary agent routing)
+    const agentId = params.agentId || 'solo-travel-planner'; // fallback
+    
+    // Create a new task
     const now = new Date().toISOString();
     const newTask: AgenticTask = {
       id: `${Date.now()}`,
-      intent,
+      intent: `${agentId}: ${intent}`,
       status: 'running',
       progress: 0,
       created_at: now,

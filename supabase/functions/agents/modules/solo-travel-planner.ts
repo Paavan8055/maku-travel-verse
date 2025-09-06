@@ -1,8 +1,31 @@
 import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
 import { AmadeusClient, HotelBedsClient } from '../_shared/api-clients.ts';
 
+// Primary Solo Travel Agent - orchestrates other specialized agents
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
   const agent = new BaseAgent(supabaseClient, 'solo-travel-planner');
+  
+  // Agent delegation helper
+  const delegateToAgent = async (agentId: string, taskIntent: string, taskParams: any) => {
+    try {
+      const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/agents/${agentId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          intent: taskIntent,
+          params: taskParams
+        })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(`Failed to delegate to ${agentId}:`, error);
+      return { success: false, error: error.message };
+    }
+  };
   
   try {
     const { 
@@ -24,7 +47,24 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     const userPrefs = await agent.getUserPreferences(userId);
     const soloTripHistory = await memory?.getMemory('solo-travel-planner', userId, 'solo_trips') || [];
 
-    const systemPrompt = `You are a solo travel specialist for MAKU Travel.
+    // Delegate to specialized agents based on intent
+    if (intent === 'find_flights') {
+      return await delegateToAgent('trip-planner', 'search_flights', { ...params, soloTravel: true });
+    }
+    
+    if (intent === 'find_accommodation') {
+      return await delegateToAgent('booking-assistant', 'search_solo_rooms', params);
+    }
+    
+    if (intent === 'safety_check') {
+      return await delegateToAgent('emergency-helper', 'solo_safety_tips', { destination, safetyLevel });
+    }
+    
+    if (intent === 'find_social_activities') {
+      return await delegateToAgent('activity-finder', 'solo_social_events', { destination, socialPreference });
+    }
+
+    const systemPrompt = `You are the PRIMARY solo travel agent for MAKU Travel. You coordinate with specialized agents to deliver complete solo travel solutions.
     
     SOLO TRAVELER PROFILE:
     - Destination: ${destination}
