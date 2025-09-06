@@ -10,23 +10,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Document {
   id: string;
   title: string;
   content?: string;
   document_type: string;
-  category?: string;
-  tags: string[];
-  status: string;
-  version_number: number;
-  is_template: boolean;
-  access_level: string;
+  created_by: string;
   created_at: string;
   updated_at: string;
-  file_size?: number;
-  mime_type?: string;
 }
 
 interface KnowledgeBaseEntry {
@@ -34,13 +26,13 @@ interface KnowledgeBaseEntry {
   title: string;
   content: string;
   category: string;
-  subcategory?: string;
   tags: string[];
   difficulty_level: string;
   source_type: string;
   confidence_score: number;
   usage_count: number;
   created_at: string;
+  updated_at: string;
 }
 
 export function DocsModule() {
@@ -56,57 +48,74 @@ export function DocsModule() {
   const [newDocument, setNewDocument] = useState({
     title: '',
     content: '',
-    document_type: 'general',
-    category: '',
-    tags: [] as string[],
-    access_level: 'private',
-    is_template: false
+    document_type: 'note',
   });
 
   const [newKBEntry, setNewKBEntry] = useState({
     title: '',
     content: '',
     category: '',
-    subcategory: '',
     tags: [] as string[],
     difficulty_level: 'beginner'
   });
 
   useEffect(() => {
-    loadDocuments();
-    loadKnowledgeBase();
+    loadMockData();
   }, []);
 
-  const loadDocuments = async () => {
+  const loadMockData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .order('updated_at', { ascending: false });
+      setIsLoading(true);
 
-      if (error) throw error;
-      setDocuments(data || []);
+      // Mock documents
+      const mockDocs: Document[] = [
+        {
+          id: '1',
+          title: 'Project Proposal',
+          content: 'This is a project proposal document...',
+          document_type: 'proposal',
+          created_by: 'user1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          title: 'Meeting Notes',
+          content: 'Notes from the weekly team meeting...',
+          document_type: 'notes',
+          created_by: 'user1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ];
+
+      // Mock knowledge base entries
+      const mockKB: KnowledgeBaseEntry[] = [
+        {
+          id: '1',
+          title: 'API Documentation',
+          content: 'Complete API documentation for the platform...',
+          category: 'technical',
+          tags: ['api', 'documentation'],
+          difficulty_level: 'intermediate',
+          source_type: 'internal',
+          confidence_score: 0.95,
+          usage_count: 42,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ];
+
+      setDocuments(mockDocs);
+      setKnowledgeBase(mockKB);
+
     } catch (error) {
       console.error('Error loading documents:', error);
       toast({
-        title: "Error",
-        description: "Failed to load documents",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load documents',
+        variant: 'destructive',
       });
-    }
-  };
-
-  const loadKnowledgeBase = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('knowledge_base_entries')
-        .select('*')
-        .order('usage_count', { ascending: false });
-
-      if (error) throw error;
-      setKnowledgeBase(data || []);
-    } catch (error) {
-      console.error('Error loading knowledge base:', error);
     } finally {
       setIsLoading(false);
     }
@@ -114,52 +123,57 @@ export function DocsModule() {
 
   const handleCreateDocument = async () => {
     try {
-      const { error } = await supabase
-        .from('documents')
-        .insert([newDocument]);
+      // Mock creating document
+      const mockDoc: Document = {
+        id: Date.now().toString(),
+        ...newDocument,
+        created_by: 'user1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      setDocuments(prev => [mockDoc, ...prev]);
 
       toast({
-        title: "Success",
-        description: "Document created successfully"
+        title: 'Success',
+        description: 'Document created successfully',
       });
 
       setShowDocDialog(false);
       setNewDocument({
         title: '',
         content: '',
-        document_type: 'general',
-        category: '',
-        tags: [],
-        access_level: 'private',
-        is_template: false
+        document_type: 'note',
       });
-      loadDocuments();
+
     } catch (error) {
       console.error('Error creating document:', error);
       toast({
-        title: "Error",
-        description: "Failed to create document",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to create document',
+        variant: 'destructive',
       });
     }
   };
 
   const handleCreateKBEntry = async () => {
     try {
-      const { error } = await supabase
-        .from('knowledge_base_entries')
-        .insert([{
-          ...newKBEntry,
-          source_type: 'manual'
-        }]);
+      // Mock creating knowledge base entry
+      const mockEntry: KnowledgeBaseEntry = {
+        id: Date.now().toString(),
+        ...newKBEntry,
+        source_type: 'manual',
+        confidence_score: 0.9,
+        usage_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      setKnowledgeBase(prev => [mockEntry, ...prev]);
 
       toast({
-        title: "Success",
-        description: "Knowledge base entry created successfully"
+        title: 'Success',
+        description: 'Knowledge base entry created successfully',
       });
 
       setShowKBDialog(false);
@@ -167,27 +181,17 @@ export function DocsModule() {
         title: '',
         content: '',
         category: '',
-        subcategory: '',
         tags: [],
         difficulty_level: 'beginner'
       });
-      loadKnowledgeBase();
+
     } catch (error) {
       console.error('Error creating knowledge base entry:', error);
       toast({
-        title: "Error",
-        description: "Failed to create knowledge base entry",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to create knowledge base entry',
+        variant: 'destructive',
       });
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'archived': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-blue-100 text-blue-800';
     }
   };
 
@@ -204,8 +208,7 @@ export function DocsModule() {
     const matchesSearch = searchQuery === '' || 
       doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.content?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   const filteredKnowledgeBase = knowledgeBase.filter(entry => {
@@ -216,13 +219,7 @@ export function DocsModule() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set([
-    ...documents.map(d => d.category).filter(Boolean),
-    ...knowledgeBase.map(k => k.category)
-  ]));
-
-  const templates = documents.filter(doc => doc.is_template);
-  const recentDocs = documents.slice(0, 5);
+  const categories = Array.from(new Set(knowledgeBase.map(k => k.category)));
 
   return (
     <div className="space-y-6">
@@ -344,51 +341,23 @@ export function DocsModule() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="doc-type">Type</Label>
-                    <Select 
-                      value={newDocument.document_type} 
-                      onValueChange={(value) => setNewDocument({...newDocument, document_type: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">General</SelectItem>
-                        <SelectItem value="template">Template</SelectItem>
-                        <SelectItem value="guide">Guide</SelectItem>
-                        <SelectItem value="policy">Policy</SelectItem>
-                        <SelectItem value="procedure">Procedure</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="doc-access">Access Level</Label>
-                    <Select 
-                      value={newDocument.access_level} 
-                      onValueChange={(value) => setNewDocument({...newDocument, access_level: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="private">Private</SelectItem>
-                        <SelectItem value="project">Project</SelectItem>
-                        <SelectItem value="public">Public</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
                 <div>
-                  <Label htmlFor="doc-category">Category</Label>
-                  <Input
-                    id="doc-category"
-                    value={newDocument.category}
-                    onChange={(e) => setNewDocument({...newDocument, category: e.target.value})}
-                    placeholder="e.g., project_management, meetings, procedures"
-                  />
+                  <Label htmlFor="doc-type">Type</Label>
+                  <Select 
+                    value={newDocument.document_type} 
+                    onValueChange={(value) => setNewDocument({...newDocument, document_type: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="note">Note</SelectItem>
+                      <SelectItem value="proposal">Proposal</SelectItem>
+                      <SelectItem value="guide">Guide</SelectItem>
+                      <SelectItem value="policy">Policy</SelectItem>
+                      <SelectItem value="procedure">Procedure</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -400,29 +369,6 @@ export function DocsModule() {
                     placeholder="Document content"
                     rows={8}
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="doc-tags">Tags (comma-separated)</Label>
-                  <Input
-                    id="doc-tags"
-                    value={newDocument.tags.join(', ')}
-                    onChange={(e) => setNewDocument({
-                      ...newDocument, 
-                      tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
-                    })}
-                    placeholder="e.g., template, meeting, important"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="is-template"
-                    checked={newDocument.is_template}
-                    onChange={(e) => setNewDocument({...newDocument, is_template: e.target.checked})}
-                  />
-                  <Label htmlFor="is-template">Mark as template</Label>
                 </div>
               </div>
               <DialogFooter>
@@ -464,11 +410,10 @@ export function DocsModule() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
@@ -477,7 +422,7 @@ export function DocsModule() {
               <CardContent>
                 <div className="text-2xl font-bold">{documents.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {documents.filter(d => d.status === 'published').length} published
+                  Active documents
                 </p>
               </CardContent>
             </Card>
@@ -490,33 +435,20 @@ export function DocsModule() {
               <CardContent>
                 <div className="text-2xl font-bold">{knowledgeBase.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {categories.length} categories
+                  Knowledge base entries
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Templates</CardTitle>
-                <Upload className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Categories</CardTitle>
+                <Filter className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{templates.length}</div>
+                <div className="text-2xl font-bold">{categories.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  Ready to use
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-                <History className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{recentDocs.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Updated this week
+                  Knowledge categories
                 </p>
               </CardContent>
             </Card>
@@ -529,24 +461,22 @@ export function DocsModule() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {recentDocs.map((doc) => (
+                  {documents.slice(0, 5).map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <p className="font-medium">{doc.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(doc.updated_at).toLocaleDateString()}
+                          {doc.document_type} • {new Date(doc.updated_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getStatusColor(doc.status)}>
-                          {doc.status}
-                        </Badge>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
                     </div>
                   ))}
+                  {documents.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No documents yet</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -559,17 +489,22 @@ export function DocsModule() {
                 <div className="space-y-3">
                   {knowledgeBase.slice(0, 5).map((entry) => (
                     <div key={entry.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">{entry.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Used {entry.usage_count} times
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={getDifficultyColor(entry.difficulty_level)} variant="secondary">
+                            {entry.difficulty_level}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {entry.usage_count} uses
+                          </span>
+                        </div>
                       </div>
-                      <Badge className={getDifficultyColor(entry.difficulty_level)}>
-                        {entry.difficulty_level}
-                      </Badge>
                     </div>
                   ))}
+                  {knowledgeBase.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No knowledge entries yet</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -581,7 +516,7 @@ export function DocsModule() {
             <CardHeader>
               <CardTitle>All Documents</CardTitle>
               <CardDescription>
-                Manage your document library
+                Manage all organizational documents
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -592,26 +527,13 @@ export function DocsModule() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{doc.title}</h3>
                         <Badge variant="outline">{doc.document_type}</Badge>
-                        <Badge className={getStatusColor(doc.status)}>
-                          {doc.status}
-                        </Badge>
-                        {doc.is_template && (
-                          <Badge variant="secondary">Template</Badge>
-                        )}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        v{doc.version_number} • {new Date(doc.updated_at).toLocaleDateString()}
-                        {doc.category && ` • ${doc.category}`}
+                        {doc.content?.substring(0, 100)}...
                       </p>
-                      {doc.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          {doc.tags.map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Updated {new Date(doc.updated_at).toLocaleDateString()}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm">
@@ -620,12 +542,14 @@ export function DocsModule() {
                       <Button variant="ghost" size="sm">
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        <Download className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 ))}
+                {filteredDocuments.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    No documents found
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -636,7 +560,7 @@ export function DocsModule() {
             <CardHeader>
               <CardTitle>Knowledge Base</CardTitle>
               <CardDescription>
-                Organizational knowledge and procedures
+                Organizational knowledge and best practices
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -646,26 +570,31 @@ export function DocsModule() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{entry.title}</h3>
-                        <Badge variant="outline">{entry.category}</Badge>
-                        <Badge className={getDifficultyColor(entry.difficulty_level)}>
+                        <Badge className={getDifficultyColor(entry.difficulty_level)} variant="secondary">
                           {entry.difficulty_level}
                         </Badge>
+                        <Badge variant="outline">{entry.category}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Used {entry.usage_count} times • Confidence: {(entry.confidence_score * 100).toFixed(0)}%
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                         {entry.content.substring(0, 150)}...
                       </p>
-                      {entry.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          {entry.tags.map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-xs text-muted-foreground">
+                          {entry.usage_count} uses
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {(entry.confidence_score * 100).toFixed(0)}% confidence
+                        </span>
+                        {entry.tags.length > 0 && (
+                          <div className="flex gap-1">
+                            {entry.tags.slice(0, 3).map(tag => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm">
@@ -677,45 +606,11 @@ export function DocsModule() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="templates" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Document Templates</CardTitle>
-              <CardDescription>
-                Reusable templates for quick document creation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {templates.map((template) => (
-                  <Card key={template.id} className="cursor-pointer hover:bg-muted/50">
-                    <CardHeader>
-                      <CardTitle className="text-base">{template.title}</CardTitle>
-                      <CardDescription>
-                        {template.category}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div className="flex gap-1">
-                          {template.tags.slice(0, 2).map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        <Button size="sm">
-                          Use Template
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {filteredKnowledgeBase.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    No knowledge entries found
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

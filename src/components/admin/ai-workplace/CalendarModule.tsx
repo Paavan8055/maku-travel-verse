@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface CalendarEvent {
   id: string;
@@ -19,22 +18,20 @@ interface CalendarEvent {
   event_type: string;
   start_time: string;
   end_time: string;
-  location?: string;
-  attendees: string[];
-  assigned_agent_id?: string;
-  project_id?: string;
-  task_id?: string;
-  status: string;
+  user_id: string;
   created_at: string;
+  updated_at: string;
 }
 
 interface CalendarIntegration {
   id: string;
   provider: string;
+  calendar_id: string;
+  user_id: string;
   sync_enabled: boolean;
   sync_status: string;
-  last_sync_at?: string;
-  error_details?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export function CalendarModule() {
@@ -43,7 +40,6 @@ export function CalendarModule() {
   const [isLoading, setIsLoading] = useState(true);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const { toast } = useToast();
 
   const [newEvent, setNewEvent] = useState({
@@ -52,51 +48,70 @@ export function CalendarModule() {
     event_type: 'meeting',
     start_time: '',
     end_time: '',
-    location: '',
-    assigned_agent_id: '',
-    attendees: [] as string[]
   });
 
   const [newIntegration, setNewIntegration] = useState({
     provider: '',
-    provider_config: {}
   });
 
   useEffect(() => {
-    loadEvents();
-    loadIntegrations();
+    loadMockData();
   }, []);
 
-  const loadEvents = async () => {
+  const loadMockData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('calendar_events')
-        .select('*')
-        .order('start_time', { ascending: true });
+      setIsLoading(true);
 
-      if (error) throw error;
-      setEvents(data || []);
+      // Mock calendar events
+      const mockEvents: CalendarEvent[] = [
+        {
+          id: '1',
+          title: 'Team Standup',
+          description: 'Daily team synchronization meeting',
+          start_time: new Date().toISOString(),
+          end_time: new Date(Date.now() + 3600000).toISOString(),
+          event_type: 'meeting',
+          user_id: 'user1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          title: 'Client Presentation',
+          description: 'Present Q4 roadmap to client',
+          start_time: new Date(Date.now() + 86400000).toISOString(),
+          end_time: new Date(Date.now() + 90000000).toISOString(),
+          event_type: 'presentation',
+          user_id: 'user1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ];
+
+      // Mock calendar integrations
+      const mockIntegrations: CalendarIntegration[] = [
+        {
+          id: '1',
+          provider: 'google',
+          calendar_id: 'primary',
+          user_id: 'user1',
+          sync_enabled: true,
+          sync_status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ];
+
+      setEvents(mockEvents);
+      setIntegrations(mockIntegrations);
+
     } catch (error) {
-      console.error('Error loading events:', error);
+      console.error('Error loading calendar data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load calendar events",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load calendar data',
+        variant: 'destructive',
       });
-    }
-  };
-
-  const loadIntegrations = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('calendar_integrations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setIntegrations(data || []);
-    } catch (error) {
-      console.error('Error loading integrations:', error);
     } finally {
       setIsLoading(false);
     }
@@ -104,20 +119,20 @@ export function CalendarModule() {
 
   const handleCreateEvent = async () => {
     try {
-      const eventData = {
+      // Mock adding event
+      const mockEvent: CalendarEvent = {
+        id: Date.now().toString(),
         ...newEvent,
-        attendees: JSON.stringify(newEvent.attendees)
+        user_id: 'user1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from('calendar_events')
-        .insert([eventData]);
-
-      if (error) throw error;
+      setEvents(prev => [...prev, mockEvent]);
 
       toast({
-        title: "Success",
-        description: "Event created successfully"
+        title: 'Success',
+        description: 'Event created successfully',
       });
 
       setShowEventDialog(false);
@@ -127,46 +142,48 @@ export function CalendarModule() {
         event_type: 'meeting',
         start_time: '',
         end_time: '',
-        location: '',
-        assigned_agent_id: '',
-        attendees: []
       });
-      loadEvents();
+
     } catch (error) {
       console.error('Error creating event:', error);
       toast({
-        title: "Error",
-        description: "Failed to create event",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to create event',
+        variant: 'destructive',
       });
     }
   };
 
   const handleCreateIntegration = async () => {
     try {
-      const { error } = await supabase
-        .from('calendar_integrations')
-        .insert([{
-          provider: newIntegration.provider,
-          provider_config: newIntegration.provider_config
-        }]);
+      // Mock connecting calendar
+      const mockIntegration: CalendarIntegration = {
+        id: Date.now().toString(),
+        provider: newIntegration.provider,
+        calendar_id: 'primary',
+        user_id: 'user1',
+        sync_enabled: true,
+        sync_status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      setIntegrations(prev => [...prev, mockIntegration]);
 
       toast({
-        title: "Success",
-        description: "Calendar integration added successfully"
+        title: 'Success',
+        description: `${newIntegration.provider} calendar connected successfully`,
       });
 
       setShowIntegrationDialog(false);
-      setNewIntegration({ provider: '', provider_config: {} });
-      loadIntegrations();
+      setNewIntegration({ provider: '' });
+
     } catch (error) {
-      console.error('Error creating integration:', error);
+      console.error('Error connecting calendar:', error);
       toast({
-        title: "Error",
-        description: "Failed to create integration",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to connect calendar',
+        variant: 'destructive',
       });
     }
   };
@@ -323,35 +340,6 @@ export function CalendarModule() {
                     />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={newEvent.location}
-                      onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-                      placeholder="Meeting location or link"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="assigned_agent">Assigned Agent</Label>
-                    <Select 
-                      value={newEvent.assigned_agent_id} 
-                      onValueChange={(value) => setNewEvent({...newEvent, assigned_agent_id: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select agent" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">No agent</SelectItem>
-                        <SelectItem value="calendar-sync-agent">Calendar Sync Agent</SelectItem>
-                        <SelectItem value="ai-content-curator">AI Content Curator</SelectItem>
-                        <SelectItem value="api-orchestration-manager">API Orchestration Manager</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
               </div>
               <DialogFooter>
                 <Button onClick={handleCreateEvent}>
@@ -380,7 +368,7 @@ export function CalendarModule() {
               <CardContent>
                 <div className="text-2xl font-bold">{todaysEvents.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {todaysEvents.filter(e => e.status === 'scheduled').length} scheduled
+                  Events scheduled for today
                 </p>
               </CardContent>
             </Card>
@@ -417,9 +405,7 @@ export function CalendarModule() {
                             {new Date(event.start_time).toLocaleTimeString()} - {new Date(event.end_time).toLocaleTimeString()}
                           </p>
                         </div>
-                        <Badge className={getEventStatusColor(event.status)}>
-                          {event.status}
-                        </Badge>
+                        <Badge variant="outline">{event.event_type}</Badge>
                       </div>
                     ))
                   )}
@@ -470,25 +456,13 @@ export function CalendarModule() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{event.title}</h3>
                         <Badge variant="outline">{event.event_type}</Badge>
-                        <Badge className={getEventStatusColor(event.status)}>
-                          {event.status}
-                        </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {new Date(event.start_time).toLocaleString()} - {new Date(event.end_time).toLocaleString()}
+                        {event.description}
                       </p>
-                      {event.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-                      )}
-                      {event.location && (
-                        <p className="text-sm text-muted-foreground mt-1">📍 {event.location}</p>
-                      )}
-                      {event.assigned_agent_id && (
-                        <p className="text-sm text-muted-foreground mt-1">🤖 {event.assigned_agent_id}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(event.start_time).toLocaleDateString()} at {new Date(event.start_time).toLocaleTimeString()}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -502,38 +476,31 @@ export function CalendarModule() {
             <CardHeader>
               <CardTitle>Calendar Integrations</CardTitle>
               <CardDescription>
-                Manage external calendar synchronization
+                Connected calendar providers and sync status
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {integrations.map((integration) => (
                   <div key={integration.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium capitalize">{integration.provider} Calendar</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Status: {integration.sync_status}
-                        {integration.last_sync_at && (
-                          <span> • Last sync: {new Date(integration.last_sync_at).toLocaleString()}</span>
-                        )}
-                      </p>
-                      {integration.error_details && (
-                        <p className="text-sm text-red-600 mt-1">{integration.error_details}</p>
-                      )}
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <h3 className="font-medium capitalize">{integration.provider} Calendar</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Calendar ID: {integration.calendar_id}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={integration.sync_enabled ? "default" : "secondary"}>
-                        {integration.sync_enabled ? "Enabled" : "Disabled"}
+                        {integration.sync_status}
                       </Badge>
-                      <Button variant="outline" size="sm">
-                        <RefreshCw className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 ))}
                 {integrations.length === 0 && (
                   <p className="text-center text-muted-foreground py-8">
-                    No calendar integrations configured. Click "Integrations" to add one.
+                    No calendar integrations configured yet
                   </p>
                 )}
               </div>
