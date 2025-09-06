@@ -46,6 +46,7 @@ const DashboardPage = createLazyRoute(() => import("./pages/Dashboard"));
 const SettingsPage = createLazyRoute(() => import("./pages/settings"));
 const ProfilePage = createLazyRoute(() => import("./pages/profile"));
 const BookingsPage = createLazyRoute(() => import("./pages/bookings"));
+const MyTripsPage = createLazyRoute(() => import("./pages/MyTrips"));
 const TravelFundPage = createLazyRoute(() => import("./pages/travel-fund"));
 const JoinFundPage = createLazyRoute(() => import("./pages/join-fund"));
 const TravelPreferencesPage = createLazyRoute(() => import("./pages/travel-preferences"));
@@ -145,11 +146,12 @@ const App = () => (
                                          <Route path="/booking-failure" element={<BookingFailurePage />} />
                                          <Route path="/payment-success" element={<PaymentSuccessPage />} />
                                         <Route path="/booking/:id" element={<BookingDetailsPage />} />
-                                        <Route path="/dashboard" element={<DashboardPage />} />
-                                        <Route path="/settings" element={<SettingsPage />} />
-                                        <Route path="/profile" element={<ProfilePage />} />
-                                        <Route path="/bookings" element={<BookingsPage />} />
-                                        <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
+                                         <Route path="/dashboard" element={<DashboardPage />} />
+                                         <Route path="/settings" element={<SettingsPage />} />
+                                         <Route path="/profile" element={<ProfilePage />} />
+                                         <Route path="/bookings" element={<BookingsPage />} />
+                                         <Route path="/my-trips" element={<MyTripsPage />} />
+                                         <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
                                         <Route path="/invite-friends" element={<InviteFriendsPage />} />
                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
                                         <Route path="/admin" element={<AdminAuth />} />

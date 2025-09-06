@@ -214,6 +214,48 @@ export type Database = {
         }
         Relationships: []
       }
+      agentic_tasks: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          intent: string
+          params: Json
+          progress: number | null
+          result: Json | null
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          intent: string
+          params?: Json
+          progress?: number | null
+          result?: Json | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          intent?: string
+          params?: Json
+          progress?: number | null
+          result?: Json | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_training_bookings: {
         Row: {
           anonymized_at: string | null

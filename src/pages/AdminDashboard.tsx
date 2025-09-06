@@ -23,6 +23,7 @@ import { AdvancedTroubleshootingEngine } from '@/features/admin/components/Advan
 import { KnowledgeManagementSystem } from '@/features/admin/components/KnowledgeManagementSystem';
 import { PredictiveAnalyticsDashboard } from '@/features/admin/components/PredictiveAnalyticsDashboard';
 import { GPT5NanoTester } from '@/features/admin/components/GPT5NanoTester';
+import AgentTaskDashboard from '@/features/admin/components/AgentTaskDashboard';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -131,6 +132,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="ai-assistant" className="space-y-4">
           <TabsList>
             <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
+            <TabsTrigger value="agent-tasks">Agent Tasks</TabsTrigger>
             <TabsTrigger value="simplified">Simplified View</TabsTrigger>
             <TabsTrigger value="workflows">Guided Workflows</TabsTrigger>
             <TabsTrigger value="tasks">Task Assistant</TabsTrigger>
@@ -161,6 +163,10 @@ const AdminDashboard = () => {
                 <EnhancedAIAssistant />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="agent-tasks">
+            <AgentTaskDashboard />
           </TabsContent>
           
           <TabsContent value="simplified">

@@ -26,36 +26,44 @@ interface AgenticResponse {
 }
 
 /**
- * Execute an agentic task using AI chain-of-thought reasoning
+ * Execute an agentic task using the 70-agent system
  */
 export const runAgenticTask = async (
   intent: string,
-  params: AgenticTaskParams
+  params: AgenticTaskParams,
+  agentId: string = 'trip-planner'
 ): Promise<AgenticResponse> => {
   try {
-    const response = await fetch('/api/agentic-bot', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const response = await supabase.functions.invoke('agents', {
+      body: {
         intent,
         params,
+        userId: user.id,
         timestamp: new Date().toISOString(),
-      }),
+      },
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (response.error) {
+      throw new Error(response.error.message || 'Agent execution failed');
     }
 
-    const data: AgenticResponse = await response.json();
+    const data = response.data;
     
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    return data;
+    return {
+      success: data.success,
+      message: data.result || data.message,
+      actions: data.actions || [],
+      results: data.result,
+      error: data.error
+    };
   } catch (error) {
     logger.error('Agentic Bot API Error:', error);
     
@@ -78,20 +86,19 @@ export const runAgenticTask = async (
 /**
  * Get status of agentic tasks for a user
  */
-export const getAgenticTaskStatus = async (userId: string): Promise<any[]> => {
+export const getAgenticTaskStatus = async (userId?: string): Promise<any[]> => {
   try {
-    const response = await fetch(`/api/agentic-status?userId=${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    const response = await supabase.functions.invoke('task-status', {
+      body: { userId }
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (response.error) {
+      throw new Error(response.error.message);
     }
 
-    return await response.json();
+    return response.data?.tasks || [];
   } catch (error) {
     logger.error('Failed to fetch agentic task status:', error);
     return [];
@@ -101,16 +108,15 @@ export const getAgenticTaskStatus = async (userId: string): Promise<any[]> => {
 /**
  * Cancel a running agentic task
  */
-export const cancelAgenticTask = async (taskId: string): Promise<boolean> => {
+export const cancelAgenticTask = async (taskId: string, reason?: string): Promise<boolean> => {
   try {
-    const response = await fetch(`/api/agentic-task/${taskId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    const response = await supabase.functions.invoke('cancel-task', {
+      body: { taskId, reason }
     });
 
-    return response.ok;
+    return response.data?.success || false;
   } catch (error) {
     logger.error('Failed to cancel agentic task:', error);
     return false;
