@@ -184,6 +184,108 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_performance: {
+        Row: {
+          agent_id: string
+          average_response_time_minutes: number | null
+          cost_per_task: number | null
+          created_at: string
+          customer_satisfaction_score: number | null
+          id: string
+          metric_date: string
+          revenue_generated: number | null
+          success_rate: number | null
+          tasks_completed: number | null
+          tasks_failed: number | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          average_response_time_minutes?: number | null
+          cost_per_task?: number | null
+          created_at?: string
+          customer_satisfaction_score?: number | null
+          id?: string
+          metric_date?: string
+          revenue_generated?: number | null
+          success_rate?: number | null
+          tasks_completed?: number | null
+          tasks_failed?: number | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          average_response_time_minutes?: number | null
+          cost_per_task?: number | null
+          created_at?: string
+          customer_satisfaction_score?: number | null
+          id?: string
+          metric_date?: string
+          revenue_generated?: number | null
+          success_rate?: number | null
+          tasks_completed?: number | null
+          tasks_failed?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      agent_task_queue: {
+        Row: {
+          actual_duration_minutes: number | null
+          agent_id: string
+          assigned_at: string | null
+          completed_at: string | null
+          created_at: string
+          customer_id: string | null
+          error_message: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          priority: number | null
+          result: Json | null
+          started_at: string | null
+          status: string | null
+          task_data: Json
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          actual_duration_minutes?: number | null
+          agent_id: string
+          assigned_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          priority?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          task_data: Json
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          actual_duration_minutes?: number | null
+          agent_id?: string
+          assigned_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          priority?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          task_data?: Json
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       agentic_memory: {
         Row: {
           agent_id: string
@@ -860,6 +962,74 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      car_rentals: {
+        Row: {
+          booking_id: string | null
+          confirmation_code: string | null
+          created_at: string
+          currency: string | null
+          driver_license: Json | null
+          dropoff_date: string
+          dropoff_location: Json
+          id: string
+          insurance_options: Json | null
+          pickup_date: string
+          pickup_location: Json
+          rental_company: string
+          status: string | null
+          total_cost: number
+          updated_at: string
+          user_id: string
+          vehicle_details: Json
+        }
+        Insert: {
+          booking_id?: string | null
+          confirmation_code?: string | null
+          created_at?: string
+          currency?: string | null
+          driver_license?: Json | null
+          dropoff_date: string
+          dropoff_location: Json
+          id?: string
+          insurance_options?: Json | null
+          pickup_date: string
+          pickup_location: Json
+          rental_company: string
+          status?: string | null
+          total_cost: number
+          updated_at?: string
+          user_id: string
+          vehicle_details: Json
+        }
+        Update: {
+          booking_id?: string | null
+          confirmation_code?: string | null
+          created_at?: string
+          currency?: string | null
+          driver_license?: Json | null
+          dropoff_date?: string
+          dropoff_location?: Json
+          id?: string
+          insurance_options?: Json | null
+          pickup_date?: string
+          pickup_location?: Json
+          rental_company?: string
+          status?: string | null
+          total_cost?: number
+          updated_at?: string
+          user_id?: string
+          vehicle_details?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_rentals_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -3672,6 +3842,69 @@ export type Database = {
         }
         Relationships: []
       }
+      price_adjustments: {
+        Row: {
+          adjustment_type: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          new_booking_id: string | null
+          new_price: number
+          original_booking_id: string | null
+          original_price: number
+          processed_by: string | null
+          reason: string | null
+          savings_amount: number | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          adjustment_type: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          new_booking_id?: string | null
+          new_price: number
+          original_booking_id?: string | null
+          original_price: number
+          processed_by?: string | null
+          reason?: string | null
+          savings_amount?: number | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          adjustment_type?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          new_booking_id?: string | null
+          new_price?: number
+          original_booking_id?: string | null
+          original_price?: number
+          processed_by?: string | null
+          reason?: string | null
+          savings_amount?: number | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_adjustments_new_booking_id_fkey"
+            columns: ["new_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_adjustments_original_booking_id_fkey"
+            columns: ["original_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       price_alerts: {
         Row: {
           created_at: string
@@ -3712,6 +3945,54 @@ export type Database = {
           search_criteria?: Json
           target_price?: number
           threshold_percentage?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      price_monitors: {
+        Row: {
+          booking_reference: string | null
+          created_at: string
+          current_price: number | null
+          expires_at: string | null
+          id: string
+          last_checked: string | null
+          monitor_type: string
+          original_price: number
+          search_criteria: Json
+          status: string | null
+          threshold_percentage: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_reference?: string | null
+          created_at?: string
+          current_price?: number | null
+          expires_at?: string | null
+          id?: string
+          last_checked?: string | null
+          monitor_type: string
+          original_price: number
+          search_criteria: Json
+          status?: string | null
+          threshold_percentage?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_reference?: string | null
+          created_at?: string
+          current_price?: number | null
+          expires_at?: string | null
+          id?: string
+          last_checked?: string | null
+          monitor_type?: string
+          original_price?: number
+          search_criteria?: Json
+          status?: string | null
+          threshold_percentage?: number | null
           updated_at?: string
           user_id?: string
         }
