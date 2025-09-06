@@ -334,6 +334,48 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_context_memory: {
+        Row: {
+          agent_id: string
+          confidence_score: number | null
+          context_data: Json
+          context_type: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          reasoning_summary: string | null
+          session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          confidence_score?: number | null
+          context_data?: Json
+          context_type?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reasoning_summary?: string | null
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          confidence_score?: number | null
+          context_data?: Json
+          context_type?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reasoning_summary?: string | null
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agent_group_memberships: {
         Row: {
           added_at: string
@@ -1430,6 +1472,48 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_integrations: {
+        Row: {
+          access_token_encrypted: string
+          calendar_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          provider: string
+          refresh_token_encrypted: string | null
+          sync_preferences: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          calendar_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          provider: string
+          refresh_token_encrypted?: string | null
+          sync_preferences?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          calendar_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          provider?: string
+          refresh_token_encrypted?: string | null
+          sync_preferences?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cancellation_requests: {
         Row: {
           created_at: string | null
@@ -2405,6 +2489,54 @@ export type Database = {
           },
         ]
       }
+      documentation_versions: {
+        Row: {
+          author_id: string | null
+          change_summary: string | null
+          content: string
+          content_diff: Json | null
+          created_at: string
+          document_id: string
+          id: string
+          published_at: string | null
+          reviewed_by: string | null
+          status: string
+          title: string
+          updated_at: string
+          version_number: string
+        }
+        Insert: {
+          author_id?: string | null
+          change_summary?: string | null
+          content: string
+          content_diff?: Json | null
+          created_at?: string
+          document_id: string
+          id?: string
+          published_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          version_number: string
+        }
+        Update: {
+          author_id?: string | null
+          change_summary?: string | null
+          content?: string
+          content_diff?: Json | null
+          created_at?: string
+          document_id?: string
+          id?: string
+          published_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          version_number?: string
+        }
+        Relationships: []
+      }
       dream_destinations: {
         Row: {
           avg_daily_cost: number | null
@@ -3275,6 +3407,48 @@ export type Database = {
         }
         Relationships: []
       }
+      group_booking_coordination: {
+        Row: {
+          booking_preferences: Json
+          coordination_status: string
+          coordinator_user_id: string
+          created_at: string
+          final_bookings: Json | null
+          group_name: string
+          group_size: number
+          id: string
+          participants: Json
+          updated_at: string
+          voting_status: Json
+        }
+        Insert: {
+          booking_preferences?: Json
+          coordination_status?: string
+          coordinator_user_id: string
+          created_at?: string
+          final_bookings?: Json | null
+          group_name: string
+          group_size: number
+          id?: string
+          participants?: Json
+          updated_at?: string
+          voting_status?: Json
+        }
+        Update: {
+          booking_preferences?: Json
+          coordination_status?: string
+          coordinator_user_id?: string
+          created_at?: string
+          final_bookings?: Json | null
+          group_name?: string
+          group_size?: number
+          id?: string
+          participants?: Json
+          updated_at?: string
+          voting_status?: Json
+        }
+        Relationships: []
+      }
       guest_booking_tokens: {
         Row: {
           access_count: number | null
@@ -3594,6 +3768,48 @@ export type Database = {
           },
         ]
       }
+      intent_routing_rules: {
+        Row: {
+          agent_id: string
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          failure_count: number
+          id: string
+          intent_pattern: string
+          is_active: boolean
+          priority: number
+          success_count: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          failure_count?: number
+          id?: string
+          intent_pattern: string
+          is_active?: boolean
+          priority?: number
+          success_count?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          failure_count?: number
+          id?: string
+          intent_pattern?: string
+          is_active?: boolean
+          priority?: number
+          success_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
@@ -3686,6 +3902,51 @@ export type Database = {
           data?: Json | null
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      knowledge_base_entries: {
+        Row: {
+          access_level: string
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          entry_key: string
+          id: string
+          last_updated_by: string | null
+          search_vector: unknown | null
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          entry_key: string
+          id?: string
+          last_updated_by?: string | null
+          search_vector?: unknown | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          entry_key?: string
+          id?: string
+          last_updated_by?: string | null
+          search_vector?: unknown | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3965,6 +4226,51 @@ export type Database = {
           type?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      orchestration_workflows: {
+        Row: {
+          agent_sequence: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          execution_count: number
+          id: string
+          is_active: boolean
+          success_rate: number | null
+          trigger_conditions: Json
+          updated_at: string
+          workflow_config: Json
+          workflow_name: string
+        }
+        Insert: {
+          agent_sequence?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number
+          id?: string
+          is_active?: boolean
+          success_rate?: number | null
+          trigger_conditions?: Json
+          updated_at?: string
+          workflow_config?: Json
+          workflow_name: string
+        }
+        Update: {
+          agent_sequence?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number
+          id?: string
+          is_active?: boolean
+          success_rate?: number | null
+          trigger_conditions?: Json
+          updated_at?: string
+          workflow_config?: Json
+          workflow_name?: string
         }
         Relationships: []
       }
@@ -5922,6 +6228,57 @@ export type Database = {
           },
         ]
       }
+      supplier_negotiations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          final_terms: Json | null
+          id: string
+          negotiated_price: number | null
+          negotiation_rounds: number
+          negotiation_strategy: Json
+          negotiation_type: string
+          original_price: number
+          product_type: string
+          status: string
+          supplier_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          final_terms?: Json | null
+          id?: string
+          negotiated_price?: number | null
+          negotiation_rounds?: number
+          negotiation_strategy?: Json
+          negotiation_type: string
+          original_price: number
+          product_type: string
+          status?: string
+          supplier_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          final_terms?: Json | null
+          id?: string
+          negotiated_price?: number | null
+          negotiation_rounds?: number
+          negotiation_strategy?: Json
+          negotiation_type?: string
+          original_price?: number
+          product_type?: string
+          status?: string
+          supplier_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       supplier_rates: {
         Row: {
           base_rate: number
@@ -6069,6 +6426,51 @@ export type Database = {
           subject?: string
           ticket_number?: string
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      sustainability_metrics: {
+        Row: {
+          accommodation_emissions: number | null
+          activity_emissions: number | null
+          booking_id: string | null
+          calculation_method: string
+          carbon_footprint_kg: number | null
+          created_at: string
+          eco_alternatives: Json | null
+          id: string
+          offset_recommendations: Json | null
+          sustainability_score: number | null
+          transportation_emissions: number | null
+          user_id: string | null
+        }
+        Insert: {
+          accommodation_emissions?: number | null
+          activity_emissions?: number | null
+          booking_id?: string | null
+          calculation_method?: string
+          carbon_footprint_kg?: number | null
+          created_at?: string
+          eco_alternatives?: Json | null
+          id?: string
+          offset_recommendations?: Json | null
+          sustainability_score?: number | null
+          transportation_emissions?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          accommodation_emissions?: number | null
+          activity_emissions?: number | null
+          booking_id?: string | null
+          calculation_method?: string
+          carbon_footprint_kg?: number | null
+          created_at?: string
+          eco_alternatives?: Json | null
+          id?: string
+          offset_recommendations?: Json | null
+          sustainability_score?: number | null
+          transportation_emissions?: number | null
           user_id?: string | null
         }
         Relationships: []
@@ -6241,6 +6643,51 @@ export type Database = {
         }
         Relationships: []
       }
+      training_tasks: {
+        Row: {
+          completion_criteria: Json
+          content_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          is_mandatory: boolean
+          required_for_roles: string[]
+          task_name: string
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          completion_criteria?: Json
+          content_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_mandatory?: boolean
+          required_for_roles?: string[]
+          task_name: string
+          task_type?: string
+          updated_at?: string
+        }
+        Update: {
+          completion_criteria?: Json
+          content_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_mandatory?: boolean
+          required_for_roles?: string[]
+          task_name?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transfers_offers_cache: {
         Row: {
           created_at: string | null
@@ -6332,6 +6779,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      translation_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          id: string
+          last_used_at: string
+          provider: string
+          source_language: string
+          source_text: string
+          target_language: string
+          translated_text: string
+          translation_quality_score: number | null
+          usage_count: number
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          id?: string
+          last_used_at?: string
+          provider?: string
+          source_language: string
+          source_text: string
+          target_language: string
+          translated_text: string
+          translation_quality_score?: number | null
+          usage_count?: number
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          id?: string
+          last_used_at?: string
+          provider?: string
+          source_language?: string
+          source_text?: string
+          target_language?: string
+          translated_text?: string
+          translation_quality_score?: number | null
+          usage_count?: number
+        }
+        Relationships: []
       }
       travel_alerts: {
         Row: {
@@ -6756,6 +7245,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_training_completion: {
+        Row: {
+          completed_at: string | null
+          completion_evidence: Json | null
+          created_at: string
+          id: string
+          score: number | null
+          started_at: string | null
+          status: string
+          training_task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_evidence?: Json | null
+          created_at?: string
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          training_task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completion_evidence?: Json | null
+          created_at?: string
+          id?: string
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          training_task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_training_completion_training_task_id_fkey"
+            columns: ["training_task_id"]
+            isOneToOne: false
+            referencedRelation: "training_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visa_documents: {
         Row: {
           country: string
@@ -6789,6 +7325,48 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      voice_interface_sessions: {
+        Row: {
+          audio_duration_seconds: number | null
+          conversation_transcript: Json
+          created_at: string
+          id: string
+          language_code: string
+          recognition_accuracy: number | null
+          session_id: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          voice_preferences: Json
+        }
+        Insert: {
+          audio_duration_seconds?: number | null
+          conversation_transcript?: Json
+          created_at?: string
+          id?: string
+          language_code?: string
+          recognition_accuracy?: number | null
+          session_id: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          voice_preferences?: Json
+        }
+        Update: {
+          audio_duration_seconds?: number | null
+          conversation_transcript?: Json
+          created_at?: string
+          id?: string
+          language_code?: string
+          recognition_accuracy?: number | null
+          session_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          voice_preferences?: Json
         }
         Relationships: []
       }
