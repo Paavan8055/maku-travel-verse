@@ -896,6 +896,230 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_employee_skills: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          example_inputs: Json | null
+          example_outputs: Json | null
+          id: string
+          is_active: boolean | null
+          is_template: boolean | null
+          natural_language_prompt: string
+          prerequisites: Json | null
+          skill_category: string
+          skill_definition: Json
+          skill_description: string | null
+          skill_difficulty: string
+          skill_name: string
+          skill_parameters: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          example_inputs?: Json | null
+          example_outputs?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          natural_language_prompt: string
+          prerequisites?: Json | null
+          skill_category?: string
+          skill_definition?: Json
+          skill_description?: string | null
+          skill_difficulty?: string
+          skill_name: string
+          skill_parameters?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          example_inputs?: Json | null
+          example_outputs?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          natural_language_prompt?: string
+          prerequisites?: Json | null
+          skill_category?: string
+          skill_definition?: Json
+          skill_description?: string | null
+          skill_difficulty?: string
+          skill_name?: string
+          skill_parameters?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_employee_templates: {
+        Row: {
+          communication_style: string | null
+          created_at: string | null
+          created_by: string | null
+          default_configuration: Json | null
+          department: string | null
+          id: string
+          is_system_template: boolean | null
+          job_role: string
+          optional_skills: Json | null
+          personality_traits: Json | null
+          required_skills: Json | null
+          template_category: string | null
+          template_description: string | null
+          template_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          communication_style?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_configuration?: Json | null
+          department?: string | null
+          id?: string
+          is_system_template?: boolean | null
+          job_role: string
+          optional_skills?: Json | null
+          personality_traits?: Json | null
+          required_skills?: Json | null
+          template_category?: string | null
+          template_description?: string | null
+          template_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          communication_style?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_configuration?: Json | null
+          department?: string | null
+          id?: string
+          is_system_template?: boolean | null
+          job_role?: string
+          optional_skills?: Json | null
+          personality_traits?: Json | null
+          required_skills?: Json | null
+          template_category?: string | null
+          template_description?: string | null
+          template_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_employee_training: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          employee_id: string | null
+          id: string
+          proficiency_level: number | null
+          skill_id: string | null
+          started_at: string | null
+          training_data: Json | null
+          training_status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          proficiency_level?: number | null
+          skill_id?: string | null
+          started_at?: string | null
+          training_data?: Json | null
+          training_status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          proficiency_level?: number | null
+          skill_id?: string | null
+          started_at?: string | null
+          training_data?: Json | null
+          training_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_employee_training_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_employee_training_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employee_skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_employees: {
+        Row: {
+          assigned_skills: Json | null
+          created_at: string | null
+          created_by: string
+          custom_configuration: Json | null
+          department: string | null
+          employee_description: string | null
+          employee_name: string
+          id: string
+          job_title: string
+          onboarding_completed: boolean | null
+          performance_score: number | null
+          personality_profile: Json | null
+          status: string | null
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_skills?: Json | null
+          created_at?: string | null
+          created_by: string
+          custom_configuration?: Json | null
+          department?: string | null
+          employee_description?: string | null
+          employee_name: string
+          id?: string
+          job_title: string
+          onboarding_completed?: boolean | null
+          performance_score?: number | null
+          personality_profile?: Json | null
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_skills?: Json | null
+          created_at?: string | null
+          created_by?: string
+          custom_configuration?: Json | null
+          department?: string | null
+          employee_description?: string | null
+          employee_name?: string
+          id?: string
+          job_title?: string
+          onboarding_completed?: boolean | null
+          performance_score?: number | null
+          personality_profile?: Json | null
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_employees_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employee_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_training_bookings: {
         Row: {
           anonymized_at: string | null
@@ -6165,6 +6389,48 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      skill_compositions: {
+        Row: {
+          child_skill_id: string | null
+          condition_logic: Json | null
+          created_at: string | null
+          execution_order: number | null
+          id: string
+          parent_skill_id: string | null
+        }
+        Insert: {
+          child_skill_id?: string | null
+          condition_logic?: Json | null
+          created_at?: string | null
+          execution_order?: number | null
+          id?: string
+          parent_skill_id?: string | null
+        }
+        Update: {
+          child_skill_id?: string | null
+          condition_logic?: Json | null
+          created_at?: string | null
+          execution_order?: number | null
+          id?: string
+          parent_skill_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_compositions_child_skill_id_fkey"
+            columns: ["child_skill_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employee_skills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_compositions_parent_skill_id_fkey"
+            columns: ["parent_skill_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employee_skills"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supplier_contracts: {
         Row: {
