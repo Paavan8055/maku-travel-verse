@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface AgentMetrics {
+interface AgentMetricsData {
   totalTasks: number;
   completedTasks: number;
   failedTasks: number;
@@ -34,7 +34,7 @@ interface AgentMetrics {
 }
 
 const AgentMetrics: React.FC = () => {
-  const [metrics, setMetrics] = useState<AgentMetrics | null>(null);
+  const [metrics, setMetrics] = useState<AgentMetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
