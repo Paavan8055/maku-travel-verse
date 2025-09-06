@@ -1159,6 +1159,183 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_workplace_projects: {
+        Row: {
+          actual_completion: string | null
+          ai_agents: Json
+          budget_allocated: number | null
+          budget_used: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          estimated_completion: string | null
+          id: string
+          milestones: Json
+          name: string
+          priority: string
+          progress_percentage: number | null
+          project_goals: Json
+          project_manager_id: string | null
+          project_type: string
+          resources: Json
+          risk_assessment: Json
+          start_date: string | null
+          status: string
+          tags: string[] | null
+          team_members: Json
+          updated_at: string
+        }
+        Insert: {
+          actual_completion?: string | null
+          ai_agents?: Json
+          budget_allocated?: number | null
+          budget_used?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          estimated_completion?: string | null
+          id?: string
+          milestones?: Json
+          name: string
+          priority?: string
+          progress_percentage?: number | null
+          project_goals?: Json
+          project_manager_id?: string | null
+          project_type?: string
+          resources?: Json
+          risk_assessment?: Json
+          start_date?: string | null
+          status?: string
+          tags?: string[] | null
+          team_members?: Json
+          updated_at?: string
+        }
+        Update: {
+          actual_completion?: string | null
+          ai_agents?: Json
+          budget_allocated?: number | null
+          budget_used?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          estimated_completion?: string | null
+          id?: string
+          milestones?: Json
+          name?: string
+          priority?: string
+          progress_percentage?: number | null
+          project_goals?: Json
+          project_manager_id?: string | null
+          project_type?: string
+          resources?: Json
+          risk_assessment?: Json
+          start_date?: string | null
+          status?: string
+          tags?: string[] | null
+          team_members?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_workplace_tasks: {
+        Row: {
+          actual_duration_minutes: number | null
+          assigned_to_id: string | null
+          assigned_to_type: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          dependencies: Json
+          description: string | null
+          due_date: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          parent_task_id: string | null
+          priority: string
+          progress_percentage: number | null
+          project_id: string | null
+          quality_score: number | null
+          sop_id: string | null
+          started_at: string | null
+          status: string
+          tags: string[] | null
+          task_data: Json
+          task_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_duration_minutes?: number | null
+          assigned_to_id?: string | null
+          assigned_to_type?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dependencies?: Json
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          parent_task_id?: string | null
+          priority?: string
+          progress_percentage?: number | null
+          project_id?: string | null
+          quality_score?: number | null
+          sop_id?: string | null
+          started_at?: string | null
+          status?: string
+          tags?: string[] | null
+          task_data?: Json
+          task_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_duration_minutes?: number | null
+          assigned_to_id?: string | null
+          assigned_to_type?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dependencies?: Json
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          parent_task_id?: string | null
+          priority?: string
+          progress_percentage?: number | null
+          project_id?: string | null
+          quality_score?: number | null
+          sop_id?: string | null
+          started_at?: string | null
+          status?: string
+          tags?: string[] | null
+          task_data?: Json
+          task_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_workplace_tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "ai_workplace_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_workplace_tasks_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "standard_operating_procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       air_extras: {
         Row: {
           created_at: string | null
@@ -6428,6 +6605,354 @@ export type Database = {
             columns: ["parent_skill_id"]
             isOneToOne: false
             referencedRelation: "ai_employee_skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sop_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "sop_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sop_compliance_audits: {
+        Row: {
+          audit_criteria: Json
+          audit_status: string
+          audit_type: string
+          auditor_id: string | null
+          completed_at: string | null
+          compliance_score: number | null
+          corrective_actions: Json
+          created_at: string
+          due_date: string | null
+          execution_id: string | null
+          findings: Json
+          id: string
+          recommendations: Json
+          sop_id: string
+          updated_at: string
+        }
+        Insert: {
+          audit_criteria?: Json
+          audit_status?: string
+          audit_type?: string
+          auditor_id?: string | null
+          completed_at?: string | null
+          compliance_score?: number | null
+          corrective_actions?: Json
+          created_at?: string
+          due_date?: string | null
+          execution_id?: string | null
+          findings?: Json
+          id?: string
+          recommendations?: Json
+          sop_id: string
+          updated_at?: string
+        }
+        Update: {
+          audit_criteria?: Json
+          audit_status?: string
+          audit_type?: string
+          auditor_id?: string | null
+          completed_at?: string | null
+          compliance_score?: number | null
+          corrective_actions?: Json
+          created_at?: string
+          due_date?: string | null
+          execution_id?: string | null
+          findings?: Json
+          id?: string
+          recommendations?: Json
+          sop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_compliance_audits_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "sop_executions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sop_compliance_audits_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "standard_operating_procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sop_executions: {
+        Row: {
+          actual_duration_minutes: number | null
+          completed_at: string | null
+          compliance_checks: Json
+          created_at: string
+          current_step: number
+          deviation_notes: string | null
+          escalated_to: string | null
+          escalation_reason: string | null
+          estimated_completion: string | null
+          execution_context: Json
+          execution_status: string
+          executor_id: string
+          executor_type: string
+          id: string
+          quality_scores: Json
+          sop_id: string
+          started_at: string | null
+          step_results: Json
+          total_steps: number
+          updated_at: string
+        }
+        Insert: {
+          actual_duration_minutes?: number | null
+          completed_at?: string | null
+          compliance_checks?: Json
+          created_at?: string
+          current_step?: number
+          deviation_notes?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          estimated_completion?: string | null
+          execution_context?: Json
+          execution_status?: string
+          executor_id: string
+          executor_type?: string
+          id?: string
+          quality_scores?: Json
+          sop_id: string
+          started_at?: string | null
+          step_results?: Json
+          total_steps?: number
+          updated_at?: string
+        }
+        Update: {
+          actual_duration_minutes?: number | null
+          completed_at?: string | null
+          compliance_checks?: Json
+          created_at?: string
+          current_step?: number
+          deviation_notes?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          estimated_completion?: string | null
+          execution_context?: Json
+          execution_status?: string
+          executor_id?: string
+          executor_type?: string
+          id?: string
+          quality_scores?: Json
+          sop_id?: string
+          started_at?: string | null
+          step_results?: Json
+          total_steps?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_executions_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "standard_operating_procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sop_templates: {
+        Row: {
+          automation_rules: Json
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system_template: boolean
+          name: string
+          optional_fields: Json
+          required_fields: Json
+          template_structure: Json
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          automation_rules?: Json
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system_template?: boolean
+          name: string
+          optional_fields?: Json
+          required_fields?: Json
+          template_structure?: Json
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          automation_rules?: Json
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system_template?: boolean
+          name?: string
+          optional_fields?: Json
+          required_fields?: Json
+          template_structure?: Json
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "sop_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      standard_operating_procedures: {
+        Row: {
+          approval_required: boolean
+          approved_at: string | null
+          approved_by: string | null
+          automation_config: Json
+          category_id: string | null
+          complexity_level: string
+          compliance_requirements: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          effective_date: string | null
+          escalation_rules: Json
+          estimated_duration_minutes: number | null
+          expected_outcomes: Json
+          expiry_date: string | null
+          id: string
+          prerequisites: Json
+          procedure_steps: Json
+          quality_checkpoints: Json
+          status: string
+          tags: string[] | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          approval_required?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          automation_config?: Json
+          category_id?: string | null
+          complexity_level?: string
+          compliance_requirements?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          effective_date?: string | null
+          escalation_rules?: Json
+          estimated_duration_minutes?: number | null
+          expected_outcomes?: Json
+          expiry_date?: string | null
+          id?: string
+          prerequisites?: Json
+          procedure_steps?: Json
+          quality_checkpoints?: Json
+          status?: string
+          tags?: string[] | null
+          template_id?: string | null
+          title: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          approval_required?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          automation_config?: Json
+          category_id?: string | null
+          complexity_level?: string
+          compliance_requirements?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          effective_date?: string | null
+          escalation_rules?: Json
+          estimated_duration_minutes?: number | null
+          expected_outcomes?: Json
+          expiry_date?: string | null
+          id?: string
+          prerequisites?: Json
+          procedure_steps?: Json
+          quality_checkpoints?: Json
+          status?: string
+          tags?: string[] | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standard_operating_procedures_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "sop_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "standard_operating_procedures_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "sop_templates"
             referencedColumns: ["id"]
           },
         ]

@@ -16,6 +16,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SkillBuilder } from './SkillBuilder';
 import { EmployeeCreationWizard } from './EmployeeCreationWizard';
+import { SOPManagement } from './SOPManagement';
+import { TasksModule } from './TasksModule';
+import { ProjectsModule } from './ProjectsModule';
 
 interface Employee {
   id: string;
