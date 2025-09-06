@@ -2478,6 +2478,66 @@ export type Database = {
           },
         ]
       }
+      fraud_alerts: {
+        Row: {
+          alert_reason: string
+          alert_type: string
+          created_at: string
+          detection_method: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          risk_score: number
+          severity: string
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alert_reason: string
+          alert_type: string
+          created_at?: string
+          detection_method: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_score?: number
+          severity?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alert_reason?: string
+          alert_type?: string
+          created_at?: string
+          detection_method?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_score?: number
+          severity?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       fund_balances: {
         Row: {
           balance: number
@@ -2513,32 +2573,63 @@ export type Database = {
       fund_transactions: {
         Row: {
           amount: number
+          billing_category: string | null
+          billing_metadata: Json | null
           created_at: string
+          external_transaction_id: string | null
           id: string
+          invoice_id: string | null
+          net_amount: number | null
+          payment_method: string | null
+          processor_fee: number | null
           status: string
           stripe_session_id: string | null
+          tax_amount: number | null
           type: string
           user_id: string
         }
         Insert: {
           amount: number
+          billing_category?: string | null
+          billing_metadata?: Json | null
           created_at?: string
+          external_transaction_id?: string | null
           id?: string
+          invoice_id?: string | null
+          net_amount?: number | null
+          payment_method?: string | null
+          processor_fee?: number | null
           status?: string
           stripe_session_id?: string | null
+          tax_amount?: number | null
           type: string
           user_id: string
         }
         Update: {
           amount?: number
+          billing_category?: string | null
+          billing_metadata?: Json | null
           created_at?: string
+          external_transaction_id?: string | null
           id?: string
+          invoice_id?: string | null
+          net_amount?: number | null
+          payment_method?: string | null
+          processor_fee?: number | null
           status?: string
           stripe_session_id?: string | null
+          tax_amount?: number | null
           type?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fund_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fund_transactions_user_id_fkey"
             columns: ["user_id"]
@@ -3039,6 +3130,83 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount: number
+          billing_address: Json | null
+          booking_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          invoice_number: string
+          invoice_type: string
+          issued_date: string | null
+          line_items: Json
+          metadata: Json | null
+          notes: string | null
+          paid_date: string | null
+          payment_due_date: string | null
+          payment_terms: string | null
+          status: string
+          tax_amount: number | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          billing_address?: Json | null
+          booking_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_number: string
+          invoice_type?: string
+          issued_date?: string | null
+          line_items?: Json
+          metadata?: Json | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_due_date?: string | null
+          payment_terms?: string | null
+          status?: string
+          tax_amount?: number | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          billing_address?: Json | null
+          booking_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_number?: string
+          invoice_type?: string
+          issued_date?: string | null
+          line_items?: Json
+          metadata?: Json | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_due_date?: string | null
+          payment_terms?: string | null
+          status?: string
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -4027,41 +4195,68 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          billing_address: Json | null
           booking_id: string
+          chargeback_liability: string | null
           created_at: string | null
           currency: string | null
           failure_reason: string | null
+          fraud_check_status: string | null
           id: string
+          invoice_id: string | null
+          payment_method_details: Json | null
           payment_method_id: string | null
+          processor_fee: number | null
+          refund_policy: string | null
+          risk_score: number | null
           status: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
+          tax_amount: number | null
           updated_at: string | null
         }
         Insert: {
           amount: number
+          billing_address?: Json | null
           booking_id: string
+          chargeback_liability?: string | null
           created_at?: string | null
           currency?: string | null
           failure_reason?: string | null
+          fraud_check_status?: string | null
           id?: string
+          invoice_id?: string | null
+          payment_method_details?: Json | null
           payment_method_id?: string | null
+          processor_fee?: number | null
+          refund_policy?: string | null
+          risk_score?: number | null
           status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          tax_amount?: number | null
           updated_at?: string | null
         }
         Update: {
           amount?: number
+          billing_address?: Json | null
           booking_id?: string
+          chargeback_liability?: string | null
           created_at?: string | null
           currency?: string | null
           failure_reason?: string | null
+          fraud_check_status?: string | null
           id?: string
+          invoice_id?: string | null
+          payment_method_details?: Json | null
           payment_method_id?: string | null
+          processor_fee?: number | null
+          refund_policy?: string | null
+          risk_score?: number | null
           status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          tax_amount?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -4070,6 +4265,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -6243,6 +6445,15 @@ export type Database = {
         Args: { start_date: string }
         Returns: number
       }
+      calculate_fraud_risk_score: {
+        Args: {
+          p_amount: number
+          p_ip_address?: unknown
+          p_payment_method: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       cancel_booking: {
         Args: { p_booking_id: string }
         Returns: Json
@@ -6359,6 +6570,10 @@ export type Database = {
       }
       generate_guest_booking_token: {
         Args: { _booking_id: string; _email: string }
+        Returns: string
+      }
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       get_admin_status: {
