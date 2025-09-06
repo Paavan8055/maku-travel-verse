@@ -53,17 +53,32 @@ export const useAgentManagement = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: funcError } = await supabase.functions.invoke('agent-management', {
-        body: { action: 'list_agents' }
-      });
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('agent_management')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (funcError) throw funcError;
+      if (agentsError) throw agentsError;
+
+      const formattedAgents: Agent[] = (agentsData || []).map(agent => ({
+        id: agent.id,
+        display_name: agent.display_name,
+        agent_id: agent.agent_id,
+        status: agent.status,
+        health_status: agent.health_status,
+        category: agent.category,
+        version: agent.version,
+        capabilities: Array.isArray(agent.capabilities) 
+          ? agent.capabilities.filter(cap => typeof cap === 'string') as string[]
+          : [],
+        last_health_check: agent.last_health_check || agent.updated_at,
+        description: agent.description,
+        configuration: agent.configuration,
+        permissions: agent.permissions,
+        performance_settings: agent.performance_settings,
+      }));
       
-      if (data.success) {
-        setAgents(data.data);
-      } else {
-        throw new Error(data.error || 'Failed to load agents');
-      }
+      setAgents(formattedAgents);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load agents';
       setError(errorMessage);
@@ -140,30 +155,34 @@ export const useAgentManagement = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: funcError } = await supabase.functions.invoke('agent-management', {
-        body: { 
-          action: 'assign_task',
-          agentId,
-          taskData
-        }
-      });
+      const { data, error } = await supabase
+        .from('agentic_tasks')
+        .insert({
+          agent_id: agentId,
+          intent: taskData.intent,
+          params: taskData.params || {},
+          status: 'pending',
+          progress: 0,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        })
+        .select()
+        .single();
 
-      if (funcError) throw funcError;
+      if (error) throw error;
+
+      toast.success('Task assigned successfully');
       
-      if (data.success) {
-        toast.success('Task assigned successfully');
-        // Refresh task list if viewing agent details
-        if (selectedAgent?.agent_id === agentId) {
-          await getAgent(agentId);
-        }
-        return data.data;
-      } else {
-        throw new Error(data.error || 'Failed to assign task');
+      // Refresh task list if viewing agent details
+      if (selectedAgent?.agent_id === agentId) {
+        await getAgent(agentId);
       }
+      
+      return { success: true, data, taskId: data.id };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to assign task';
       setError(errorMessage);
       toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }

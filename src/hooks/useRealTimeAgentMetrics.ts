@@ -26,29 +26,55 @@ export const useRealTimeAgentMetrics = (agentId?: string) => {
       setIsLoading(true);
       
       try {
-        // Fetch recent tasks to calculate metrics
-        let query = supabase
-          .from('agentic_tasks')
+        // Fetch performance metrics directly
+        let metricsQuery = supabase
+          .from('agent_performance_metrics')
           .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1000);
+          .gte('metric_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
         
         if (agentId) {
-          query = query.eq('agent_id', agentId);
+          metricsQuery = metricsQuery.eq('agent_id', agentId);
         }
 
-        const { data, error } = await query;
+        const { data: metricsData, error: metricsError } = await metricsQuery;
 
-        if (error) {
-          console.error('Error fetching tasks for metrics:', error);
+        if (metricsError) {
+          console.error('Error fetching performance metrics:', metricsError);
           return;
         }
 
-        // Process tasks into aggregated metrics
+        // Also fetch recent tasks for real-time activity
+        let tasksQuery = supabase
+          .from('agentic_tasks')
+          .select('agent_id, status, updated_at')
+          .order('updated_at', { ascending: false })
+          .limit(500);
+        
+        if (agentId) {
+          tasksQuery = tasksQuery.eq('agent_id', agentId);
+        }
+
+        const { data: tasksData, error: tasksError } = await tasksQuery;
+
+        if (tasksError) {
+          console.error('Error fetching tasks for metrics:', tasksError);
+          return;
+        }
+
+        // Process metrics data
         const processedMetrics: Record<string, AgentMetrics> = {};
         
-        // Group tasks by agent_id
-        const groupedTasks = (data || []).reduce((acc, task: any) => {
+        // Group metrics by agent_id
+        const groupedMetrics = (metricsData || []).reduce((acc, metric: any) => {
+          if (!acc[metric.agent_id]) {
+            acc[metric.agent_id] = [];
+          }
+          acc[metric.agent_id].push(metric);
+          return acc;
+        }, {} as Record<string, any[]>);
+
+        // Group tasks by agent_id for last activity
+        const groupedTasks = (tasksData || []).reduce((acc, task: any) => {
           if (!acc[task.agent_id]) {
             acc[task.agent_id] = [];
           }
@@ -57,19 +83,37 @@ export const useRealTimeAgentMetrics = (agentId?: string) => {
         }, {} as Record<string, any[]>);
 
         // Calculate aggregated metrics for each agent
-        Object.entries(groupedTasks).forEach(([agentId, agentTasks]) => {
-          const activeTasks = agentTasks.filter(t => t.status === 'running' || t.status === 'pending');
-          const completedTasks = agentTasks.filter(t => t.status === 'completed');
-          const failedTasks = agentTasks.filter(t => t.status === 'failed');
+        Object.entries(groupedMetrics).forEach(([agentId, agentMetrics]) => {
+          const totalTasks = agentMetrics.reduce((sum, m) => sum + m.total_tasks, 0);
+          const successfulTasks = agentMetrics.reduce((sum, m) => sum + m.successful_tasks, 0);
+          const avgResponseTime = agentMetrics.reduce((sum, m) => sum + m.average_response_time_ms, 0) / agentMetrics.length;
+          
+          const agentTasks = groupedTasks[agentId] || [];
+          const lastActivity = agentTasks.length > 0 ? agentTasks[0].updated_at : new Date().toISOString();
           
           processedMetrics[agentId] = {
-            taskCount: agentTasks.length,
-            successRate: agentTasks.length > 0 
-              ? (completedTasks.length / (completedTasks.length + failedTasks.length)) * 100 
-              : 0,
-            avgResponseTime: 3500, // Placeholder - would calculate from actual completion times
-            lastActivity: agentTasks.length > 0 ? agentTasks[0].updated_at : new Date().toISOString()
+            taskCount: totalTasks,
+            successRate: totalTasks > 0 ? (successfulTasks / totalTasks) * 100 : 0,
+            avgResponseTime: Math.round(avgResponseTime) || 0,
+            lastActivity
           };
+        });
+
+        // For agents without metrics, use task data
+        Object.entries(groupedTasks).forEach(([agentId, agentTasks]) => {
+          if (!processedMetrics[agentId]) {
+            const completedTasks = agentTasks.filter(t => t.status === 'completed');
+            const failedTasks = agentTasks.filter(t => t.status === 'failed');
+            
+            processedMetrics[agentId] = {
+              taskCount: agentTasks.length,
+              successRate: agentTasks.length > 0 
+                ? (completedTasks.length / (completedTasks.length + failedTasks.length)) * 100 
+                : 0,
+              avgResponseTime: 2500, // Default placeholder
+              lastActivity: agentTasks.length > 0 ? agentTasks[0].updated_at : new Date().toISOString()
+            };
+          }
         });
 
         setMetrics(processedMetrics);
@@ -82,9 +126,9 @@ export const useRealTimeAgentMetrics = (agentId?: string) => {
 
     fetchMetrics();
 
-    // Set up real-time subscription for task updates to update metrics
+    // Set up real-time subscription for both metrics and task updates
     const channel = supabase
-      .channel('agent-task-metrics-updates')
+      .channel('agent-metrics-realtime')
       .on(
         'postgres_changes',
         {
@@ -93,7 +137,17 @@ export const useRealTimeAgentMetrics = (agentId?: string) => {
           table: 'agentic_tasks'
         },
         (payload) => {
-          // Recalculate metrics when tasks change
+          fetchMetrics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_performance_metrics'
+        },
+        (payload) => {
           fetchMetrics();
         }
       )

@@ -14,6 +14,7 @@ import { AgentWorkflowBuilder } from './agent-management/AgentWorkflowBuilder';
 import { AgentAnalyticsDashboard } from './agent-management/AgentAnalyticsDashboard';
 import { SmartTaskManager } from './agent-management/SmartTaskManager';
 import { RealTimeMonitoring } from './agent-management/RealTimeMonitoring';
+import { RealTimeAgentStatus } from './agent-management/RealTimeAgentStatus';
 import { AgentDirectoryCard } from './agent-management/AgentDirectoryCard';
 
 interface Agent {
@@ -408,7 +409,10 @@ export function AgentManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="monitoring" className="space-y-4">
-          <RealTimeMonitoring />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RealTimeMonitoring />
+            <RealTimeAgentStatus />
+          </div>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
