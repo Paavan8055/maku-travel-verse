@@ -1,0 +1,126 @@
+import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
+
+export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
+  const agent = new BaseAgent(supabaseClient, 'travel-advisor');
+  
+  try {
+    const { 
+      question, 
+      travelContext = {},
+      urgency = 'normal', // low, normal, high, emergency
+      category = 'general' // general, booking, safety, health, documentation, customs
+    } = params;
+
+    if (!question) {
+      return {
+        success: false,
+        error: 'Missing required parameter: question'
+      };
+    }
+
+    const userPrefs = await agent.getUserPreferences(userId);
+    const advisoryHistory = await memory?.getMemory('travel-advisor', userId, 'advisory_history') || [];
+
+    // Get user's recent bookings for context
+    const { data: recentBookings } = await supabaseClient
+      .from('bookings')
+      .select('booking_type, booking_data, status, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    const systemPrompt = `You are an expert travel advisor for MAKU Travel with extensive knowledge of:
+    - Global travel regulations and requirements
+    - Safety and security protocols
+    - Cultural customs and etiquette
+    - Health and vaccination requirements
+    - Documentation and visa processes
+    - Travel insurance and protection
+    - Emergency procedures and contacts
+    
+    ADVISORY REQUEST:
+    - Question: ${question}
+    - Category: ${category}
+    - Urgency: ${urgency}
+    - Travel context: ${JSON.stringify(travelContext)}
+    
+    USER PROFILE: ${JSON.stringify(userPrefs)}
+    RECENT BOOKINGS: ${JSON.stringify(recentBookings)}
+    PREVIOUS ADVISORY HISTORY: ${JSON.stringify(advisoryHistory)}
+
+    Provide expert travel advice including:
+    1. Direct answer to the specific question
+    2. Additional considerations and implications
+    3. Step-by-step guidance if applicable
+    4. Relevant regulations or requirements
+    5. Safety and security recommendations
+    6. Cost implications if relevant
+    7. Timeline considerations
+    8. Alternative options or solutions
+    9. Required documentation or preparation
+    10. Emergency protocols if applicable
+    11. Follow-up actions needed
+    12. Useful resources and contacts
+    
+    Adjust urgency and detail level based on the request category.
+    Provide practical, actionable advice with specific next steps.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-2025-08-07',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `${category.toUpperCase()} QUESTION (${urgency} priority): ${question}` }
+        ],
+        max_completion_tokens: 2500
+      }),
+    });
+
+    const aiResponse = await response.json();
+    const travelAdvice = aiResponse.choices[0]?.message?.content;
+
+    await agent.logActivity(userId, 'travel_advice_provided', {
+      category,
+      urgency,
+      hasContext: Object.keys(travelContext).length > 0
+    });
+
+    const updatedAdvisoryHistory = [...advisoryHistory, {
+      question: question.substring(0, 100) + '...',
+      category,
+      urgency,
+      advisedAt: new Date().toISOString()
+    }].slice(-20);
+
+    return {
+      success: true,
+      result: {
+        travelAdvice,
+        category,
+        urgency,
+        advisoryType: 'Expert travel consultation',
+        followUpRecommended: urgency === 'high' || urgency === 'emergency',
+        resourcesProvided: 'Comprehensive guidance with actionable steps'
+      },
+      memoryUpdates: [
+        {
+          key: 'advisory_history',
+          data: updatedAdvisoryHistory,
+          expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ]
+    };
+
+  } catch (error) {
+    console.error('Travel advisor error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to provide travel advice'
+    };
+  }
+};
