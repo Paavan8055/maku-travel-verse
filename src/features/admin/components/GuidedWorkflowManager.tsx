@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Circle, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useAdminIntegration } from '../context/AdminIntegrationContext';
+import { agentWorkflows, type AgentWorkflow, type WorkflowStep } from '../data/agentWorkflows';
+import { supabase } from '@/integrations/supabase/client';
 import { agentWorkflows, type AgentWorkflow, type WorkflowStep } from '../constants/agentWorkflows';
 
 // Using imported workflows from constants

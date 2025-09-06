@@ -30,6 +30,7 @@ const AGENT_CONFIGS = {
   'group-coordinator': { name: 'Group Coordinator', category: 'customer', model: 'gpt-5-2025-08-07' },
   'solo-travel-guide': { name: 'Solo Travel Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
   'family-planner': { name: 'Family Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'pet-travel-specialist': { name: 'Pet Travel Specialist', category: 'customer', model: 'gpt-5-2025-08-07' },
   
   // Administrative agents (35)
   'password-reset': { name: 'Password Reset Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
