@@ -1,151 +1,184 @@
-// Memory utilities for agent context management
-export interface AgentMemory {
-  id?: string;
-  agentId: string;
-  userId: string;
-  sessionId?: string;
-  memoryKey: string;
-  memoryData: any;
-  expiresAt?: string;
-}
+import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 
-export class AgentMemoryManager {
-  constructor(private supabaseClient: any) {}
-
-  async getMemory(agentId: string, userId: string, memoryKey: string): Promise<any> {
-    const { data, error } = await this.supabaseClient
-      .from('agentic_memory')
-      .select('memory_data')
-      .eq('agent_id', agentId)
-      .eq('user_id', userId)
-      .eq('memory_key', memoryKey)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching agent memory:', error);
-      return null;
-    }
-
-    return data?.memory_data || null;
-  }
-
-  async setMemory(
-    agentId: string, 
-    userId: string, 
-    memoryKey: string, 
-    memoryData: any,
-    sessionId?: string,
-    expiresAt?: string
-  ): Promise<boolean> {
-    const { error } = await this.supabaseClient
-      .from('agentic_memory')
-      .upsert({
-        agent_id: agentId,
-        user_id: userId,
-        session_id: sessionId,
-        memory_key: memoryKey,
-        memory_data: memoryData,
-        expires_at: expiresAt,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'agent_id,user_id,memory_key'
-      });
-
-    if (error) {
-      console.error('Error setting agent memory:', error);
-      return false;
-    }
-
-    return true;
-  }
-
-  async clearMemory(agentId: string, userId: string, memoryKey?: string): Promise<boolean> {
-    let query = this.supabaseClient
-      .from('agentic_memory')
-      .delete()
-      .eq('agent_id', agentId)
-      .eq('user_id', userId);
-
-    if (memoryKey) {
-      query = query.eq('memory_key', memoryKey);
-    }
-
-    const { error } = await query;
-
-    if (error) {
-      console.error('Error clearing agent memory:', error);
-      return false;
-    }
-
-    return true;
-  }
-
-  async getSessionMemory(agentId: string, sessionId: string): Promise<any[]> {
-    const { data, error } = await this.supabaseClient
-      .from('agentic_memory')
-      .select('*')
-      .eq('agent_id', agentId)
-      .eq('session_id', sessionId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching session memory:', error);
-      return [];
-    }
-
-    return data || [];
-  }
-}
-
-// Agent handler interface
 export interface AgentHandler {
   (
     userId: string,
     intent: string,
     params: any,
-    supabaseClient: any,
-    openAiClient?: any,
-    memory?: AgentMemoryManager
+    supabaseClient: SupabaseClient,
+    openAiClient: string,
+    memory: AgentMemoryManager
   ): Promise<{
     success: boolean;
     result?: any;
     error?: string;
-    memoryUpdates?: { key: string; data: any; expiresAt?: string }[];
+    memoryUpdates?: Array<{
+      key: string;
+      data: any;
+      expiresAt?: string;
+    }>;
   }>;
 }
 
-// Base agent class for common functionality
+export class AgentMemoryManager {
+  constructor(private supabase: SupabaseClient) {}
+
+  async getMemory(agentId: string, userId: string, key: string): Promise<any | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('agentic_memory')
+        .select('memory_data')
+        .eq('agent_id', agentId)
+        .eq('user_id', userId)
+        .eq('memory_key', key)
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+      if (error || !data) return null;
+      return data.memory_data;
+    } catch (error) {
+      console.error('Memory retrieval error:', error);
+      return null;
+    }
+  }
+
+  async setMemory(
+    agentId: string,
+    userId: string,
+    key: string,
+    data: any,
+    sessionId?: string,
+    expiresAt?: string
+  ): Promise<boolean> {
+    try {
+      const expires = expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      
+      const { error } = await this.supabase
+        .from('agentic_memory')
+        .upsert({
+          agent_id: agentId,
+          user_id: userId,
+          memory_key: key,
+          memory_data: data,
+          session_id: sessionId,
+          expires_at: expires
+        });
+
+      return !error;
+    } catch (error) {
+      console.error('Memory storage error:', error);
+      return false;
+    }
+  }
+
+  async clearMemory(agentId: string, userId: string, key?: string): Promise<boolean> {
+    try {
+      let query = this.supabase
+        .from('agentic_memory')
+        .delete()
+        .eq('agent_id', agentId)
+        .eq('user_id', userId);
+
+      if (key) {
+        query = query.eq('memory_key', key);
+      }
+
+      const { error } = await query;
+      return !error;
+    } catch (error) {
+      console.error('Memory cleanup error:', error);
+      return false;
+    }
+  }
+}
+
 export class BaseAgent {
-  protected memory: AgentMemoryManager;
-
-  constructor(protected supabaseClient: any, protected agentId: string) {
-    this.memory = new AgentMemoryManager(supabaseClient);
+  protected agentId: string;
+  
+  constructor(private supabase: SupabaseClient, agentId: string) {
+    this.agentId = agentId;
   }
 
-  protected async getUserPreferences(userId: string): Promise<any> {
-    const { data } = await this.supabaseClient
-      .from('communication_preferences')
-      .select('preferences')
-      .eq('user_id', userId)
-      .maybeSingle();
+  async getUserPreferences(userId: string): Promise<any> {
+    try {
+      const { data } = await this.supabase
+        .from('profiles')
+        .select('travel_preferences, user_preferences')
+        .eq('user_id', userId)
+        .single();
 
-    return data?.preferences || {};
+      return {
+        ...data?.travel_preferences,
+        ...data?.user_preferences
+      };
+    } catch (error) {
+      console.error('Error fetching user preferences:', error);
+      return {};
+    }
   }
 
-  protected async logActivity(userId: string, action: string, details: any): Promise<void> {
-    await this.supabaseClient
-      .from('user_activity_logs')
-      .insert({
-        user_id: userId,
-        activity_type: 'agent_action',
-        item_type: this.agentId,
-        item_id: action,
-        item_data: details,
-        session_id: crypto.randomUUID()
-      });
+  async logActivity(userId: string, activityType: string, metadata: any = {}): Promise<void> {
+    try {
+      await this.supabase
+        .from('user_activity_logs')
+        .insert({
+          user_id: userId,
+          activity_type: activityType,
+          item_type: this.agentId,
+          item_data: metadata,
+          session_id: crypto.randomUUID()
+        });
+    } catch (error) {
+      console.error('Activity logging error:', error);
+    }
   }
 
-  protected generateSessionId(): string {
-    return `${this.agentId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  async createAlert(
+    userId: string,
+    alertType: string,
+    message: string,
+    severity: 'low' | 'medium' | 'high' = 'medium',
+    metadata: any = {}
+  ): Promise<void> {
+    try {
+      await this.supabase
+        .from('critical_alerts')
+        .insert({
+          alert_type: alertType,
+          message,
+          severity,
+          metadata: {
+            ...metadata,
+            agent_id: this.agentId,
+            user_id: userId
+          }
+        });
+    } catch (error) {
+      console.error('Alert creation error:', error);
+    }
+  }
+}
+
+export class StructuredLogger {
+  static log(level: 'info' | 'warn' | 'error', message: string, metadata: any = {}) {
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      metadata,
+      service: 'agentic-system'
+    }));
+  }
+
+  static info(message: string, metadata: any = {}) {
+    this.log('info', message, metadata);
+  }
+
+  static warn(message: string, metadata: any = {}) {
+    this.log('warn', message, metadata);
+  }
+
+  static error(message: string, metadata: any = {}) {
+    this.log('error', message, metadata);
   }
 }
