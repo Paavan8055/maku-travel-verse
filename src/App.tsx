@@ -66,6 +66,7 @@ const AdminCorrelationPage = createLazyRoute(() => import("./pages/admin/monitor
 const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations/bookings"));
 const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/users"));
 const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
+const AdminAgentsPage = createLazyRoute(() => import("./pages/admin/operations/agents"));
 const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnostics"));
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
 const AdminAuditPage = createLazyRoute(() => import("./pages/admin/security/audit"));
@@ -174,10 +175,11 @@ const App = () => (
                           <Route path="monitoring/logs" element={<AdminLogsPage />} />
                           <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
                                          
-                                          {/* Operations Routes */}
-                                          <Route path="operations/bookings" element={<AdminBookingsPage />} />
-                                          <Route path="operations/users" element={<AdminUsersPage />} />
-                                          <Route path="operations/testing" element={<AdminTestingPage />} />
+                                           {/* Operations Routes */}
+                                           <Route path="operations/bookings" element={<AdminBookingsPage />} />
+                                           <Route path="operations/users" element={<AdminUsersPage />} />
+                                           <Route path="operations/testing" element={<AdminTestingPage />} />
+                                           <Route path="operations/agents" element={<AdminAgentsPage />} />
                                           <Route path="diagnostics" element={<AdminDiagnosticsPage />} />
                                          
                           {/* Security Routes */}

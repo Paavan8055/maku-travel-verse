@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
