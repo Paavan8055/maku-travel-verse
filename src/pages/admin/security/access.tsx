@@ -1,17 +1,42 @@
 import React from 'react';
-import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide';
-import { SecurityMonitoring } from '@/components/admin/SecurityMonitoring';
-import { EmergencyStabilization } from '@/components/admin/EmergencyStabilization';
-import { ProviderHealthDashboard } from '@/components/admin/ProviderHealthDashboard';
-import { AuthenticationFix } from '@/components/admin/AuthenticationFix';
-import { SystemHealthMonitor } from '@/components/admin/SystemHealthMonitor';
-import { RecoveryStatus } from '@/components/admin/RecoveryStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SecurityValidationPanel } from '@/components/admin/SecurityValidationPanel';
-import { ProviderApiTester } from '@/components/admin/ProviderApiTester';
-import { LoadTestingDashboard } from '@/components/admin/LoadTestingDashboard';
+import { DiagnosticWrapper } from '@/components/admin/DiagnosticWrapper';
+
+// Lazy load components for better error isolation
+const SecuritySettingsGuide = React.lazy(() => 
+  import('@/components/admin/SecuritySettingsGuide').then(m => ({ default: m.SecuritySettingsGuide }))
+);
+const SecurityMonitoring = React.lazy(() => 
+  import('@/components/admin/SecurityMonitoring').then(m => ({ default: m.SecurityMonitoring }))
+);
+const EmergencyStabilization = React.lazy(() => 
+  import('@/components/admin/EmergencyStabilization').then(m => ({ default: m.EmergencyStabilization }))
+);
+const ProviderHealthDashboard = React.lazy(() => 
+  import('@/components/admin/ProviderHealthDashboard').then(m => ({ default: m.ProviderHealthDashboard }))
+);
+const AuthenticationFix = React.lazy(() => 
+  import('@/components/admin/AuthenticationFix').then(m => ({ default: m.AuthenticationFix }))
+);
+const SystemHealthMonitor = React.lazy(() => 
+  import('@/components/admin/SystemHealthMonitor').then(m => ({ default: m.SystemHealthMonitor }))
+);
+const RecoveryStatus = React.lazy(() => 
+  import('@/components/admin/RecoveryStatus').then(m => ({ default: m.RecoveryStatus }))
+);
+const SecurityValidationPanel = React.lazy(() => 
+  import('@/components/admin/SecurityValidationPanel').then(m => ({ default: m.SecurityValidationPanel }))
+);
+const ProviderApiTester = React.lazy(() => 
+  import('@/components/admin/ProviderApiTester').then(m => ({ default: m.ProviderApiTester }))
+);
+const LoadTestingDashboard = React.lazy(() => 
+  import('@/components/admin/LoadTestingDashboard').then(m => ({ default: m.LoadTestingDashboard }))
+);
 
 const AdminSecurityPage = () => {
+  console.log('AdminSecurityPage: Component rendering');
+  
   return (
     <div className="space-y-6">
       <div>
@@ -33,39 +58,59 @@ const AdminSecurityPage = () => {
         </TabsList>
         
         <TabsContent value="recovery">
-          <RecoveryStatus />
+          <DiagnosticWrapper componentName="RecoveryStatus">
+            <RecoveryStatus />
+          </DiagnosticWrapper>
         </TabsContent>
         
         <TabsContent value="emergency">
-          <EmergencyStabilization />
+          <DiagnosticWrapper componentName="EmergencyStabilization">
+            <EmergencyStabilization />
+          </DiagnosticWrapper>
         </TabsContent>
         
         <TabsContent value="auth">
-          <AuthenticationFix />
+          <DiagnosticWrapper componentName="AuthenticationFix">
+            <AuthenticationFix />
+          </DiagnosticWrapper>
         </TabsContent>
         
         <TabsContent value="providers">
           <div className="space-y-6">
-            <ProviderHealthDashboard />
-            <ProviderApiTester />
+            <DiagnosticWrapper componentName="ProviderHealthDashboard">
+              <ProviderHealthDashboard />
+            </DiagnosticWrapper>
+            <DiagnosticWrapper componentName="ProviderApiTester">
+              <ProviderApiTester />
+            </DiagnosticWrapper>
           </div>
         </TabsContent>
         
         <TabsContent value="testing">
           <div className="space-y-6">
-            <SecurityValidationPanel />
-            <LoadTestingDashboard />
+            <DiagnosticWrapper componentName="SecurityValidationPanel">
+              <SecurityValidationPanel />
+            </DiagnosticWrapper>
+            <DiagnosticWrapper componentName="LoadTestingDashboard">
+              <LoadTestingDashboard />
+            </DiagnosticWrapper>
           </div>
         </TabsContent>
         
         <TabsContent value="security">
-          <SecuritySettingsGuide />
+          <DiagnosticWrapper componentName="SecuritySettingsGuide">
+            <SecuritySettingsGuide />
+          </DiagnosticWrapper>
         </TabsContent>
         
         <TabsContent value="monitoring">
           <div className="space-y-6">
-            <SystemHealthMonitor />
-            <SecurityMonitoring />
+            <DiagnosticWrapper componentName="SystemHealthMonitor">
+              <SystemHealthMonitor />
+            </DiagnosticWrapper>
+            <DiagnosticWrapper componentName="SecurityMonitoring">
+              <SecurityMonitoring />
+            </DiagnosticWrapper>
           </div>
         </TabsContent>
       </Tabs>
