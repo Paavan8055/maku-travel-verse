@@ -1103,6 +1103,72 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_tracking: {
+        Row: {
+          booking_id: string | null
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          currency: string
+          gross_amount: number
+          id: string
+          invoice_number: string | null
+          metadata: Json | null
+          partner_id: string
+          payment_date: string | null
+          payment_status: string
+          transaction_type: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+          currency?: string
+          gross_amount: number
+          id?: string
+          invoice_number?: string | null
+          metadata?: Json | null
+          partner_id: string
+          payment_date?: string | null
+          payment_status?: string
+          transaction_type: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          currency?: string
+          gross_amount?: number
+          id?: string
+          invoice_number?: string | null
+          metadata?: Json | null
+          partner_id?: string
+          payment_date?: string | null
+          payment_status?: string
+          transaction_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_tracking_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_tracking_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communication_preferences: {
         Row: {
           created_at: string
@@ -3500,6 +3566,48 @@ export type Database = {
           },
         ]
       }
+      partners: {
+        Row: {
+          api_credentials: Json | null
+          commission_rate: number
+          contact_info: Json
+          created_at: string
+          id: string
+          metadata: Json | null
+          partner_name: string
+          partner_type: string
+          payment_terms: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          api_credentials?: Json | null
+          commission_rate?: number
+          contact_info?: Json
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          partner_name: string
+          partner_type: string
+          payment_terms?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          api_credentials?: Json | null
+          commission_rate?: number
+          contact_info?: Json
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          partner_name?: string
+          partner_type?: string
+          payment_terms?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       passport_info: {
         Row: {
           country: string
@@ -4564,6 +4672,118 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      supplier_contracts: {
+        Row: {
+          auto_renewal: boolean | null
+          commission_structure: Json
+          contract_documents: Json | null
+          contract_number: string
+          contract_type: string
+          created_at: string
+          end_date: string | null
+          id: string
+          partner_id: string
+          payment_schedule: string | null
+          signed_by: string | null
+          start_date: string
+          status: string
+          terms_and_conditions: Json
+          updated_at: string
+        }
+        Insert: {
+          auto_renewal?: boolean | null
+          commission_structure?: Json
+          contract_documents?: Json | null
+          contract_number: string
+          contract_type: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          partner_id: string
+          payment_schedule?: string | null
+          signed_by?: string | null
+          start_date: string
+          status?: string
+          terms_and_conditions?: Json
+          updated_at?: string
+        }
+        Update: {
+          auto_renewal?: boolean | null
+          commission_structure?: Json
+          contract_documents?: Json | null
+          contract_number?: string
+          contract_type?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          partner_id?: string
+          payment_schedule?: string | null
+          signed_by?: string | null
+          start_date?: string
+          status?: string
+          terms_and_conditions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_contracts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_rates: {
+        Row: {
+          base_rate: number
+          booking_conditions: Json | null
+          created_at: string
+          currency: string
+          id: string
+          markup_percentage: number | null
+          partner_id: string
+          service_type: string
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          base_rate: number
+          booking_conditions?: Json | null
+          created_at?: string
+          currency?: string
+          id?: string
+          markup_percentage?: number | null
+          partner_id: string
+          service_type: string
+          updated_at?: string
+          valid_from: string
+          valid_to?: string | null
+        }
+        Update: {
+          base_rate?: number
+          booking_conditions?: Json | null
+          created_at?: string
+          currency?: string
+          id?: string
+          markup_percentage?: number | null
+          partner_id?: string
+          service_type?: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_rates_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_health_snapshots: {
         Row: {

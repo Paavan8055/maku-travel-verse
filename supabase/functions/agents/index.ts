@@ -72,6 +72,12 @@ const AGENT_CONFIGS = {
   'integration-manager': { name: 'Integration Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
   'api-monitor': { name: 'API Monitor', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   
+  // Phase 2: Supplier & Partnership Management (4)
+  'hotel-partner-manager': { name: 'Hotel Partner Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'flight-supplier-manager': { name: 'Flight Supplier Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'activity-supplier-manager': { name: 'Activity Supplier Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'affiliate-program-manager': { name: 'Affiliate Program Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  
   // Monitoring agents (15)
   'system-health': { name: 'System Health Monitor', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
   'performance-tracker': { name: 'Performance Tracker', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
