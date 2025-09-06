@@ -5,25 +5,31 @@ import { PredictiveMonitoring } from '@/components/analytics/PredictiveMonitorin
 import { BusinessIntelligenceDashboard } from '@/components/analytics/BusinessIntelligenceDashboard';
 import { DataExportManager } from '@/components/analytics/DataExportManager';
 import { RevenueAnalyticsDashboard } from '@/components/hotel/RevenueAnalyticsDashboard';
+import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 
 const AdminAnalyticsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Advanced Analytics</h1>
+        <h1 className="text-3xl font-bold">Advanced Analytics & Forecasting</h1>
         <p className="text-muted-foreground">
-          Comprehensive business intelligence and predictive insights
+          AI-powered business intelligence, predictive analytics, and comprehensive forecasting
         </p>
       </div>
 
-      <Tabs defaultValue="performance" className="space-y-6">
-        <TabsList>
+      <Tabs defaultValue="forecasting" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="forecasting">Advanced Analytics</TabsTrigger>
           <TabsTrigger value="performance">Provider Performance</TabsTrigger>
           <TabsTrigger value="predictive">Predictive Monitoring</TabsTrigger>
           <TabsTrigger value="business">Business Intelligence</TabsTrigger>
           <TabsTrigger value="revenue">Revenue Analytics</TabsTrigger>
           <TabsTrigger value="export">Data Export</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="forecasting">
+          <AnalyticsDashboard />
+        </TabsContent>
 
         <TabsContent value="performance">
           <ProviderPerformanceAnalytics />

@@ -1580,6 +1580,105 @@ export type Database = {
           },
         ]
       }
+      customer_behavior_analytics: {
+        Row: {
+          average_booking_value: number | null
+          behavior_pattern: Json
+          booking_frequency: string | null
+          churn_probability: number | null
+          created_at: string
+          customer_segment: string
+          engagement_score: number | null
+          id: string
+          last_interaction_date: string | null
+          lifetime_value_prediction: number | null
+          next_booking_probability: number | null
+          personalization_data: Json | null
+          preferred_destinations: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          average_booking_value?: number | null
+          behavior_pattern?: Json
+          booking_frequency?: string | null
+          churn_probability?: number | null
+          created_at?: string
+          customer_segment: string
+          engagement_score?: number | null
+          id?: string
+          last_interaction_date?: string | null
+          lifetime_value_prediction?: number | null
+          next_booking_probability?: number | null
+          personalization_data?: Json | null
+          preferred_destinations?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          average_booking_value?: number | null
+          behavior_pattern?: Json
+          booking_frequency?: string | null
+          churn_probability?: number | null
+          created_at?: string
+          customer_segment?: string
+          engagement_score?: number | null
+          id?: string
+          last_interaction_date?: string | null
+          lifetime_value_prediction?: number | null
+          next_booking_probability?: number | null
+          personalization_data?: Json | null
+          preferred_destinations?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      demand_forecasts: {
+        Row: {
+          accuracy_score: number | null
+          confidence_interval: Json
+          created_at: string
+          destination_code: string
+          external_factors: Json | null
+          forecast_date: string
+          forecast_period: string
+          id: string
+          model_version: string | null
+          predicted_demand: number
+          seasonal_factors: Json | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy_score?: number | null
+          confidence_interval?: Json
+          created_at?: string
+          destination_code: string
+          external_factors?: Json | null
+          forecast_date: string
+          forecast_period: string
+          id?: string
+          model_version?: string | null
+          predicted_demand: number
+          seasonal_factors?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy_score?: number | null
+          confidence_interval?: Json
+          created_at?: string
+          destination_code?: string
+          external_factors?: Json | null
+          forecast_date?: string
+          forecast_period?: string
+          id?: string
+          model_version?: string | null
+          predicted_demand?: number
+          seasonal_factors?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       destination_content: {
         Row: {
           best_time_to_visit: string | null
@@ -2995,6 +3094,57 @@ export type Database = {
         }
         Relationships: []
       }
+      market_insights: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          description: string
+          destination_code: string | null
+          expiry_date: string | null
+          id: string
+          impact_level: string | null
+          insight_type: string
+          is_actionable: boolean | null
+          market_segment: string
+          recommendation: string | null
+          supporting_data: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          description: string
+          destination_code?: string | null
+          expiry_date?: string | null
+          id?: string
+          impact_level?: string | null
+          insight_type: string
+          is_actionable?: boolean | null
+          market_segment: string
+          recommendation?: string | null
+          supporting_data?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          description?: string
+          destination_code?: string | null
+          expiry_date?: string | null
+          id?: string
+          impact_level?: string | null
+          insight_type?: string
+          is_actionable?: boolean | null
+          market_segment?: string
+          recommendation?: string | null
+          supporting_data?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -3950,6 +4100,63 @@ export type Database = {
         }
         Relationships: []
       }
+      predictive_alerts: {
+        Row: {
+          affected_metrics: Json | null
+          alert_type: string
+          confidence_level: number | null
+          created_at: string
+          id: string
+          is_actionable: boolean | null
+          is_read: boolean | null
+          message: string
+          potential_impact: Json | null
+          predicted_event_date: string | null
+          recommended_actions: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_metrics?: Json | null
+          alert_type: string
+          confidence_level?: number | null
+          created_at?: string
+          id?: string
+          is_actionable?: boolean | null
+          is_read?: boolean | null
+          message: string
+          potential_impact?: Json | null
+          predicted_event_date?: string | null
+          recommended_actions?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_metrics?: Json | null
+          alert_type?: string
+          confidence_level?: number | null
+          created_at?: string
+          id?: string
+          is_actionable?: boolean | null
+          is_read?: boolean | null
+          message?: string
+          potential_impact?: Json | null
+          predicted_event_date?: string | null
+          recommended_actions?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       price_adjustments: {
         Row: {
           adjustment_type: string
@@ -4103,6 +4310,63 @@ export type Database = {
           threshold_percentage?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      pricing_optimization: {
+        Row: {
+          competitor_pricing: Json | null
+          created_at: string
+          currency: string
+          current_price: number
+          demand_sensitivity: number | null
+          destination_code: string
+          expected_conversion_lift: number | null
+          id: string
+          implementation_date: string | null
+          optimization_factors: Json | null
+          price_elasticity: number | null
+          product_type: string
+          recommended_price: number
+          revenue_impact_estimate: number | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          competitor_pricing?: Json | null
+          created_at?: string
+          currency?: string
+          current_price: number
+          demand_sensitivity?: number | null
+          destination_code: string
+          expected_conversion_lift?: number | null
+          id?: string
+          implementation_date?: string | null
+          optimization_factors?: Json | null
+          price_elasticity?: number | null
+          product_type: string
+          recommended_price: number
+          revenue_impact_estimate?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          competitor_pricing?: Json | null
+          created_at?: string
+          currency?: string
+          current_price?: number
+          demand_sensitivity?: number | null
+          destination_code?: string
+          expected_conversion_lift?: number | null
+          id?: string
+          implementation_date?: string | null
+          optimization_factors?: Json | null
+          price_elasticity?: number | null
+          product_type?: string
+          recommended_price?: number
+          revenue_impact_estimate?: number | null
+          status?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -4411,6 +4675,60 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_projections: {
+        Row: {
+          actual_revenue: number | null
+          confidence_level: number | null
+          created_at: string
+          currency: string
+          id: string
+          lower_bound: number
+          model_factors: Json | null
+          projected_revenue: number
+          projection_date: string
+          projection_period: string
+          revenue_category: string
+          scenario_type: string | null
+          updated_at: string
+          upper_bound: number
+          variance_percentage: number | null
+        }
+        Insert: {
+          actual_revenue?: number | null
+          confidence_level?: number | null
+          created_at?: string
+          currency?: string
+          id?: string
+          lower_bound: number
+          model_factors?: Json | null
+          projected_revenue: number
+          projection_date: string
+          projection_period: string
+          revenue_category: string
+          scenario_type?: string | null
+          updated_at?: string
+          upper_bound: number
+          variance_percentage?: number | null
+        }
+        Update: {
+          actual_revenue?: number | null
+          confidence_level?: number | null
+          created_at?: string
+          currency?: string
+          id?: string
+          lower_bound?: number
+          model_factors?: Json | null
+          projected_revenue?: number
+          projection_date?: string
+          projection_period?: string
+          revenue_category?: string
+          scenario_type?: string | null
+          updated_at?: string
+          upper_bound?: number
+          variance_percentage?: number | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           booking_id: string | null
@@ -4451,6 +4769,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      risk_assessments: {
+        Row: {
+          created_at: string
+          current_controls: Json | null
+          id: string
+          impact_score: number
+          mitigation_timeline: string | null
+          probability: number
+          recommended_actions: Json | null
+          review_date: string | null
+          risk_category: string
+          risk_description: string
+          risk_level: string
+          risk_owner: string | null
+          risk_title: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_controls?: Json | null
+          id?: string
+          impact_score: number
+          mitigation_timeline?: string | null
+          probability: number
+          recommended_actions?: Json | null
+          review_date?: string | null
+          risk_category: string
+          risk_description: string
+          risk_level: string
+          risk_owner?: string | null
+          risk_title: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_controls?: Json | null
+          id?: string
+          impact_score?: number
+          mitigation_timeline?: string | null
+          probability?: number
+          recommended_actions?: Json | null
+          review_date?: string | null
+          risk_category?: string
+          risk_description?: string
+          risk_level?: string
+          risk_owner?: string | null
+          risk_title?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       saved_favorites: {
         Row: {
