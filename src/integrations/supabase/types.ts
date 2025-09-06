@@ -627,6 +627,54 @@ export type Database = {
         }
         Relationships: []
       }
+      api_key_rotations: {
+        Row: {
+          created_at: string
+          id: string
+          key_name: string
+          metadata: Json | null
+          new_key_hash: string | null
+          next_rotation_date: string | null
+          old_key_hash: string | null
+          provider: string
+          rotated_by: string | null
+          rotation_date: string
+          rotation_reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_name: string
+          metadata?: Json | null
+          new_key_hash?: string | null
+          next_rotation_date?: string | null
+          old_key_hash?: string | null
+          provider: string
+          rotated_by?: string | null
+          rotation_date?: string
+          rotation_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_name?: string
+          metadata?: Json | null
+          new_key_hash?: string | null
+          next_rotation_date?: string | null
+          old_key_hash?: string | null
+          provider?: string
+          rotated_by?: string | null
+          rotation_date?: string
+          rotation_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_access_audit: {
         Row: {
           access_method: string | null
@@ -1631,6 +1679,66 @@ export type Database = {
           preferred_destinations?: Json | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      data_import_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_details: Json | null
+          failed_records: number | null
+          file_name: string | null
+          file_size: number | null
+          id: string
+          import_source: string
+          import_type: string
+          metadata: Json | null
+          processed_by: string | null
+          processed_records: number | null
+          started_at: string
+          status: string
+          total_records: number | null
+          updated_at: string
+          validation_errors: Json | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_details?: Json | null
+          failed_records?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          import_source: string
+          import_type: string
+          metadata?: Json | null
+          processed_by?: string | null
+          processed_records?: number | null
+          started_at?: string
+          status?: string
+          total_records?: number | null
+          updated_at?: string
+          validation_errors?: Json | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_details?: Json | null
+          failed_records?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          import_source?: string
+          import_type?: string
+          metadata?: Json | null
+          processed_by?: string | null
+          processed_records?: number | null
+          started_at?: string
+          status?: string
+          total_records?: number | null
+          updated_at?: string
+          validation_errors?: Json | null
         }
         Relationships: []
       }
@@ -3141,6 +3249,51 @@ export type Database = {
           recommendation?: string | null
           supporting_data?: Json | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      migration_logs: {
+        Row: {
+          applied_by: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          migration_name: string
+          migration_version: string
+          rollback_sql: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applied_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          migration_name: string
+          migration_version: string
+          rollback_sql?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applied_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          migration_name?: string
+          migration_version?: string
+          rollback_sql?: string | null
+          started_at?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
