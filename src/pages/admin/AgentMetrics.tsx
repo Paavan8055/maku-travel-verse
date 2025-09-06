@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { 
   Activity, 
   Clock, 
@@ -10,9 +11,15 @@ import {
   AlertTriangle,
   TrendingUp,
   Users,
-  Zap
+  Zap,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useProductionOptimizations } from '@/hooks/useProductionOptimizations';
+import ProductionErrorBoundary from '@/components/error/ProductionErrorBoundary';
+import { secureLogger } from '@/utils/secureLogger';
 
 interface AgentMetricsData {
   totalTasks: number;
@@ -35,29 +42,40 @@ interface AgentMetricsData {
 
 const AgentMetrics: React.FC = () => {
   const [metrics, setMetrics] = useState<AgentMetricsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [issueResolutionMetrics, setIssueResolutionMetrics] = useState<any>(null);
+  const [predictiveAlerts, setPredictiveAlerts] = useState<any[]>([]);
+  const { usePaginatedData, useOptimizedSubscription, trackPerformance, metrics: perfMetrics } = useProductionOptimizations();
+  
+  const {
+    data: paginatedTasks,
+    loading,
+    error,
+    totalCount,
+    totalPages,
+    refetch
+  } = usePaginatedData('agentic_tasks', {
+    page: currentPage,
+    limit: 10,
+    orderBy: { column: 'created_at', ascending: false },
+    cacheTtl: 60000 // Cache for 1 minute
+  });
 
   useEffect(() => {
     fetchMetrics();
-    
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('agent-metrics')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'agentic_tasks' },
-        () => fetchMetrics()
-      )
-      .subscribe();
+    fetchIssueResolutionMetrics();
+    fetchPredictiveAlerts();
+  }, [paginatedTasks]);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  // Optimized real-time subscription with debouncing
+  useOptimizedSubscription('agentic_tasks', () => {
+    refetch();
+    fetchMetrics();
+  }, 2000);
 
   const fetchMetrics = async () => {
+    const startTime = Date.now();
     try {
-      setLoading(true);
       
       // Fetch all tasks
       const { data: tasks, error: tasksError } = await supabase
@@ -131,10 +149,38 @@ const AgentMetrics: React.FC = () => {
       });
 
     } catch (err) {
-      console.error('Error fetching metrics:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+      secureLogger.error('Error fetching metrics', err as Error, {
+        component: 'AgentMetrics',
+        operation: 'fetchMetrics'
+      });
     } finally {
-      setLoading(false);
+      trackPerformance('fetchMetrics', startTime);
+    }
+  };
+
+  const fetchIssueResolutionMetrics = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-metrics', {
+        body: { action: 'get_issue_resolution_metrics' }
+      });
+      
+      if (error) throw error;
+      setIssueResolutionMetrics(data);
+    } catch (err) {
+      secureLogger.error('Failed to fetch issue resolution metrics', err as Error);
+    }
+  };
+
+  const fetchPredictiveAlerts = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-metrics', {
+        body: { action: 'get_predictive_alerts' }
+      });
+      
+      if (error) throw error;
+      setPredictiveAlerts(data || []);
+    } catch (err) {
+      secureLogger.error('Failed to fetch predictive alerts', err as Error);
     }
   };
 
@@ -185,20 +231,64 @@ const AgentMetrics: React.FC = () => {
 
   if (error || !metrics) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-red-600">
-            {error || 'Failed to load metrics'}
-          </div>
-        </CardContent>
-      </Card>
+      <ProductionErrorBoundary>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-red-600">
+              {error || 'Failed to load metrics'}
+              <Button onClick={refetch} className="ml-4" variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </ProductionErrorBoundary>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <ProductionErrorBoundary>
+      <div className="space-y-6">
+        {/* Performance Metrics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              System Performance
+              <Button onClick={refetch} variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Cache Hit Rate</p>
+                <p className="font-bold text-green-600">
+                  {perfMetrics.totalRequests > 0 
+                    ? ((perfMetrics.cacheHits / perfMetrics.totalRequests) * 100).toFixed(1)
+                    : 0}%
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Avg Response Time</p>
+                <p className="font-bold">{perfMetrics.avgResponseTime.toFixed(0)}ms</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Total Requests</p>
+                <p className="font-bold">{perfMetrics.totalRequests}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Cache Size</p>
+                <p className="font-bold">{perfMetrics.totalRequests}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -314,7 +404,33 @@ const AgentMetrics: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {metrics.recentTasks.map((task) => (
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total: {totalCount} tasks
+                  </div>
+                </div>
+                {paginatedTasks.map((task) => (
                   <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <span className={getStatusColor(task.status)}>
@@ -342,7 +458,8 @@ const AgentMetrics: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </ProductionErrorBoundary>
   );
 };
 
