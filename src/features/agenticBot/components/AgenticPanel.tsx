@@ -25,7 +25,7 @@ const AgenticPanel: React.FC<AgenticPanelProps> = ({
     const agentMap = {
       'Family': 'family-travel-planner',
       'Solo': 'solo-travel-planner', 
-      'Pet': 'pet-travel-planner',
+      'Pet': 'pet-travel-specialist',
       'Spiritual': 'spiritual-travel-planner'
     };
     return agentMap[userVertical];

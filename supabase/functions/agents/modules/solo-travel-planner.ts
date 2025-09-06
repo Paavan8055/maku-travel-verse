@@ -8,16 +8,16 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
   // Agent delegation helper
   const delegateToAgent = async (agentId: string, taskIntent: string, taskParams: any) => {
     try {
-      const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/agents/${agentId}`, {
+      const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/agents`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
+          agent_id: agentId,
           intent: taskIntent,
-          params: taskParams
+          params: { ...taskParams, userId }
         })
       });
       return await response.json();

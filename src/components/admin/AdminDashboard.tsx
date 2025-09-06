@@ -13,6 +13,7 @@ import { AdminProblemDetector } from '@/features/admin/components/AdminProblemDe
 import { AdminDataProvider } from '@/components/admin/RealTimeAdminData';
 import AgentMonitorDashboard from '@/features/admin/components/AgentMonitorDashboard';
 import ApiValidationDashboard from '@/components/admin/ApiValidationDashboard';
+import AgentSystemTests from '@/components/admin/AgentSystemTests';
 
 interface ProviderHealth {
   provider: string;
@@ -262,6 +263,7 @@ export default function AdminDashboard() {
         <TabsList>
           <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
           <TabsTrigger value="agent-monitor">Agent Monitor</TabsTrigger>
+          <TabsTrigger value="system-tests">System Tests</TabsTrigger>
           <TabsTrigger value="api-validation">API Validation</TabsTrigger>
           <TabsTrigger value="providers">Provider Health</TabsTrigger>
           <TabsTrigger value="bookings">Recent Bookings</TabsTrigger>
@@ -279,6 +281,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="agent-monitor" className="space-y-4">
           <AgentMonitorDashboard />
+        </TabsContent>
+
+        <TabsContent value="system-tests" className="space-y-4">
+          <AgentSystemTests />
         </TabsContent>
 
         <TabsContent value="api-validation" className="space-y-4">

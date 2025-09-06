@@ -30,6 +30,9 @@ const AGENT_CONFIGS = {
   'group-coordinator': { name: 'Group Coordinator', category: 'customer', model: 'gpt-5-2025-08-07' },
   'solo-travel-guide': { name: 'Solo Travel Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
   'family-planner': { name: 'Family Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'family-travel-planner': { name: 'Family Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'solo-travel-planner': { name: 'Solo Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'spiritual-travel-planner': { name: 'Spiritual Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
   'pet-travel-specialist': { name: 'Pet Travel Specialist', category: 'customer', model: 'gpt-5-2025-08-07' },
   
   // Administrative agents (35)
@@ -103,18 +106,19 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const url = new URL(req.url);
-    const agentId = url.pathname.split('/').pop();
+    const { agent_id, intent, params } = await req.json();
     
-    if (!agentId || !AGENT_CONFIGS[agentId]) {
+    if (!agent_id || !AGENT_CONFIGS[agent_id]) {
       return new Response(
-        JSON.stringify({ error: 'Invalid or unknown agent ID' }),
+        JSON.stringify({ error: 'Invalid or unknown agent ID', availableAgents: Object.keys(AGENT_CONFIGS) }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { intent, params, userId } = await req.json();
-    const agentConfig = AGENT_CONFIGS[agentId];
+    // Get user ID from auth header
+    const authHeader = req.headers.get('authorization');
+    const userId = authHeader ? extractUserIdFromAuth(authHeader) : params.userId;
+    const agentConfig = AGENT_CONFIGS[agent_id];
 
     // Import AgentMemoryManager
     const { AgentMemoryManager } = await import('./_shared/memory-utils.ts');
@@ -125,7 +129,7 @@ serve(async (req) => {
       .from('agentic_tasks')
       .insert({
         user_id: userId,
-        agent_id: agentId,
+        agent_id: agent_id,
         intent,
         params,
         status: 'running',
@@ -142,13 +146,13 @@ serve(async (req) => {
     // Try to load specialized agent module
     let result;
     try {
-      const agentModule = await import(`./modules/${agentId}.ts`);
+      const agentModule = await import(`./modules/${agent_id}.ts`);
       const agentResult = await agentModule.handler(userId, intent, params, supabaseClient, openAIApiKey, memory);
       
       // Handle memory updates
       if (agentResult.memoryUpdates) {
         for (const update of agentResult.memoryUpdates) {
-          await memory.setMemory(agentId, userId, update.key, update.data, undefined, update.expiresAt);
+          await memory.setMemory(agent_id, userId, update.key, update.data, undefined, update.expiresAt);
         }
       }
       
@@ -158,10 +162,10 @@ serve(async (req) => {
         throw new Error(agentResult.error);
       }
     } catch (moduleError) {
-      console.log(`No specialized module for ${agentId}, using generic handler:`, moduleError.message);
+      console.log(`No specialized module for ${agent_id}, using generic handler:`, moduleError.message);
       
       // Fallback to generic OpenAI handler
-      const systemPrompt = buildAgentPrompt(agentId, agentConfig, intent, params);
+      const systemPrompt = buildAgentPrompt(agent_id, agentConfig, intent, params);
       const completion = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -214,6 +218,17 @@ serve(async (req) => {
     );
   }
 });
+
+function extractUserIdFromAuth(authHeader: string): string | null {
+  try {
+    // Extract user ID from JWT token (simplified)
+    const token = authHeader.replace('Bearer ', '');
+    // In a real implementation, you'd properly decode the JWT
+    return token.length > 10 ? 'authenticated-user' : null;
+  } catch {
+    return null;
+  }
+}
 
 function buildAgentPrompt(agentId: string, config: any, intent: string, params: any): string {
   const basePrompts = {

@@ -84,12 +84,15 @@ export const useAgenticTasks = () => {
       // Extract agent ID from params (for primary agent routing)
       const agentId = params.agentId || 'solo-travel-planner'; // fallback
       
-      // Call the agents Supabase function
+      // Call the agents Supabase function with proper structure
       const { data, error } = await supabase.functions.invoke('agents', {
         body: {
           agent_id: agentId,
           intent,
-          params
+          params: {
+            ...params,
+            userId: (await supabase.auth.getUser()).data.user?.id
+          }
         }
       });
 
