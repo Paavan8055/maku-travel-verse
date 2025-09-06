@@ -115,6 +115,10 @@ serve(async (req) => {
     const { intent, params, userId } = await req.json();
     const agentConfig = AGENT_CONFIGS[agentId];
 
+    // Import AgentMemoryManager
+    const { AgentMemoryManager } = await import('./_shared/memory-utils.ts');
+    const memory = new AgentMemoryManager(supabaseClient);
+
     // Create task record
     const { data: task, error: taskError } = await supabaseClient
       .from('agentic_tasks')
@@ -134,28 +138,48 @@ serve(async (req) => {
       throw new Error('Failed to create task record');
     }
 
-    // Build agent-specific prompt
-    const systemPrompt = buildAgentPrompt(agentId, agentConfig, intent, params);
+    // Try to load specialized agent module
+    let result;
+    try {
+      const agentModule = await import(`./modules/${agentId}.ts`);
+      const agentResult = await agentModule.handler(userId, intent, params, supabaseClient, openAIApiKey, memory);
+      
+      // Handle memory updates
+      if (agentResult.memoryUpdates) {
+        for (const update of agentResult.memoryUpdates) {
+          await memory.setMemory(agentId, userId, update.key, update.data, undefined, update.expiresAt);
+        }
+      }
+      
+      result = agentResult.result;
+      
+      if (!agentResult.success) {
+        throw new Error(agentResult.error);
+      }
+    } catch (moduleError) {
+      console.log(`No specialized module for ${agentId}, using generic handler:`, moduleError.message);
+      
+      // Fallback to generic OpenAI handler
+      const systemPrompt = buildAgentPrompt(agentId, agentConfig, intent, params);
+      const completion = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: agentConfig.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Execute task: ${intent} with parameters: ${JSON.stringify(params)}` }
+          ],
+          max_completion_tokens: agentConfig.model.includes('nano') ? 500 : 2000
+        }),
+      });
 
-    // Call OpenAI with appropriate model
-    const completion = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: agentConfig.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Execute task: ${intent} with parameters: ${JSON.stringify(params)}` }
-        ],
-        max_completion_tokens: agentConfig.model.includes('nano') ? 500 : 2000
-      }),
-    });
-
-    const aiResponse = await completion.json();
-    const result = aiResponse.choices[0]?.message?.content || 'Task completed';
+      const aiResponse = await completion.json();
+      result = aiResponse.choices[0]?.message?.content || 'Task completed';
+    }
 
     // Update task with result
     await supabaseClient
