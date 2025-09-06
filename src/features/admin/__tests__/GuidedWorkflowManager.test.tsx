@@ -7,7 +7,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { setupStandardMocks, clearAllMocks } from '@/test-utils';
 import GuidedWorkflowManager from '../components/GuidedWorkflowManager';
-import { agentWorkflows } from '../constants/agentWorkflows';
+import { agentWorkflows } from '../data/agentWorkflows';
 
 describe('GuidedWorkflowManager Tests', () => {
   beforeEach(() => {

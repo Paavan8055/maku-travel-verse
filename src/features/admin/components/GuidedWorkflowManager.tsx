@@ -8,8 +8,6 @@ import { useAdminIntegration } from '../context/AdminIntegrationContext';
 import { agentWorkflows, type AgentWorkflow, type WorkflowStep } from '../data/agentWorkflows';
 import { supabase } from '@/integrations/supabase/client';
 
-// Using imported workflows from constants
-
 const GuidedWorkflowManager: React.FC = () => {
   const { state, startWorkflow } = useAdminIntegration();
   const [currentStep, setCurrentStep] = useState(0);
