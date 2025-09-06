@@ -9,13 +9,29 @@ const corsHeaders = {
 
 // 70 Agent System Configuration
 const AGENT_CONFIGS = {
-  // Customer-facing agents
+  // Customer-facing agents (20)
   'trip-planner': { name: 'Trip Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
   'price-monitor': { name: 'Price Monitor', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
   'booking-assistant': { name: 'Booking Assistant', category: 'customer', model: 'gpt-5-2025-08-07' },
   'itinerary-optimizer': { name: 'Itinerary Optimizer', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'destination-guide': { name: 'Destination Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'travel-advisor': { name: 'Travel Advisor', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'weather-tracker': { name: 'Weather Tracker', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
+  'loyalty-manager': { name: 'Loyalty Manager', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
+  'payment-helper': { name: 'Payment Helper', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'visa-assistant': { name: 'Visa Assistant', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'currency-converter': { name: 'Currency Converter', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
+  'budget-planner': { name: 'Budget Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'activity-finder': { name: 'Activity Finder', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'restaurant-guide': { name: 'Restaurant Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'transport-advisor': { name: 'Transport Advisor', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'hotel-concierge': { name: 'Hotel Concierge', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'emergency-helper': { name: 'Emergency Helper', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'group-coordinator': { name: 'Group Coordinator', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'solo-travel-guide': { name: 'Solo Travel Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
+  'family-planner': { name: 'Family Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
   
-  // Administrative agents
+  // Administrative agents (35)
   'password-reset': { name: 'Password Reset Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   'booking-modification': { name: 'Booking Modification Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
   'refund-processing': { name: 'Refund Processing Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
@@ -24,12 +40,50 @@ const AGENT_CONFIGS = {
   'fraud-detection': { name: 'Fraud Detection Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
   'compliance-check': { name: 'Compliance Check Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   'data-validation': { name: 'Data Validation Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'account-verification': { name: 'Account Verification Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'dispute-resolution': { name: 'Dispute Resolution Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'payment-investigation': { name: 'Payment Investigation Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'cancellation-handler': { name: 'Cancellation Handler', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'upgrade-processor': { name: 'Upgrade Processor', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'special-requests': { name: 'Special Requests Handler', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'vip-concierge': { name: 'VIP Concierge Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'loyalty-adjuster': { name: 'Loyalty Adjuster', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'credit-manager': { name: 'Credit Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'insurance-processor': { name: 'Insurance Processor', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'documentation-handler': { name: 'Documentation Handler', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'policy-enforcer': { name: 'Policy Enforcer', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'escalation-manager': { name: 'Escalation Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'review-moderator': { name: 'Review Moderator', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'content-manager': { name: 'Content Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'supplier-liaison': { name: 'Supplier Liaison', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'quality-auditor': { name: 'Quality Auditor', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'training-coordinator': { name: 'Training Coordinator', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'schedule-manager': { name: 'Schedule Manager', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'inventory-controller': { name: 'Inventory Controller', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'pricing-analyst': { name: 'Pricing Analyst', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'commission-calculator': { name: 'Commission Calculator', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'tax-processor': { name: 'Tax Processor', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'report-generator': { name: 'Report Generator', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'backup-coordinator': { name: 'Backup Coordinator', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'integration-manager': { name: 'Integration Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
+  'api-monitor': { name: 'API Monitor', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   
-  // Monitoring agents
+  // Monitoring agents (15)
   'system-health': { name: 'System Health Monitor', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
   'performance-tracker': { name: 'Performance Tracker', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
   'error-detector': { name: 'Error Detection Agent', category: 'monitoring', model: 'gpt-5-mini-2025-08-07' },
   'capacity-planner': { name: 'Capacity Planning Agent', category: 'monitoring', model: 'gpt-5-2025-08-07' },
+  'uptime-monitor': { name: 'Uptime Monitor', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
+  'security-scanner': { name: 'Security Scanner', category: 'monitoring', model: 'gpt-5-mini-2025-08-07' },
+  'database-monitor': { name: 'Database Monitor', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
+  'traffic-analyzer': { name: 'Traffic Analyzer', category: 'monitoring', model: 'gpt-5-mini-2025-08-07' },
+  'resource-tracker': { name: 'Resource Tracker', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
+  'compliance-monitor': { name: 'Compliance Monitor', category: 'monitoring', model: 'gpt-5-mini-2025-08-07' },
+  'cost-optimizer': { name: 'Cost Optimizer', category: 'monitoring', model: 'gpt-5-2025-08-07' },
+  'alert-manager': { name: 'Alert Manager', category: 'monitoring', model: 'gpt-5-nano-2025-08-07' },
+  'log-analyzer': { name: 'Log Analyzer', category: 'monitoring', model: 'gpt-5-mini-2025-08-07' },
+  'trend-predictor': { name: 'Trend Predictor', category: 'monitoring', model: 'gpt-5-2025-08-07' },
+  'anomaly-detector': { name: 'Anomaly Detector', category: 'monitoring', model: 'gpt-5-mini-2025-08-07' },
 };
 
 serve(async (req) => {

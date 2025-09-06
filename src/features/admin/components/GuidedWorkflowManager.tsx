@@ -5,125 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Circle, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useAdminIntegration } from '../context/AdminIntegrationContext';
+import { agentWorkflows, type AgentWorkflow, type WorkflowStep } from '../constants/agentWorkflows';
 
-interface WorkflowStep {
-  id: string;
-  title: string;
-  description: string;
-  component?: React.ComponentType<any>;
-  action?: () => Promise<void>;
-  validation?: () => boolean;
-  isOptional?: boolean;
-}
-
-interface Workflow {
-  id: string;
-  title: string;
-  description: string;
-  estimatedTime: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  steps: WorkflowStep[];
-}
-
-const workflows: Record<string, Workflow> = {
-  'reset-password': {
-    id: 'reset-password',
-    title: 'Reset User Password',
-    description: 'Help a user reset their password safely',
-    estimatedTime: '5 minutes',
-    difficulty: 'easy',
-    steps: [
-      {
-        id: 'identify-user',
-        title: 'Find the User',
-        description: 'Search for the user account that needs a password reset'
-      },
-      {
-        id: 'verify-identity',
-        title: 'Verify User Identity',
-        description: 'Confirm the user identity through email or support ticket'
-      },
-      {
-        id: 'send-reset-link',
-        title: 'Send Reset Link',
-        description: 'Generate and send a secure password reset link'
-      },
-      {
-        id: 'confirm-reset',
-        title: 'Confirm Reset',
-        description: 'Verify the password has been successfully reset'
-      }
-    ]
-  },
-  'process-refund': {
-    id: 'process-refund',
-    title: 'Process Booking Refund',
-    description: 'Issue a refund for a booking following proper procedures',
-    estimatedTime: '10 minutes',
-    difficulty: 'medium',
-    steps: [
-      {
-        id: 'find-booking',
-        title: 'Locate Booking',
-        description: 'Find the booking using reference number or customer details'
-      },
-      {
-        id: 'check-policy',
-        title: 'Check Refund Policy',
-        description: 'Verify the booking is eligible for refund according to policy'
-      },
-      {
-        id: 'calculate-amount',
-        title: 'Calculate Refund Amount',
-        description: 'Determine the correct refund amount including any fees'
-      },
-      {
-        id: 'process-payment',
-        title: 'Process Refund',
-        description: 'Execute the refund through the payment system'
-      },
-      {
-        id: 'notify-customer',
-        title: 'Notify Customer',
-        description: 'Send confirmation email to the customer'
-      }
-    ]
-  },
-  'create-admin': {
-    id: 'create-admin',
-    title: 'Create Administrator Account',
-    description: 'Add a new administrator with proper permissions',
-    estimatedTime: '8 minutes',
-    difficulty: 'medium',
-    steps: [
-      {
-        id: 'gather-info',
-        title: 'Gather Information',
-        description: 'Collect new admin email, name, and required permissions'
-      },
-      {
-        id: 'create-account',
-        title: 'Create Account',
-        description: 'Create the user account in the system'
-      },
-      {
-        id: 'assign-roles',
-        title: 'Assign Admin Roles',
-        description: 'Grant appropriate administrative permissions'
-      },
-      {
-        id: 'send-invitation',
-        title: 'Send Invitation',
-        description: 'Send setup instructions to the new administrator'
-      },
-      {
-        id: 'verify-access',
-        title: 'Verify Access',
-        description: 'Confirm the new admin can log in and access required features'
-      }
-    ]
-  }
-};
+// Using imported workflows from constants
 
 const GuidedWorkflowManager: React.FC = () => {
   const { state, startWorkflow } = useAdminIntegration();
@@ -131,7 +15,7 @@ const GuidedWorkflowManager: React.FC = () => {
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const currentWorkflow = state.activeWorkflow ? workflows[state.activeWorkflow] : null;
+  const currentWorkflow = state.activeWorkflow ? agentWorkflows[state.activeWorkflow] : null;
 
   useEffect(() => {
     if (state.activeWorkflow) {
@@ -152,7 +36,7 @@ const GuidedWorkflowManager: React.FC = () => {
             No active workflow. Use the AI Assistant to start a guided procedure.
           </p>
           <div className="grid gap-4">
-            {Object.values(workflows).map((workflow) => (
+            {Object.values(agentWorkflows).map((workflow) => (
               <div key={workflow.id} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">{workflow.title}</h3>

@@ -17,96 +17,18 @@ import {
   Clock
 } from 'lucide-react';
 import { useAdminIntegration } from '../context/AdminIntegrationContext';
+import { agentTemplates, type AgentTemplate } from '../constants/agentTemplates';
 
-interface TaskTemplate {
-  id: string;
-  title: string;
-  description: string;
-  category: 'user' | 'booking' | 'security' | 'communication';
-  estimatedTime: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  template: string;
-  fields: Array<{
-    name: string;
-    label: string;
-    type: 'text' | 'email' | 'number' | 'textarea';
-    required: boolean;
-    placeholder?: string;
-  }>;
-}
-
-const taskTemplates: TaskTemplate[] = [
-  {
-    id: 'password-reset',
-    title: 'Password Reset Request',
-    description: 'Help a customer reset their password',
-    category: 'user',
-    estimatedTime: '5 minutes',
-    difficulty: 'easy',
-    template: 'Hi {customerName},\n\nI understand you need help resetting your password. I\'ve sent a secure reset link to {email}.\n\nPlease check your email and follow the instructions. The link will expire in 24 hours.\n\nIf you don\'t see the email, please check your spam folder.\n\nBest regards,\n{adminName}',
-    fields: [
-      { name: 'customerName', label: 'Customer Name', type: 'text', required: true, placeholder: 'John Doe' },
-      { name: 'email', label: 'Customer Email', type: 'email', required: true, placeholder: 'customer@example.com' },
-      { name: 'adminName', label: 'Your Name', type: 'text', required: true, placeholder: 'Admin Name' }
-    ]
-  },
-  {
-    id: 'booking-modification',
-    title: 'Booking Modification',
-    description: 'Help modify an existing booking',
-    category: 'booking',
-    estimatedTime: '10 minutes',
-    difficulty: 'medium',
-    template: 'Hi {customerName},\n\nI\'ve successfully modified your booking {bookingReference}.\n\nChanges made:\n{changes}\n\nNew total: {newTotal}\n\nYou\'ll receive an updated confirmation email shortly.\n\nBest regards,\n{adminName}',
-    fields: [
-      { name: 'customerName', label: 'Customer Name', type: 'text', required: true },
-      { name: 'bookingReference', label: 'Booking Reference', type: 'text', required: true },
-      { name: 'changes', label: 'Changes Made', type: 'textarea', required: true },
-      { name: 'newTotal', label: 'New Total Amount', type: 'text', required: true },
-      { name: 'adminName', label: 'Your Name', type: 'text', required: true }
-    ]
-  },
-  {
-    id: 'refund-confirmation',
-    title: 'Refund Confirmation',
-    description: 'Confirm a refund has been processed',
-    category: 'booking',
-    estimatedTime: '5 minutes',
-    difficulty: 'easy',
-    template: 'Hi {customerName},\n\nYour refund for booking {bookingReference} has been processed.\n\nRefund amount: {refundAmount}\nProcessing time: 3-5 business days\nRefund method: Original payment method\n\nYou\'ll see the refund in your account within the specified timeframe.\n\nBest regards,\n{adminName}',
-    fields: [
-      { name: 'customerName', label: 'Customer Name', type: 'text', required: true },
-      { name: 'bookingReference', label: 'Booking Reference', type: 'text', required: true },
-      { name: 'refundAmount', label: 'Refund Amount', type: 'text', required: true },
-      { name: 'adminName', label: 'Your Name', type: 'text', required: true }
-    ]
-  },
-  {
-    id: 'security-alert',
-    title: 'Security Alert Response',
-    description: 'Respond to a security concern',
-    category: 'security',
-    estimatedTime: '15 minutes',
-    difficulty: 'hard',
-    template: 'Hi {customerName},\n\nWe\'ve received your security concern regarding {securityIssue}.\n\nWe take security very seriously. Here\'s what we\'ve done:\n{actionsTaken}\n\nAdditional recommendations:\n{recommendations}\n\nIf you have any other concerns, please don\'t hesitate to contact us.\n\nBest regards,\n{adminName}',
-    fields: [
-      { name: 'customerName', label: 'Customer Name', type: 'text', required: true },
-      { name: 'securityIssue', label: 'Security Issue', type: 'textarea', required: true },
-      { name: 'actionsTaken', label: 'Actions Taken', type: 'textarea', required: true },
-      { name: 'recommendations', label: 'Recommendations', type: 'textarea', required: true },
-      { name: 'adminName', label: 'Your Name', type: 'text', required: true }
-    ]
-  }
-];
+// Using imported templates from constants
 
 const AdminTaskAssistant: React.FC = () => {
   const { state } = useAdminIntegration();
-  const [selectedTemplate, setSelectedTemplate] = useState<TaskTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [generatedContent, setGeneratedContent] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredTemplates = taskTemplates.filter(template =>
+  const filteredTemplates = agentTemplates.filter(template =>
     template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -122,6 +44,10 @@ const AdminTaskAssistant: React.FC = () => {
         return <Shield className="h-4 w-4" />;
       case 'communication':
         return <Mail className="h-4 w-4" />;
+      case 'financial':
+        return <CreditCard className="h-4 w-4" />;
+      case 'operational':
+        return <FileText className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }
@@ -193,6 +119,17 @@ const AdminTaskAssistant: React.FC = () => {
                       onChange={(e) => handleFieldChange(field.name, e.target.value)}
                       rows={3}
                     />
+                  ) : field.type === 'select' ? (
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={formData[field.name] || ''}
+                      onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                    >
+                      <option value="">Select {field.label}</option>
+                      {field.options?.map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
                   ) : (
                     <Input
                       type={field.type}
@@ -268,9 +205,11 @@ const AdminTaskAssistant: React.FC = () => {
           <TabsTrigger value="user">User Management</TabsTrigger>
           <TabsTrigger value="booking">Booking Support</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="financial">Financial</TabsTrigger>
+          <TabsTrigger value="operational">Operational</TabsTrigger>
         </TabsList>
 
-        {['all', 'user', 'booking', 'security'].map((category) => (
+        {['all', 'user', 'booking', 'security', 'financial', 'operational'].map((category) => (
           <TabsContent key={category} value={category}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredTemplates
