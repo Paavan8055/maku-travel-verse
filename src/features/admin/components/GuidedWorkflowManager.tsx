@@ -7,7 +7,6 @@ import { CheckCircle, Circle, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-
 import { useAdminIntegration } from '../context/AdminIntegrationContext';
 import { agentWorkflows, type AgentWorkflow, type WorkflowStep } from '../data/agentWorkflows';
 import { supabase } from '@/integrations/supabase/client';
-import { agentWorkflows, type AgentWorkflow, type WorkflowStep } from '../constants/agentWorkflows';
 
 // Using imported workflows from constants
 
@@ -17,7 +16,7 @@ const GuidedWorkflowManager: React.FC = () => {
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const currentWorkflow = state.activeWorkflow ? agentWorkflows[state.activeWorkflow] : null;
+  const currentWorkflow = state.activeWorkflow ? agentWorkflows.find(w => w.id === state.activeWorkflow) : null;
 
   useEffect(() => {
     if (state.activeWorkflow) {
@@ -38,7 +37,7 @@ const GuidedWorkflowManager: React.FC = () => {
             No active workflow. Use the AI Assistant to start a guided procedure.
           </p>
           <div className="grid gap-4">
-            {Object.values(agentWorkflows).map((workflow) => (
+            {agentWorkflows.map((workflow) => (
               <div key={workflow.id} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">{workflow.title}</h3>
@@ -134,12 +133,12 @@ const GuidedWorkflowManager: React.FC = () => {
                 ) : (
                   <Circle className="h-5 w-5 text-muted-foreground" />
                 )}
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{step.title}</div>
-                  {step.isOptional && (
-                    <Badge variant="outline" className="text-xs">Optional</Badge>
-                  )}
-                </div>
+                 <div className="flex-1">
+                   <div className="font-medium text-sm">{step.title}</div>
+                   {!step.required && (
+                     <Badge variant="outline" className="text-xs">Optional</Badge>
+                   )}
+                 </div>
               </div>
             ))}
           </CardContent>
@@ -148,12 +147,12 @@ const GuidedWorkflowManager: React.FC = () => {
         {/* Current Step Details */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Step {currentStep + 1}: {currentStepData.title}
-              {currentStepData.isOptional && (
-                <Badge variant="outline">Optional</Badge>
-              )}
-            </CardTitle>
+             <CardTitle className="flex items-center gap-2">
+               Step {currentStep + 1}: {currentStepData.title}
+               {!currentStepData.required && (
+                 <Badge variant="outline">Optional</Badge>
+               )}
+             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">{currentStepData.description}</p>
