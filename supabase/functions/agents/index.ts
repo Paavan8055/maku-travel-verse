@@ -73,6 +73,9 @@ const AGENT_CONFIGS = {
   'backup-coordinator': { name: 'Backup Coordinator', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   'integration-manager': { name: 'Integration Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
   'api-monitor': { name: 'API Monitor', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
+  'calendar-sync-agent': { name: 'Calendar Sync Agent', category: 'operational', model: 'gpt-5-mini-2025-08-07' },
+  'group-booking-coordinator': { name: 'Group Booking Coordinator', category: 'operational', model: 'gpt-5-2025-08-07' },
+  'predictive-rebooking-agent': { name: 'Predictive Rebooking Agent', category: 'operational', model: 'gpt-5-2025-08-07' },
   
   // Phase 2: Supplier & Partnership Management (4)
   'hotel-partner-manager': { name: 'Hotel Partner Manager', category: 'admin', model: 'gpt-5-2025-08-07' },
