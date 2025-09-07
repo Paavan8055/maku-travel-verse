@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -11,282 +11,454 @@ import {
   FileText, 
   BarChart3,
   Workflow,
-  Crown
+  Crown,
+  Bot,
+  Settings,
+  Database,
+  Phone,
+  Calendar,
+  TrendingUp,
+  Globe,
+  CheckCircle,
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
+
+interface Agent {
+  id: string;
+  agent_id: string;
+  display_name: string;
+  description: string;
+  category: string;
+  status: string;
+  version: string;
+  capabilities: string[];
+  health_status: string;
+  last_health_check: string;
+  configuration: any;
+  permissions: any;
+  performance_settings: any;
+}
+
+interface AgentGroup {
+  id: string;
+  group_name: string;
+  description: string;
+  group_type: string;
+  configuration: any;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  agent_group_memberships: Array<{
+    agent_id: string;
+    role: string;
+    added_at: string;
+    agent_management: {
+      display_name: string;
+      status: string;
+      category: string;
+      health_status: string;
+    };
+  }>;
+}
 
 interface AgentNode {
   id: string;
+  agent_id: string;
   name: string;
   role: string;
   category: string;
-  status: 'active' | 'idle' | 'busy';
-  reports_to?: string;
-  manages?: string[];
+  status: 'active' | 'idle' | 'busy' | 'paused' | 'error';
+  health_status: string;
   capabilities: string[];
   current_tasks: number;
   icon: React.ReactNode;
+  group_name?: string;
+  group_role?: string;
 }
 
-const agentHierarchy: AgentNode[] = [
-  {
-    id: 'supervisor-memory-agent',
-    name: 'Supervisor Memory Agent',
-    role: 'Chief Orchestrator',
-    category: 'management',
-    status: 'active',
-    manages: ['user-support', 'travel-insurance-coordinator', 'visa-assistant'],
-    capabilities: ['workflow-orchestration', 'task-delegation', 'memory-management'],
-    current_tasks: 5,
-    icon: <Crown className="h-4 w-4" />
-  },
-  {
-    id: 'user-support',
-    name: 'User Support Agent',
-    role: 'Customer Relations Lead',
-    category: 'communication',
-    status: 'active',
-    reports_to: 'supervisor-memory-agent',
-    manages: ['fraud-detection'],
-    capabilities: ['customer-support', 'issue-resolution', 'escalation-management'],
-    current_tasks: 12,
-    icon: <MessageSquare className="h-4 w-4" />
-  },
-  {
-    id: 'travel-insurance-coordinator',
-    name: 'Travel Insurance Coordinator',
-    role: 'Insurance Specialist',
-    category: 'travel_services',
-    status: 'busy',
-    reports_to: 'supervisor-memory-agent',
-    manages: ['accessibility-coordinator'],
-    capabilities: ['insurance-analysis', 'policy-recommendations', 'claims-processing'],
-    current_tasks: 8,
-    icon: <Shield className="h-4 w-4" />
-  },
-  {
-    id: 'visa-assistant',
-    name: 'Visa Assistant',
-    role: 'Documentation Expert',
-    category: 'travel_services',
-    status: 'active',
-    reports_to: 'supervisor-memory-agent',
-    capabilities: ['visa-requirements', 'document-verification', 'travel-compliance'],
-    current_tasks: 6,
-    icon: <FileText className="h-4 w-4" />
-  },
-  {
-    id: 'fraud-detection',
-    name: 'Fraud Detection Agent',
-    role: 'Security Analyst',
-    category: 'security',
-    status: 'active',
-    reports_to: 'user-support',
-    capabilities: ['risk-assessment', 'transaction-monitoring', 'anomaly-detection'],
-    current_tasks: 3,
-    icon: <Shield className="h-4 w-4" />
-  },
-  {
-    id: 'adventure-specialist',
-    name: 'Adventure Specialist',
-    role: 'Activity Planner',
-    category: 'travel_services',
-    status: 'idle',
-    capabilities: ['activity-planning', 'adventure-coordination', 'safety-assessment'],
-    current_tasks: 0,
-    icon: <MapPin className="h-4 w-4" />
-  },
-  {
-    id: 'activity-finder',
-    name: 'Activity Finder',
-    role: 'Experience Curator',
-    category: 'travel_services',
-    status: 'active',
-    capabilities: ['activity-search', 'recommendation-engine', 'booking-coordination'],
-    current_tasks: 4,
-    icon: <Search className="h-4 w-4" />
-  },
-  {
-    id: 'accessibility-coordinator',
-    name: 'Accessibility Coordinator',
-    role: 'Inclusive Travel Specialist',
-    category: 'travel_services',
-    status: 'active',
-    reports_to: 'travel-insurance-coordinator',
-    capabilities: ['accessibility-planning', 'accommodation-verification', 'special-needs'],
-    current_tasks: 2,
-    icon: <Users className="h-4 w-4" />
-  },
-  {
-    id: 'advanced-analytics-processor',
-    name: 'Analytics Processor',
-    role: 'Data Intelligence Lead',
-    category: 'analytics',
-    status: 'busy',
-    capabilities: ['data-analysis', 'predictive-modeling', 'reporting'],
-    current_tasks: 7,
-    icon: <BarChart3 className="h-4 w-4" />
-  }
-];
+interface AgentOrganizationChartProps {
+  agents: Agent[];
+  groups: AgentGroup[];
+}
 
-const getStatusColor = (status: string) => {
+const getCategoryIcon = (category: string): React.ReactNode => {
+  switch (category.toLowerCase()) {
+    case 'travel_services':
+      return <MapPin className="h-4 w-4" />;
+    case 'communication':
+      return <MessageSquare className="h-4 w-4" />;
+    case 'analytics':
+      return <BarChart3 className="h-4 w-4" />;
+    case 'security':
+      return <Shield className="h-4 w-4" />;
+    case 'management':
+      return <Crown className="h-4 w-4" />;
+    case 'productivity':
+      return <Calendar className="h-4 w-4" />;
+    case 'hr':
+      return <Users className="h-4 w-4" />;
+    case 'marketing':
+      return <TrendingUp className="h-4 w-4" />;
+    case 'operations':
+      return <Settings className="h-4 w-4" />;
+    case 'intelligence':
+      return <Brain className="h-4 w-4" />;
+    case 'content':
+      return <FileText className="h-4 w-4" />;
+    default:
+      return <Bot className="h-4 w-4" />;
+  }
+};
+
+const getAgentRole = (agentId: string, category: string): string => {
+  const roleMap: Record<string, string> = {
+    'agent-registration-manager': 'System Administrator',
+    'agent-performance-monitor': 'Performance Analyst',
+    'supervisor-memory-agent': 'Chief Orchestrator',
+    'user-support': 'Customer Relations Lead',
+    'travel-insurance-coordinator': 'Insurance Specialist',
+    'visa-assistant': 'Documentation Expert',
+    'fraud-detection': 'Security Analyst',
+    'adventure-specialist': 'Activity Planner',
+    'activity-finder': 'Experience Curator',
+    'accessibility-coordinator': 'Inclusive Travel Specialist',
+    'advanced-analytics-processor': 'Data Intelligence Lead',
+    'personalized-content-curator': 'Content Strategist',
+    'ai-workplace-assistant': 'Productivity Manager',
+    'strategic-implementation-manager': 'Strategy Coordinator'
+  };
+  
+  return roleMap[agentId] || `${category} Specialist`;
+};
+
+const getStatusColor = (status: string, healthStatus?: string) => {
+  if (healthStatus === 'error' || status === 'error') {
+    return 'bg-destructive/10 text-destructive border-destructive/20';
+  }
+  
   switch (status) {
     case 'active': return 'bg-green-500/10 text-green-500 border-green-500/20';
     case 'busy': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+    case 'paused': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
     case 'idle': return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
     default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
   }
 };
 
-const AgentCard: React.FC<{ agent: AgentNode; level: number }> = ({ agent, level }) => (
-  <Card className={`w-80 transition-all hover:shadow-lg ${level === 0 ? 'ring-2 ring-primary/20' : ''}`}>
+const getHealthIcon = (healthStatus: string) => {
+  switch (healthStatus) {
+    case 'healthy': return <CheckCircle className="h-3 w-3 text-green-500" />;
+    case 'warning': return <AlertTriangle className="h-3 w-3 text-yellow-500" />;
+    case 'error': return <AlertTriangle className="h-3 w-3 text-destructive" />;
+    default: return <Clock className="h-3 w-3 text-muted-foreground" />;
+  }
+};
+
+const AgentCard: React.FC<{ agent: AgentNode; isGroupLead?: boolean }> = ({ agent, isGroupLead = false }) => (
+  <Card className={`w-72 transition-all hover:shadow-lg ${isGroupLead ? 'ring-2 ring-primary/20' : ''}`}>
     <CardHeader className="pb-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           {agent.icon}
           <CardTitle className="text-sm font-medium">{agent.name}</CardTitle>
+          {getHealthIcon(agent.health_status)}
         </div>
-        <Badge variant="outline" className={getStatusColor(agent.status)}>
+        <Badge variant="outline" className={getStatusColor(agent.status, agent.health_status)}>
           {agent.status}
         </Badge>
       </div>
-      <p className="text-xs text-muted-foreground">{agent.role}</p>
+      <div className="space-y-1">
+        <p className="text-xs text-muted-foreground">{agent.role}</p>
+        {agent.group_name && (
+          <div className="flex items-center gap-1">
+            <Badge variant="secondary" className="text-xs">
+              {agent.group_name}
+            </Badge>
+            {agent.group_role && agent.group_role !== 'member' && (
+              <Badge variant="outline" className="text-xs">
+                {agent.group_role}
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
     </CardHeader>
     <CardContent className="space-y-3">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">Active Tasks</span>
-        <Badge variant="secondary">{agent.current_tasks}</Badge>
+        <span className="text-muted-foreground">Capabilities</span>
+        <Badge variant="secondary">{agent.capabilities.length}</Badge>
       </div>
       
       <div className="space-y-1">
-        <p className="text-xs font-medium text-muted-foreground">Core Capabilities</p>
+        <p className="text-xs font-medium text-muted-foreground">Core Skills</p>
         <div className="flex flex-wrap gap-1">
-          {agent.capabilities.slice(0, 2).map((capability) => (
+          {agent.capabilities.slice(0, 3).map((capability) => (
             <Badge key={capability} variant="outline" className="text-xs">
               {capability}
             </Badge>
           ))}
-          {agent.capabilities.length > 2 && (
+          {agent.capabilities.length > 3 && (
             <Badge variant="outline" className="text-xs">
-              +{agent.capabilities.length - 2}
+              +{agent.capabilities.length - 3}
             </Badge>
           )}
         </div>
       </div>
 
-      {agent.manages && agent.manages.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground">Manages</p>
-          <div className="flex flex-wrap gap-1">
-            {agent.manages.map((managedId) => {
-              const managed = agentHierarchy.find(a => a.id === managedId);
-              return managed ? (
-                <Badge key={managedId} variant="outline" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20">
-                  {managed.name.split(' ')[0]}
-                </Badge>
-              ) : null;
-            })}
-          </div>
-        </div>
-      )}
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Agent ID</span>
+        <code className="text-xs bg-muted px-1 rounded">{agent.agent_id}</code>
+      </div>
     </CardContent>
   </Card>
 );
 
-const renderHierarchyLevel = (agents: AgentNode[], level: number = 0): React.ReactNode => {
-  if (agents.length === 0) return null;
-
-  return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap justify-center gap-6">
-        {agents.map((agent) => (
-          <AgentCard key={agent.id} agent={agent} level={level} />
-        ))}
-      </div>
-      
-      {agents.some(agent => agent.manages && agent.manages.length > 0) && (
-        <div className="relative">
-          <div className="absolute left-1/2 top-0 w-px h-8 bg-border transform -translate-x-1/2" />
-          <div className="mt-8">
-            {agents.map((agent) => {
-              if (!agent.manages || agent.manages.length === 0) return null;
-              
-              const managedAgents = agentHierarchy.filter(a => 
-                agent.manages?.includes(a.id)
-              );
-              
-              return (
-                <div key={`${agent.id}-managed`} className="space-y-8">
-                  {renderHierarchyLevel(managedAgents, level + 1)}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+const GroupSection: React.FC<{ 
+  groupName: string; 
+  agents: AgentNode[]; 
+  description?: string;
+  groupLead?: AgentNode;
+}> = ({ groupName, agents, description, groupLead }) => (
+  <div className="space-y-4">
+    <div className="text-center">
+      <h4 className="text-lg font-semibold flex items-center justify-center gap-2">
+        <Users className="h-5 w-5" />
+        {groupName}
+      </h4>
+      {description && (
+        <p className="text-sm text-muted-foreground mt-1">{description}</p>
       )}
+      <div className="w-24 h-px bg-border mx-auto mt-2" />
     </div>
-  );
-};
+    
+    {groupLead && (
+      <div className="flex justify-center mb-4">
+        <AgentCard agent={groupLead} isGroupLead={true} />
+      </div>
+    )}
+    
+    <div className="flex flex-wrap justify-center gap-4">
+      {agents.filter(a => a.id !== groupLead?.id).map((agent) => (
+        <AgentCard key={agent.id} agent={agent} />
+      ))}
+    </div>
+  </div>
+);
 
-export const AgentOrganizationChart: React.FC = () => {
-  // Get top-level agents (those without reports_to)
-  const topLevelAgents = agentHierarchy.filter(agent => !agent.reports_to);
-  
-  // Get independent agents (no hierarchy)
-  const independentAgents = agentHierarchy.filter(agent => 
-    !agent.reports_to && (!agent.manages || agent.manages.length === 0)
+export const AgentOrganizationChart: React.FC<AgentOrganizationChartProps> = ({ 
+  agents, 
+  groups 
+}) => {
+  const agentNodes = useMemo(() => {
+    // Create a map of agent memberships
+    const membershipMap = new Map<string, { group_name: string; role: string }>();
+    
+    groups.forEach(group => {
+      group.agent_group_memberships?.forEach(membership => {
+        membershipMap.set(membership.agent_id, {
+          group_name: group.group_name,
+          role: membership.role
+        });
+      });
+    });
+
+    // Transform agents to AgentNode format
+    return agents.map(agent => {
+      const membership = membershipMap.get(agent.agent_id);
+      
+      return {
+        id: agent.id,
+        agent_id: agent.agent_id,
+        name: agent.display_name,
+        role: getAgentRole(agent.agent_id, agent.category),
+        category: agent.category,
+        status: agent.status as 'active' | 'idle' | 'busy' | 'paused' | 'error',
+        health_status: agent.health_status,
+        capabilities: agent.capabilities || [],
+        current_tasks: 0, // Would need to fetch from tasks table
+        icon: getCategoryIcon(agent.category),
+        group_name: membership?.group_name,
+        group_role: membership?.role
+      };
+    });
+  }, [agents, groups]);
+
+  // Group agents by their functional groups
+  const groupedAgents = useMemo(() => {
+    const grouped = new Map<string, AgentNode[]>();
+    const ungrouped: AgentNode[] = [];
+
+    agentNodes.forEach(agent => {
+      if (agent.group_name) {
+        if (!grouped.has(agent.group_name)) {
+          grouped.set(agent.group_name, []);
+        }
+        grouped.get(agent.group_name)!.push(agent);
+      } else {
+        ungrouped.push(agent);
+      }
+    });
+
+    return { grouped, ungrouped };
+  }, [agentNodes]);
+
+  // Get system-level agents (registration and monitoring)
+  const systemAgents = agentNodes.filter(agent => 
+    agent.agent_id.includes('registration') || 
+    agent.agent_id.includes('performance-monitor') ||
+    agent.agent_id.includes('supervisor')
   );
+
+  if (agents.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium mb-2">No Agents Found</h3>
+        <p className="text-muted-foreground">
+          No agents are currently registered in the system.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
         <h3 className="text-lg font-semibold flex items-center justify-center gap-2">
           <Workflow className="h-5 w-5" />
-          Agent Organization Structure
+          Complete Agent Organization Structure
         </h3>
         <p className="text-sm text-muted-foreground">
-          Visual representation of agent hierarchy and working relationships
+          All {agents.length} agents organized by functional groups and responsibilities
         </p>
       </div>
 
-      {/* Main Hierarchy */}
-      <div className="space-y-8">
-        {renderHierarchyLevel(topLevelAgents.filter(agent => agent.manages && agent.manages.length > 0))}
-      </div>
-
-      {/* Independent Agents */}
-      {independentAgents.length > 0 && (
+      {/* System Management Level */}
+      {systemAgents.length > 0 && (
         <div className="space-y-4">
           <div className="text-center">
-            <h4 className="text-md font-medium text-muted-foreground">Independent Specialists</h4>
-            <div className="w-24 h-px bg-border mx-auto mt-2" />
+            <h4 className="text-lg font-semibold flex items-center justify-center gap-2 text-primary">
+              <Crown className="h-5 w-5" />
+              System Management
+            </h4>
+            <p className="text-sm text-muted-foreground">Core system orchestration and monitoring</p>
+            <div className="w-32 h-px bg-primary/30 mx-auto mt-2" />
           </div>
-          <div className="flex flex-wrap justify-center gap-6">
-            {independentAgents.map((agent) => (
-              <AgentCard key={agent.id} agent={agent} level={1} />
+          <div className="flex flex-wrap justify-center gap-4">
+            {systemAgents.map((agent) => (
+              <AgentCard key={agent.id} agent={agent} isGroupLead={true} />
             ))}
           </div>
         </div>
       )}
 
-      {/* Legend */}
+      {/* Functional Groups */}
+      {Array.from(groupedAgents.grouped.entries()).map(([groupName, groupAgents]) => {
+        const groupInfo = groups.find(g => g.group_name === groupName);
+        const groupLead = groupAgents.find(agent => agent.group_role === 'lead');
+        
+        return (
+          <GroupSection
+            key={groupName}
+            groupName={groupName}
+            agents={groupAgents}
+            description={groupInfo?.description}
+            groupLead={groupLead}
+          />
+        );
+      })}
+
+      {/* Independent Specialists */}
+      {groupedAgents.ungrouped.length > 0 && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <h4 className="text-lg font-semibold flex items-center justify-center gap-2">
+              <Globe className="h-5 w-5" />
+              Independent Specialists
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Specialized agents working across functional boundaries
+            </p>
+            <div className="w-32 h-px bg-border mx-auto mt-2" />
+          </div>
+          <div className="flex flex-wrap justify-center gap-4">
+            {groupedAgents.ungrouped.map((agent) => (
+              <AgentCard key={agent.id} agent={agent} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Legend */}
       <Card className="bg-muted/30">
         <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span>Active</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+            <div className="space-y-2">
+              <h5 className="font-medium">Status</h5>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span>Active</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-500" />
+                  <span>Busy</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <span>Paused</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-gray-500" />
+                  <span>Idle</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-orange-500" />
-              <span>Busy</span>
+            
+            <div className="space-y-2">
+              <h5 className="font-medium">Health</h5>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <span>Healthy</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                  <span>Warning</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-3 w-3 text-destructive" />
+                  <span>Error</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gray-500" />
-              <span>Idle</span>
+            
+            <div className="space-y-2">
+              <h5 className="font-medium">Hierarchy</h5>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-3 w-3 text-primary" />
+                  <span>System Level</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-3 w-3 text-blue-500" />
+                  <span>Group Lead</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Globe className="h-3 w-3 text-muted-foreground" />
+                  <span>Independent</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Crown className="h-3 w-3 text-primary" />
-              <span>Chief Orchestrator</span>
+            
+            <div className="space-y-2">
+              <h5 className="font-medium">Summary</h5>
+              <div className="space-y-1 text-muted-foreground">
+                <div>Total Agents: {agents.length}</div>
+                <div>Active Groups: {groups.length}</div>
+                <div>Independent: {groupedAgents.ungrouped.length}</div>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -16,6 +16,7 @@ import { SmartTaskManager } from './agent-management/SmartTaskManager';
 import { RealTimeMonitoring } from './agent-management/RealTimeMonitoring';
 import { RealTimeAgentStatus } from './agent-management/RealTimeAgentStatus';
 import { AgentDirectoryCard } from './agent-management/AgentDirectoryCard';
+import { AgentOrganizationChart } from './AgentOrganizationChart';
 interface Agent {
   id: string;
   agent_id: string;
@@ -274,6 +275,7 @@ export function AgentManagementDashboard() {
       <Tabs defaultValue="directory" className="space-y-4">
         <TabsList>
           <TabsTrigger value="directory">Agent Directory</TabsTrigger>
+          <TabsTrigger value="organization">Organization</TabsTrigger>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
           <TabsTrigger value="tasks">Smart Tasks</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
@@ -335,6 +337,20 @@ export function AgentManagementDashboard() {
                 setConfigDialogOpen(true);
               }} />)}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="organization" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Agent Organization Chart</CardTitle>
+              <CardDescription>
+                Visual hierarchy showing agent relationships, groups, and organizational structure
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AgentOrganizationChart agents={agents} groups={groups} />
             </CardContent>
           </Card>
         </TabsContent>
