@@ -316,6 +316,34 @@ export function AgentManagementDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4 mb-6">
+                {/* Action Buttons */}
+                <Button 
+                  onClick={() => setBulkTaskDialogOpen(true)}
+                  disabled={selectedAgents.length === 0}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Assign Task
+                </Button>
+                
+                <Button 
+                  onClick={() => setScheduleDialogOpen(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Schedule
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={loadData}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
                 <div className="flex-1 min-w-64">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
