@@ -372,7 +372,7 @@ export function AgentManagementDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AgentHierarchyChart agents={agents} />
+              <AgentHierarchyChart agents={agents as any} />
             </CardContent>
           </Card>
         </TabsContent>
