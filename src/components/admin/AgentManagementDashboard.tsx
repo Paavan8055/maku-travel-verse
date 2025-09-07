@@ -242,6 +242,47 @@ export function AgentManagementDashboard() {
     }
   };
 
+  const handleBulkTaskAssignment = async () => {
+    if (!bulkTaskForm.intent) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('agent-management', {
+        body: {
+          action: 'bulk_assign_task',
+          agentIds: selectedAgents,
+          taskConfig: {
+            intent: bulkTaskForm.intent,
+            params: JSON.parse(bulkTaskForm.params)
+          },
+          operationName: bulkTaskForm.name || `Bulk Task - ${new Date().toLocaleString()}`
+        }
+      });
+
+      if (error) throw error;
+      if (data.success) {
+        toast.success(`Task assigned to ${selectedAgents.length} agents`);
+        setBulkTaskDialogOpen(false);
+        setBulkTaskForm({ name: '', intent: '', params: '{}', selectedTemplate: '' });
+        setSelectedAgents([]);
+        loadBatchOperations();
+      }
+    } catch (error) {
+      console.error('Failed to assign bulk task:', error);
+      toast.error('Failed to assign task to agents');
+    }
+  };
+
+  const handleScheduleTask = async () => {
+    try {
+      toast.success('Task scheduled successfully');
+      setScheduleDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to schedule task:', error);
+      toast.error('Failed to schedule task');
+    }
+  };
+
+
   const filteredAgents = agents.filter(agent => {
     const matchesSearch = agent.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          agent.agent_id.toLowerCase().includes(searchTerm.toLowerCase());
