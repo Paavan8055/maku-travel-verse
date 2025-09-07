@@ -39,10 +39,6 @@ const Index = () => {
           </Suspense>
           
           <Suspense fallback={null}>
-            <ChatWidget userVertical="Solo" />
-          </Suspense>
-          
-          <Suspense fallback={null}>
             <AgenticWidget />
           </Suspense>
         </div>
