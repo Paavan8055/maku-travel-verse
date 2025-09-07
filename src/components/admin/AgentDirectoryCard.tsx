@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { MascotAvatar, MascotPersonality, getCategoryTheme } from './MascotAvatar';
 
 interface Agent {
   id: string;
@@ -77,17 +78,6 @@ const getStatusColor = (status: string, healthStatus: string) => {
   }
 };
 
-const getCategoryIcon = (category: string) => {
-  const icons: Record<string, React.ReactNode> = {
-    'travel_services': <Activity className="h-4 w-4" />,
-    'communication': <Zap className="h-4 w-4" />,
-    'analytics': <Activity className="h-4 w-4" />,
-    'security': <AlertTriangle className="h-4 w-4" />,
-    'management': <Settings className="h-4 w-4" />,
-    'general': <Activity className="h-4 w-4" />
-  };
-  return icons[category] || <Activity className="h-4 w-4" />;
-};
 
 export const AgentDirectoryCard: React.FC<AgentDirectoryCardProps> = ({
   agent,
@@ -99,11 +89,12 @@ export const AgentDirectoryCard: React.FC<AgentDirectoryCardProps> = ({
 }) => {
   const isHealthy = agent.status === 'active' && agent.health_status === 'healthy';
   const performance = Math.floor(Math.random() * 40) + 60; // Mock performance score
+  const theme = getCategoryTheme(agent.category);
 
   return (
-    <Card className={`transition-all duration-200 hover:shadow-md cursor-pointer ${
-      isSelected ? 'ring-2 ring-primary border-primary' : ''
-    } ${isHealthy ? 'hover:shadow-green-100' : ''} animate-fade-in`}>
+    <Card className={`transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer ${
+      isSelected ? `ring-2 ring-primary border-primary bg-gradient-to-br ${theme.bgGradient}` : ''
+    } ${isHealthy ? 'hover:shadow-green-100' : 'hover:shadow-primary/10'} animate-fade-in`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
@@ -112,13 +103,17 @@ export const AgentDirectoryCard: React.FC<AgentDirectoryCardProps> = ({
               onCheckedChange={() => onSelect(agent.agent_id)}
               className="mt-1"
             />
+            <MascotAvatar 
+              category={agent.category}
+              status={agent.status}
+              healthStatus={agent.health_status}
+              size="md"
+            />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2">
-                {getCategoryIcon(agent.category)}
-                <CardTitle className="text-sm font-medium truncate">
-                  {agent.display_name}
-                </CardTitle>
-              </div>
+              <CardTitle className="text-sm font-medium truncate">
+                {agent.display_name}
+              </CardTitle>
+              <MascotPersonality category={agent.category} />
               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                 {agent.description || 'No description available'}
               </p>
@@ -165,7 +160,7 @@ export const AgentDirectoryCard: React.FC<AgentDirectoryCardProps> = ({
               {agent.status}
             </Badge>
           </div>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className={`text-xs ${theme.accentColor}`}>
             {agent.category}
           </Badge>
         </div>
@@ -191,13 +186,13 @@ export const AgentDirectoryCard: React.FC<AgentDirectoryCardProps> = ({
                 <Badge 
                   key={capability} 
                   variant="outline" 
-                  className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                  className={`text-xs ${theme.accentColor} border-current`}
                 >
                   {capability}
                 </Badge>
               ))}
               {agent.capabilities.length > 3 && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className={`text-xs ${theme.accentColor} border-current`}>
                   +{agent.capabilities.length - 3}
                 </Badge>
               )}

@@ -2,9 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
-  Bot, 
   Play, 
   Pause, 
   Settings, 
@@ -13,6 +11,7 @@ import {
   TrendingUp,
   Zap
 } from 'lucide-react';
+import { MascotAvatar, MascotPersonality, getCategoryTheme } from '../MascotAvatar';
 
 interface Agent {
   id: string;
@@ -65,19 +64,11 @@ export function AgentDirectoryCard({
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'customer': return '👤';
-      case 'admin': return '⚙️';
-      case 'operational': return '🔧';
-      case 'analytical': return '📊';
-      default: return '🤖';
-    }
-  };
+  const theme = getCategoryTheme(agent.category);
 
   return (
-    <Card className={`relative transition-all duration-200 hover:shadow-lg ${
-      isSelected ? 'ring-2 ring-primary' : ''
+    <Card className={`relative transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${
+      isSelected ? `ring-2 ring-primary shadow-lg bg-gradient-to-br ${theme.bgGradient}` : 'hover:shadow-primary/10'
     }`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -88,19 +79,21 @@ export function AgentDirectoryCard({
               onChange={(e) => onSelect(agent.agent_id)}
               className="rounded border-border"
             />
-            <Avatar className="h-10 w-10 bg-gradient-to-br from-primary/20 to-secondary/20">
-              <AvatarFallback>
-                <span className="text-lg">{getCategoryIcon(agent.category)}</span>
-              </AvatarFallback>
-            </Avatar>
+            <MascotAvatar 
+              category={agent.category}
+              status={agent.status}
+              healthStatus={agent.health_status}
+              size="md"
+            />
             <div>
               <CardTitle className="text-base font-semibold">{agent.display_name}</CardTitle>
               <p className="text-xs text-muted-foreground font-mono">{agent.agent_id}</p>
+              <MascotPersonality category={agent.category} />
             </div>
           </div>
           <div className="flex items-center space-x-2">
             <div className={`w-2 h-2 rounded-full ${getStatusColor(agent.status)}`} />
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className={`text-xs ${theme.accentColor} border-current`}>
               {agent.category}
             </Badge>
           </div>
@@ -127,12 +120,12 @@ export function AgentDirectoryCard({
 
         <div className="flex flex-wrap gap-1">
           {agent.capabilities?.slice(0, 3).map((capability, index) => (
-            <Badge key={index} variant="secondary" className="text-xs px-2 py-0">
+            <Badge key={index} variant="secondary" className={`text-xs px-2 py-0 ${theme.accentColor}`}>
               {capability}
             </Badge>
           ))}
           {agent.capabilities?.length > 3 && (
-            <Badge variant="outline" className="text-xs px-2 py-0">
+            <Badge variant="outline" className={`text-xs px-2 py-0 ${theme.accentColor} border-current`}>
               +{agent.capabilities.length - 3}
             </Badge>
           )}
