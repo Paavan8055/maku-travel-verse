@@ -94,83 +94,28 @@ const AgenticPanel: React.FC<AgenticPanelProps> = ({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <TabsList className="grid w-full grid-cols-3 m-4">
-          <TabsTrigger value="plan" className="flex items-center space-x-1">
-            <Plane className="h-4 w-4" />
-            <span>Plan</span>
-          </TabsTrigger>
-          <TabsTrigger value="monitor" className="flex items-center space-x-1">
-            <Calendar className="h-4 w-4" />
-            <span>Monitor</span>
-          </TabsTrigger>
-          <TabsTrigger value="adjust" className="flex items-center space-x-1">
-            <Settings className="h-4 w-4" />
-            <span>Adjust</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="p-4">
+          <h4 className="font-medium text-center">Let me plan your {userVertical.toLowerCase()} trip</h4>
+        </div>
 
         <ScrollArea className="flex-1 h-[500px]">
-          <TabsContent value="plan" className="m-4 space-y-4">
-            <div className="space-y-4">
-              <h4 className="font-medium">Let me plan your {userVertical.toLowerCase()} trip</h4>
-              
-              <BookingCard
-                title="Plan Complete Trip"
-                description="I'll search flights, hotels, and activities based on your preferences"
-                actionLabel="Start Planning"
-                onAction={handlePlanTrip}
-                icon={<Plane className="h-5 w-5" />}
-              />
+          <div className="m-4 space-y-4">
+            <BookingCard
+              title="Plan Complete Trip"
+              description="I'll search flights, hotels, and activities based on your preferences"
+              actionLabel="Start Planning"
+              onAction={handlePlanTrip}
+              icon={<Plane className="h-5 w-5" />}
+            />
 
-                <BookingCard
-                title="Find Best Deals"
-                description="I'll monitor prices and book when they drop"
-                actionLabel="Monitor Prices"
-                onAction={handleMonitorTrips}
-                icon={<Hotel className="h-5 w-5" />}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="monitor" className="m-4 space-y-4">
-            <div className="space-y-4">
-              <h4 className="font-medium">Active Monitoring</h4>
-              
-              {tasks.filter(task => task.status === 'running').length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No active monitoring tasks</p>
-                </div>
-              ) : (
-                tasks
-                  .filter(task => task.status === 'running')
-                  .map(task => (
-                    <BookingCard
-                      key={task.id}
-                      title={task.intent.replace('_', ' ').toUpperCase()}
-                      description={`Monitoring since ${new Date(task.created_at).toLocaleDateString()}`}
-                      actionLabel="Cancel"
-                      onAction={() => cancelTask(task.id)}
-                      variant="monitoring"
-                    />
-                  ))
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="adjust" className="m-4 space-y-4">
-            <div className="space-y-4">
-              <h4 className="font-medium">Booking Adjustments</h4>
-              
-              <BookingCard
-                title="Optimize Existing Bookings"
-                description="I'll check for better prices and upgrade opportunities"
-                actionLabel="Optimize Now"
-                onAction={() => handleAdjustBooking('example_booking')}
-                icon={<Settings className="h-5 w-5" />}
-              />
-            </div>
-          </TabsContent>
+            <BookingCard
+              title="Find Best Deals"
+              description="I'll monitor prices and book when they drop"
+              actionLabel="Find Deals"
+              onAction={handleMonitorTrips}
+              icon={<Hotel className="h-5 w-5" />}
+            />
+          </div>
         </ScrollArea>
       </Tabs>
     </div>
