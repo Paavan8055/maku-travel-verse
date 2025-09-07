@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AgentOrganizationChart } from './AgentOrganizationChart';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,7 +17,7 @@ import { AgentAnalyticsDashboard } from './agent-management/AgentAnalyticsDashbo
 import { SmartTaskManager } from './agent-management/SmartTaskManager';
 import { RealTimeMonitoring } from './agent-management/RealTimeMonitoring';
 import { RealTimeAgentStatus } from './agent-management/RealTimeAgentStatus';
-import { AgentDirectoryCard } from './agent-management/AgentDirectoryCard';
+import { AgentDirectoryCard } from './AgentDirectoryCard';
 
 interface Agent {
   id: string;
@@ -314,14 +315,17 @@ export function AgentManagementDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex space-x-4 mb-6">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Search agents..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
-                  />
+              <div className="flex flex-wrap gap-4 mb-6">
+                <div className="flex-1 min-w-64">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Search agents by name, category, or capability..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
                 <Select value={filterCategory} onValueChange={setFilterCategory}>
                   <SelectTrigger className="w-48">
@@ -331,7 +335,7 @@ export function AgentManagementDashboard() {
                     <SelectItem value="all">All Categories</SelectItem>
                     {categories.map(category => (
                       <SelectItem key={category} value={category}>
-                        {category}
+                        {category.replace('_', ' ').toUpperCase()}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -342,37 +346,127 @@ export function AgentManagementDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="paused">Paused</SelectItem>
-                    <SelectItem value="error">Error</SelectItem>
+                    <SelectItem value="active">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        Active
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="paused">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-gray-500" />
+                        Paused
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="error">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500" />
+                        Error
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+                
+                {/* Bulk Actions */}
+                {selectedAgents.length > 0 && (
+                  <div className="flex items-center gap-2 animate-fade-in">
+                    <Badge variant="secondary" className="px-3 py-1">
+                      {selectedAgents.length} selected
+                    </Badge>
+                    <Button size="sm" variant="outline">
+                      <Play className="h-4 w-4 mr-1" />
+                      Start All
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Pause className="h-4 w-4 mr-1" />
+                      Pause All
+                    </Button>
+                  </div>
+                )}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredAgents.map(agent => (
-                  <AgentDirectoryCard
-                    key={agent.id}
-                    agent={agent}
-                    isSelected={selectedAgents.includes(agent.agent_id)}
-                    onSelect={(agentId) => {
-                      if (selectedAgents.includes(agentId)) {
-                        setSelectedAgents(selectedAgents.filter(id => id !== agentId));
-                      } else {
-                        setSelectedAgents([...selectedAgents, agentId]);
-                      }
-                    }}
-                    onTaskAssign={() => {
-                      setSelectedAgent(agent);
-                      setTaskDialogOpen(true);
-                    }}
-                    onEmergencyStop={() => emergencyStop(agent.agent_id)}
-                    onConfigure={() => {
-                      setSelectedAgent(agent);
-                      setConfigDialogOpen(true);
-                    }}
-                  />
-                ))}
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <Card className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div>
+                      <p className="text-sm font-medium">Active</p>
+                      <p className="text-xs text-muted-foreground">
+                        {agents.filter(a => a.status === 'active').length} agents
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                    <div>
+                      <p className="text-sm font-medium">Busy</p>
+                      <p className="text-xs text-muted-foreground">
+                        {Math.floor(Math.random() * 5)} tasks
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Idle</p>
+                      <p className="text-xs text-muted-foreground">
+                        {agents.filter(a => a.status !== 'active').length} agents
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <div>
+                      <p className="text-sm font-medium">Total</p>
+                      <p className="text-xs text-muted-foreground">
+                        {agents.length} agents
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredAgents.length === 0 ? (
+                  <div className="col-span-full text-center py-12">
+                    <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-muted-foreground mb-2">No agents found</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {searchTerm ? 'Try adjusting your search criteria' : 'No agents match the selected filters'}
+                    </p>
+                  </div>
+                ) : (
+                  filteredAgents.map(agent => (
+                    <AgentDirectoryCard
+                      key={agent.id}
+                      agent={agent}
+                      isSelected={selectedAgents.includes(agent.agent_id)}
+                      onSelect={(agentId) => {
+                        if (selectedAgents.includes(agentId)) {
+                          setSelectedAgents(selectedAgents.filter(id => id !== agentId));
+                        } else {
+                          setSelectedAgents([...selectedAgents, agentId]);
+                        }
+                      }}
+                      onTaskAssign={() => {
+                        setSelectedAgent(agent);
+                        setTaskDialogOpen(true);
+                      }}
+                      onEmergencyStop={() => emergencyStop(agent.agent_id)}
+                      onConfigure={() => {
+                        setSelectedAgent(agent);
+                        setConfigDialogOpen(true);
+                      }}
+                    />
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
