@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AgentOrganizationChart } from './AgentOrganizationChart';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,8 +15,7 @@ import { AgentAnalyticsDashboard } from './agent-management/AgentAnalyticsDashbo
 import { SmartTaskManager } from './agent-management/SmartTaskManager';
 import { RealTimeMonitoring } from './agent-management/RealTimeMonitoring';
 import { RealTimeAgentStatus } from './agent-management/RealTimeAgentStatus';
-import { AgentDirectoryCard } from './AgentDirectoryCard';
-
+import { AgentDirectoryCard } from './agent-management/AgentDirectoryCard';
 interface Agent {
   id: string;
   agent_id: string;
@@ -34,7 +31,6 @@ interface Agent {
   permissions: any;
   performance_settings: any;
 }
-
 interface AgentGroup {
   id: string;
   group_name: string;
@@ -56,7 +52,6 @@ interface AgentGroup {
     };
   }>;
 }
-
 interface TaskTemplate {
   id: string;
   template_name: string;
@@ -65,7 +60,6 @@ interface TaskTemplate {
   task_definition: any;
   agent_types: string[];
 }
-
 interface BatchOperation {
   id: string;
   operation_name: string;
@@ -76,7 +70,6 @@ interface BatchOperation {
   failed_targets: number;
   created_at: string;
 }
-
 interface Alert {
   id: string;
   alert_type: string;
@@ -87,7 +80,6 @@ interface Alert {
   is_resolved: boolean;
   created_at: string;
 }
-
 export function AgentManagementDashboard() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [groups, setGroups] = useState<AgentGroup[]>([]);
@@ -101,7 +93,7 @@ export function AgentManagementDashboard() {
 
   // Selected agents for bulk operations
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  
+
   // Dialog states
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [bulkTaskDialogOpen, setBulkTaskDialogOpen] = useState(false);
@@ -110,28 +102,23 @@ export function AgentManagementDashboard() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
   // Form states
-  const [taskForm, setTaskForm] = useState({ intent: '', params: '{}' });
-  const [bulkTaskForm, setBulkTaskForm] = useState({ 
-    name: '', 
-    intent: '', 
+  const [taskForm, setTaskForm] = useState({
+    intent: '',
+    params: '{}'
+  });
+  const [bulkTaskForm, setBulkTaskForm] = useState({
+    name: '',
+    intent: '',
     params: '{}',
     selectedTemplate: ''
   });
-
   useEffect(() => {
     loadData();
   }, []);
-
   const loadData = async () => {
     try {
       setLoading(true);
-      await Promise.all([
-        loadAgents(),
-        loadGroups(),
-        loadTemplates(),
-        loadBatchOperations(),
-        loadAlerts()
-      ]);
+      await Promise.all([loadAgents(), loadGroups(), loadTemplates(), loadBatchOperations(), loadAlerts()]);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('Failed to load agent management data');
@@ -139,66 +126,77 @@ export function AgentManagementDashboard() {
       setLoading(false);
     }
   };
-
   const loadAgents = async () => {
-    const { data, error } = await supabase.functions.invoke('agent-management', {
-      body: { action: 'list_agents' }
+    const {
+      data,
+      error
+    } = await supabase.functions.invoke('agent-management', {
+      body: {
+        action: 'list_agents'
+      }
     });
-    
     if (error) throw error;
     if (data.success) {
       setAgents(data.data);
     }
   };
-
   const loadGroups = async () => {
-    const { data, error } = await supabase.functions.invoke('agent-management', {
-      body: { action: 'get_agent_groups' }
+    const {
+      data,
+      error
+    } = await supabase.functions.invoke('agent-management', {
+      body: {
+        action: 'get_agent_groups'
+      }
     });
-    
     if (error) throw error;
     if (data.success) {
       setGroups(data.data);
     }
   };
-
   const loadTemplates = async () => {
-    const { data, error } = await supabase
-      .from('agent_task_templates')
-      .select('*')
-      .eq('is_active', true);
-    
+    const {
+      data,
+      error
+    } = await supabase.from('agent_task_templates').select('*').eq('is_active', true);
     if (error) throw error;
     setTemplates(data);
   };
-
   const loadBatchOperations = async () => {
-    const { data, error } = await supabase.functions.invoke('agent-management', {
-      body: { action: 'get_batch_operations' }
+    const {
+      data,
+      error
+    } = await supabase.functions.invoke('agent-management', {
+      body: {
+        action: 'get_batch_operations'
+      }
     });
-    
     if (error) throw error;
     if (data.success) {
       setBatchOps(data.data);
     }
   };
-
   const loadAlerts = async () => {
-    const { data, error } = await supabase.functions.invoke('agent-management', {
-      body: { action: 'get_agent_alerts' }
+    const {
+      data,
+      error
+    } = await supabase.functions.invoke('agent-management', {
+      body: {
+        action: 'get_agent_alerts'
+      }
     });
-    
     if (error) throw error;
     if (data.success) {
       setAlerts(data.data);
     }
   };
-
   const assignTask = async () => {
     if (!selectedAgent) return;
-    
     try {
-      const { data, error } = await supabase.functions.invoke('agent-management', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('agent-management', {
         body: {
           action: 'assign_task',
           agentId: selectedAgent.agent_id,
@@ -208,28 +206,31 @@ export function AgentManagementDashboard() {
           }
         }
       });
-
       if (error) throw error;
       if (data.success) {
         toast.success('Task assigned successfully');
         setTaskDialogOpen(false);
-        setTaskForm({ intent: '', params: '{}' });
+        setTaskForm({
+          intent: '',
+          params: '{}'
+        });
       }
     } catch (error) {
       console.error('Failed to assign task:', error);
       toast.error('Failed to assign task');
     }
   };
-
   const emergencyStop = async (agentId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('agent-management', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('agent-management', {
         body: {
           action: 'emergency_stop',
           agentId
         }
       });
-
       if (error) throw error;
       if (data.success) {
         toast.success('Agent emergency stopped');
@@ -241,70 +242,20 @@ export function AgentManagementDashboard() {
       toast.error('Failed to emergency stop agent');
     }
   };
-
-  const handleBulkTaskAssignment = async () => {
-    if (!bulkTaskForm.intent) return;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('agent-management', {
-        body: {
-          action: 'bulk_assign_task',
-          agentIds: selectedAgents,
-          taskConfig: {
-            intent: bulkTaskForm.intent,
-            params: JSON.parse(bulkTaskForm.params)
-          },
-          operationName: bulkTaskForm.name || `Bulk Task - ${new Date().toLocaleString()}`
-        }
-      });
-
-      if (error) throw error;
-      if (data.success) {
-        toast.success(`Task assigned to ${selectedAgents.length} agents`);
-        setBulkTaskDialogOpen(false);
-        setBulkTaskForm({ name: '', intent: '', params: '{}', selectedTemplate: '' });
-        setSelectedAgents([]);
-        loadBatchOperations();
-      }
-    } catch (error) {
-      console.error('Failed to assign bulk task:', error);
-      toast.error('Failed to assign task to agents');
-    }
-  };
-
-  const handleScheduleTask = async () => {
-    try {
-      toast.success('Task scheduled successfully');
-      setScheduleDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to schedule task:', error);
-      toast.error('Failed to schedule task');
-    }
-  };
-
-
   const filteredAgents = agents.filter(agent => {
-    const matchesSearch = agent.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.agent_id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = agent.display_name.toLowerCase().includes(searchTerm.toLowerCase()) || agent.agent_id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || agent.category === filterCategory;
     const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
-    
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
   const categories = [...new Set(agents.map(a => a.category))];
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
+    return <div className="flex items-center justify-center h-64">
         <RefreshCw className="h-8 w-8 animate-spin" />
         <span className="ml-2">Loading agent management system...</span>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Agent Management</h1>
@@ -322,8 +273,7 @@ export function AgentManagementDashboard() {
 
       <Tabs defaultValue="directory" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="directory">Organization Chart</TabsTrigger>
-          <TabsTrigger value="list">Agent Directory</TabsTrigger>
+          <TabsTrigger value="directory">Agent Directory</TabsTrigger>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
           <TabsTrigger value="tasks">Smart Tasks</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
@@ -342,59 +292,9 @@ export function AgentManagementDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AgentOrganizationChart />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="list" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Agent List View</CardTitle>
-              <CardDescription>
-                Detailed list of all agents with search and filtering
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-4 mb-6">
-                {/* Action Buttons */}
-                <Button 
-                  onClick={() => setBulkTaskDialogOpen(true)}
-                  disabled={selectedAgents.length === 0}
-                  size="sm"
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Assign Task
-                </Button>
-                
-                <Button 
-                  onClick={() => setScheduleDialogOpen(true)}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule
-                </Button>
-                
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={loadData}
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
-                <div className="flex-1 min-w-64">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder="Search agents by name, category, or capability..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+              <div className="flex space-x-4 mb-6">
+                <div className="flex-1">
+                  <Input placeholder="Search agents..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="max-w-sm" />
                 </div>
                 <Select value={filterCategory} onValueChange={setFilterCategory}>
                   <SelectTrigger className="w-48">
@@ -402,11 +302,9 @@ export function AgentManagementDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category.replace('_', ' ').toUpperCase()}
-                      </SelectItem>
-                    ))}
+                    {categories.map(category => <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -415,127 +313,27 @@ export function AgentManagementDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="active">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                        Active
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="paused">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-gray-500" />
-                        Paused
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="error">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-red-500" />
-                        Error
-                      </div>
-                    </SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="paused">Paused</SelectItem>
+                    <SelectItem value="error">Error</SelectItem>
                   </SelectContent>
                 </Select>
-                
-                {/* Bulk Actions */}
-                {selectedAgents.length > 0 && (
-                  <div className="flex items-center gap-2 animate-fade-in">
-                    <Badge variant="secondary" className="px-3 py-1">
-                      {selectedAgents.length} selected
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      <Play className="h-4 w-4 mr-1" />
-                      Start All
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Pause className="h-4 w-4 mr-1" />
-                      Pause All
-                    </Button>
-                  </div>
-                )}
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <Card className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <div>
-                      <p className="text-sm font-medium">Active</p>
-                      <p className="text-xs text-muted-foreground">
-                        {agents.filter(a => a.status === 'active').length} agents
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    <div>
-                      <p className="text-sm font-medium">Busy</p>
-                      <p className="text-xs text-muted-foreground">
-                        {Math.floor(Math.random() * 5)} tasks
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-gray-500" />
-                    <div>
-                      <p className="text-sm font-medium">Idle</p>
-                      <p className="text-xs text-muted-foreground">
-                        {agents.filter(a => a.status !== 'active').length} agents
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <div>
-                      <p className="text-sm font-medium">Total</p>
-                      <p className="text-xs text-muted-foreground">
-                        {agents.length} agents
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredAgents.length === 0 ? (
-                  <div className="col-span-full text-center py-12">
-                    <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-muted-foreground mb-2">No agents found</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {searchTerm ? 'Try adjusting your search criteria' : 'No agents match the selected filters'}
-                    </p>
-                  </div>
-                ) : (
-                  filteredAgents.map(agent => (
-                    <AgentDirectoryCard
-                      key={agent.id}
-                      agent={agent}
-                      isSelected={selectedAgents.includes(agent.agent_id)}
-                      onSelect={(agentId) => {
-                        if (selectedAgents.includes(agentId)) {
-                          setSelectedAgents(selectedAgents.filter(id => id !== agentId));
-                        } else {
-                          setSelectedAgents([...selectedAgents, agentId]);
-                        }
-                      }}
-                      onTaskAssign={() => {
-                        setSelectedAgent(agent);
-                        setTaskDialogOpen(true);
-                      }}
-                      onEmergencyStop={() => emergencyStop(agent.agent_id)}
-                      onConfigure={() => {
-                        setSelectedAgent(agent);
-                        setConfigDialogOpen(true);
-                      }}
-                    />
-                  ))
-                )}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredAgents.map(agent => <AgentDirectoryCard key={agent.id} agent={agent} isSelected={selectedAgents.includes(agent.agent_id)} onSelect={agentId => {
+                if (selectedAgents.includes(agentId)) {
+                  setSelectedAgents(selectedAgents.filter(id => id !== agentId));
+                } else {
+                  setSelectedAgents([...selectedAgents, agentId]);
+                }
+              }} onTaskAssign={() => {
+                setSelectedAgent(agent);
+                setTaskDialogOpen(true);
+              }} onEmergencyStop={() => emergencyStop(agent.agent_id)} onConfigure={() => {
+                setSelectedAgent(agent);
+                setConfigDialogOpen(true);
+              }} />)}
               </div>
             </CardContent>
           </Card>
@@ -553,17 +351,13 @@ export function AgentManagementDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AgentWorkflowBuilder
-                agents={agents}
-                onSaveWorkflow={(workflow) => {
-                  console.log('Saving workflow:', workflow);
-                  toast.success('Workflow saved successfully');
-                }}
-                onExecuteWorkflow={(workflow) => {
-                  console.log('Executing workflow:', workflow);
-                  toast.success('Workflow execution started');
-                }}
-              />
+              <AgentWorkflowBuilder agents={agents} onSaveWorkflow={workflow => {
+              console.log('Saving workflow:', workflow);
+              toast.success('Workflow saved successfully');
+            }} onExecuteWorkflow={workflow => {
+              console.log('Executing workflow:', workflow);
+              toast.success('Workflow execution started');
+            }} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -580,17 +374,13 @@ export function AgentManagementDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <SmartTaskManager 
-                agents={agents}
-                onTaskAssign={(agentId, task) => {
-                  console.log('Assigning task:', task, 'to agent:', agentId);
-                  toast.success('Task assigned successfully');
-                }}
-                onBulkOperation={(operationData) => {
-                  console.log('Bulk operation:', operationData);
-                  toast.success('Bulk operation started');
-                }}
-              />
+              <SmartTaskManager agents={agents} onTaskAssign={(agentId, task) => {
+              console.log('Assigning task:', task, 'to agent:', agentId);
+              toast.success('Task assigned successfully');
+            }} onBulkOperation={operationData => {
+              console.log('Bulk operation:', operationData);
+              toast.success('Bulk operation started');
+            }} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -614,12 +404,9 @@ export function AgentManagementDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AgentAnalyticsDashboard 
-                agents={agents}
-                onAgentSelect={(agentId) => {
-                  console.log('Selected agent for analysis:', agentId);
-                }}
-              />
+              <AgentAnalyticsDashboard agents={agents} onAgentSelect={agentId => {
+              console.log('Selected agent for analysis:', agentId);
+            }} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -639,8 +426,7 @@ export function AgentManagementDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {groups.length === 0 ? (
-                <div className="text-center py-12">
+              {groups.length === 0 ? <div className="text-center py-12">
                   <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium mb-2">No Agent Groups Found</h3>
                   <p className="text-muted-foreground mb-4">
@@ -650,11 +436,8 @@ export function AgentManagementDashboard() {
                     <Users className="h-4 w-4 mr-2" />
                     Create Group
                   </Button>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {groups.map(group => (
-                    <Card key={group.id} className="hover:shadow-md transition-shadow">
+                </div> : <div className="grid gap-4">
+                  {groups.map(group => <Card key={group.id} className="hover:shadow-md transition-shadow">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -681,14 +464,14 @@ export function AgentManagementDashboard() {
                       <CardContent className="pt-0">
                         <div className="space-y-4">
                           {/* Group Configuration */}
-                          {group.configuration && Object.keys(group.configuration).length > 0 && (
-                            <div>
-                              <span className="text-sm font-medium">Configuration:</span>
+                          {group.configuration && Object.keys(group.configuration).length > 0 && <div>
+                              <span className="text-sm font-medium">No agents found
+
+No agents match the selected filters</span>
                               <div className="mt-1 p-2 bg-muted rounded text-xs">
                                 <pre>{JSON.stringify(group.configuration, null, 2)}</pre>
                               </div>
-                            </div>
-                          )}
+                            </div>}
                           
                           {/* Group Members */}
                           <div>
@@ -704,22 +487,14 @@ export function AgentManagementDashboard() {
                                 </Button>
                               </div>
                             </div>
-                            {group.agent_group_memberships && group.agent_group_memberships.length > 0 ? (
-                              <div className="space-y-2">
-                                {group.agent_group_memberships.map(membership => (
-                                  <div 
-                                    key={membership.agent_id}
-                                    className="flex items-center justify-between p-2 bg-muted/50 rounded"
-                                  >
+                            {group.agent_group_memberships && group.agent_group_memberships.length > 0 ? <div className="space-y-2">
+                                {group.agent_group_memberships.map(membership => <div key={membership.agent_id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
                                     <div className="flex items-center gap-2">
                                       <Bot className="h-4 w-4" />
                                       <span className="font-medium">
                                         {membership.agent_management?.display_name || membership.agent_id}
                                       </span>
-                                      <Badge 
-                                        variant={membership.agent_management?.status === 'active' ? 'default' : 'secondary'}
-                                        className="text-xs"
-                                      >
+                                      <Badge variant={membership.agent_management?.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                                         {membership.agent_management?.status || 'unknown'}
                                       </Badge>
                                       <Badge variant="outline" className="text-xs">
@@ -733,17 +508,10 @@ export function AgentManagementDashboard() {
                                       <span>
                                         Added: {new Date(membership.added_at).toLocaleDateString()}
                                       </span>
-                                      <div className={`w-2 h-2 rounded-full ${
-                                        membership.agent_management?.health_status === 'healthy' ? 'bg-green-500' :
-                                        membership.agent_management?.health_status === 'warning' ? 'bg-yellow-500' :
-                                        'bg-red-500'
-                                      }`} />
+                                      <div className={`w-2 h-2 rounded-full ${membership.agent_management?.health_status === 'healthy' ? 'bg-green-500' : membership.agent_management?.health_status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'}`} />
                                     </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-center py-8 border-2 border-dashed border-muted rounded">
+                                  </div>)}
+                              </div> : <div className="text-center py-8 border-2 border-dashed border-muted rounded">
                                 <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                                 <p className="text-sm text-muted-foreground">
                                   No agents assigned to this group
@@ -751,8 +519,7 @@ export function AgentManagementDashboard() {
                                 <Button variant="outline" size="sm" className="mt-2">
                                   Add Agents
                                 </Button>
-                              </div>
-                            )}
+                              </div>}
                           </div>
                           
                           {/* Group Stats */}
@@ -778,262 +545,89 @@ export function AgentManagementDashboard() {
                           </div>
                         </div>
                       </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+                    </Card>)}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="operations" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Batch Operations */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Batch Operations</span>
-                  <Button variant="outline" size="sm">
-                    <Play className="h-4 w-4 mr-2" />
-                    New Operation
-                  </Button>
-                </CardTitle>
-                <CardDescription>
-                  Monitor and manage bulk operations across multiple agents
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {batchOps.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Workflow className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No Operations Running</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Start batch operations to manage multiple agents simultaneously.
-                    </p>
-                    <Button variant="outline">
-                      <Play className="h-4 w-4 mr-2" />
-                      Create Operation
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {batchOps.map(op => (
-                      <Card key={op.id} className="border-l-4 border-l-primary">
-                        <CardContent className="pt-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <h4 className="font-medium flex items-center gap-2">
-                                <Workflow className="h-4 w-4" />
-                                {op.operation_name}
-                              </h4>
-                              <p className="text-sm text-muted-foreground">{op.operation_type}</p>
-                            </div>
-                            <Badge variant={
-                              op.status === 'completed' ? 'default' : 
-                              op.status === 'failed' ? 'destructive' : 
-                              op.status === 'running' ? 'secondary' : 'outline'
-                            }>
-                              {op.status}
-                            </Badge>
-                          </div>
-                          
-                          <div className="space-y-3">
-                            {/* Progress Bar */}
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-sm">
-                                <span>Progress</span>
-                                <span>{Math.round((op.completed_targets / op.total_targets) * 100)}%</span>
-                              </div>
-                              <div className="w-full bg-muted rounded-full h-2">
-                                <div 
-                                  className="bg-primary h-2 rounded-full transition-all duration-300" 
-                                  style={{ width: `${(op.completed_targets / op.total_targets) * 100}%` }}
-                                />
-                              </div>
-                            </div>
-                            
-                            {/* Stats */}
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                              <div>
-                                <div className="text-lg font-bold">{op.total_targets}</div>
-                                <div className="text-xs text-muted-foreground">Total</div>
-                              </div>
-                              <div>
-                                <div className="text-lg font-bold text-green-600">{op.completed_targets}</div>
-                                <div className="text-xs text-muted-foreground">Completed</div>
-                              </div>
-                              <div>
-                                <div className="text-lg font-bold text-red-600">{op.failed_targets}</div>
-                                <div className="text-xs text-muted-foreground">Failed</div>
-                              </div>
-                            </div>
-                            
-                            {/* Timestamp */}
-                            <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t">
-                              <span>Started: {new Date(op.created_at).toLocaleString()}</span>
-                              <Button variant="ghost" size="sm">
-                                <Eye className="h-3 w-3 mr-1" />
-                                Details
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* System Status */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>System Status</span>
-                  <Button variant="outline" size="sm">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
-                </CardTitle>
-                <CardDescription>
-                  Overall system health and performance metrics
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Health Overview */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">98.5%</div>
-                      <div className="text-sm text-muted-foreground">Uptime</div>
-                    </div>
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{agents.length}</div>
-                      <div className="text-sm text-muted-foreground">Active Agents</div>
-                    </div>
-                  </div>
-                  
-                  {/* Service Status */}
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Service Status</h4>
-                    <div className="space-y-2">
-                      {[
-                        { name: 'Agent Management', status: 'operational' },
-                        { name: 'Task Queue', status: 'operational' },
-                        { name: 'Analytics Engine', status: 'operational' },
-                        { name: 'Notification Service', status: 'degraded' }
-                      ].map(service => (
-                        <div key={service.name} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                          <span className="text-sm">{service.name}</span>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${
-                              service.status === 'operational' ? 'bg-green-500' :
-                              service.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
-                            }`} />
-                            <span className="text-xs capitalize">{service.status}</span>
-                          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Batch Operations</CardTitle>
+              <CardDescription>
+                Monitor and manage bulk operations across multiple agents
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {batchOps.map(op => <Card key={op.id}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">{op.operation_name}</h4>
+                          <p className="text-sm text-muted-foreground">{op.operation_type}</p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                        <Badge variant={op.status === 'completed' ? 'default' : op.status === 'failed' ? 'destructive' : 'secondary'}>
+                          {op.status}
+                        </Badge>
+                      </div>
+                      <div className="mt-4">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Progress</span>
+                          <span>{op.completed_targets}/{op.total_targets}</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div className="bg-primary h-2 rounded-full" style={{
+                        width: `${op.completed_targets / op.total_targets * 100}%`
+                      }} />
+                        </div>
+                        {op.failed_targets > 0 && <p className="text-sm text-red-600 mt-2">
+                            {op.failed_targets} failed operations
+                          </p>}
+                      </div>
+                    </CardContent>
+                  </Card>)}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Agent Alerts
-                </span>
-                <div className="flex gap-2">
-                  <Badge variant="destructive">
-                    {alerts.filter(a => !a.is_resolved && a.severity === 'critical').length} Critical
-                  </Badge>
-                  <Badge variant="secondary">
-                    {alerts.filter(a => !a.is_resolved).length} Active
-                  </Badge>
-                </div>
-              </CardTitle>
+              <CardTitle>System Alerts</CardTitle>
               <CardDescription>
-                Monitor system alerts and agent notifications
+                Monitor critical events and system notifications
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {alerts.length === 0 ? (
-                <div className="text-center py-12">
-                  <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No Active Alerts</h3>
-                  <p className="text-muted-foreground">
-                    All agents are operating normally. Alerts will appear here when issues are detected.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {alerts.map(alert => (
-                    <Card 
-                      key={alert.id} 
-                      className={`border-l-4 ${
-                        alert.severity === 'critical' ? 'border-l-red-500 bg-red-50/50 dark:bg-red-950/20' :
-                        alert.severity === 'high' ? 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20' :
-                        alert.severity === 'medium' ? 'border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20' :
-                        'border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
-                      } ${alert.is_resolved ? 'opacity-60' : ''}`}
-                    >
-                      <CardContent className="pt-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertTriangle className={`h-4 w-4 ${
-                                alert.severity === 'critical' ? 'text-red-500' :
-                                alert.severity === 'high' ? 'text-orange-500' :
-                                alert.severity === 'medium' ? 'text-yellow-500' :
-                                'text-blue-500'
-                              }`} />
-                              <h4 className="font-medium">{alert.title}</h4>
-                              <Badge variant="outline" className="ml-auto">
-                                {alert.agent_id}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">{alert.message}</p>
-                            
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span>Type: {alert.alert_type}</span>
-                              <span>•</span>
-                              <span>{new Date(alert.created_at).toLocaleString()}</span>
-                              {alert.is_resolved && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-green-600">Resolved</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-col gap-2 ml-4">
-                            <Badge variant={
-                              alert.severity === 'critical' ? 'destructive' :
-                              alert.severity === 'high' ? 'default' :
-                              alert.severity === 'medium' ? 'secondary' : 'outline'
-                            }>
-                              {alert.severity}
-                            </Badge>
-                            {!alert.is_resolved && (
-                              <Button variant="outline" size="sm">
-                                Resolve
-                              </Button>
-                            )}
+              <div className="space-y-4">
+                {alerts.map(alert => <Card key={alert.id} className={`border-l-4 ${alert.severity === 'high' ? 'border-l-red-500' : alert.severity === 'medium' ? 'border-l-yellow-500' : 'border-l-blue-500'}`}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <AlertTriangle className={`h-5 w-5 mt-0.5 ${alert.severity === 'high' ? 'text-red-500' : alert.severity === 'medium' ? 'text-yellow-500' : 'text-blue-500'}`} />
+                          <div>
+                            <h4 className="font-medium">{alert.title}</h4>
+                            <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {new Date(alert.created_at).toLocaleString()}
+                            </p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={alert.severity === 'high' ? 'destructive' : alert.severity === 'medium' ? 'secondary' : 'default'}>
+                            {alert.severity}
+                          </Badge>
+                          {!alert.is_resolved && <Button size="sm" variant="outline">
+                              Resolve
+                            </Button>}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>)}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1048,20 +642,17 @@ export function AgentManagementDashboard() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">Task Intent</label>
-              <Input
-                value={taskForm.intent}
-                onChange={(e) => setTaskForm({...taskForm, intent: e.target.value})}
-                placeholder="e.g., analyze_performance"
-              />
+              <Input value={taskForm.intent} onChange={e => setTaskForm({
+              ...taskForm,
+              intent: e.target.value
+            })} placeholder="e.g., analyze_performance" />
             </div>
             <div>
               <label className="text-sm font-medium">Parameters (JSON)</label>
-              <Textarea
-                value={taskForm.params}
-                onChange={(e) => setTaskForm({...taskForm, params: e.target.value})}
-                rows={4}
-                className="font-mono text-sm"
-              />
+              <Textarea value={taskForm.params} onChange={e => setTaskForm({
+              ...taskForm,
+              params: e.target.value
+            })} rows={4} className="font-mono text-sm" />
             </div>
           </div>
           <DialogFooter>
@@ -1091,6 +682,5 @@ export function AgentManagementDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 }
