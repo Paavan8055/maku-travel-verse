@@ -43,7 +43,7 @@ const AGENT_CONFIGS = {
   'guided-workflow-orchestrator': { name: 'Guided Workflow Orchestrator', category: 'admin', model: 'gpt-5-2025-08-07' },
   'admin-dashboard-agent': { name: 'Admin Dashboard Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
   'user-support': { name: 'User Support Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
-  'fraud-detection': { name: 'Fraud Detection Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
+  // CONSOLIDATED: fraud-detection + advanced-fraud-detection → risk-management-manager (TIER 1)
   'compliance-check': { name: 'Compliance Check Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   'data-validation': { name: 'Data Validation Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   'account-verification': { name: 'Account Verification Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
