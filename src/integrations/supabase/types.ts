@@ -8764,6 +8764,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_old_tasks: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       create_activity_order: {
         Args: {
           p_activity_id: string
