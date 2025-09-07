@@ -16,7 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Play, Save, Trash2, Copy, Settings } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Play, Save, Trash2, Copy, Settings, ChevronDown, ChevronRight } from 'lucide-react';
 import 'reactflow/dist/style.css';
 
 interface AgentNodeData {
@@ -152,6 +153,7 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [agentsExpanded, setAgentsExpanded] = useState(true);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -268,37 +270,50 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
       {/* Agent Palette */}
       <div className="col-span-1 space-y-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Available Agents</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {agents.map((agent) => (
-              <Button
-                key={agent.agent_id}
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start h-auto p-3"
-                onClick={() => addAgentNode(agent)}
-              >
-                <div className="text-left">
-                  <div className="font-medium text-xs">{agent.display_name}</div>
-                  <div className="text-xs text-muted-foreground">{agent.category}</div>
-                </div>
-              </Button>
-            ))}
-            
-            <Separator className="my-3" />
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={addConditionalNode}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Add Condition
-            </Button>
-          </CardContent>
+          <Collapsible open={agentsExpanded} onOpenChange={setAgentsExpanded}>
+            <CardHeader className="pb-2">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                  <CardTitle className="text-sm">Available Agents</CardTitle>
+                  {agentsExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="space-y-2 pt-0">
+                {agents.map((agent) => (
+                  <Button
+                    key={agent.agent_id}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start h-auto p-3"
+                    onClick={() => addAgentNode(agent)}
+                  >
+                    <div className="text-left">
+                      <div className="font-medium text-xs">{agent.display_name}</div>
+                      <div className="text-xs text-muted-foreground">{agent.category}</div>
+                    </div>
+                  </Button>
+                ))}
+                
+                <Separator className="my-3" />
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={addConditionalNode}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Add Condition
+                </Button>
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
 
         <Card>
