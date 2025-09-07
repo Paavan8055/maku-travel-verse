@@ -38,11 +38,19 @@ interface AgentGroup {
   group_name: string;
   description: string;
   group_type: string;
+  configuration: any;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
   agent_group_memberships: Array<{
     agent_id: string;
+    role: string;
+    added_at: string;
     agent_management: {
       display_name: string;
       status: string;
+      category: string;
+      health_status: string;
     };
   }>;
 }
@@ -440,36 +448,161 @@ export function AgentManagementDashboard() {
         <TabsContent value="groups" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Agent Groups</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Agent Groups</span>
+                <Button onClick={loadGroups} variant="outline" size="sm">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Groups
+                </Button>
+              </CardTitle>
               <CardDescription>
                 Organize agents into logical groups for easier management
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
-                {groups.map(group => (
-                  <Card key={group.id}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-base">{group.group_name}</CardTitle>
-                          <p className="text-sm text-muted-foreground">{group.description}</p>
+              {groups.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No Agent Groups Found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create agent groups to organize your agents by function, department, or capability.
+                  </p>
+                  <Button variant="outline">
+                    <Users className="h-4 w-4 mr-2" />
+                    Create Group
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {groups.map(group => (
+                    <Card key={group.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              {group.group_name}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {group.description || 'No description provided'}
+                            </p>
+                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                              <span>Created: {new Date(group.created_at).toLocaleDateString()}</span>
+                              <span>Updated: {new Date(group.updated_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{group.group_type}</Badge>
+                            <Badge variant="secondary">
+                              {group.agent_group_memberships?.length || 0} agents
+                            </Badge>
+                          </div>
                         </div>
-                        <Badge variant="outline">{group.group_type}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex space-x-2">
-                        {group.agent_group_memberships.map(membership => (
-                          <Badge key={membership.agent_id} variant="secondary">
-                            {membership.agent_management.display_name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-4">
+                          {/* Group Configuration */}
+                          {group.configuration && Object.keys(group.configuration).length > 0 && (
+                            <div>
+                              <span className="text-sm font-medium">Configuration:</span>
+                              <div className="mt-1 p-2 bg-muted rounded text-xs">
+                                <pre>{JSON.stringify(group.configuration, null, 2)}</pre>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Group Members */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium">Group Members:</span>
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="sm">
+                                  <Users className="h-4 w-4 mr-1" />
+                                  Manage
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  <Settings className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                            {group.agent_group_memberships && group.agent_group_memberships.length > 0 ? (
+                              <div className="space-y-2">
+                                {group.agent_group_memberships.map(membership => (
+                                  <div 
+                                    key={membership.agent_id}
+                                    className="flex items-center justify-between p-2 bg-muted/50 rounded"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <Bot className="h-4 w-4" />
+                                      <span className="font-medium">
+                                        {membership.agent_management?.display_name || membership.agent_id}
+                                      </span>
+                                      <Badge 
+                                        variant={membership.agent_management?.status === 'active' ? 'default' : 'secondary'}
+                                        className="text-xs"
+                                      >
+                                        {membership.agent_management?.status || 'unknown'}
+                                      </Badge>
+                                      <Badge variant="outline" className="text-xs">
+                                        {membership.agent_management?.category || 'general'}
+                                      </Badge>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <Badge variant="outline" className="text-xs">
+                                        {membership.role || 'member'}
+                                      </Badge>
+                                      <span>
+                                        Added: {new Date(membership.added_at).toLocaleDateString()}
+                                      </span>
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        membership.agent_management?.health_status === 'healthy' ? 'bg-green-500' :
+                                        membership.agent_management?.health_status === 'warning' ? 'bg-yellow-500' :
+                                        'bg-red-500'
+                                      }`} />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-8 border-2 border-dashed border-muted rounded">
+                                <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">
+                                  No agents assigned to this group
+                                </p>
+                                <Button variant="outline" size="sm" className="mt-2">
+                                  Add Agents
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Group Stats */}
+                          <div className="pt-2 border-t">
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                <div className="text-sm font-medium">Total Agents</div>
+                                <div className="text-lg font-bold">{group.agent_group_memberships?.length || 0}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">Active Agents</div>
+                                <div className="text-lg font-bold text-green-600">
+                                  {group.agent_group_memberships?.filter(m => m.agent_management?.status === 'active').length || 0}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">Health Status</div>
+                                <div className="text-lg font-bold text-blue-600">
+                                  {group.agent_group_memberships?.filter(m => m.agent_management?.health_status === 'healthy').length || 0}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
