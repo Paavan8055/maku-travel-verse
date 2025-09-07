@@ -4123,6 +4123,140 @@ export type Database = {
         }
         Relationships: []
       }
+      gpt_bot_registry: {
+        Row: {
+          bot_name: string
+          bot_type: string
+          capabilities: Json
+          category: string
+          chat_gpt_url: string
+          configuration: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          integration_status: string
+          is_system_bot: boolean
+          updated_at: string
+          usage_metrics: Json
+        }
+        Insert: {
+          bot_name: string
+          bot_type: string
+          capabilities?: Json
+          category: string
+          chat_gpt_url: string
+          configuration?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          integration_status?: string
+          is_system_bot?: boolean
+          updated_at?: string
+          usage_metrics?: Json
+        }
+        Update: {
+          bot_name?: string
+          bot_type?: string
+          capabilities?: Json
+          category?: string
+          chat_gpt_url?: string
+          configuration?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          integration_status?: string
+          is_system_bot?: boolean
+          updated_at?: string
+          usage_metrics?: Json
+        }
+        Relationships: []
+      }
+      gpt_bot_usage_logs: {
+        Row: {
+          bot_id: string
+          created_at: string
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          request_data: Json
+          response_data: Json | null
+          session_id: string | null
+          success: boolean
+          user_id: string | null
+        }
+        Insert: {
+          bot_id: string
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          request_data?: Json
+          response_data?: Json | null
+          session_id?: string | null
+          success?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          bot_id?: string
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          request_data?: Json
+          response_data?: Json | null
+          session_id?: string | null
+          success?: boolean
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gpt_bot_usage_logs_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "gpt_bot_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gpt_bot_workflows: {
+        Row: {
+          bot_sequence: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          trigger_conditions: Json
+          updated_at: string
+          workflow_name: string
+        }
+        Insert: {
+          bot_sequence?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          trigger_conditions?: Json
+          updated_at?: string
+          workflow_name: string
+        }
+        Update: {
+          bot_sequence?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          trigger_conditions?: Json
+          updated_at?: string
+          workflow_name?: string
+        }
+        Relationships: []
+      }
       group_booking_coordination: {
         Row: {
           booking_preferences: Json
