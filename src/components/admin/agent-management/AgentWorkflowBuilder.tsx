@@ -269,21 +269,33 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
 
   const loadTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
-    if (template && template.agent_sequence) {
-      // Clear existing workflow
-      setNodes([]);
-      setEdges([]);
-      
-      // Load template data
-      setTimeout(() => {
-        setNodes(template.agent_sequence.nodes || []);
-        setEdges(template.agent_sequence.edges || []);
-      }, 100);
-      
-      setSelectedTemplate(templateId);
-      setWorkflowName(template.workflow_name);
-      setWorkflowDescription(template.description);
-      toast.success(`Loaded template: ${template.workflow_name}`);
+    if (template) {
+      try {
+        // Get workflow data from either workflow_config or agent_sequence
+        const workflowData = template.workflow_config || template.agent_sequence;
+        
+        if (workflowData && workflowData.nodes) {
+          // Clear existing workflow first
+          setNodes([]);
+          setEdges([]);
+          
+          // Load template data with a small delay to ensure proper rendering
+          setTimeout(() => {
+            setNodes(workflowData.nodes || []);
+            setEdges(workflowData.edges || []);
+          }, 100);
+          
+          setSelectedTemplate(templateId);
+          setWorkflowName(template.workflow_name);
+          setWorkflowDescription(template.description);
+          toast.success(`Template "${template.workflow_name}" loaded. You can now edit and save changes.`);
+        } else {
+          toast.error('Template data is invalid or missing');
+        }
+      } catch (error) {
+        console.error('Error loading template:', error);
+        toast.error('Failed to load template');
+      }
     }
   };
 
@@ -297,24 +309,47 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
       // Convert nodes and edges to JSON-serializable format
       const serializableNodes = nodes.map(node => ({
         ...node,
-        position: { x: node.position.x, y: node.position.y }
+        position: { x: node.position.x, y: node.position.y },
+        selected: undefined,
+        dragging: undefined
       }));
 
-      const { error } = await supabase
-        .from('orchestration_workflows')
-        .insert({
-          workflow_name: workflowName,
-          description: workflowDescription,
-          agent_sequence: JSON.parse(JSON.stringify({ nodes: serializableNodes, edges })),
-          workflow_config: {},
-          trigger_conditions: {}
-        });
+      const workflowData = { nodes: serializableNodes, edges };
 
-      if (error) throw error;
+      if (selectedTemplate) {
+        // Update existing template
+        const { error } = await supabase
+          .from('orchestration_workflows')
+          .update({
+            workflow_name: workflowName,
+            description: workflowDescription,
+            workflow_config: JSON.parse(JSON.stringify(workflowData)),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', selectedTemplate);
+
+        if (error) throw error;
+        toast.success('Template updated successfully');
+      } else {
+        // Create new template
+        const { error } = await supabase
+          .from('orchestration_workflows')
+          .insert({
+            workflow_name: workflowName,
+            description: workflowDescription,
+            workflow_config: JSON.parse(JSON.stringify(workflowData)),
+            agent_sequence: {},
+            trigger_conditions: {}
+          });
+
+        if (error) throw error;
+        toast.success('Workflow saved as new template');
+      }
       
-      toast.success('Workflow saved as template');
       loadTemplates();
       setIsDialogOpen(false);
+      // Clear selection after saving
+      setSelectedTemplate('');
     } catch (error) {
       console.error('Failed to save template:', error);
       toast.error('Failed to save template');
@@ -377,9 +412,14 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Save Workflow</DialogTitle>
+                          <DialogTitle>
+                            {selectedTemplate ? 'Update Template' : 'Save Workflow'}
+                          </DialogTitle>
                           <DialogDescription>
-                            Save your workflow for future use or as a template.
+                            {selectedTemplate 
+                              ? 'Update the existing template with your changes.'
+                              : 'Save your workflow for future use or as a template.'
+                            }
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -404,7 +444,22 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
                         </div>
                         <DialogFooter>
                           <Button onClick={handleSaveWorkflow} variant="outline">Save Workflow</Button>
-                          <Button onClick={saveAsTemplate}>Save as Template</Button>
+                          <Button onClick={saveAsTemplate}>
+                            {selectedTemplate ? 'Update Template' : 'Save as Template'}
+                          </Button>
+                          {selectedTemplate && (
+                            <Button 
+                              variant="outline" 
+                              onClick={() => {
+                                setSelectedTemplate('');
+                                setWorkflowName('');
+                                setWorkflowDescription('');
+                                setIsDialogOpen(false);
+                              }}
+                            >
+                              Save as New
+                            </Button>
+                          )}
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
@@ -528,20 +583,32 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">{template.workflow_name}</CardTitle>
-                      <Badge variant="secondary">
-                        {template.success_rate}% Success
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">
+                          {template.success_rate}% Success
+                        </Badge>
+                        {selectedTemplate === template.id && (
+                          <Badge variant="default" className="bg-primary">
+                            Loaded
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <CardDescription>{template.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>{template.agent_sequence?.nodes?.length || 0} nodes</span>
+                      <span>{template.workflow_config?.nodes?.length || template.agent_sequence?.nodes?.length || 0} nodes</span>
                       <span>{template.execution_count} executions</span>
                     </div>
                     <div className="mt-2 text-xs text-muted-foreground">
                       Created: {new Date(template.created_at).toLocaleDateString()}
                     </div>
+                    {selectedTemplate === template.id && (
+                      <div className="mt-3 text-xs text-primary font-medium">
+                        ✓ Template loaded in builder - Make changes and save to update
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
