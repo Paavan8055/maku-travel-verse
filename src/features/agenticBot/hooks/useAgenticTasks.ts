@@ -164,12 +164,40 @@ export const useAgenticTasks = () => {
   }, [toast]);
 
   const getActiveTaskCount = useCallback(() => {
-    return tasks.filter(task => task.status === 'running' || task.status === 'pending').length;
+    // Only count truly active tasks - running tasks and recent pending tasks
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    
+    return tasks.filter(task => {
+      // Always count running tasks
+      if (task.status === 'running') return true;
+      
+      // For pending tasks, only count recent ones (less than 1 hour old)
+      if (task.status === 'pending') {
+        const taskCreated = new Date(task.created_at);
+        return taskCreated > oneHourAgo;
+      }
+      
+      return false;
+    }).length;
   }, [tasks]);
 
   const getOverallStatus = useCallback((): 'idle' | 'working' | 'success' | 'error' => {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    
+    // Check for recent failed tasks
     if (tasks.some(task => task.status === 'failed')) return 'error';
-    if (tasks.some(task => task.status === 'running' || task.status === 'pending')) return 'working';
+    
+    // Check for active tasks (running or recent pending)
+    const hasActiveTasks = tasks.some(task => {
+      if (task.status === 'running') return true;
+      if (task.status === 'pending') {
+        const taskCreated = new Date(task.created_at);
+        return taskCreated > oneHourAgo;
+      }
+      return false;
+    });
+    
+    if (hasActiveTasks) return 'working';
     if (tasks.some(task => task.status === 'completed')) return 'success';
     return 'idle';
   }, [tasks]);
