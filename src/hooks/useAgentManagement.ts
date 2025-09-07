@@ -13,6 +13,8 @@ export interface Agent {
   capabilities: string[];
   health_status: string;
   last_health_check: string;
+  tier: number;
+  tier_name: string;
   configuration: any;
   permissions: any;
   performance_settings: any;
@@ -68,6 +70,8 @@ export const useAgentManagement = () => {
         health_status: agent.health_status,
         category: agent.category,
         version: agent.version,
+        tier: agent.tier || 4,
+        tier_name: agent.tier_name || 'support',
         capabilities: Array.isArray(agent.capabilities) 
           ? agent.capabilities.filter(cap => typeof cap === 'string') as string[]
           : [],

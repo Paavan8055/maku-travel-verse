@@ -502,6 +502,8 @@ export type Database = {
           performance_settings: Json
           permissions: Json
           status: string
+          tier: number | null
+          tier_name: string | null
           updated_at: string
           updated_by: string | null
           version: string
@@ -521,6 +523,8 @@ export type Database = {
           performance_settings?: Json
           permissions?: Json
           status?: string
+          tier?: number | null
+          tier_name?: string | null
           updated_at?: string
           updated_by?: string | null
           version?: string
@@ -540,6 +544,8 @@ export type Database = {
           performance_settings?: Json
           permissions?: Json
           status?: string
+          tier?: number | null
+          tier_name?: string | null
           updated_at?: string
           updated_by?: string | null
           version?: string
