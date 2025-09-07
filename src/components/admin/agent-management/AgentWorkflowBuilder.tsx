@@ -241,6 +241,161 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
     onExecuteWorkflow(workflow);
   };
 
+  const loadTemplate = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+
+    // Clear current workflow
+    setNodes([]);
+    setEdges([]);
+
+    // Create template-specific workflow based on template type
+    let templateNodes: Node[] = [];
+    let templateEdges: Edge[] = [];
+
+    switch (templateId) {
+      case 'customer-onboarding':
+        templateNodes = [
+          {
+            id: 'start',
+            type: 'trigger',
+            position: { x: 50, y: 100 },
+            data: { trigger: 'New Customer Registration' },
+          },
+          {
+            id: 'validate',
+            type: 'agent',
+            position: { x: 250, y: 100 },
+            data: {
+              agentId: 'data-validator',
+              agentName: 'Data Validator',
+              status: 'idle',
+              config: {},
+              performance: { successRate: 98, avgResponseTime: 150 }
+            },
+          },
+          {
+            id: 'check',
+            type: 'conditional',
+            position: { x: 450, y: 100 },
+            data: { condition: 'Valid Data?' },
+          },
+          {
+            id: 'setup',
+            type: 'agent',
+            position: { x: 650, y: 50 },
+            data: {
+              agentId: 'account-setup',
+              agentName: 'Account Setup',
+              status: 'idle',
+              config: {},
+              performance: { successRate: 95, avgResponseTime: 200 }
+            },
+          }
+        ];
+        templateEdges = [
+          { id: 'e1-2', source: 'start', target: 'validate', markerEnd: { type: MarkerType.ArrowClosed } },
+          { id: 'e2-3', source: 'validate', target: 'check', markerEnd: { type: MarkerType.ArrowClosed } },
+          { id: 'e3-4', source: 'check', target: 'setup', sourceHandle: 'true', markerEnd: { type: MarkerType.ArrowClosed } },
+        ];
+        break;
+      case 'booking-process':
+        templateNodes = [
+          {
+            id: 'start',
+            type: 'trigger',
+            position: { x: 50, y: 100 },
+            data: { trigger: 'Booking Request' },
+          },
+          {
+            id: 'search',
+            type: 'agent',
+            position: { x: 250, y: 100 },
+            data: {
+              agentId: 'search-agent',
+              agentName: 'Search Agent',
+              status: 'idle',
+              config: {},
+              performance: { successRate: 92, avgResponseTime: 300 }
+            },
+          },
+          {
+            id: 'available',
+            type: 'conditional',
+            position: { x: 450, y: 100 },
+            data: { condition: 'Available?' },
+          },
+          {
+            id: 'book',
+            type: 'agent',
+            position: { x: 650, y: 50 },
+            data: {
+              agentId: 'booking-agent',
+              agentName: 'Booking Agent',
+              status: 'idle',
+              config: {},
+              performance: { successRate: 97, avgResponseTime: 500 }
+            },
+          }
+        ];
+        templateEdges = [
+          { id: 'e1-2', source: 'start', target: 'search', markerEnd: { type: MarkerType.ArrowClosed } },
+          { id: 'e2-3', source: 'search', target: 'available', markerEnd: { type: MarkerType.ArrowClosed } },
+          { id: 'e3-4', source: 'available', target: 'book', sourceHandle: 'true', markerEnd: { type: MarkerType.ArrowClosed } },
+        ];
+        break;
+      case 'support-escalation':
+        templateNodes = [
+          {
+            id: 'start',
+            type: 'trigger',
+            position: { x: 50, y: 100 },
+            data: { trigger: 'Support Ticket' },
+          },
+          {
+            id: 'classify',
+            type: 'agent',
+            position: { x: 250, y: 100 },
+            data: {
+              agentId: 'ticket-classifier',
+              agentName: 'Ticket Classifier',
+              status: 'idle',
+              config: {},
+              performance: { successRate: 94, avgResponseTime: 100 }
+            },
+          },
+          {
+            id: 'priority',
+            type: 'conditional',
+            position: { x: 450, y: 100 },
+            data: { condition: 'High Priority?' },
+          },
+          {
+            id: 'escalate',
+            type: 'agent',
+            position: { x: 650, y: 50 },
+            data: {
+              agentId: 'escalation-agent',
+              agentName: 'Escalation Agent',
+              status: 'idle',
+              config: {},
+              performance: { successRate: 99, avgResponseTime: 80 }
+            },
+          }
+        ];
+        templateEdges = [
+          { id: 'e1-2', source: 'start', target: 'classify', markerEnd: { type: MarkerType.ArrowClosed } },
+          { id: 'e2-3', source: 'classify', target: 'priority', markerEnd: { type: MarkerType.ArrowClosed } },
+          { id: 'e3-4', source: 'priority', target: 'escalate', sourceHandle: 'true', markerEnd: { type: MarkerType.ArrowClosed } },
+        ];
+        break;
+    }
+
+    setNodes(templateNodes);
+    setEdges(templateEdges);
+    setSelectedTemplate(templateId);
+  };
+
   return (
     <div className="grid grid-cols-4 gap-6 h-[800px]">
       {/* Workflow Canvas */}
@@ -337,17 +492,21 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors"
+                className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                  selectedTemplate === template.id 
+                    ? 'bg-primary text-primary-foreground border-primary' 
+                    : 'hover:bg-accent'
+                }`}
                 onClick={() => {
-                  setSelectedTemplate(template.id);
-                  console.log('Template selected:', template.name);
+                  loadTemplate(template.id);
+                  console.log('Template loaded:', template.name);
                 }}
               >
                 <div className="font-medium text-xs">{template.name}</div>
-                <div className="text-xs text-muted-foreground mb-1">
+                <div className="text-xs opacity-80 mb-1">
                   {template.description}
                 </div>
-                <div className="flex justify-between text-xs">
+                <div className="flex justify-between text-xs opacity-70">
                   <span>{template.nodes} nodes</span>
                   <span>{template.estimatedTime}</span>
                 </div>
