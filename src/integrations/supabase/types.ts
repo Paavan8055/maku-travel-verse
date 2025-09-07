@@ -6497,6 +6497,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reservation_orchestrations: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          customer_info: Json
+          id: string
+          orchestration_data: Json
+          reservation_type: string
+          results: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          customer_info?: Json
+          id?: string
+          orchestration_data?: Json
+          reservation_type?: string
+          results?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          customer_info?: Json
+          id?: string
+          orchestration_data?: Json
+          reservation_type?: string
+          results?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       revenue_projections: {
         Row: {
           actual_revenue: number | null
