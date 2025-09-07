@@ -175,6 +175,7 @@ serve(async (req) => {
       // Check if it's a manager (tier 1-3) or regular module (tier 4)
       const isManager = ['risk-management-manager', 'revenue-management-manager', 'customer-relationship-manager', 
                         'financial-transaction-manager', 'content-management-manager', 'inventory-management-manager',
+                        'analytics-reporting-manager', 'marketing-campaign-manager',
                         'business-travel-manager', 'loyalty-program-manager', 'reservations-manager'].includes(agent_id);
       
       const modulePath = isManager ? `./managers/${agent_id}.ts` : `./modules/${agent_id}.ts`;

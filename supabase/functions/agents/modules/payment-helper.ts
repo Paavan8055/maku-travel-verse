@@ -1,8 +1,10 @@
 import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
-import { StripeClient } from '../_shared/api-clients.ts';
+import { OpenAIServiceWrapper } from '../_shared/openai-service-wrapper.ts';
+import { RiskCalculationUtils } from '../_shared/risk-calculation-utils.ts';
 
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
   const agent = new BaseAgent(supabaseClient, 'payment-helper');
+  const openai = new OpenAIServiceWrapper(openAiClient);
   
   try {
     const { 
@@ -18,6 +20,7 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
 
     // Get recent payment data if bookingId provided
     let paymentData = null;
+    let riskAssessment = null;
     if (bookingId) {
       const { data } = await supabaseClient
         .from('payments')
@@ -27,6 +30,15 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
         .limit(1)
         .single();
       paymentData = data;
+      
+      // Calculate risk assessment for payment issues
+      if (paymentData && amount) {
+        riskAssessment = RiskCalculationUtils.calculateFinancialRisk({
+          transactionAmount: parseFloat(amount),
+          customerHistory: userPrefs,
+          paymentMethod: paymentMethod || 'unknown'
+        });
+      }
     }
 
     const systemPrompt = `You are a payment assistance specialist for MAKU Travel.
@@ -38,6 +50,7 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     - Booking ID: ${bookingId || 'Not provided'}
     
     PAYMENT DATA: ${paymentData ? JSON.stringify(paymentData) : 'No specific payment data'}
+    RISK ASSESSMENT: ${riskAssessment ? JSON.stringify(riskAssessment) : 'No risk data'}
     USER PREFERENCES: ${JSON.stringify(userPrefs)}
     ASSISTANCE HISTORY: ${JSON.stringify(paymentHistory)}
 
@@ -58,24 +71,14 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     Provide specific troubleshooting steps and expected timelines.
     Include contact information for escalation if needed.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Help resolve payment issue: ${issue}` }
-        ],
-        max_completion_tokens: 2000
-      }),
+    const assistanceResponse = await openai.chat({
+      prompt: systemPrompt,
+      context: `Help resolve payment issue: ${issue}`,
+      model: 'gpt-5-2025-08-07',
+      maxTokens: 2000
     });
 
-    const aiResponse = await response.json();
-    const paymentAssistance = aiResponse.choices[0]?.message?.content;
+    const paymentAssistance = assistanceResponse.content;
 
     await agent.logActivity(userId, 'payment_assistance_provided', {
       issue,

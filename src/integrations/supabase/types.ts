@@ -376,6 +376,48 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_delegations: {
+        Row: {
+          agent_id: string
+          completed_at: string | null
+          created_at: string
+          delegation_result: Json | null
+          delegation_status: string
+          error_message: string | null
+          id: string
+          manager_id: string
+          task_params: Json
+          task_type: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          completed_at?: string | null
+          created_at?: string
+          delegation_result?: Json | null
+          delegation_status?: string
+          error_message?: string | null
+          id?: string
+          manager_id: string
+          task_params?: Json
+          task_type: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          completed_at?: string | null
+          created_at?: string
+          delegation_result?: Json | null
+          delegation_status?: string
+          error_message?: string | null
+          id?: string
+          manager_id?: string
+          task_params?: Json
+          task_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agent_group_memberships: {
         Row: {
           added_at: string
@@ -4717,6 +4759,36 @@ export type Database = {
           total_points?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      manager_hierarchies: {
+        Row: {
+          created_at: string
+          id: string
+          manager_id: string
+          reports_to: string | null
+          supervises: string[]
+          tier: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manager_id: string
+          reports_to?: string | null
+          supervises?: string[]
+          tier: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manager_id?: string
+          reports_to?: string | null
+          supervises?: string[]
+          tier?: number
+          updated_at?: string
         }
         Relationships: []
       }

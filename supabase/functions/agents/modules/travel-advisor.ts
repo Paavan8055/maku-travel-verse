@@ -1,7 +1,11 @@
 import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
+import { OpenAIServiceWrapper } from '../_shared/openai-service-wrapper.ts';
+import { UserAnalyticsUtils } from '../_shared/user-analytics-utils.ts';
 
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
   const agent = new BaseAgent(supabaseClient, 'travel-advisor');
+  const openai = new OpenAIServiceWrapper(openAiClient);
+  const analytics = new UserAnalyticsUtils(supabaseClient);
   
   try {
     const { 
@@ -19,6 +23,8 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     }
 
     const userPrefs = await agent.getUserPreferences(userId);
+    const userProfile = await analytics.getUserBehaviorProfile(userId);
+    const userSegment = await analytics.segmentUser(userId);
     const advisoryHistory = await memory?.getMemory('travel-advisor', userId, 'advisory_history') || [];
 
     // Get user's recent bookings for context
@@ -45,6 +51,8 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     - Travel context: ${JSON.stringify(travelContext)}
     
     USER PROFILE: ${JSON.stringify(userPrefs)}
+    USER BEHAVIOR PROFILE: ${JSON.stringify(userProfile)}
+    USER SEGMENT: ${JSON.stringify(userSegment)}
     RECENT BOOKINGS: ${JSON.stringify(recentBookings)}
     PREVIOUS ADVISORY HISTORY: ${JSON.stringify(advisoryHistory)}
 
@@ -65,24 +73,14 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     Adjust urgency and detail level based on the request category.
     Provide practical, actionable advice with specific next steps.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `${category.toUpperCase()} QUESTION (${urgency} priority): ${question}` }
-        ],
-        max_completion_tokens: 2500
-      }),
+    const adviceResponse = await openai.chat({
+      prompt: systemPrompt,
+      context: `${category.toUpperCase()} QUESTION (${urgency} priority): ${question}`,
+      model: 'gpt-5-2025-08-07',
+      maxTokens: 2500
     });
 
-    const aiResponse = await response.json();
-    const travelAdvice = aiResponse.choices[0]?.message?.content;
+    const travelAdvice = adviceResponse.content;
 
     await agent.logActivity(userId, 'travel_advice_provided', {
       category,

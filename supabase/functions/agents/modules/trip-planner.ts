@@ -1,8 +1,11 @@
 import { BaseAgent, AgentHandler } from '../_shared/memory-utils.ts';
-import { AmadeusClient, HotelBedsClient } from '../_shared/api-clients.ts';
+import { OpenAIServiceWrapper } from '../_shared/openai-service-wrapper.ts';
+import { UserAnalyticsUtils } from '../_shared/user-analytics-utils.ts';
 
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
   const agent = new BaseAgent(supabaseClient, 'trip-planner');
+  const openai = new OpenAIServiceWrapper(openAiClient);
+  const analytics = new UserAnalyticsUtils(supabaseClient);
   
   try {
     const { 
@@ -23,6 +26,7 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     }
 
     const userPrefs = await agent.getUserPreferences(userId);
+    const userProfile = await analytics.getUserBehaviorProfile(userId);
     const tripHistory = await memory?.getMemory('trip-planner', userId, 'trip_history') || [];
 
     const systemPrompt = `You are a comprehensive trip planning agent for MAKU Travel.
@@ -37,6 +41,7 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     - Accommodation preference: ${accommodationType}
     
     USER PREFERENCES: ${JSON.stringify(userPrefs)}
+    USER BEHAVIOR PROFILE: ${JSON.stringify(userProfile)}
     PREVIOUS TRIPS: ${JSON.stringify(tripHistory)}
 
     Create a comprehensive travel plan including:
@@ -56,24 +61,14 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     Provide specific, actionable recommendations with estimated costs in local currency.
     Include booking links and contact information where applicable.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Plan a ${travelStyle} trip to ${destination} for ${travelers} travelers` }
-        ],
-        max_completion_tokens: 3000
-      }),
+    const tripPlanResponse = await openai.chat({
+      prompt: systemPrompt,
+      context: `Plan a ${travelStyle} trip to ${destination} for ${travelers} travelers`,
+      model: 'gpt-5-2025-08-07',
+      maxTokens: 3000
     });
 
-    const aiResponse = await response.json();
-    const tripPlan = aiResponse.choices[0]?.message?.content;
+    const tripPlan = tripPlanResponse.content;
 
     await agent.logActivity(userId, 'trip_planned', {
       destination,
