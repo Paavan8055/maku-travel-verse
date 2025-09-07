@@ -228,6 +228,43 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
 
   return (
     <div className="grid grid-cols-4 gap-6 h-[800px]">
+      {/* Workflow Canvas */}
+      <div className="col-span-3">
+        <Card className="h-full">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Workflow Builder</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleSaveWorkflow}>
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </Button>
+              <Button size="sm" onClick={handleExecuteWorkflow}>
+                <Play className="w-4 h-4 mr-2" />
+                Execute
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 h-full">
+            <div className="h-[700px]">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                nodeTypes={nodeTypes}
+                fitView
+                className="bg-background"
+              >
+                <Background />
+                <Controls />
+                <MiniMap />
+              </ReactFlow>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Agent Palette */}
       <div className="col-span-1 space-y-4">
         <Card>
@@ -285,43 +322,6 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Workflow Canvas */}
-      <div className="col-span-3">
-        <Card className="h-full">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Workflow Builder</CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleSaveWorkflow}>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-              <Button size="sm" onClick={handleExecuteWorkflow}>
-                <Play className="w-4 h-4 mr-2" />
-                Execute
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 h-full">
-            <div className="h-[700px]">
-              <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                nodeTypes={nodeTypes}
-                fitView
-                className="bg-background"
-              >
-                <Background />
-                <Controls />
-                <MiniMap />
-              </ReactFlow>
-            </div>
           </CardContent>
         </Card>
       </div>
