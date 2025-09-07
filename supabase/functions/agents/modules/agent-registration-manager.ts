@@ -16,7 +16,7 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     
     // List of all agent modules to register
     const allAgentModules = [
-      'visa-assistant', 'multi-language-translator', 'weather-travel-advisor',
+      'reservations-manager', 'visa-assistant', 'multi-language-translator', 'weather-travel-advisor',
       'travel-insurance-coordinator', 'loyalty-program-manager', 'advanced-fraud-detection',
       'agent-performance-monitor', 'currency-converter', 'business-travel-manager',
       'calendar-sync-agent', 'price-monitor', 'itinerary-optimizer', 'cruise-specialist',
@@ -147,6 +147,7 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
 
 function getCategoryForAgent(agentId: string): string {
   const categoryMap: Record<string, string> = {
+    'reservations-manager': 'travel_operations',
     'visa-assistant': 'travel_services',
     'multi-language-translator': 'communication',
     'weather-travel-advisor': 'travel_optimization',
@@ -167,6 +168,7 @@ function getCategoryForAgent(agentId: string): string {
 
 function getCapabilitiesForAgent(agentId: string): string[] {
   const capabilityMap: Record<string, string[]> = {
+    'reservations-manager': ['reservation_orchestration', 'multi_service_booking', 'status_management', 'modification_handling', 'payment_coordination', 'document_generation', 'exception_recovery'],
     'visa-assistant': ['document_analysis', 'regulatory_compliance', 'travel_planning'],
     'multi-language-translator': ['natural_language_processing', 'cultural_adaptation', 'real_time_translation'],
     'weather-travel-advisor': ['weather_analysis', 'activity_planning', 'risk_assessment'],
