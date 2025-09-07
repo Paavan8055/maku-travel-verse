@@ -11,6 +11,8 @@ import ReactFlow, {
   Connection,
   NodeTypes,
   MarkerType,
+  Handle,
+  Position,
 } from 'reactflow';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +44,9 @@ const AgentNode = ({ data }: { data: AgentNodeData }) => {
   };
 
   return (
-    <div className="bg-card border-2 border-border rounded-lg p-4 min-w-[200px] shadow-lg">
+    <div className="bg-card border-2 border-border rounded-lg p-4 min-w-[200px] shadow-lg relative">
+      <Handle type="target" position={Position.Left} />
+      
       <div className="flex items-center justify-between mb-2">
         <div className={`w-3 h-3 rounded-full ${getStatusColor(data.status)}`} />
         <Badge variant="secondary" className="text-xs">
@@ -63,12 +67,16 @@ const AgentNode = ({ data }: { data: AgentNodeData }) => {
           <span className="capitalize">{data.status}</span>
         </div>
       </div>
+      
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 };
 
 const ConditionalNode = ({ data }: { data: any }) => (
-  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 min-w-[150px]">
+  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 min-w-[150px] relative">
+    <Handle type="target" position={Position.Left} />
+    
     <div className="text-center">
       <div className="w-8 h-8 bg-yellow-500 rounded-full mx-auto mb-2 flex items-center justify-center">
         <span className="text-white text-xs">?</span>
@@ -76,11 +84,14 @@ const ConditionalNode = ({ data }: { data: any }) => (
       <h3 className="font-semibold text-sm">Condition</h3>
       <p className="text-xs text-gray-600">{data.condition || 'If/Then/Else'}</p>
     </div>
+    
+    <Handle type="source" position={Position.Right} id="true" style={{ top: '30%' }} />
+    <Handle type="source" position={Position.Right} id="false" style={{ top: '70%' }} />
   </div>
 );
 
 const TriggerNode = ({ data }: { data: any }) => (
-  <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 min-w-[150px]">
+  <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 min-w-[150px] relative">
     <div className="text-center">
       <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
         <Play className="w-4 h-4 text-white" />
@@ -88,6 +99,8 @@ const TriggerNode = ({ data }: { data: any }) => (
       <h3 className="font-semibold text-sm">Trigger</h3>
       <p className="text-xs text-gray-600">{data.trigger || 'Workflow Start'}</p>
     </div>
+    
+    <Handle type="source" position={Position.Right} />
   </div>
 );
 
@@ -324,8 +337,11 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="p-3 border rounded-lg cursor-pointer hover:bg-accent"
-                onClick={() => setSelectedTemplate(template.id)}
+                className="p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors"
+                onClick={() => {
+                  setSelectedTemplate(template.id);
+                  console.log('Template selected:', template.name);
+                }}
               >
                 <div className="font-medium text-xs">{template.name}</div>
                 <div className="text-xs text-muted-foreground mb-1">
