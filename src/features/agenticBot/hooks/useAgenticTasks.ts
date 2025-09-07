@@ -163,18 +163,53 @@ export const useAgenticTasks = () => {
     }
   }, [toast]);
 
-  const getActiveTaskCount = useCallback(() => {
-    // Only count truly active tasks - running tasks and recent pending tasks
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const cleanupOldTasks = useCallback(async () => {
+    try {
+      // Call the cleanup function
+      const { data, error } = await supabase.rpc('cleanup_old_tasks');
+      
+      if (error) {
+        console.error('Error cleaning up old tasks:', error);
+      } else if (data > 0) {
+        console.log(`Cleaned up ${data} old tasks`);
+        // Refresh tasks after cleanup
+        const { data: freshTasks } = await supabase
+          .from('agentic_tasks')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (freshTasks) {
+          setTasks(freshTasks as AgenticTask[]);
+        }
+      }
+    } catch (error) {
+      console.error('Error during task cleanup:', error);
+    }
+  }, []);
+
+  // Auto cleanup on mount and periodically
+  useEffect(() => {
+    // Initial cleanup
+    cleanupOldTasks();
     
+    // Setup periodic cleanup every 5 minutes
+    const interval = setInterval(cleanupOldTasks, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [cleanupOldTasks]);
+
+  const getActiveTaskCount = useCallback(() => {
+    const now = new Date();
     return tasks.filter(task => {
-      // Always count running tasks
+      // Only count running tasks
       if (task.status === 'running') return true;
       
-      // For pending tasks, only count recent ones (less than 1 hour old)
+      // For pending tasks, only count if they're recent (within last 10 minutes)
       if (task.status === 'pending') {
-        const taskCreated = new Date(task.created_at);
-        return taskCreated > oneHourAgo;
+        const taskAge = now.getTime() - new Date(task.created_at).getTime();
+        const maxAge = 10 * 60 * 1000; // 10 minutes in milliseconds
+        return taskAge < maxAge;
       }
       
       return false;
