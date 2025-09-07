@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AgentOrganizationChart } from './AgentOrganizationChart';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -279,7 +280,8 @@ export function AgentManagementDashboard() {
 
       <Tabs defaultValue="directory" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="directory">Agent Directory</TabsTrigger>
+          <TabsTrigger value="directory">Organization Chart</TabsTrigger>
+          <TabsTrigger value="list">Agent Directory</TabsTrigger>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
           <TabsTrigger value="tasks">Smart Tasks</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
@@ -295,6 +297,20 @@ export function AgentManagementDashboard() {
               <CardTitle>Agent Directory</CardTitle>
               <CardDescription>
                 Manage and monitor all AI agents in your system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AgentOrganizationChart />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="list" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Agent List View</CardTitle>
+              <CardDescription>
+                Detailed list of all agents with search and filtering
               </CardDescription>
             </CardHeader>
             <CardContent>
