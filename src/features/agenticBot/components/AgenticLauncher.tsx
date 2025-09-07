@@ -32,7 +32,7 @@ const AgenticLauncher: React.FC<AgenticLauncherProps> = ({
       {activeTaskCount > 0 && (
         <Badge 
           variant="secondary" 
-          className="absolute -top-2 -right-2 z-10 animate-scale-in"
+          className="absolute -top-2 -right-2 z-10"
         >
           {activeTaskCount}
         </Badge>
