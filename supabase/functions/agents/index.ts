@@ -7,9 +7,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// 70 Agent System Configuration
+// 4-TIER AGENT HIERARCHY CONFIGURATION
 const AGENT_CONFIGS = {
-  // Customer-facing agents (20)
+  // TIER 1: EXECUTIVE MANAGERS - Strategic oversight and high-level coordination
+  'risk-management-manager': { name: 'Risk Management Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
+  'revenue-management-manager': { name: 'Revenue Management Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
+  'customer-relationship-manager': { name: 'Customer Relationship Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
+  'financial-transaction-manager': { name: 'Financial Transaction Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
+  'content-management-manager': { name: 'Content Management Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
+
+  // TIER 2: OPERATIONAL MANAGERS - Business operations and workflow coordination
+  'reservations-manager': { name: 'Reservations Manager', category: 'operational', model: 'gpt-5-2025-08-07' },
+  'inventory-management-manager': { name: 'Inventory Management Manager', category: 'operational', model: 'gpt-5-2025-08-07' },
+  
+  // TIER 3: SPECIALIST MANAGERS - Domain expertise and specific business functions
+  'business-travel-manager': { name: 'Business Travel Manager', category: 'specialist', model: 'gpt-5-2025-08-07' },
+  'loyalty-program-manager': { name: 'Loyalty Program Manager', category: 'specialist', model: 'gpt-5-2025-08-07' },
+
+  // TIER 4: SUPPORT AGENTS - Specialized tasks and individual user interactions
   'trip-planner': { name: 'Trip Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
   'price-monitor': { name: 'Price Monitor', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
   'booking-assistant': { name: 'Booking Assistant', category: 'customer', model: 'gpt-5-2025-08-07' },
@@ -157,7 +172,13 @@ serve(async (req) => {
     // Try to load specialized agent module
     let result;
     try {
-      const agentModule = await import(`./modules/${agent_id}.ts`);
+      // Check if it's a manager (tier 1-3) or regular module (tier 4)
+      const isManager = ['risk-management-manager', 'revenue-management-manager', 'customer-relationship-manager', 
+                        'financial-transaction-manager', 'content-management-manager', 'inventory-management-manager',
+                        'business-travel-manager', 'loyalty-program-manager', 'reservations-manager'].includes(agent_id);
+      
+      const modulePath = isManager ? `./managers/${agent_id}.ts` : `./modules/${agent_id}.ts`;
+      const agentModule = await import(modulePath);
       const agentResult = await agentModule.handler(userId, intent, params, supabaseClient, openAIApiKey, memory);
       
       // Handle memory updates

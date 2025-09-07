@@ -16,9 +16,16 @@ export const handler: AgentHandler = async (userId, intent, params, supabaseClie
     
     // List of all agent modules to register
     const allAgentModules = [
-      'reservations-manager', 'visa-assistant', 'multi-language-translator', 'weather-travel-advisor',
-      'travel-insurance-coordinator', 'loyalty-program-manager', 'advanced-fraud-detection',
-      'agent-performance-monitor', 'currency-converter', 'business-travel-manager',
+      // Executive Managers (Tier 1)
+      'risk-management-manager', 'revenue-management-manager', 'customer-relationship-manager',
+      'financial-transaction-manager', 'content-management-manager',
+      // Operational Managers (Tier 2)
+      'reservations-manager', 'inventory-management-manager',
+      // Specialist Managers (Tier 3)  
+      'business-travel-manager', 'loyalty-program-manager',
+      // Support Agents (Tier 4)
+      'visa-assistant', 'multi-language-translator', 'weather-travel-advisor',
+      'travel-insurance-coordinator', 'agent-performance-monitor', 'currency-converter',
       'calendar-sync-agent', 'price-monitor', 'itinerary-optimizer', 'cruise-specialist',
       'luxury-travel-curator', 'payment-reconciliation-agent', 'digital-nomad-coordinator',
       'compliance-check', 'user-support', 'real-time-notification-dispatcher',
@@ -153,7 +160,12 @@ function getCategoryForAgent(agentId: string): string {
     'weather-travel-advisor': 'travel_optimization',
     'travel-insurance-coordinator': 'risk_management',
     'loyalty-program-manager': 'customer_retention',
-    'advanced-fraud-detection': 'security',
+    'risk-management-manager': 'executive',
+    'revenue-management-manager': 'executive',
+    'customer-relationship-manager': 'executive',
+    'financial-transaction-manager': 'executive',
+    'content-management-manager': 'executive',
+    'inventory-management-manager': 'operational',
     'agent-performance-monitor': 'system_monitoring',
     'currency-converter': 'financial_services',
     'business-travel-manager': 'corporate_travel',
@@ -174,7 +186,12 @@ function getCapabilitiesForAgent(agentId: string): string[] {
     'weather-travel-advisor': ['weather_analysis', 'activity_planning', 'risk_assessment'],
     'travel-insurance-coordinator': ['risk_assessment', 'policy_analysis', 'claims_assistance'],
     'loyalty-program-manager': ['points_optimization', 'status_tracking', 'reward_analysis'],
-    'advanced-fraud-detection': ['pattern_recognition', 'risk_scoring', 'real_time_analysis'],
+    'risk-management-manager': ['fraud_detection', 'risk_assessment', 'security_monitoring', 'compliance_validation'],
+    'revenue-management-manager': ['dynamic_pricing', 'yield_optimization', 'revenue_forecasting', 'market_analysis'],
+    'customer-relationship-manager': ['customer_segmentation', 'loyalty_management', 'personalization_engine'],
+    'financial-transaction-manager': ['payment_orchestration', 'billing_management', 'financial_reporting'],
+    'content-management-manager': ['content_lifecycle', 'marketing_coordination', 'policy_updates'],
+    'inventory-management-manager': ['dynamic_allocation', 'availability_optimization', 'supply_chain_coordination'],
     'agent-performance-monitor': ['metrics_analysis', 'performance_optimization', 'alerting'],
     'user-support': ['customer_service', 'issue_resolution', 'knowledge_base'],
     'fraud-detection': ['transaction_analysis', 'anomaly_detection', 'security_monitoring']

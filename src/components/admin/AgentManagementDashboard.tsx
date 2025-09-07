@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AgentHierarchyChart from './AgentHierarchyChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -351,6 +352,7 @@ export function AgentManagementDashboard() {
       <Tabs defaultValue="directory" className="space-y-4">
         <TabsList>
           <TabsTrigger value="directory">Agent Directory</TabsTrigger>
+          <TabsTrigger value="hierarchy">Hierarchy</TabsTrigger>
           <TabsTrigger value="organization">Organization</TabsTrigger>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
           <TabsTrigger value="tasks">Smart Tasks</TabsTrigger>
@@ -360,6 +362,20 @@ export function AgentManagementDashboard() {
           <TabsTrigger value="operations">Operations</TabsTrigger>
           <TabsTrigger value="alerts">Alerts</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="hierarchy" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>4-Tier Agent Hierarchy</CardTitle>
+              <CardDescription>
+                Organizational structure showing executive managers, operational managers, specialists, and support agents
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AgentHierarchyChart agents={agents} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="directory" className="space-y-4">
           <Card>

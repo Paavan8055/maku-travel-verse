@@ -32,7 +32,7 @@ const capabilities: ManagerCapability[] = [
 
 const hierarchy: ManagerHierarchy = {
   tier: 1, // Executive level
-  supervises: ['fraud-detection-agent', 'advanced-fraud-detection', 'security-monitor', 'compliance-agent']
+  supervises: ['security-monitor', 'compliance-agent', 'payment-validator', 'transaction-auditor']
 };
 
 export const handler: AgentHandler = async (userId, intent, params, supabaseClient, openAiClient, memory) => {
