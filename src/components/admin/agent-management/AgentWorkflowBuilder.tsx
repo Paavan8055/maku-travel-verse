@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -14,13 +14,21 @@ import ReactFlow, {
   Handle,
   Position,
 } from 'reactflow';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Play, Save, Trash2, Copy, Settings, ChevronDown, ChevronRight } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Play, Save, Trash2, Copy, Settings, ChevronDown, ChevronRight, RefreshCw, Search, Filter, Plus, Workflow } from 'lucide-react';
 import 'reactflow/dist/style.css';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AgentNodeData {
   agentId: string;
@@ -31,6 +39,21 @@ interface AgentNodeData {
     successRate: number;
     avgResponseTime: number;
   };
+}
+
+interface WorkflowTemplate {
+  id: string;
+  workflow_name: string;
+  description: string;
+  trigger_conditions: any;
+  agent_sequence: any;
+  workflow_config: any;
+  is_active: boolean;
+  execution_count: number;
+  success_rate: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const AgentNode = ({ data }: { data: AgentNodeData }) => {
@@ -117,40 +140,28 @@ const initialNodes: Node[] = [
     position: { x: 100, y: 100 },
     data: { trigger: 'User Request' },
   },
-  {
-    id: '2',
-    type: 'agent',
-    position: { x: 300, y: 100 },
-    data: {
-      agentId: 'task-router',
-      agentName: 'Task Router',
-      status: 'idle',
-      config: {},
-      performance: { successRate: 95, avgResponseTime: 120 }
-    },
-  },
-  {
-    id: '3',
-    type: 'conditional',
-    position: { x: 500, y: 100 },
-    data: { condition: 'Task Type?' },
-  },
 ];
 
-const initialEdges: Edge[] = [
-  {
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    markerEnd: { type: MarkerType.ArrowClosed },
-  },
-  {
-    id: 'e2-3',
-    source: '2',
-    target: '3',
-    markerEnd: { type: MarkerType.ArrowClosed },
-  },
+const initialEdges: Edge[] = [];
+
+// Enhanced workflow categories
+const WORKFLOW_CATEGORIES = [
+  'customer_journey',
+  'operations', 
+  'support_quality',
+  'marketing',
+  'analytics',
+  'compliance'
 ];
+
+const CATEGORY_LABELS = {
+  customer_journey: 'Customer Journey',
+  operations: 'Operations',
+  support_quality: 'Support & Quality',
+  marketing: 'Marketing',
+  analytics: 'Analytics',
+  compliance: 'Compliance'
+};
 
 interface AgentWorkflowBuilderProps {
   agents: any[];
@@ -165,37 +176,67 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [templates, setTemplates] = useState<WorkflowTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [templateSearch, setTemplateSearch] = useState('');
   const [agentsExpanded, setAgentsExpanded] = useState(true);
+  const [workflowName, setWorkflowName] = useState('');
+  const [workflowDescription, setWorkflowDescription] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Load templates from database
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('orchestration_workflows')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setTemplates(data || []);
+    } catch (error) {
+      console.error('Failed to load workflow templates:', error);
+      toast.error('Failed to load workflow templates');
+      // Create some mock templates for now
+      setTemplates([
+        {
+          id: '1',
+          workflow_name: 'Customer Onboarding',
+          description: 'Complete customer onboarding process',
+          trigger_conditions: {},
+          agent_sequence: {
+            nodes: [
+              { id: '1', type: 'trigger', position: { x: 100, y: 100 }, data: { trigger: 'New Customer' } },
+              { id: '2', type: 'agent', position: { x: 300, y: 100 }, data: { agentName: 'Welcome Agent', agentId: 'welcome-agent', status: 'idle', performance: { successRate: 95, avgResponseTime: 150 } } }
+            ],
+            edges: [{ id: 'e1-2', source: '1', target: '2' }]
+          },
+          workflow_config: {},
+          is_active: true,
+          execution_count: 0,
+          success_rate: 0,
+          created_by: '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
-
-  const templates = useMemo(() => [
-    {
-      id: 'customer-onboarding',
-      name: 'Customer Onboarding',
-      description: 'Complete new customer setup workflow',
-      nodes: 4,
-      estimatedTime: '5-10 minutes'
-    },
-    {
-      id: 'booking-process',
-      name: 'Booking Process',
-      description: 'End-to-end booking with validation',
-      nodes: 6,
-      estimatedTime: '2-5 minutes'
-    },
-    {
-      id: 'support-escalation',
-      name: 'Support Escalation',
-      description: 'Automated support ticket routing',
-      nodes: 5,
-      estimatedTime: '1-3 minutes'
-    },
-  ], []);
 
   const addAgentNode = (agent: any) => {
     const newNode: Node = {
@@ -226,295 +267,324 @@ export const AgentWorkflowBuilder: React.FC<AgentWorkflowBuilderProps> = ({
     setNodes((nds) => [...nds, newNode]);
   };
 
+  const loadTemplate = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (template && template.agent_sequence) {
+      // Clear existing workflow
+      setNodes([]);
+      setEdges([]);
+      
+      // Load template data
+      setTimeout(() => {
+        setNodes(template.agent_sequence.nodes || []);
+        setEdges(template.agent_sequence.edges || []);
+      }, 100);
+      
+      setSelectedTemplate(templateId);
+      setWorkflowName(template.workflow_name);
+      setWorkflowDescription(template.description);
+      toast.success(`Loaded template: ${template.workflow_name}`);
+    }
+  };
+
+  const saveAsTemplate = async () => {
+    if (!workflowName.trim()) {
+      toast.error('Please enter a workflow name');
+      return;
+    }
+
+    try {
+      // Convert nodes and edges to JSON-serializable format
+      const serializableNodes = nodes.map(node => ({
+        ...node,
+        position: { x: node.position.x, y: node.position.y }
+      }));
+
+      const { error } = await supabase
+        .from('orchestration_workflows')
+        .insert({
+          workflow_name: workflowName,
+          description: workflowDescription,
+          agent_sequence: JSON.parse(JSON.stringify({ nodes: serializableNodes, edges })),
+          workflow_config: {},
+          trigger_conditions: {}
+        });
+
+      if (error) throw error;
+      
+      toast.success('Workflow saved as template');
+      loadTemplates();
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      toast.error('Failed to save template');
+    }
+  };
+
   const handleSaveWorkflow = () => {
+    if (!workflowName.trim()) {
+      setIsDialogOpen(true);
+      return;
+    }
+
     const workflow = {
       nodes,
       edges,
-      name: `Workflow-${Date.now()}`,
+      name: workflowName,
+      description: workflowDescription,
       created: new Date().toISOString(),
     };
     onSaveWorkflow(workflow);
+    toast.success('Workflow saved successfully');
   };
 
   const handleExecuteWorkflow = () => {
     const workflow = { nodes, edges };
     onExecuteWorkflow(workflow);
+    toast.success('Workflow execution started');
   };
 
-  const loadTemplate = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
-    if (!template) return;
-
-    // Clear current workflow
-    setNodes([]);
-    setEdges([]);
-
-    // Create template-specific workflow based on template type
-    let templateNodes: Node[] = [];
-    let templateEdges: Edge[] = [];
-
-    switch (templateId) {
-      case 'customer-onboarding':
-        templateNodes = [
-          {
-            id: 'start',
-            type: 'trigger',
-            position: { x: 50, y: 100 },
-            data: { trigger: 'New Customer Registration' },
-          },
-          {
-            id: 'validate',
-            type: 'agent',
-            position: { x: 250, y: 100 },
-            data: {
-              agentId: 'data-validator',
-              agentName: 'Data Validator',
-              status: 'idle',
-              config: {},
-              performance: { successRate: 98, avgResponseTime: 150 }
-            },
-          },
-          {
-            id: 'check',
-            type: 'conditional',
-            position: { x: 450, y: 100 },
-            data: { condition: 'Valid Data?' },
-          },
-          {
-            id: 'setup',
-            type: 'agent',
-            position: { x: 650, y: 50 },
-            data: {
-              agentId: 'account-setup',
-              agentName: 'Account Setup',
-              status: 'idle',
-              config: {},
-              performance: { successRate: 95, avgResponseTime: 200 }
-            },
-          }
-        ];
-        templateEdges = [
-          { id: 'e1-2', source: 'start', target: 'validate', markerEnd: { type: MarkerType.ArrowClosed } },
-          { id: 'e2-3', source: 'validate', target: 'check', markerEnd: { type: MarkerType.ArrowClosed } },
-          { id: 'e3-4', source: 'check', target: 'setup', sourceHandle: 'true', markerEnd: { type: MarkerType.ArrowClosed } },
-        ];
-        break;
-      case 'booking-process':
-        templateNodes = [
-          {
-            id: 'start',
-            type: 'trigger',
-            position: { x: 50, y: 100 },
-            data: { trigger: 'Booking Request' },
-          },
-          {
-            id: 'search',
-            type: 'agent',
-            position: { x: 250, y: 100 },
-            data: {
-              agentId: 'search-agent',
-              agentName: 'Search Agent',
-              status: 'idle',
-              config: {},
-              performance: { successRate: 92, avgResponseTime: 300 }
-            },
-          },
-          {
-            id: 'available',
-            type: 'conditional',
-            position: { x: 450, y: 100 },
-            data: { condition: 'Available?' },
-          },
-          {
-            id: 'book',
-            type: 'agent',
-            position: { x: 650, y: 50 },
-            data: {
-              agentId: 'booking-agent',
-              agentName: 'Booking Agent',
-              status: 'idle',
-              config: {},
-              performance: { successRate: 97, avgResponseTime: 500 }
-            },
-          }
-        ];
-        templateEdges = [
-          { id: 'e1-2', source: 'start', target: 'search', markerEnd: { type: MarkerType.ArrowClosed } },
-          { id: 'e2-3', source: 'search', target: 'available', markerEnd: { type: MarkerType.ArrowClosed } },
-          { id: 'e3-4', source: 'available', target: 'book', sourceHandle: 'true', markerEnd: { type: MarkerType.ArrowClosed } },
-        ];
-        break;
-      case 'support-escalation':
-        templateNodes = [
-          {
-            id: 'start',
-            type: 'trigger',
-            position: { x: 50, y: 100 },
-            data: { trigger: 'Support Ticket' },
-          },
-          {
-            id: 'classify',
-            type: 'agent',
-            position: { x: 250, y: 100 },
-            data: {
-              agentId: 'ticket-classifier',
-              agentName: 'Ticket Classifier',
-              status: 'idle',
-              config: {},
-              performance: { successRate: 94, avgResponseTime: 100 }
-            },
-          },
-          {
-            id: 'priority',
-            type: 'conditional',
-            position: { x: 450, y: 100 },
-            data: { condition: 'High Priority?' },
-          },
-          {
-            id: 'escalate',
-            type: 'agent',
-            position: { x: 650, y: 50 },
-            data: {
-              agentId: 'escalation-agent',
-              agentName: 'Escalation Agent',
-              status: 'idle',
-              config: {},
-              performance: { successRate: 99, avgResponseTime: 80 }
-            },
-          }
-        ];
-        templateEdges = [
-          { id: 'e1-2', source: 'start', target: 'classify', markerEnd: { type: MarkerType.ArrowClosed } },
-          { id: 'e2-3', source: 'classify', target: 'priority', markerEnd: { type: MarkerType.ArrowClosed } },
-          { id: 'e3-4', source: 'priority', target: 'escalate', sourceHandle: 'true', markerEnd: { type: MarkerType.ArrowClosed } },
-        ];
-        break;
-    }
-
-    setNodes(templateNodes);
-    setEdges(templateEdges);
-    setSelectedTemplate(templateId);
-  };
+  // Filter templates based on search
+  const filteredTemplates = templates.filter(template => {
+    const matchesSearch = template.workflow_name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+                         template.description.toLowerCase().includes(templateSearch.toLowerCase());
+    return matchesSearch;
+  });
 
   return (
-    <div className="grid grid-cols-4 gap-6 h-[800px]">
-      {/* Workflow Canvas */}
-      <div className="col-span-3">
-        <Card className="h-full">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Workflow Builder</CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleSaveWorkflow}>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-              <Button size="sm" onClick={handleExecuteWorkflow}>
-                <Play className="w-4 h-4 mr-2" />
-                Execute
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 h-full">
-            <div className="h-[700px]">
-              <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                nodeTypes={nodeTypes}
-                fitView
-                className="bg-background"
-              >
-                <Background />
-                <Controls />
-                <MiniMap />
-              </ReactFlow>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-6">
+      <Tabs defaultValue="builder" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="builder">Workflow Builder</TabsTrigger>
+          <TabsTrigger value="templates">Template Library</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-      {/* Agent Palette */}
-      <div className="col-span-1 space-y-4">
-        <Card>
-          <Collapsible open={agentsExpanded} onOpenChange={setAgentsExpanded}>
-            <CardHeader className="pb-2">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between p-0 h-auto">
-                  <CardTitle className="text-sm">Available Agents</CardTitle>
-                  {agentsExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent className="space-y-2 pt-0">
-                {agents.map((agent) => (
-                  <Button
-                    key={agent.agent_id}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start h-auto p-3"
-                    onClick={() => addAgentNode(agent)}
-                  >
-                    <div className="text-left">
-                      <div className="font-medium text-xs">{agent.display_name}</div>
-                      <div className="text-xs text-muted-foreground">{agent.category}</div>
-                    </div>
-                  </Button>
-                ))}
-                
-                <Separator className="my-3" />
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={addConditionalNode}
+        <TabsContent value="builder" className="space-y-4">
+          <div className="grid grid-cols-4 gap-6 h-[800px]">
+            {/* Workflow Canvas */}
+            <div className="col-span-3">
+              <Card className="h-full">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Workflow Builder</CardTitle>
+                  <div className="flex gap-2">
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Save className="w-4 h-4 mr-2" />
+                          Save
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Save Workflow</DialogTitle>
+                          <DialogDescription>
+                            Save your workflow for future use or as a template.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="name">Workflow Name</Label>
+                            <Input
+                              id="name"
+                              value={workflowName}
+                              onChange={(e) => setWorkflowName(e.target.value)}
+                              placeholder="Enter workflow name"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                              id="description"
+                              value={workflowDescription}
+                              onChange={(e) => setWorkflowDescription(e.target.value)}
+                              placeholder="Describe your workflow"
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button onClick={handleSaveWorkflow} variant="outline">Save Workflow</Button>
+                          <Button onClick={saveAsTemplate}>Save as Template</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <Button size="sm" onClick={handleExecuteWorkflow}>
+                      <Play className="w-4 h-4 mr-2" />
+                      Execute
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 h-full">
+                  <div className="h-[700px]">
+                    <ReactFlow
+                      nodes={nodes}
+                      edges={edges}
+                      onNodesChange={onNodesChange}
+                      onEdgesChange={onEdgesChange}
+                      onConnect={onConnect}
+                      nodeTypes={nodeTypes}
+                      fitView
+                      className="bg-background"
+                    >
+                      <Background />
+                      <Controls />
+                      <MiniMap />
+                    </ReactFlow>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Agent Palette */}
+            <div className="col-span-1 space-y-4">
+              <Card>
+                <Collapsible open={agentsExpanded} onOpenChange={setAgentsExpanded}>
+                  <CardHeader className="pb-2">
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                        <CardTitle className="text-sm">Available Agents</CardTitle>
+                        {agentsExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-2 pt-0">
+                      {agents.map((agent) => (
+                        <Button
+                          key={agent.agent_id}
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start h-auto p-3"
+                          onClick={() => addAgentNode(agent)}
+                        >
+                          <div className="text-left">
+                            <div className="font-medium text-xs">{agent.display_name}</div>
+                            <div className="text-xs text-muted-foreground">{agent.category}</div>
+                          </div>
+                        </Button>
+                      ))}
+                      
+                      <Separator className="my-3" />
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={addConditionalNode}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Add Condition
+                      </Button>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-4">
+          {/* Template Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search templates..."
+                  value={templateSearch}
+                  onChange={(e) => setTemplateSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Button onClick={() => setNodes([])} variant="outline" size="sm">
+              Clear Canvas
+            </Button>
+            <Button onClick={loadTemplates} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+              <span>Loading templates...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTemplates.map((template) => (
+                <Card 
+                  key={template.id} 
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    selectedTemplate === template.id ? 'ring-2 ring-primary' : ''
+                  }`}
+                  onClick={() => loadTemplate(template.id)}
                 >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Add Condition
-                </Button>
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Templates</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {templates.map((template) => (
-              <div
-                key={template.id}
-                className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                  selectedTemplate === template.id 
-                    ? 'bg-primary text-primary-foreground border-primary' 
-                    : 'hover:bg-accent'
-                }`}
-                onClick={() => {
-                  loadTemplate(template.id);
-                  console.log('Template loaded:', template.name);
-                }}
-              >
-                <div className="font-medium text-xs">{template.name}</div>
-                <div className="text-xs opacity-80 mb-1">
-                  {template.description}
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{template.workflow_name}</CardTitle>
+                      <Badge variant="secondary">
+                        {template.success_rate}% Success
+                      </Badge>
+                    </div>
+                    <CardDescription>{template.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{template.agent_sequence?.nodes?.length || 0} nodes</span>
+                      <span>{template.execution_count} executions</span>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Created: {new Date(template.created_at).toLocaleDateString()}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {filteredTemplates.length === 0 && (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  {templateSearch
+                    ? 'No templates match your search' 
+                    : 'No templates available'
+                  }
                 </div>
-                <div className="flex justify-between text-xs opacity-70">
-                  <span>{template.nodes} nodes</span>
-                  <span>{template.estimatedTime}</span>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Workflow Analytics</CardTitle>
+              <CardDescription>
+                Performance metrics and insights for your agent workflows
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold">Total Workflows</h4>
+                  <p className="text-2xl font-bold">{templates.length}</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold">Active Templates</h4>
+                  <p className="text-2xl font-bold">{templates.filter(t => t.is_active).length}</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold">Total Executions</h4>
+                  <p className="text-2xl font-bold">{templates.reduce((sum, t) => sum + t.execution_count, 0)}</p>
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
