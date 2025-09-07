@@ -217,17 +217,19 @@ export const useAgenticTasks = () => {
   }, [tasks]);
 
   const getOverallStatus = useCallback((): 'idle' | 'working' | 'success' | 'error' => {
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    // Use the same logic as getActiveTaskCount for consistency
+    const now = new Date();
     
     // Check for recent failed tasks
     if (tasks.some(task => task.status === 'failed')) return 'error';
     
-    // Check for active tasks (running or recent pending)
+    // Check for active tasks using the same 10-minute window as getActiveTaskCount
     const hasActiveTasks = tasks.some(task => {
       if (task.status === 'running') return true;
       if (task.status === 'pending') {
-        const taskCreated = new Date(task.created_at);
-        return taskCreated > oneHourAgo;
+        const taskAge = now.getTime() - new Date(task.created_at).getTime();
+        const maxAge = 10 * 60 * 1000; // 10 minutes - same as getActiveTaskCount
+        return taskAge < maxAge;
       }
       return false;
     });
