@@ -608,101 +608,253 @@ export function AgentManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="operations" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Batch Operations</CardTitle>
-              <CardDescription>
-                Monitor and manage bulk operations across multiple agents
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {batchOps.map(op => (
-                  <Card key={op.id}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">{op.operation_name}</h4>
-                          <p className="text-sm text-muted-foreground">{op.operation_type}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Batch Operations */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Batch Operations</span>
+                  <Button variant="outline" size="sm">
+                    <Play className="h-4 w-4 mr-2" />
+                    New Operation
+                  </Button>
+                </CardTitle>
+                <CardDescription>
+                  Monitor and manage bulk operations across multiple agents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {batchOps.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Workflow className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No Operations Running</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Start batch operations to manage multiple agents simultaneously.
+                    </p>
+                    <Button variant="outline">
+                      <Play className="h-4 w-4 mr-2" />
+                      Create Operation
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {batchOps.map(op => (
+                      <Card key={op.id} className="border-l-4 border-l-primary">
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h4 className="font-medium flex items-center gap-2">
+                                <Workflow className="h-4 w-4" />
+                                {op.operation_name}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">{op.operation_type}</p>
+                            </div>
+                            <Badge variant={
+                              op.status === 'completed' ? 'default' : 
+                              op.status === 'failed' ? 'destructive' : 
+                              op.status === 'running' ? 'secondary' : 'outline'
+                            }>
+                              {op.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            {/* Progress Bar */}
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span>Progress</span>
+                                <span>{Math.round((op.completed_targets / op.total_targets) * 100)}%</span>
+                              </div>
+                              <div className="w-full bg-muted rounded-full h-2">
+                                <div 
+                                  className="bg-primary h-2 rounded-full transition-all duration-300" 
+                                  style={{ width: `${(op.completed_targets / op.total_targets) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Stats */}
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                <div className="text-lg font-bold">{op.total_targets}</div>
+                                <div className="text-xs text-muted-foreground">Total</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-green-600">{op.completed_targets}</div>
+                                <div className="text-xs text-muted-foreground">Completed</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-red-600">{op.failed_targets}</div>
+                                <div className="text-xs text-muted-foreground">Failed</div>
+                              </div>
+                            </div>
+                            
+                            {/* Timestamp */}
+                            <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t">
+                              <span>Started: {new Date(op.created_at).toLocaleString()}</span>
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-3 w-3 mr-1" />
+                                Details
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* System Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>System Status</span>
+                  <Button variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </CardTitle>
+                <CardDescription>
+                  Overall system health and performance metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Health Overview */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">98.5%</div>
+                      <div className="text-sm text-muted-foreground">Uptime</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{agents.length}</div>
+                      <div className="text-sm text-muted-foreground">Active Agents</div>
+                    </div>
+                  </div>
+                  
+                  {/* Service Status */}
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Service Status</h4>
+                    <div className="space-y-2">
+                      {[
+                        { name: 'Agent Management', status: 'operational' },
+                        { name: 'Task Queue', status: 'operational' },
+                        { name: 'Analytics Engine', status: 'operational' },
+                        { name: 'Notification Service', status: 'degraded' }
+                      ].map(service => (
+                        <div key={service.name} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                          <span className="text-sm">{service.name}</span>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              service.status === 'operational' ? 'bg-green-500' :
+                              service.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
+                            }`} />
+                            <span className="text-xs capitalize">{service.status}</span>
+                          </div>
                         </div>
-                        <Badge variant={op.status === 'completed' ? 'default' : 
-                                      op.status === 'failed' ? 'destructive' : 'secondary'}>
-                          {op.status}
-                        </Badge>
-                      </div>
-                      <div className="mt-4">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span>Progress</span>
-                          <span>{op.completed_targets}/{op.total_targets}</span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ width: `${(op.completed_targets / op.total_targets) * 100}%` }}
-                          />
-                        </div>
-                        {op.failed_targets > 0 && (
-                          <p className="text-sm text-red-600 mt-2">
-                            {op.failed_targets} failed operations
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>System Alerts</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Agent Alerts
+                </span>
+                <div className="flex gap-2">
+                  <Badge variant="destructive">
+                    {alerts.filter(a => !a.is_resolved && a.severity === 'critical').length} Critical
+                  </Badge>
+                  <Badge variant="secondary">
+                    {alerts.filter(a => !a.is_resolved).length} Active
+                  </Badge>
+                </div>
+              </CardTitle>
               <CardDescription>
-                Monitor critical events and system notifications
+                Monitor system alerts and agent notifications
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {alerts.map(alert => (
-                  <Card key={alert.id} className={`border-l-4 ${
-                    alert.severity === 'high' ? 'border-l-red-500' :
-                    alert.severity === 'medium' ? 'border-l-yellow-500' :
-                    'border-l-blue-500'
-                  }`}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3">
-                          <AlertTriangle className={`h-5 w-5 mt-0.5 ${
-                            alert.severity === 'high' ? 'text-red-500' :
-                            alert.severity === 'medium' ? 'text-yellow-500' :
-                            'text-blue-500'
-                          }`} />
-                          <div>
-                            <h4 className="font-medium">{alert.title}</h4>
-                            <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {new Date(alert.created_at).toLocaleString()}
-                            </p>
+              {alerts.length === 0 ? (
+                <div className="text-center py-12">
+                  <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No Active Alerts</h3>
+                  <p className="text-muted-foreground">
+                    All agents are operating normally. Alerts will appear here when issues are detected.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {alerts.map(alert => (
+                    <Card 
+                      key={alert.id} 
+                      className={`border-l-4 ${
+                        alert.severity === 'critical' ? 'border-l-red-500 bg-red-50/50 dark:bg-red-950/20' :
+                        alert.severity === 'high' ? 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20' :
+                        alert.severity === 'medium' ? 'border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20' :
+                        'border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
+                      } ${alert.is_resolved ? 'opacity-60' : ''}`}
+                    >
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertTriangle className={`h-4 w-4 ${
+                                alert.severity === 'critical' ? 'text-red-500' :
+                                alert.severity === 'high' ? 'text-orange-500' :
+                                alert.severity === 'medium' ? 'text-yellow-500' :
+                                'text-blue-500'
+                              }`} />
+                              <h4 className="font-medium">{alert.title}</h4>
+                              <Badge variant="outline" className="ml-auto">
+                                {alert.agent_id}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-3">{alert.message}</p>
+                            
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <span>Type: {alert.alert_type}</span>
+                              <span>•</span>
+                              <span>{new Date(alert.created_at).toLocaleString()}</span>
+                              {alert.is_resolved && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-green-600">Resolved</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col gap-2 ml-4">
+                            <Badge variant={
+                              alert.severity === 'critical' ? 'destructive' :
+                              alert.severity === 'high' ? 'default' :
+                              alert.severity === 'medium' ? 'secondary' : 'outline'
+                            }>
+                              {alert.severity}
+                            </Badge>
+                            {!alert.is_resolved && (
+                              <Button variant="outline" size="sm">
+                                Resolve
+                              </Button>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={alert.severity === 'high' ? 'destructive' : 
-                                         alert.severity === 'medium' ? 'secondary' : 'default'}>
-                            {alert.severity}
-                          </Badge>
-                          {!alert.is_resolved && (
-                            <Button size="sm" variant="outline">
-                              Resolve
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
