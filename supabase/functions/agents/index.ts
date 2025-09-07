@@ -9,55 +9,58 @@ const corsHeaders = {
 
 // 4-TIER AGENT HIERARCHY CONFIGURATION
 const AGENT_CONFIGS = {
-  // TIER 1: EXECUTIVE MANAGERS - Strategic oversight and high-level coordination
-  'risk-management-manager': { name: 'Risk Management Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
-  'revenue-management-manager': { name: 'Revenue Management Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
-  'customer-relationship-manager': { name: 'Customer Relationship Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
-  'financial-transaction-manager': { name: 'Financial Transaction Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
-  'content-management-manager': { name: 'Content Management Manager', category: 'executive', model: 'gpt-5-2025-08-07' },
+  // TIER 1: EXECUTIVE MANAGERS - Strategic oversight and high-level coordination (Premium Only)
+  'risk-management-manager': { name: 'Risk Management Manager', category: 'executive', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'revenue-management-manager': { name: 'Revenue Management Manager', category: 'executive', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'customer-relationship-manager': { name: 'Customer Relationship Manager', category: 'executive', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'financial-transaction-manager': { name: 'Financial Transaction Manager', category: 'executive', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'content-management-manager': { name: 'Content Management Manager', category: 'executive', model: 'gpt-5-2025-08-07', tier: 'premium' },
 
-  // TIER 2: OPERATIONAL MANAGERS - Business operations and workflow coordination
-  'reservations-manager': { name: 'Reservations Manager', category: 'operational', model: 'gpt-5-2025-08-07' },
-  'inventory-management-manager': { name: 'Inventory Management Manager', category: 'operational', model: 'gpt-5-2025-08-07' },
+  // TIER 2: OPERATIONAL MANAGERS - Business operations and workflow coordination (Premium Only)
+  'reservations-manager': { name: 'Reservations Manager', category: 'operational', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'inventory-management-manager': { name: 'Inventory Management Manager', category: 'operational', model: 'gpt-5-2025-08-07', tier: 'premium' },
   
-  // TIER 3: SPECIALIST MANAGERS - Domain expertise and specific business functions
-  'business-travel-manager': { name: 'Business Travel Manager', category: 'specialist', model: 'gpt-5-2025-08-07' },
-  'loyalty-program-manager': { name: 'Loyalty Program Manager', category: 'specialist', model: 'gpt-5-2025-08-07' },
+  // TIER 3: SPECIALIST MANAGERS - Domain expertise and specific business functions (Premium Only)
+  'business-travel-manager': { name: 'Business Travel Manager', category: 'specialist', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'loyalty-program-manager': { name: 'Loyalty Program Manager', category: 'specialist', model: 'gpt-5-2025-08-07', tier: 'premium' },
 
   // TIER 4: SUPPORT AGENTS - Specialized tasks and individual user interactions
-  'trip-planner': { name: 'Trip Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'price-monitor': { name: 'Price Monitor', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
-  'booking-assistant': { name: 'Booking Assistant', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'itinerary-optimizer': { name: 'Itinerary Optimizer', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'destination-guide': { name: 'Destination Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'travel-advisor': { name: 'Travel Advisor', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'weather-tracker': { name: 'Weather Tracker', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
-  'loyalty-manager': { name: 'Loyalty Manager', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
-  'payment-helper': { name: 'Payment Helper', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'visa-assistant': { name: 'Visa Assistant', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'currency-converter': { name: 'Currency Converter', category: 'customer', model: 'gpt-5-mini-2025-08-07' },
-  'budget-planner': { name: 'Budget Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'activity-finder': { name: 'Activity Finder', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'restaurant-guide': { name: 'Restaurant Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'transport-advisor': { name: 'Transport Advisor', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'hotel-concierge': { name: 'Hotel Concierge', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'emergency-helper': { name: 'Emergency Helper', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'group-coordinator': { name: 'Group Coordinator', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'solo-travel-guide': { name: 'Solo Travel Guide', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'family-planner': { name: 'Family Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'family-travel-planner': { name: 'Family Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'solo-travel-planner': { name: 'Solo Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'spiritual-travel-planner': { name: 'Spiritual Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07' },
-  'pet-travel-specialist': { name: 'Pet Travel Specialist', category: 'customer', model: 'gpt-5-2025-08-07' },
+  // GUEST ACCESSIBLE AGENTS (Basic features with fast models)
+  'weather-tracker': { name: 'Weather Tracker', category: 'customer', model: 'gpt-5-mini-2025-08-07', tier: 'guest' },
+  'currency-converter': { name: 'Currency Converter', category: 'customer', model: 'gpt-5-mini-2025-08-07', tier: 'guest' },
+  'destination-guide': { name: 'Destination Guide', category: 'customer', model: 'gpt-5-mini-2025-08-07', tier: 'guest' },
+  'price-monitor': { name: 'Price Monitor', category: 'customer', model: 'gpt-5-mini-2025-08-07', tier: 'guest' },
   
-  // Administrative agents (35)
-  'password-reset': { name: 'Password Reset Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
-  'booking-modification': { name: 'Booking Modification Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
-  'refund-processing': { name: 'Refund Processing Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
-  'security-alert-handler': { name: 'Security Alert Handler', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
-  'guided-workflow-orchestrator': { name: 'Guided Workflow Orchestrator', category: 'admin', model: 'gpt-5-2025-08-07' },
-  'admin-dashboard-agent': { name: 'Admin Dashboard Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
-  'user-support': { name: 'User Support Agent', category: 'admin', model: 'gpt-5-2025-08-07' },
+  // PREMIUM AGENTS (Full features, require authentication)
+  'trip-planner': { name: 'Trip Planner', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'booking-assistant': { name: 'Booking Assistant', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'itinerary-optimizer': { name: 'Itinerary Optimizer', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'travel-advisor': { name: 'Travel Advisor', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'loyalty-manager': { name: 'Loyalty Manager', category: 'customer', model: 'gpt-5-mini-2025-08-07', tier: 'premium' },
+  'payment-helper': { name: 'Payment Helper', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'visa-assistant': { name: 'Visa Assistant', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'budget-planner': { name: 'Budget Planner', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'activity-finder': { name: 'Activity Finder', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'restaurant-guide': { name: 'Restaurant Guide', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'transport-advisor': { name: 'Transport Advisor', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'hotel-concierge': { name: 'Hotel Concierge', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'emergency-helper': { name: 'Emergency Helper', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'group-coordinator': { name: 'Group Coordinator', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'solo-travel-guide': { name: 'Solo Travel Guide', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'family-planner': { name: 'Family Planner', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'family-travel-planner': { name: 'Family Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'solo-travel-planner': { name: 'Solo Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'spiritual-travel-planner': { name: 'Spiritual Travel Planner', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  'pet-travel-specialist': { name: 'Pet Travel Specialist', category: 'customer', model: 'gpt-5-2025-08-07', tier: 'premium' },
+  
+  // Administrative agents (Admin Only)
+  'password-reset': { name: 'Password Reset Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07', tier: 'admin' },
+  'booking-modification': { name: 'Booking Modification Agent', category: 'admin', model: 'gpt-5-2025-08-07', tier: 'admin' },
+  'refund-processing': { name: 'Refund Processing Agent', category: 'admin', model: 'gpt-5-2025-08-07', tier: 'admin' },
+  'security-alert-handler': { name: 'Security Alert Handler', category: 'admin', model: 'gpt-5-mini-2025-08-07', tier: 'admin' },
+  'guided-workflow-orchestrator': { name: 'Guided Workflow Orchestrator', category: 'admin', model: 'gpt-5-2025-08-07', tier: 'admin' },
+  'admin-dashboard-agent': { name: 'Admin Dashboard Agent', category: 'admin', model: 'gpt-5-2025-08-07', tier: 'admin' },
+  'user-support': { name: 'User Support Agent', category: 'admin', model: 'gpt-5-2025-08-07', tier: 'admin' },
   // CONSOLIDATED: fraud-detection + advanced-fraud-detection → risk-management-manager (TIER 1)
   'compliance-check': { name: 'Compliance Check Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
   'data-validation': { name: 'Data Validation Agent', category: 'admin', model: 'gpt-5-mini-2025-08-07' },
@@ -141,20 +144,38 @@ serve(async (req) => {
       );
     }
 
-    // Get user ID from auth header
+    // Get user ID and determine user tier
     const authHeader = req.headers.get('authorization');
-    const userId = authHeader ? extractUserIdFromAuth(authHeader) : params.userId;
+    const userId = authHeader ? extractUserIdFromAuth(authHeader) : null;
+    const userTier = userId ? 'premium' : 'guest';
     const agentConfig = AGENT_CONFIGS[agent_id];
+    
+    // Generate session ID for guest users
+    const sessionId = !userId ? `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : null;
+    
+    // Check agent access permissions
+    if (agentConfig.tier === 'premium' && userTier === 'guest') {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Premium agent access requires authentication',
+          upgradeRequired: true,
+          agentName: agentConfig.name,
+          availableGuestAgents: Object.keys(AGENT_CONFIGS).filter(id => AGENT_CONFIGS[id].tier === 'guest')
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Import AgentMemoryManager
     const { AgentMemoryManager } = await import('./_shared/memory-utils.ts');
     const memory = new AgentMemoryManager(supabaseClient);
 
-    // Create task record
+    // Create task record with session tracking for guests
     const { data: task, error: taskError } = await supabaseClient
       .from('agentic_tasks')
       .insert({
         user_id: userId,
+        session_id: sessionId,
         agent_id: agent_id,
         intent,
         params,
@@ -254,11 +275,17 @@ serve(async (req) => {
 
 function extractUserIdFromAuth(authHeader: string): string | null {
   try {
-    // Extract user ID from JWT token (simplified)
     const token = authHeader.replace('Bearer ', '');
-    // In a real implementation, you'd properly decode the JWT
-    return token.length > 10 ? 'authenticated-user' : null;
-  } catch {
+    if (!token || token.length < 20) return null;
+    
+    // Decode JWT payload (basic implementation)
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.sub || null;
+  } catch (error) {
+    console.error('Auth token decode error:', error);
     return null;
   }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 // Types
 interface AgenticTask {
@@ -16,19 +17,36 @@ interface AgenticTask {
 }
 
 export const useAgenticTasks = () => {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<AgenticTask[]>([]);
   const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [guestSessionId] = useState(() => 
+    !user ? `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : null
+  );
 
   // Real-time subscription to task updates
   useEffect(() => {
     const fetchTasks = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('agentic_tasks')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
+
+      // Filter tasks based on user authentication status
+      if (user) {
+        query = query.eq('user_id', user.id);
+      } else if (guestSessionId) {
+        query = query.eq('session_id', guestSessionId).is('user_id', null);
+      } else {
+        // No user and no session, return empty
+        setTasks([]);
+        return;
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching tasks:', error);
@@ -71,7 +89,7 @@ export const useAgenticTasks = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user, guestSessionId]);
 
   /**
    * Create a real agentic task using Supabase functions
@@ -91,7 +109,9 @@ export const useAgenticTasks = () => {
           intent,
           params: {
             ...params,
-            userId: (await supabase.auth.getUser()).data.user?.id
+            userId: user?.id || null,
+            sessionId: guestSessionId,
+            userTier: user ? 'premium' : 'guest'
           }
         }
       });

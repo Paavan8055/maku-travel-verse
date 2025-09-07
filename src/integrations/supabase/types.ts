@@ -906,6 +906,7 @@ export type Database = {
           params: Json
           progress: number | null
           result: Json | null
+          session_id: string | null
           status: string
           updated_at: string | null
           user_id: string | null
@@ -919,6 +920,7 @@ export type Database = {
           params?: Json
           progress?: number | null
           result?: Json | null
+          session_id?: string | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
@@ -932,6 +934,7 @@ export type Database = {
           params?: Json
           progress?: number | null
           result?: Json | null
+          session_id?: string | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
