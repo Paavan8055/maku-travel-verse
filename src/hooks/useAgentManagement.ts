@@ -15,6 +15,9 @@ export interface Agent {
   last_health_check: string;
   tier: number;
   tier_name: string;
+  department?: string;
+  reports_to_agent_id?: string;
+  is_department_head?: boolean;
   configuration: any;
   permissions: any;
   performance_settings: any;
@@ -72,6 +75,9 @@ export const useAgentManagement = () => {
         version: agent.version,
         tier: agent.tier || 4,
         tier_name: agent.tier_name || 'support',
+        department: agent.department,
+        reports_to_agent_id: agent.reports_to_agent_id,
+        is_department_head: agent.is_department_head || false,
         capabilities: Array.isArray(agent.capabilities) 
           ? agent.capabilities.filter(cap => typeof cap === 'string') as string[]
           : [],

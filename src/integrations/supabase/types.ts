@@ -494,13 +494,16 @@ export type Database = {
           configuration: Json
           created_at: string
           created_by: string | null
+          department: string | null
           description: string | null
           display_name: string
           health_status: string
           id: string
+          is_department_head: boolean | null
           last_health_check: string | null
           performance_settings: Json
           permissions: Json
+          reports_to_agent_id: string | null
           status: string
           tier: number | null
           tier_name: string | null
@@ -515,13 +518,16 @@ export type Database = {
           configuration?: Json
           created_at?: string
           created_by?: string | null
+          department?: string | null
           description?: string | null
           display_name: string
           health_status?: string
           id?: string
+          is_department_head?: boolean | null
           last_health_check?: string | null
           performance_settings?: Json
           permissions?: Json
+          reports_to_agent_id?: string | null
           status?: string
           tier?: number | null
           tier_name?: string | null
@@ -536,13 +542,16 @@ export type Database = {
           configuration?: Json
           created_at?: string
           created_by?: string | null
+          department?: string | null
           description?: string | null
           display_name?: string
           health_status?: string
           id?: string
+          is_department_head?: boolean | null
           last_health_check?: string | null
           performance_settings?: Json
           permissions?: Json
+          reports_to_agent_id?: string | null
           status?: string
           tier?: number | null
           tier_name?: string | null
