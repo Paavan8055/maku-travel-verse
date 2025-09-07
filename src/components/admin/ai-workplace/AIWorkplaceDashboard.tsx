@@ -19,6 +19,10 @@ import { EmployeeCreationWizard } from './EmployeeCreationWizard';
 import { SOPManagement } from './SOPManagement';
 import { TasksModule } from './TasksModule';
 import { ProjectsModule } from './ProjectsModule';
+import { CalendarModule } from './CalendarModule';
+import { DocumentModule } from './DocumentModule';
+import { MLRecommendationsModule } from './MLRecommendationsModule';
+import { CorporateTravelModule } from './CorporateTravelModule';
 
 interface Employee {
   id: string;
@@ -221,9 +225,13 @@ export function AIWorkplaceDashboard() {
       </div>
 
       <Tabs defaultValue="employees" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="employees">AI Employees</TabsTrigger>
-          <TabsTrigger value="skills">Skills Builder</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="employees">Employees</TabsTrigger>
+          <TabsTrigger value="skills">Skills</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="ml">ML Insights</TabsTrigger>
+          <TabsTrigger value="corporate">Corporate</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -353,6 +361,22 @@ export function AIWorkplaceDashboard() {
 
         <TabsContent value="skills" className="space-y-4">
           <SkillBuilder onSkillCreated={loadSkills} />
+        </TabsContent>
+
+        <TabsContent value="calendar" className="space-y-4">
+          <CalendarModule />
+        </TabsContent>
+
+        <TabsContent value="documents" className="space-y-4">
+          <DocumentModule />
+        </TabsContent>
+
+        <TabsContent value="ml" className="space-y-4">
+          <MLRecommendationsModule />
+        </TabsContent>
+
+        <TabsContent value="corporate" className="space-y-4">
+          <CorporateTravelModule />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
