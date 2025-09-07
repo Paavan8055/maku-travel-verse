@@ -4185,7 +4185,9 @@ export type Database = {
           response_data: Json | null
           session_id: string | null
           success: boolean
+          token_usage: Json | null
           user_id: string | null
+          workflow_id: string | null
         }
         Insert: {
           bot_id: string
@@ -4197,7 +4199,9 @@ export type Database = {
           response_data?: Json | null
           session_id?: string | null
           success?: boolean
+          token_usage?: Json | null
           user_id?: string | null
+          workflow_id?: string | null
         }
         Update: {
           bot_id?: string
@@ -4209,7 +4213,9 @@ export type Database = {
           response_data?: Json | null
           session_id?: string | null
           success?: boolean
+          token_usage?: Json | null
           user_id?: string | null
+          workflow_id?: string | null
         }
         Relationships: [
           {

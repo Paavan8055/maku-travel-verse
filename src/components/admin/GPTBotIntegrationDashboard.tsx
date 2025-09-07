@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Bot, Play, Pause, MessageSquare, Settings, TrendingUp, Users, Zap } from 'lucide-react';
+import { Loader2, Bot, Play, Pause, MessageSquare, Settings, TrendingUp, Users, Zap, Workflow } from 'lucide-react';
 import { useGPTBotIntegration } from '@/hooks/useGPTBotIntegration';
+import { WorkflowBuilder } from '@/features/gptBots/components/WorkflowBuilder';
 
 export const GPTBotIntegrationDashboard: React.FC = () => {
   const {
@@ -144,7 +145,8 @@ export const GPTBotIntegrationDashboard: React.FC = () => {
       <Tabs defaultValue="bots" className="space-y-4">
         <TabsList>
           <TabsTrigger value="bots">Bot Registry</TabsTrigger>
-          <TabsTrigger value="workflows">Workflows</TabsTrigger>
+          <TabsTrigger value="workflows">Workflow Builder</TabsTrigger>
+          <TabsTrigger value="automation">Automation</TabsTrigger>
           <TabsTrigger value="test">Test Interface</TabsTrigger>
         </TabsList>
 
@@ -281,6 +283,10 @@ export const GPTBotIntegrationDashboard: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="workflows" className="space-y-4">
+          <WorkflowBuilder />
+        </TabsContent>
+
+        <TabsContent value="automation" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Automation Workflows</h3>
             <Dialog>

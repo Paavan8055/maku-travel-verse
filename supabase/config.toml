@@ -385,3 +385,9 @@ verify_jwt = true
 
 [functions.scalability-manager]
 verify_jwt = true
+
+[functions.gpt-bot-connector]
+verify_jwt = false
+
+[functions.gpt-workflow-orchestrator]
+verify_jwt = false
