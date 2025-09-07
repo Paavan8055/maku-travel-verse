@@ -234,9 +234,18 @@ export const useAgenticTasks = () => {
       return false;
     });
     
-    if (hasActiveTasks) return 'working';
-    if (tasks.some(task => task.status === 'completed')) return 'success';
-    return 'idle';
+    const status = hasActiveTasks ? 'working' : 
+                   tasks.some(task => task.status === 'completed') ? 'success' : 'idle';
+    
+    // Debug logging
+    console.log('[AgenticTasks] Status check:', {
+      taskCount: tasks.length,
+      hasActiveTasks,
+      status,
+      activeTasks: tasks.filter(task => task.status === 'running' || task.status === 'pending')
+    });
+    
+    return status;
   }, [tasks]);
 
   return {
