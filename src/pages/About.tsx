@@ -7,10 +7,10 @@ import Footer from "@/components/Footer";
 
 const About = () => {
   const stats = [
-    { label: "Countries", value: "180+", icon: Globe },
-    { label: "Happy Travelers", value: "2M+", icon: Users },
-    { label: "Partner Hotels", value: "500K+", icon: Heart },
-    { label: "Years of Excellence", value: "8+", icon: Award }
+    { label: "Countries", value: "5+", icon: Globe },
+    { label: "Beta Testers", value: "500+", icon: Users },
+    { label: "Partner Hotels", value: "50K+", icon: Heart },
+    { label: "Months in Development", value: "9+", icon: Award }
   ];
 
   const values = [
@@ -46,7 +46,7 @@ const About = () => {
           </p>
           <div className="flex items-center justify-center gap-4 text-lg">
             <Plane className="h-6 w-6" />
-            <span>Founded in 2016 • Based in Sydney, Australia</span>
+            <span>Concept begins Q4 2024 • MVP delivered June 2025 • Based in Sydney, Australia</span>
           </div>
         </div>
       </section>
@@ -75,19 +75,20 @@ const About = () => {
           <div className="prose prose-lg mx-auto text-muted-foreground">
             <p className="text-lg leading-relaxed mb-6">
               Maku.travel was born from a simple belief: travel should be as unique as the traveler. 
-              Founded in 2016 by a team of passionate explorers in Sydney, Australia, we set out to 
-              revolutionize how people discover and book their perfect getaways.
+              Our journey began with concept and research in Q4 2024, led by a team of passionate 
+              explorers in Sydney, Australia, who set out to revolutionize how people discover and 
+              book their perfect getaways.
             </p>
             <p className="text-lg leading-relaxed mb-6">
-              What started as a small startup has grown into a global platform serving over 2 million 
-              travelers across 180+ countries. Our innovative four-way marketplace approach recognizes 
-              that a family vacation, solo adventure, pet-friendly trip, or spiritual retreat each 
-              requires a completely different approach.
+              Following intensive development through early 2025, we delivered our MVP in June 2025 
+              and launched our soft beta in September 2025. Our innovative four-way marketplace approach 
+              recognizes that a family vacation, solo adventure, pet-friendly trip, or spiritual retreat 
+              each requires a completely different approach.
             </p>
             <p className="text-lg leading-relaxed">
-              Today, we're proud to partner with over 500,000 hotels worldwide, offering everything 
-              from boutique accommodations to luxury resorts, all carefully curated to match your 
-              travel style and preferences.
+              Today, as we refine our platform through beta testing, we're building partnerships with 
+              hotels, airlines, and activity providers to offer everything from boutique accommodations 
+              to luxury resorts, all carefully curated to match your travel style and preferences.
             </p>
           </div>
         </div>

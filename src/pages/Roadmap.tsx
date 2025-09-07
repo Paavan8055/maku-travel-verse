@@ -77,8 +77,8 @@ const roadmapData: RoadmapItem[] = [{
   features: ['Natural Language', 'Blockchain Verification', 'Real-time Support', 'Smart Contracts']
 }, {
   id: '6',
-  title: 'Hotel Bidding Platform',
-  description: 'Revolutionary bidding system where hotels compete for bookings using smart contracts.',
+  title: 'Travel Bidding Platform',
+  description: 'Revolutionary bidding system where travel providers compete for bookings using smart contracts.',
   quarter: 'November',
   year: '2025',
   progress: 40,

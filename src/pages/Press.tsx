@@ -46,9 +46,9 @@ const Press = () => {
       title: "Maku.travel Founder Announces Vision for Blockchain-Powered Travel Platform",
       date: "2025-05-10",
       category: "Innovation",
-      excerpt: "Startup reveals ambitious roadmap including crypto payments, AI-powered travel fund manager, and revolutionary hotel bidding platform using smart contracts.",
+      excerpt: "Startup reveals ambitious roadmap including crypto payments, AI-powered travel fund manager, and revolutionary travel bidding platform using smart contracts.",
       readTime: "5 min read",
-      fullText: "Sydney, Australia - The founder of Maku.travel today unveiled an ambitious vision for integrating blockchain technology into the travel industry, positioning the platform as a pioneer in Web3 travel solutions. The roadmap includes cryptocurrency payment options, an AI-powered travel fund manager, and a revolutionary hotel bidding system powered by smart contracts..."
+      fullText: "Sydney, Australia - The founder of Maku.travel today unveiled an ambitious vision for integrating blockchain technology into the travel industry, positioning the platform as a pioneer in Web3 travel solutions. The roadmap includes cryptocurrency payment options, an AI-powered travel fund manager, and a revolutionary travel bidding system powered by smart contracts..."
     },
     {
       id: 4,
