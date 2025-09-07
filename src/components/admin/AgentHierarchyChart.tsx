@@ -50,6 +50,21 @@ const AgentHierarchyChart: React.FC<AgentHierarchyProps> = ({ agents }) => {
 
   const tierOrder = ['executive', 'operational', 'specialist', 'customer', 'admin', 'monitoring'];
 
+  // Check if we have any agents at all
+  const totalAgents = Object.values(agentsByTier).flat().length;
+  
+  if (totalAgents === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Users className="h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium text-muted-foreground mb-2">No Agents Found</h3>
+        <p className="text-sm text-muted-foreground max-w-md">
+          No AI agents are currently configured in your system. Add agents to see the organizational hierarchy.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {tierOrder.map((tier) => {
