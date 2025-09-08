@@ -7430,6 +7430,48 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          success: boolean | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       security_configurations: {
         Row: {
           created_at: string | null
@@ -9535,6 +9577,17 @@ export type Database = {
           _ip_address?: unknown
           _success?: boolean
           _user_agent?: string
+        }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          p_action_type: string
+          p_error_message?: string
+          p_metadata?: Json
+          p_resource_id?: string
+          p_resource_type: string
+          p_success?: boolean
         }
         Returns: undefined
       }
