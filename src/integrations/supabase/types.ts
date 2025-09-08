@@ -232,6 +232,93 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_audit_consolidated: {
+        Row: {
+          acknowledgements: Json | null
+          action_description: string
+          action_type: string
+          agent_id: string | null
+          alert_data: Json | null
+          alert_type: string | null
+          correlation_id: string | null
+          created_at: string
+          entry_type: string
+          id: string
+          ip_address: unknown | null
+          is_resolved: boolean | null
+          message: string | null
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          performed_by: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          resource_id: string | null
+          resource_type: string | null
+          session_id: string | null
+          severity: string
+          title: string | null
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          acknowledgements?: Json | null
+          action_description: string
+          action_type: string
+          agent_id?: string | null
+          alert_data?: Json | null
+          alert_type?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          entry_type: string
+          id?: string
+          ip_address?: unknown | null
+          is_resolved?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          session_id?: string | null
+          severity?: string
+          title?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          acknowledgements?: Json | null
+          action_description?: string
+          action_type?: string
+          agent_id?: string | null
+          alert_data?: Json | null
+          alert_type?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          entry_type?: string
+          id?: string
+          ip_address?: unknown | null
+          is_resolved?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          session_id?: string | null
+          severity?: string
+          title?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       agent_audit_logs: {
         Row: {
           action_description: string
@@ -666,6 +753,69 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_runtime_consolidated: {
+        Row: {
+          active_contexts: number | null
+          agent_id: string
+          capabilities: Json
+          category: string
+          configuration: Json
+          created_at: string
+          current_metrics: Json
+          display_name: string
+          health_status: string
+          id: string
+          last_health_check: string | null
+          memory_usage_mb: number | null
+          performance_settings: Json
+          permissions: Json
+          status: string
+          tier: number | null
+          tier_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          active_contexts?: number | null
+          agent_id: string
+          capabilities?: Json
+          category?: string
+          configuration?: Json
+          created_at?: string
+          current_metrics?: Json
+          display_name: string
+          health_status?: string
+          id?: string
+          last_health_check?: string | null
+          memory_usage_mb?: number | null
+          performance_settings?: Json
+          permissions?: Json
+          status?: string
+          tier?: number | null
+          tier_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active_contexts?: number | null
+          agent_id?: string
+          capabilities?: Json
+          category?: string
+          configuration?: Json
+          created_at?: string
+          current_metrics?: Json
+          display_name?: string
+          health_status?: string
+          id?: string
+          last_health_check?: string | null
+          memory_usage_mb?: number | null
+          performance_settings?: Json
+          permissions?: Json
+          status?: string
+          tier?: number | null
+          tier_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       agent_scheduled_tasks: {
         Row: {
           agent_id: string
@@ -842,6 +992,93 @@ export type Database = {
           task_definition?: Json
           template_name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      agent_tasks_consolidated: {
+        Row: {
+          actual_duration_minutes: number | null
+          agent_id: string
+          assigned_at: string | null
+          completed_at: string | null
+          correlation_id: string | null
+          created_at: string
+          delegation_result: Json | null
+          delegation_status: string | null
+          error_message: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          intent: string | null
+          manager_id: string | null
+          max_retries: number | null
+          params: Json
+          priority: number | null
+          progress: number | null
+          result: Json | null
+          retry_count: number | null
+          session_id: string | null
+          started_at: string | null
+          status: string
+          task_data: Json
+          task_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          actual_duration_minutes?: number | null
+          agent_id: string
+          assigned_at?: string | null
+          completed_at?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          delegation_result?: Json | null
+          delegation_status?: string | null
+          error_message?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          intent?: string | null
+          manager_id?: string | null
+          max_retries?: number | null
+          params?: Json
+          priority?: number | null
+          progress?: number | null
+          result?: Json | null
+          retry_count?: number | null
+          session_id?: string | null
+          started_at?: string | null
+          status?: string
+          task_data?: Json
+          task_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          actual_duration_minutes?: number | null
+          agent_id?: string
+          assigned_at?: string | null
+          completed_at?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          delegation_result?: Json | null
+          delegation_status?: string | null
+          error_message?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          intent?: string | null
+          manager_id?: string | null
+          max_retries?: number | null
+          params?: Json
+          priority?: number | null
+          progress?: number | null
+          result?: Json | null
+          retry_count?: number | null
+          session_id?: string | null
+          started_at?: string | null
+          status?: string
+          task_data?: Json
+          task_type?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
