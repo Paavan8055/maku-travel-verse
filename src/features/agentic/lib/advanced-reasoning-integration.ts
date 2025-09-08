@@ -56,8 +56,8 @@ export class AdvancedReasoningIntegration {
     this.reasoningEngine = new ReasoningEngine(supabase);
     this.promptChaining = new PromptChainingSystem(supabase);
     this.travelModules = new TravelReasoningModules(supabase);
-    this.memorySystem = new EnhancedMemorySystem(supabase);
-    this.learningSystem = new LearningSystem(supabase);
+    this.memorySystem = new EnhancedMemorySystem('advanced_reasoning', 'system');
+    this.learningSystem = new LearningSystem();
   }
 
   async executeReasoning(request: ReasoningRequest): Promise<ReasoningResponse> {
@@ -158,16 +158,17 @@ export class AdvancedReasoningIntegration {
   private async enhanceContextWithMemory(request: ReasoningRequest): Promise<ReasoningRequest> {
     try {
       // Retrieve relevant memories
-      const memories = await this.memorySystem.retrieveMemories(
-        'advanced_reasoning',
-        request.user_id
-      );
+      const memories = await this.memorySystem.retrieveMemories({
+        query: request.problem,
+        limit: 10,
+        threshold: 0.6
+      });
 
       // Extract insights from memories
       const memoryInsights = memories.map(m => ({
-        type: m.memoryType,
+        type: m.type,
         content: m.content,
-        confidence: m.confidenceScore,
+        confidence: m.relevanceScore || 0,
         relevance: m.accessCount
       }));
 
@@ -176,8 +177,8 @@ export class AdvancedReasoningIntegration {
         context: {
           ...request.context,
           memory_insights: memoryInsights,
-          similar_problems: memories.filter(m => m.memory_type === 'problem_solution'),
-          past_successes: memories.filter(m => m.confidence_score > 0.8)
+          similar_problems: memories.filter(m => m.type === 'episodic'),
+          past_successes: memories.filter(m => (m.relevanceScore || 0) > 0.8)
         }
       };
     } catch (error) {
@@ -392,9 +393,6 @@ export class AdvancedReasoningIntegration {
   ): Promise<void> {
     try {
       await this.memorySystem.storeMemory(
-        'advanced_reasoning',
-        request.user_id,
-        'reasoning_execution',
         {
           request,
           result,
@@ -404,12 +402,16 @@ export class AdvancedReasoningIntegration {
             success: confidence > 0.7
           }
         },
+        'episodic',
+        [
+          'reasoning_execution',
+          request.type,
+          this.inferProblemType(request.problem),
+          this.assessProblemComplexity(request.problem)
+        ],
         {
-          reasoning_type: request.type,
-          problem_type: this.inferProblemType(request.problem),
-          complexity: this.assessProblemComplexity(request.problem)
-        },
-        confidence
+          confidence_score: confidence
+        }
       );
     } catch (error) {
       console.error('Failed to store reasoning in memory:', error);
