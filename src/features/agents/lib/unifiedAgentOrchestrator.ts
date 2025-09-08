@@ -285,10 +285,15 @@ export class UnifiedAgentOrchestrator {
     const agent = this.agents.get(agentId);
     if (!agent) return;
 
-    // Update in-memory metrics
+    // Update in-memory metrics with learning component
     const metrics = agent.performance_metrics;
-    metrics.success_rate = (metrics.success_rate * 0.9) + (success ? 0.1 : 0);
-    metrics.avg_response_time = (metrics.avg_response_time * 0.9) + (responseTime * 0.1);
+    const learningRate = this.calculateLearningRate(agent);
+    
+    metrics.success_rate = (metrics.success_rate * (1 - learningRate)) + (success ? learningRate : 0);
+    metrics.avg_response_time = (metrics.avg_response_time * (1 - learningRate)) + (responseTime * learningRate);
+    
+    // Update cost efficiency based on performance
+    metrics.cost_per_task = this.calculateOptimalCost(agent, success, responseTime);
 
     // Persist to database
     if (agent.type === 'internal_agent') {
@@ -303,6 +308,39 @@ export class UnifiedAgentOrchestrator {
           updated_at: new Date().toISOString()
         });
     }
+
+    // Trigger auto-scaling evaluation if performance changes significantly
+    if (this.shouldTriggerScaling(agent, success, responseTime)) {
+      const { autoScalingManager } = await import('./autoScalingManager');
+      autoScalingManager.updateAgents(this.agents);
+    }
+  }
+
+  private calculateLearningRate(agent: UnifiedAgent): number {
+    // Adaptive learning rate - simplified without tasks_completed property
+    return 0.05; // Fixed learning rate for now
+  }
+
+  private calculateOptimalCost(agent: UnifiedAgent, success: boolean, responseTime: number): number {
+    const baseCost = agent.performance_metrics.cost_per_task;
+    
+    // Adjust cost based on performance
+    let costMultiplier = 1.0;
+    
+    if (success && responseTime < 3000) {
+      costMultiplier = 0.9; // Reward good performance
+    } else if (!success || responseTime > 10000) {
+      costMultiplier = 1.1; // Penalize poor performance
+    }
+    
+    return baseCost * costMultiplier;
+  }
+
+  private shouldTriggerScaling(agent: UnifiedAgent, success: boolean, responseTime: number): boolean {
+    // Trigger scaling if performance degrades significantly
+    return (!success && responseTime > 15000) || 
+           (agent.performance_metrics.success_rate < 0.7) ||
+           (agent.performance_metrics.avg_response_time > 20000);
   }
 
   getAgentStatus(agentId: string): UnifiedAgent | undefined {
