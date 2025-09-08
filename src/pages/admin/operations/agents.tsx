@@ -13,7 +13,7 @@ export default function AgentsPage() {
   return (
     <Tabs defaultValue="week3-progress" className="space-y-4">
       <TabsList className="grid w-full grid-cols-8">
-        <TabsTrigger value="week3-progress">Week 3 Progress</TabsTrigger>
+        <TabsTrigger value="week3-progress">Week 4 Progress</TabsTrigger>
         <TabsTrigger value="consolidated">Consolidated</TabsTrigger>
         <TabsTrigger value="security">Security</TabsTrigger>
         <TabsTrigger value="performance">Performance</TabsTrigger>
