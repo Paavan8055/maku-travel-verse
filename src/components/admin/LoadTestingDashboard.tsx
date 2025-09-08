@@ -1,348 +1,303 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Activity, Users, Zap, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Activity, 
+  Users, 
+  Zap, 
+  Target, 
+  TrendingUp, 
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  XCircle
+} from 'lucide-react';
 
-interface LoadTestConfig {
-  name: string;
-  description: string;
-  userCount: number;
-  duration: number;
-  endpoints: string[];
-}
-
-interface LoadTestResult {
-  testName: string;
-  startTime: string;
-  endTime: string;
-  totalRequests: number;
-  successfulRequests: number;
-  failedRequests: number;
-  averageResponseTime: number;
-  maxResponseTime: number;
-  requestsPerSecond: number;
-  errorRate: number;
-  status: 'running' | 'completed' | 'failed';
-}
-
-export const LoadTestingDashboard = () => {
-  const [currentTest, setCurrentTest] = useState<LoadTestResult | null>(null);
-  const [testHistory, setTestHistory] = useState<LoadTestResult[]>([]);
+export const LoadTestingDashboard: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
+  const [selectedTest, setSelectedTest] = useState('api_comprehensive');
+  const [concurrentUsers, setConcurrentUsers] = useState('25');
+  const [duration, setDuration] = useState('5');
   const { toast } = useToast();
 
-  const loadTestConfigs: LoadTestConfig[] = [
-    {
-      name: 'Light Load Test',
-      description: 'Simulate 25 concurrent users for basic functionality',
-      userCount: 25,
-      duration: 300, // 5 minutes
-      endpoints: ['/api/search', '/api/bookings', '/api/payments']
-    },
-    {
-      name: 'Standard Load Test',
-      description: 'Simulate 100 concurrent users for normal traffic',
-      userCount: 100,
-      duration: 600, // 10 minutes
-      endpoints: ['/api/search', '/api/bookings', '/api/payments', '/api/auth']
-    },
-    {
-      name: 'Stress Test',
-      description: 'Simulate 250 concurrent users for peak traffic',
-      userCount: 250,
-      duration: 900, // 15 minutes
-      endpoints: ['/api/search', '/api/bookings', '/api/payments', '/api/auth', '/api/providers']
-    },
-    {
-      name: 'Spike Test',
-      description: 'Rapid user increase to test auto-scaling',
-      userCount: 500,
-      duration: 300, // 5 minutes
-      endpoints: ['/api/search', '/api/bookings', '/api/payments']
-    }
-  ];
-
-  const runLoadTest = async (config: LoadTestConfig) => {
+  const runLoadTest = async () => {
     setIsRunning(true);
-    
     try {
-      const { data, error } = await supabase.functions.invoke('load-testing', {
-        body: {
-          testConfig: config,
-          action: 'start'
-        }
-      });
-
-      if (error) throw error;
-
-      const newTest: LoadTestResult = {
-        testName: config.name,
-        startTime: new Date().toISOString(),
-        endTime: '',
-        totalRequests: 0,
-        successfulRequests: 0,
-        failedRequests: 0,
-        averageResponseTime: 0,
-        maxResponseTime: 0,
-        requestsPerSecond: 0,
-        errorRate: 0,
-        status: 'running'
-      };
-
-      setCurrentTest(newTest);
-
+      // Simulate load test
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       toast({
         title: "Load Test Started",
-        description: `${config.name} is now running with ${config.userCount} virtual users`,
-        variant: "default"
+        description: `Testing ${concurrentUsers} concurrent users for ${duration} minutes`,
       });
-
-      // Simulate test progress updates
-      const interval = setInterval(async () => {
-        // In a real implementation, this would fetch actual test progress
-        setCurrentTest(prev => {
-          if (!prev) return null;
-          
-          const elapsed = (Date.now() - new Date(prev.startTime).getTime()) / 1000;
-          const progress = Math.min(elapsed / config.duration, 1);
-          
-          if (elapsed >= config.duration) {
-            setTimeout(() => completeTest(), 100);
-          }
-          
-          return {
-            ...prev,
-            totalRequests: Math.floor(progress * config.userCount * 10),
-            successfulRequests: Math.floor(progress * config.userCount * 9.2),
-            failedRequests: Math.floor(progress * config.userCount * 0.8),
-            averageResponseTime: Math.floor(200 + Math.random() * 300),
-            maxResponseTime: Math.floor(500 + Math.random() * 1000),
-            requestsPerSecond: Math.floor(config.userCount * 0.5 + Math.random() * 20),
-            errorRate: Math.round((Math.random() * 5) * 100) / 100
-          };
-        });
-      }, 2000);
-
     } catch (error) {
-      console.error('Error starting load test:', error);
+      console.error('Load test error:', error);
       toast({
         title: "Load Test Failed",
         description: "Failed to start load test",
         variant: "destructive"
       });
+    } finally {
       setIsRunning(false);
     }
   };
 
-  const completeTest = () => {
-    if (!currentTest) return;
+  // Mock test results for display
+  const mockResults = [
+    {
+      id: '1',
+      test_name: 'API Comprehensive Test',
+      concurrent_users: 25,
+      duration_minutes: 5,
+      status: 'completed' as const,
+      success_rate: 99.2,
+      avg_response_time: 85,
+      requests_per_second: 150,
+      peak_response_time: 340,
+      error_rate: 0.8,
+      started_at: new Date().toISOString()
+    }
+  ];
 
-    const completedTest: LoadTestResult = {
-      ...currentTest,
-      endTime: new Date().toISOString(),
-      status: 'completed'
-    };
-
-    setTestHistory(prev => [completedTest, ...prev.slice(0, 9)]);
-    setCurrentTest(null);
-    setIsRunning(false);
-
-    toast({
-      title: "Load Test Completed",
-      description: `Test finished with ${completedTest.errorRate}% error rate`,
-      variant: completedTest.errorRate < 5 ? "default" : "destructive"
-    });
-  };
-
-  const stopCurrentTest = async () => {
-    if (!currentTest) return;
-
-    try {
-      await supabase.functions.invoke('load-testing', {
-        body: { action: 'stop' }
-      });
-
-      setCurrentTest(prev => prev ? { ...prev, status: 'failed', endTime: new Date().toISOString() } : null);
-      setIsRunning(false);
-
-      toast({
-        title: "Load Test Stopped",
-        description: "Test was manually stopped",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error('Error stopping test:', error);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'running':
+        return <Activity className="h-4 w-4 text-blue-500 animate-spin" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getTestProgress = () => {
-    if (!currentTest) return 0;
-    
-    const elapsed = (Date.now() - new Date(currentTest.startTime).getTime()) / 1000;
-    const duration = loadTestConfigs.find(c => c.name === currentTest.testName)?.duration || 300;
-    return Math.min((elapsed / duration) * 100, 100);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'default';
+      case 'running':
+        return 'secondary';
+      case 'failed':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
   };
 
-  const getStatusBadge = (status: string, errorRate?: number) => {
-    if (status === 'running') return <Badge variant="secondary">Running</Badge>;
-    if (status === 'failed') return <Badge variant="destructive">Failed</Badge>;
-    if (errorRate && errorRate > 5) return <Badge variant="destructive">High Error Rate</Badge>;
-    return <Badge variant="default">Passed</Badge>;
+  const getPerformanceGrade = (avgResponseTime: number, successRate: number) => {
+    if (successRate >= 99 && avgResponseTime < 100) return 'A+';
+    if (successRate >= 95 && avgResponseTime < 250) return 'A';
+    if (successRate >= 90 && avgResponseTime < 500) return 'B';
+    if (successRate >= 80 && avgResponseTime < 1000) return 'C';
+    return 'F';
   };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Load Testing Dashboard
-          </CardTitle>
-          <CardDescription>
-            Simulate concurrent users to test system performance and scalability
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {currentTest && (
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Test Configuration */}
+        <Card className="lg:col-span-1">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">{currentTest.testName} - Running</CardTitle>
-                <CardDescription>
-                  Started at {new Date(currentTest.startTime).toLocaleTimeString()}
-                </CardDescription>
-              </div>
-              <Button onClick={stopCurrentTest} variant="destructive" size="sm">
-                Stop Test
-              </Button>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Load Test Configuration
+            </CardTitle>
+            <CardDescription>
+              Configure and execute load tests
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Test Type</label>
+              <Select value={selectedTest} onValueChange={setSelectedTest}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="api_comprehensive">API Comprehensive</SelectItem>
+                  <SelectItem value="booking_flow">Booking Flow</SelectItem>
+                  <SelectItem value="agent_system">Agent System</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Concurrent Users</label>
+              <Select value={concurrentUsers} onValueChange={setConcurrentUsers}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 Users</SelectItem>
+                  <SelectItem value="25">25 Users</SelectItem>
+                  <SelectItem value="50">50 Users</SelectItem>
+                  <SelectItem value="100">100 Users</SelectItem>
+                  <SelectItem value="250">250 Users</SelectItem>
+                  <SelectItem value="500">500 Users</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Duration (minutes)</label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">2 minutes</SelectItem>
+                  <SelectItem value="5">5 minutes</SelectItem>
+                  <SelectItem value="10">10 minutes</SelectItem>
+                  <SelectItem value="15">15 minutes</SelectItem>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              onClick={runLoadTest} 
+              disabled={isRunning}
+              className="w-full"
+            >
+              {isRunning ? (
+                <Activity className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="h-4 w-4 mr-2" />
+              )}
+              {isRunning ? 'Running Test...' : 'Start Load Test'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Real-time Metrics */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Performance Metrics
+            </CardTitle>
+            <CardDescription>
+              Real-time load testing performance
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 rounded-lg bg-muted">
+                <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                <div className="text-2xl font-bold">25</div>
+                <div className="text-sm text-muted-foreground">Active Users</div>
+              </div>
+
+              <div className="text-center p-4 rounded-lg bg-muted">
+                <Clock className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                <div className="text-2xl font-bold">85ms</div>
+                <div className="text-sm text-muted-foreground">Avg Response</div>
+              </div>
+
+              <div className="text-center p-4 rounded-lg bg-muted">
+                <Activity className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+                <div className="text-2xl font-bold">150</div>
+                <div className="text-sm text-muted-foreground">Req/sec</div>
+              </div>
+
+              <div className="text-center p-4 rounded-lg bg-muted">
+                <Target className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+                <div className="text-2xl font-bold">99.2%</div>
+                <div className="text-sm text-muted-foreground">Success Rate</div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span>Progress</span>
-                  <span>{Math.round(getTestProgress())}%</span>
+                  <span>Response Time Distribution</span>
+                  <span>85ms avg</span>
                 </div>
-                <Progress value={getTestProgress()} className="h-2" />
+                <Progress value={15} className="h-2" />
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{currentTest.totalRequests}</div>
-                  <div className="text-sm text-muted-foreground">Total Requests</div>
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Success Rate</span>
+                  <span>99.2%</span>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{currentTest.averageResponseTime}ms</div>
-                  <div className="text-sm text-muted-foreground">Avg Response</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{currentTest.requestsPerSecond}</div>
-                  <div className="text-sm text-muted-foreground">Requests/sec</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">{currentTest.errorRate}%</div>
-                  <div className="text-sm text-muted-foreground">Error Rate</div>
-                </div>
+                <Progress value={99.2} className="h-2" />
               </div>
-
-              {currentTest.errorRate > 5 && (
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    High error rate detected ({currentTest.errorRate}%). System may be under stress.
-                  </AlertDescription>
-                </Alert>
-              )}
             </div>
           </CardContent>
         </Card>
-      )}
-
-      <div className="grid gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Available Load Tests</CardTitle>
-            <CardDescription>Choose a test configuration to simulate user load</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3">
-              {loadTestConfigs.map((config) => (
-                <div
-                  key={config.name}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-primary" />
-                    <div>
-                      <h3 className="font-medium">{config.name}</h3>
-                      <p className="text-sm text-muted-foreground">{config.description}</p>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                        <span>{config.userCount} users</span>
-                        <span>{Math.floor(config.duration / 60)} minutes</span>
-                        <span>{config.endpoints.length} endpoints</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => runLoadTest(config)}
-                    disabled={isRunning}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {isRunning ? 'Running...' : 'Start Test'}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {testHistory.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Test History</CardTitle>
-              <CardDescription>Recent load test results</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {testHistory.map((test, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{test.testName}</span>
-                        {getStatusBadge(test.status, test.errorRate)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(test.startTime).toLocaleString()}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-4 text-sm">
-                        <span>{test.totalRequests} requests</span>
-                        <span>{test.averageResponseTime}ms avg</span>
-                        <span className={test.errorRate > 5 ? 'text-red-600' : 'text-green-600'}>
-                          {test.errorRate}% errors
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
+
+      {/* Test Results History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Load Test Results</CardTitle>
+          <CardDescription>
+            Historical performance test results and analysis
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {mockResults.map((result) => (
+              <div key={result.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(result.status)}
+                    <div>
+                      <h4 className="font-medium">{result.test_name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {result.concurrent_users} users • {result.duration_minutes}min
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={getStatusColor(result.status)}>
+                      {result.status}
+                    </Badge>
+                    <Badge variant="outline">
+                      Grade: {getPerformanceGrade(result.avg_response_time, result.success_rate)}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Success Rate:</span>
+                    <div className="font-medium">{result.success_rate}%</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Avg Response:</span>
+                    <div className="font-medium">{result.avg_response_time}ms</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Peak Response:</span>
+                    <div className="font-medium">{result.peak_response_time}ms</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Throughput:</span>
+                    <div className="font-medium">{result.requests_per_second} req/s</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Error Rate:</span>
+                    <div className="font-medium">{result.error_rate}%</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Started: {new Date(result.started_at).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

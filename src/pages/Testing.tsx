@@ -11,6 +11,8 @@ import { ProductionValidationSuite } from '@/components/testing/ProductionValida
 import { ComprehensiveTestSuite } from '@/components/testing/ComprehensiveTestSuite';
 import { RealTimeMetricsCard } from '@/components/admin/RealTimeMetricsCard';
 import { SecurityAuditPanel } from '@/components/admin/SecurityAuditPanel';
+import { LoadTestingDashboard } from '@/components/admin/LoadTestingDashboard';
+import { PerformanceValidationDashboard as AdminPerfValidation } from '@/components/admin/PerformanceValidationDashboard';
 
 export default function Testing() {
   const [activeTab, setActiveTab] = useState('e2e');
@@ -26,7 +28,7 @@ export default function Testing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="phase4" className="flex items-center gap-2">
               <Gauge className="h-4 w-4" />
               Phase 4
@@ -54,6 +56,10 @@ export default function Testing() {
             <TabsTrigger value="production" className="flex items-center gap-2">
               <TestTube className="h-4 w-4" />
               Production
+            </TabsTrigger>
+            <TabsTrigger value="load" className="flex items-center gap-2">
+              <Gauge className="h-4 w-4" />
+              Load Testing
             </TabsTrigger>
           </TabsList>
 
@@ -193,6 +199,25 @@ export default function Testing() {
               </CardHeader>
               <CardContent>
                 <ProductionValidationSuite />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="load" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gauge className="h-5 w-5" />
+                  Load Testing Dashboard
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Badge variant="outline">Concurrent Users</Badge>
+                  <Badge variant="outline">Response Times</Badge>
+                  <Badge variant="outline">Scalability</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <LoadTestingDashboard />
               </CardContent>
             </Card>
           </TabsContent>
