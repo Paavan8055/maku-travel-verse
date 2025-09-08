@@ -5,10 +5,10 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { EnhancedPromptEngine, PromptContext, ChainedPromptResult } from '../lib/enhanced-prompt-engine';
-import { EnhancedMemorySystem, MemoryQuery, MemoryItem } from '../lib/enhanced-memory-system';
-import { EnhancedCoordinationSystem, CoordinationContext, CoordinationPlan } from '../lib/enhanced-coordination-system';
-import { EnhancedReasoningSystem, ReasoningContext, ReasoningResult } from '../lib/enhanced-reasoning-system';
+import { EnhancedPromptEngine, PromptContext, ChainedPromptResult } from '../features/agentic/lib/enhanced-prompt-engine';
+import { EnhancedMemorySystem, MemoryQuery, MemoryItem } from '../features/agentic/lib/enhanced-memory-system';
+import { EnhancedCoordinationSystem, CoordinationContext, CoordinationPlan } from '../features/agentic/lib/enhanced-coordination-system';
+import { EnhancedReasoningSystem, ReasoningContext, ReasoningResult } from '../features/agentic/lib/enhanced-reasoning-system';
 
 export interface AgentSystemConfig {
   userId: string;
