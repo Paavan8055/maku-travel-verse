@@ -33,6 +33,18 @@ const ProviderApiTester = React.lazy(() =>
 const LoadTestingDashboard = React.lazy(() => 
   import('@/components/admin/LoadTestingDashboard').then(m => ({ default: m.LoadTestingDashboard }))
 );
+const MFAConfiguration = React.lazy(() => 
+  import('@/components/admin/MFAConfiguration').then(m => ({ default: m.MFAConfiguration }))
+);
+const SecurityEventMonitoring = React.lazy(() => 
+  import('@/components/admin/SecurityEventMonitoring').then(m => ({ default: m.SecurityEventMonitoring }))
+);
+const ExecutiveDashboard = React.lazy(() => 
+  import('@/components/admin/ExecutiveDashboard').then(m => ({ default: m.ExecutiveDashboard }))
+);
+const OperationsDashboard = React.lazy(() => 
+  import('@/components/admin/OperationsDashboard').then(m => ({ default: m.OperationsDashboard }))
+);
 
 const AdminSecurityPage = () => {
   console.log('AdminSecurityPage: Component rendering');
@@ -46,9 +58,11 @@ const AdminSecurityPage = () => {
         </p>
       </div>
       
-      <Tabs defaultValue="recovery" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="recovery">Recovery Status</TabsTrigger>
+      <Tabs defaultValue="executive" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-9">
+          <TabsTrigger value="executive">Executive</TabsTrigger>
+          <TabsTrigger value="operations">Operations</TabsTrigger>
+          <TabsTrigger value="recovery">Recovery</TabsTrigger>
           <TabsTrigger value="emergency">Emergency</TabsTrigger>
           <TabsTrigger value="auth">Authentication</TabsTrigger>
           <TabsTrigger value="providers">Providers</TabsTrigger>
@@ -57,6 +71,18 @@ const AdminSecurityPage = () => {
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
         
+        <TabsContent value="executive">
+          <DiagnosticWrapper componentName="ExecutiveDashboard">
+            <ExecutiveDashboard />
+          </DiagnosticWrapper>
+        </TabsContent>
+
+        <TabsContent value="operations">
+          <DiagnosticWrapper componentName="OperationsDashboard">
+            <OperationsDashboard />
+          </DiagnosticWrapper>
+        </TabsContent>
+
         <TabsContent value="recovery">
           <DiagnosticWrapper componentName="RecoveryStatus">
             <RecoveryStatus />
@@ -98,9 +124,17 @@ const AdminSecurityPage = () => {
         </TabsContent>
         
         <TabsContent value="security">
-          <DiagnosticWrapper componentName="SecuritySettingsGuide">
-            <SecuritySettingsGuide />
-          </DiagnosticWrapper>
+          <div className="space-y-6">
+            <DiagnosticWrapper componentName="MFAConfiguration">
+              <MFAConfiguration />
+            </DiagnosticWrapper>
+            <DiagnosticWrapper componentName="SecurityEventMonitoring">
+              <SecurityEventMonitoring />
+            </DiagnosticWrapper>
+            <DiagnosticWrapper componentName="SecuritySettingsGuide">
+              <SecuritySettingsGuide />
+            </DiagnosticWrapper>
+          </div>
         </TabsContent>
         
         <TabsContent value="monitoring">
