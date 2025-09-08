@@ -9443,7 +9443,7 @@ export type Database = {
       }
       emergency_cleanup_payments: {
         Args: Record<PropertyKey, never>
-        Returns: Json
+        Returns: undefined
       }
       generate_booking_reference: {
         Args: Record<PropertyKey, never>
@@ -9468,14 +9468,6 @@ export type Database = {
       get_admin_status: {
         Args: Record<PropertyKey, never>
         Returns: boolean
-      }
-      get_cleanup_monitoring: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_cleanup_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
       }
       get_database_performance_stats: {
         Args: Record<PropertyKey, never>
