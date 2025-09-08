@@ -9327,16 +9327,20 @@ export type Database = {
         Returns: number
       }
       calculate_fraud_risk_score: {
-        Args: {
-          p_amount: number
-          p_ip_address?: unknown
-          p_payment_method: string
-          p_user_id: string
-        }
+        Args:
+          | { _booking_id: string }
+          | {
+              p_amount: number
+              p_ip_address?: unknown
+              p_payment_method: string
+              p_user_id: string
+            }
         Returns: number
       }
       cancel_booking: {
-        Args: { p_booking_id: string }
+        Args:
+          | { _booking_id: string; _reason?: string }
+          | { p_booking_id: string }
         Returns: Json
       }
       check_document_expiry: {
