@@ -573,6 +573,84 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_human_feedback: {
+        Row: {
+          agent_id: string
+          created_at: string
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          improvement_suggestions: Json | null
+          interaction_context: Json
+          processed: boolean | null
+          rating: number | null
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          improvement_suggestions?: Json | null
+          interaction_context: Json
+          processed?: boolean | null
+          rating?: number | null
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          improvement_suggestions?: Json | null
+          interaction_context?: Json
+          processed?: boolean | null
+          rating?: number | null
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agent_learning_metrics: {
+        Row: {
+          agent_id: string
+          context: Json | null
+          created_at: string
+          feedback_score: number | null
+          id: string
+          improvement_delta: number | null
+          metric_type: string
+          metric_value: number
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          context?: Json | null
+          created_at?: string
+          feedback_score?: number | null
+          id?: string
+          improvement_delta?: number | null
+          metric_type: string
+          metric_value: number
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          context?: Json | null
+          created_at?: string
+          feedback_score?: number | null
+          id?: string
+          improvement_delta?: number | null
+          metric_type?: string
+          metric_value?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agent_management: {
         Row: {
           agent_id: string
@@ -813,6 +891,48 @@ export type Database = {
           tier?: number | null
           tier_name?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      agent_safety_logs: {
+        Row: {
+          action_taken: string | null
+          agent_id: string
+          created_at: string
+          escalated_to_human: boolean | null
+          id: string
+          input_content: Json
+          output_content: Json | null
+          request_id: string
+          safety_score: number | null
+          validation_type: string
+          violations: Json | null
+        }
+        Insert: {
+          action_taken?: string | null
+          agent_id: string
+          created_at?: string
+          escalated_to_human?: boolean | null
+          id?: string
+          input_content: Json
+          output_content?: Json | null
+          request_id: string
+          safety_score?: number | null
+          validation_type: string
+          violations?: Json | null
+        }
+        Update: {
+          action_taken?: string | null
+          agent_id?: string
+          created_at?: string
+          escalated_to_human?: boolean | null
+          id?: string
+          input_content?: Json
+          output_content?: Json | null
+          request_id?: string
+          safety_score?: number | null
+          validation_type?: string
+          violations?: Json | null
         }
         Relationships: []
       }
@@ -3580,6 +3700,48 @@ export type Database = {
           product_type?: string
           provider?: string
           valid_until?: string
+        }
+        Relationships: []
+      }
+      enhanced_agent_memory: {
+        Row: {
+          access_count: number | null
+          agent_id: string
+          content: Json
+          created_at: string
+          expires_at: string | null
+          id: string
+          importance_score: number | null
+          last_accessed: string | null
+          memory_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          access_count?: number | null
+          agent_id: string
+          content?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          importance_score?: number | null
+          last_accessed?: string | null
+          memory_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          access_count?: number | null
+          agent_id?: string
+          content?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          importance_score?: number | null
+          last_accessed?: string | null
+          memory_type?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
