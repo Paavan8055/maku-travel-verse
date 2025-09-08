@@ -7,11 +7,13 @@ import { ConsolidatedAgentDashboard } from '@/components/admin/ConsolidatedAgent
 import { SecurityHardeningDashboard } from '@/components/admin/SecurityHardeningDashboard';
 import { PerformanceOptimizationDashboard } from '@/components/admin/PerformanceOptimizationDashboard';
 import { DatabaseOptimizationDashboard } from '@/components/admin/DatabaseOptimizationDashboard';
+import { AgentConsolidationDashboard } from '@/components/admin/AgentConsolidationDashboard';
 
 export default function AgentsPage() {
   return (
-    <Tabs defaultValue="consolidated" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-7">
+    <Tabs defaultValue="week3-progress" className="space-y-4">
+      <TabsList className="grid w-full grid-cols-8">
+        <TabsTrigger value="week3-progress">Week 3 Progress</TabsTrigger>
         <TabsTrigger value="consolidated">Consolidated</TabsTrigger>
         <TabsTrigger value="security">Security</TabsTrigger>
         <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -20,6 +22,10 @@ export default function AgentsPage() {
         <TabsTrigger value="strategic">Strategic</TabsTrigger>
         <TabsTrigger value="gpt-bots">GPT Bots</TabsTrigger>
       </TabsList>
+      
+      <TabsContent value="week3-progress">
+        <AgentConsolidationDashboard />
+      </TabsContent>
       
       <TabsContent value="consolidated">
         <ConsolidatedAgentDashboard />
