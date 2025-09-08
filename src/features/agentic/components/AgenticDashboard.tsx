@@ -27,7 +27,7 @@ const AgenticDashboard: React.FC = () => {
 
   const learningSystem = new LearningSystem();
   const safetySystem = new SafetySystem();
-  const memorySystem = new EnhancedMemorySystem();
+  const memorySystem = new EnhancedMemorySystem('default-agent', 'demo-user');
 
   useEffect(() => {
     loadSystemMetrics();

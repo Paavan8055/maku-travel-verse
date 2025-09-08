@@ -245,10 +245,10 @@ export class SafetySystem {
           agent_id: request.agentId,
           request_id: request.requestId,
           validation_type: request.validationType,
-          input_content: request.inputContent,
-          output_content: request.outputContent,
+          input_content: request.inputContent as any,
+          output_content: request.outputContent as any,
           safety_score: score,
-          violations: violations,
+          violations: JSON.stringify(violations),
           action_taken: action,
           escalated_to_human: action === 'escalate_to_human'
         });
