@@ -7133,6 +7133,145 @@ export type Database = {
         }
         Relationships: []
       }
+      prompt_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          external_id: string
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          external_id: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          version?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          external_id?: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
+      prompt_usage_analytics: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          external_prompt_id: string | null
+          id: string
+          performance_metrics: Json | null
+          prompt_id: string | null
+          response_time_ms: number | null
+          session_id: string | null
+          success: boolean | null
+          usage_context: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          external_prompt_id?: string | null
+          id?: string
+          performance_metrics?: Json | null
+          prompt_id?: string | null
+          response_time_ms?: number | null
+          session_id?: string | null
+          success?: boolean | null
+          usage_context?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          external_prompt_id?: string | null
+          id?: string
+          performance_metrics?: Json | null
+          prompt_id?: string | null
+          response_time_ms?: number | null
+          session_id?: string | null
+          success?: boolean | null
+          usage_context?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_usage_analytics_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_versions: {
+        Row: {
+          changelog: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_current: boolean | null
+          prompt_id: string | null
+          version: string
+        }
+        Insert: {
+          changelog?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_current?: boolean | null
+          prompt_id?: string | null
+          version: string
+        }
+        Update: {
+          changelog?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_current?: boolean | null
+          prompt_id?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_versions_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_availability: {
         Row: {
           available_units: number

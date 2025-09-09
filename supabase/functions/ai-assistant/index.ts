@@ -17,31 +17,102 @@ serve(async (req) => {
   }
 
   try {
-    const { query, context, type = 'natural_language' } = await req.json();
+    const { 
+      query, 
+      context, 
+      type = 'natural_language',
+      conversationHistory = [],
+      promptId,
+      useExternalPrompt = false
+    } = await req.json();
     
     const supabase = createClient(supabaseUrl!, supabaseKey!);
     
-    console.log('AI Assistant request:', { query, type, contextKeys: Object.keys(context || {}) });
+    console.log('AI Assistant request:', { 
+      query, 
+      type, 
+      useExternalPrompt, 
+      promptId,
+      contextKeys: Object.keys(context || {}) 
+    });
+
+    // Get system prompt - either from external prompt or built-in
+    let systemPrompt = '';
+    let promptAnalytics = { promptId: '', responseTime: 0, success: true };
+    
+    if (useExternalPrompt && promptId) {
+      const startTime = Date.now();
+      
+      try {
+        // Fetch external prompt
+        const promptResponse = await supabase.functions.invoke('prompt-manager', {
+          body: { 
+            action: 'fetch', 
+            externalId: promptId 
+          }
+        });
+        
+        if (promptResponse.data?.success && promptResponse.data?.prompt) {
+          systemPrompt = promptResponse.data.prompt.content;
+          promptAnalytics.promptId = promptId;
+        } else {
+          throw new Error('External prompt not found');
+        }
+      } catch (error) {
+        console.error('Failed to fetch external prompt:', error);
+        // Fallback to default prompt
+        systemPrompt = getDefaultSystemPrompt(type);
+        promptAnalytics.success = false;
+      }
+      
+      promptAnalytics.responseTime = Date.now() - startTime;
+    } else {
+      systemPrompt = getDefaultSystemPrompt(type);
+    }
 
     // Enhanced context gathering
     const enhancedContext = await gatherEnhancedContext(supabase, context);
     
     let response;
     
-    switch (type) {
-      case 'troubleshooting':
-        response = await performAdvancedTroubleshooting(query, enhancedContext);
-        break;
-      case 'knowledge_search':
-        response = await searchKnowledgeBase(supabase, query);
-        break;
-      case 'predictive_analysis':
-        response = await performPredictiveAnalysis(supabase, enhancedContext);
-        break;
-      case 'natural_language':
-      default:
-        response = await processNaturalLanguageQuery(query, enhancedContext);
-        break;
+    if (useExternalPrompt && systemPrompt) {
+      response = await processWithExternalPrompt(systemPrompt, query, enhancedContext, conversationHistory);
+    } else {
+      switch (type) {
+        case 'troubleshooting':
+          response = await performAdvancedTroubleshooting(query, enhancedContext);
+          break;
+        case 'knowledge_search':
+          response = await searchKnowledgeBase(supabase, query);
+          break;
+        case 'predictive_analysis':
+          response = await performPredictiveAnalysis(supabase, enhancedContext);
+          break;
+        case 'natural_language':
+        default:
+          response = await processNaturalLanguageQuery(query, enhancedContext);
+          break;
+      }
+    }
+
+    // Record analytics if external prompt was used
+    if (useExternalPrompt && promptId) {
+      supabase.functions.invoke('prompt-manager', {
+        body: {
+          action: 'analytics',
+          analyticsData: {
+            promptId,
+            responseTime: Date.now(),
+            success: true,
+            context: {
+              type,
+              queryLength: query.length,
+              responseLength: response?.response?.length || 0,
+              conversationLength: conversationHistory?.length || 0
+            }
+          }
+        }
+      }).catch(error => console.error('Failed to record analytics:', error));
     }
 
     // Log the interaction for learning
@@ -61,6 +132,71 @@ serve(async (req) => {
     });
   }
 });
+
+function getDefaultSystemPrompt(type: string): string {
+  const prompts = {
+    troubleshooting: `You are an expert system administrator and troubleshooting specialist for MAKU.Travel.`,
+    knowledge_search: `You are a knowledge management expert for MAKU.Travel.`,
+    predictive_analysis: `You are a predictive analytics expert for MAKU.Travel.`,
+    natural_language: `You are an intelligent AI assistant for MAKU.Travel, a comprehensive travel booking platform.`
+  };
+  
+  return prompts[type as keyof typeof prompts] || prompts.natural_language;
+}
+
+async function processWithExternalPrompt(
+  systemPrompt: string, 
+  query: string, 
+  context: any, 
+  conversationHistory: any[] = []
+) {
+  if (!openAIApiKey) {
+    return fallbackResponse(query, context);
+  }
+
+  try {
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory.slice(-10), // Keep last 10 messages for context
+      { role: 'user', content: query }
+    ];
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages,
+        temperature: 0.7,
+        max_tokens: 1000
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
+    }
+
+    const aiResponse = data.choices[0].message.content;
+    
+    return {
+      type: 'external_prompt_response',
+      response: aiResponse,
+      suggestions: generateActionSuggestions(query, context),
+      confidence: 0.95,
+      context_used: true,
+      external_prompt: true
+    };
+    
+  } catch (error) {
+    console.error('External prompt processing error:', error);
+    return fallbackResponse(query, context);
+  }
+}
 
 async function gatherEnhancedContext(supabase: any, baseContext: any) {
   const enhanced = { ...baseContext };

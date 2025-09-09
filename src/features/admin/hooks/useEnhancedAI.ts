@@ -30,15 +30,18 @@ export const useEnhancedAI = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastResponse, setLastResponse] = useState<AIResponse | null>(null);
   const [conversationHistory, setConversationHistory] = useState<Array<{
-    query: string;
-    response: AIResponse;
+    role: 'user' | 'assistant';
+    content: string;
     timestamp: string;
   }>>([]);
+  const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
 
   const processQuery = useCallback(async (
     query: string, 
     context: AIContext = {},
-    type: 'natural_language' | 'troubleshooting' | 'knowledge_search' | 'predictive_analysis' = 'natural_language'
+    type: 'natural_language' | 'troubleshooting' | 'knowledge_search' | 'predictive_analysis' = 'natural_language',
+    useExternalPrompt: boolean = false,
+    promptId?: string
   ): Promise<AIResponse | null> => {
     if (!query.trim()) return null;
 
@@ -55,7 +58,13 @@ export const useEnhancedAI = () => {
             ...context,
             timestamp: new Date().toISOString(),
             conversationHistory: conversationHistory.slice(-3) // Last 3 interactions for context
-          }
+          },
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          useExternalPrompt: useExternalPrompt || !!selectedPromptId,
+          promptId: promptId || selectedPromptId
         }
       });
 
@@ -85,11 +94,18 @@ export const useEnhancedAI = () => {
       setLastResponse(response);
       
       // Add to conversation history
-      setConversationHistory(prev => [...prev, {
-        query,
-        response,
-        timestamp: new Date().toISOString()
-      }].slice(-10)); // Keep last 10 interactions
+      setConversationHistory(prev => [...prev, 
+        {
+          role: 'user' as const,
+          content: query,
+          timestamp: new Date().toISOString()
+        },
+        {
+          role: 'assistant' as const, 
+          content: response.response,
+          timestamp: new Date().toISOString()
+        }
+      ].slice(-20)); // Keep last 20 messages
 
       return response;
       
@@ -177,19 +193,18 @@ export const useEnhancedAI = () => {
   const getConversationSummary = useCallback(() => {
     if (conversationHistory.length === 0) return null;
     
+    const userMessages = conversationHistory.filter(msg => msg.role === 'user');
+    
     return {
-      totalInteractions: conversationHistory.length,
-      averageConfidence: conversationHistory.reduce((acc, item) => 
-        acc + item.response.confidence, 0) / conversationHistory.length,
-      mostCommonType: conversationHistory
-        .map(item => item.response.type)
-        .reduce((acc, type) => {
-          acc[type] = (acc[type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
+      totalInteractions: userMessages.length,
+      totalMessages: conversationHistory.length,
       lastInteraction: conversationHistory[conversationHistory.length - 1]
     };
   }, [conversationHistory]);
+
+  const setPrompt = (promptId: string | null) => {
+    setSelectedPromptId(promptId);
+  };
 
   return {
     // Core functionality
@@ -207,10 +222,12 @@ export const useEnhancedAI = () => {
     // State management
     clearHistory,
     getConversationSummary,
+    setPrompt,
     
     // State
     isProcessing,
     lastResponse,
-    conversationHistory
+    conversationHistory,
+    selectedPromptId
   };
 };
