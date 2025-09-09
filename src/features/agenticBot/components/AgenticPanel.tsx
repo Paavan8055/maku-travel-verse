@@ -137,147 +137,124 @@ const AgenticPanel: React.FC<AgenticPanelProps> = ({
         )}
 
         {/* Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mx-6 mt-4">
-            <TabsTrigger value="plan">
-              <Plane className="w-4 h-4 mr-2" />
-              {isGuest ? 'Explore' : 'Plan'}
-            </TabsTrigger>
-            <TabsTrigger value="manage">
-              <Calendar className="w-4 h-4 mr-2" />
-              {isGuest ? 'Tools' : 'Manage'}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="plan" className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 p-6">
-              <div className="grid gap-4">
-                {isGuest ? (
-                  <>
-                    {/* Guest-accessible basic agents */}
-                    <BookingCard
-                      title="Weather Tracker"
-                      description="Check weather forecasts for your travel destinations"
-                      actionLabel="Check Weather"
-                      onAction={handleWeatherCheck}
-                    />
-                    
-                    <BookingCard
-                      title="Currency Converter"
-                      description="Convert currencies and get current exchange rates"
-                      actionLabel="Convert Currency"
-                      onAction={handleCurrencyConvert}
-                    />
-                    
-                    <BookingCard
-                      title="Destination Guide"
-                      description="Get basic information about travel destinations"
-                      actionLabel="Get Info"
-                      onAction={handlePlanTrip}
-                    />
-                    
-                    <BookingCard
-                      title="Price Monitor"
-                      description="Track basic price information for flights and hotels"
-                      actionLabel="Monitor Prices"
-                      onAction={handleMonitorTrips}
-                    />
-                    
-                    {/* Premium features preview */}
-                    <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-dashed">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="h-4 w-4 text-primary" />
-                        <h3 className="font-medium">Premium Features</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Unlock full trip planning, booking assistance, and 100+ specialized agents
-                      </p>
-                      <Button className="w-full" onClick={() => window.location.href = '/auth'}>
-                        Sign Up for Premium Access
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Full premium experience */}
-                    <BookingCard
-                      title="Plan Complete Trip"
-                      description="Let our AI agents plan your entire journey from start to finish"
-                      actionLabel="Start Planning"
-                      onAction={handlePlanTrip}
-                    />
-                    
-                    <BookingCard
-                      title="Find Best Deals"
-                      description="Monitor prices and get alerts when better deals become available"
-                      actionLabel="Find Deals"
-                      onAction={handleMonitorTrips}
-                    />
-                    
-                    <BookingCard
-                      title="Weather Tracker"
-                      description="Advanced weather tracking with personalized alerts"
-                      actionLabel="Track Weather"
-                      onAction={handleWeatherCheck}
-                    />
-                    
-                    <BookingCard
-                      title="Currency Converter"
-                      description="Real-time rates with historical trends and alerts"
-                      actionLabel="Convert Currency"
-                      onAction={handleCurrencyConvert}
-                    />
-                  </>
-                )}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-
-          <TabsContent value="manage" className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 p-6">
-              <div className="space-y-4">
-                {isGuest ? (
-                  <div className="text-center p-8">
-                    <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Premium Feature</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Trip management and booking tools are available for premium users.
+        <div className="flex-1 flex flex-col">
+          <ScrollArea className="flex-1 p-6">
+            <div className="space-y-4">
+              {isGuest ? (
+                <>
+                  <div className="text-center mb-6">
+                    <h3 className="text-lg font-medium mb-2">Travel Helper</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Get quick travel information and planning help
                     </p>
-                    <Button onClick={() => window.location.href = '/auth'}>
-                      Sign Up to Access
+                  </div>
+
+                  <Button
+                    onClick={handlePlanTrip}
+                    className="w-full h-12 text-left justify-start"
+                    variant="outline"
+                  >
+                    <Plane className="h-4 w-4 mr-3" />
+                    Plan My Trip
+                  </Button>
+
+                  <Button
+                    onClick={handleWeatherCheck}
+                    className="w-full h-12 text-left justify-start"
+                    variant="outline"
+                  >
+                    <Calendar className="h-4 w-4 mr-3" />
+                    Check Weather
+                  </Button>
+
+                  <div className="mt-8 p-4 bg-primary/10 rounded-lg text-center">
+                    <Star className="h-8 w-8 text-primary mx-auto mb-2" />
+                    <h4 className="font-medium mb-1">Want More?</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Get full trip planning and booking help
+                    </p>
+                    <Button onClick={() => window.location.href = '/auth'} size="sm">
+                      Sign Up Free
                     </Button>
                   </div>
-                ) : (
-                  tasks.map((task) => (
-                    <div key={task.id} className="p-4 border border-border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">{task.intent}</h4>
-                        <Badge variant={
-                          task.status === 'completed' ? 'default' :
-                          task.status === 'running' ? 'secondary' : 'outline'
-                        }>
-                          {task.status}
-                        </Badge>
+                </>
+              ) : (
+                <>
+                  <div className="text-center mb-6">
+                    <h3 className="text-lg font-medium mb-2">Your Travel Assistant</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Let me help you plan and manage your trips
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handlePlanTrip}
+                    className="w-full h-16 text-left justify-start"
+                    variant="outline"
+                  >
+                    <div className="flex flex-col items-start w-full">
+                      <div className="flex items-center mb-1">
+                        <Plane className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Plan Complete Trip</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Agent: {task.agent_id}
-                      </p>
-                      {task.status === 'running' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => cancelTask(task.id)}
-                        >
-                          Cancel Task
-                        </Button>
-                      )}
+                      <span className="text-xs text-muted-foreground">
+                        Hotels, flights, and activities all in one
+                      </span>
                     </div>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
+                  </Button>
+
+                  <Button
+                    onClick={handleMonitorTrips}
+                    className="w-full h-16 text-left justify-start"
+                    variant="outline"
+                  >
+                    <div className="flex flex-col items-start w-full">
+                      <div className="flex items-center mb-1">
+                        <Settings className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Find Best Deals</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        Monitor prices and get alerts
+                      </span>
+                    </div>
+                  </Button>
+
+                  <Button
+                    onClick={handleWeatherCheck}
+                    className="w-full h-16 text-left justify-start"
+                    variant="outline"
+                  >
+                    <div className="flex flex-col items-start w-full">
+                      <div className="flex items-center mb-1">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Check Weather</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        7-day forecast for your destinations
+                      </span>
+                    </div>
+                  </Button>
+
+                  {tasks.length > 0 && (
+                    <div className="mt-8 space-y-3">
+                      <h4 className="font-medium text-sm">Active Tasks</h4>
+                      {tasks.slice(0, 3).map((task) => (
+                        <div key={task.id} className="p-3 border border-border rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{task.intent}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {task.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
     </div>
   );
