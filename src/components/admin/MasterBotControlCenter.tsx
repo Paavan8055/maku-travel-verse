@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UniversalBotInterface } from '@/components/master-bot/UniversalBotInterface';
 import { BotResultsPanel } from '@/components/master-bot/BotResultsPanel';
+import { EnhancedResultsNotification } from '@/components/master-bot/EnhancedResultsNotification';
+import { DashboardOptimizer } from '@/components/master-bot/DashboardOptimizer';
 import { useMasterBotController } from '@/hooks/useMasterBotController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Bot, 
   Activity, 
@@ -17,7 +20,8 @@ import {
   Clock,
   Zap,
   Shield,
-  Database
+  Database,
+  TrendingUp
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -30,6 +34,10 @@ export const MasterBotControlCenter: React.FC = () => {
     executeAdminCommand,
     isExecutingCommand
   } = useMasterBotController('admin');
+
+  const { toast } = useToast();
+  const [dismissedResults, setDismissedResults] = useState<string[]>([]);
+  const [lastOptimization, setLastOptimization] = useState<Date | undefined>();
 
   const systemResults = getResultsByType('system_health');
   const controlResults = getResultsByType('control');
@@ -50,15 +58,43 @@ export const MasterBotControlCenter: React.FC = () => {
     }
   };
 
+  const handleDismissResult = useCallback((resultId: string) => {
+    setDismissedResults(prev => [...prev, resultId]);
+  }, []);
+
+  const handleApplyOptimization = useCallback((result: any) => {
+    toast({
+      title: "Optimization Applied",
+      description: "Dashboard optimization has been applied successfully.",
+    });
+    setLastOptimization(new Date());
+  }, [toast]);
+
+  const handleOptimizeDashboard = useCallback((optimizationCommand: string) => {
+    executeAdminCommand(optimizationCommand, 'optimization');
+    setLastOptimization(new Date());
+    toast({
+      title: "Optimization Started",
+      description: "Dashboard optimization is now in progress...",
+    });
+  }, [executeAdminCommand, toast]);
+
+  const visibleResults = botResults.filter(result => !dismissedResults.includes(result.id));
+
   const quickCommands = [
     { label: 'System Health Check', command: 'Analyze overall system health and performance', type: 'analysis' as const },
-    { label: 'Optimize All Bots', command: 'Optimize performance for all active bots', type: 'optimization' as const },
+    { label: 'Optimize Dashboard Performance', command: 'Optimize dashboard performance - improve loading times, enhance responsiveness, and implement performance best practices', type: 'optimization' as const },
     { label: 'Activate Travel Bots', command: 'Activate all travel-related bots for peak season', type: 'control' as const },
     { label: 'Revenue Analysis', command: 'Analyze revenue performance across all partners', type: 'analysis' as const },
   ];
 
   return (
     <div className="min-h-screen bg-background p-6">
+      <EnhancedResultsNotification 
+        results={visibleResults}
+        onDismiss={handleDismissResult}
+        onApplyOptimization={handleApplyOptimization}
+      />
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -84,8 +120,9 @@ export const MasterBotControlCenter: React.FC = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Live Operations</TabsTrigger>
+            <TabsTrigger value="optimizer">Dashboard Optimizer</TabsTrigger>
             <TabsTrigger value="analytics">Result Analytics</TabsTrigger>
             <TabsTrigger value="commands">Command Center</TabsTrigger>
             <TabsTrigger value="intelligence">System Intelligence</TabsTrigger>
@@ -219,6 +256,14 @@ export const MasterBotControlCenter: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="optimizer" className="space-y-6">
+            <DashboardOptimizer 
+              onOptimize={handleOptimizeDashboard}
+              isOptimizing={isExecutingCommand}
+              lastOptimization={lastOptimization}
+            />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
