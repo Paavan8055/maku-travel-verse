@@ -118,10 +118,10 @@ const App = () => (
                     <SearchProvider>
                       <PaymentProvider>
                         <ABTestProvider>
-                          <UniversalAIProvider>
-                            <PersonalizationEngine>
-                              <AgenticBotProvider defaultVertical="Solo">
-                                <MakuBotProvider defaultVertical="Solo">
+                          <AgenticBotProvider defaultVertical="Solo">
+                            <MakuBotProvider defaultVertical="Solo">
+                              <UniversalAIProvider>
+                                <PersonalizationEngine>
                                   <TooltipProvider>
                                     <div className="min-h-screen bg-background text-foreground">
                                       <Helmet>
@@ -222,12 +222,12 @@ const App = () => (
                                        </Route>
                                     </Routes>
                                   </BrowserRouter>
-                                </div>
+                                 </div>
                                   </TooltipProvider>
-                                </MakuBotProvider>
-                              </AgenticBotProvider>
-                            </PersonalizationEngine>
-                          </UniversalAIProvider>
+                                </PersonalizationEngine>
+                              </UniversalAIProvider>
+                            </MakuBotProvider>
+                          </AgenticBotProvider>
                         </ABTestProvider>
                       </PaymentProvider>
                     </SearchProvider>
