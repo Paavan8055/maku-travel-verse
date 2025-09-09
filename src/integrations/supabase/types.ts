@@ -106,6 +106,66 @@ export type Database = {
           },
         ]
       }
+      admin_bot_commands: {
+        Row: {
+          actual_duration_minutes: number | null
+          admin_user_id: string
+          command_parameters: Json | null
+          command_text: string
+          command_type: string
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          estimated_duration_minutes: number | null
+          execution_status: string
+          id: string
+          priority: number | null
+          response_data: Json | null
+          result_ids: string[] | null
+          started_at: string | null
+          target_bots: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          actual_duration_minutes?: number | null
+          admin_user_id: string
+          command_parameters?: Json | null
+          command_text: string
+          command_type: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_duration_minutes?: number | null
+          execution_status?: string
+          id?: string
+          priority?: number | null
+          response_data?: Json | null
+          result_ids?: string[] | null
+          started_at?: string | null
+          target_bots?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          actual_duration_minutes?: number | null
+          admin_user_id?: string
+          command_parameters?: Json | null
+          command_text?: string
+          command_type?: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_duration_minutes?: number | null
+          execution_status?: string
+          id?: string
+          priority?: number | null
+          response_data?: Json | null
+          result_ids?: string[] | null
+          started_at?: string | null
+          target_bots?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_metrics_cache: {
         Row: {
           created_at: string
@@ -2347,6 +2407,96 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_performance_analytics: {
+        Row: {
+          bot_id: string
+          created_at: string
+          dashboard_type: string | null
+          id: string
+          measurement_date: string
+          measurement_period: string | null
+          metric_metadata: Json | null
+          metric_type: string
+          metric_value: number
+        }
+        Insert: {
+          bot_id: string
+          created_at?: string
+          dashboard_type?: string | null
+          id?: string
+          measurement_date?: string
+          measurement_period?: string | null
+          metric_metadata?: Json | null
+          metric_type: string
+          metric_value: number
+        }
+        Update: {
+          bot_id?: string
+          created_at?: string
+          dashboard_type?: string | null
+          id?: string
+          measurement_date?: string
+          measurement_period?: string | null
+          metric_metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+        }
+        Relationships: []
+      }
+      bot_result_aggregation: {
+        Row: {
+          actionability_rating: string | null
+          bot_id: string
+          bot_type: string
+          confidence_score: number | null
+          correlation_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          metadata: Json | null
+          result_data: Json
+          result_type: string
+          session_id: string | null
+          target_dashboard: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          actionability_rating?: string | null
+          bot_id: string
+          bot_type: string
+          confidence_score?: number | null
+          correlation_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          result_data?: Json
+          result_type: string
+          session_id?: string | null
+          target_dashboard?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          actionability_rating?: string | null
+          bot_id?: string
+          bot_type?: string
+          confidence_score?: number | null
+          correlation_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          result_data?: Json
+          result_type?: string
+          session_id?: string | null
+          target_dashboard?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       calendar_integrations: {
         Row: {
           access_token_encrypted: string
@@ -3195,6 +3345,45 @@ export type Database = {
           next_booking_probability?: number | null
           personalization_data?: Json | null
           preferred_destinations?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      dashboard_context_store: {
+        Row: {
+          context_data: Json
+          context_key: string
+          created_at: string
+          dashboard_type: string
+          expires_at: string | null
+          id: string
+          last_accessed: string | null
+          relevance_score: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          context_data?: Json
+          context_key: string
+          created_at?: string
+          dashboard_type: string
+          expires_at?: string | null
+          id?: string
+          last_accessed?: string | null
+          relevance_score?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          context_data?: Json
+          context_key?: string
+          created_at?: string
+          dashboard_type?: string
+          expires_at?: string | null
+          id?: string
+          last_accessed?: string | null
+          relevance_score?: number | null
           updated_at?: string
           user_id?: string | null
         }
