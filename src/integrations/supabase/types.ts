@@ -2407,6 +2407,33 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_configurations: {
+        Row: {
+          bot_id: string
+          configuration: Json | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          bot_id: string
+          configuration?: Json | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          bot_id?: string
+          configuration?: Json | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       bot_performance_analytics: {
         Row: {
           bot_id: string
@@ -2900,6 +2927,48 @@ export type Database = {
           image_url?: string
           is_featured?: boolean | null
           supplier_attribution?: string | null
+        }
+        Relationships: []
+      }
+      conversation_logs: {
+        Row: {
+          action: string | null
+          action_params: Json | null
+          ai_response: string
+          confidence: number | null
+          created_at: string | null
+          dashboard_type: string
+          entities: Json | null
+          id: string
+          intent: string | null
+          user_id: string | null
+          user_message: string
+        }
+        Insert: {
+          action?: string | null
+          action_params?: Json | null
+          ai_response: string
+          confidence?: number | null
+          created_at?: string | null
+          dashboard_type: string
+          entities?: Json | null
+          id?: string
+          intent?: string | null
+          user_id?: string | null
+          user_message: string
+        }
+        Update: {
+          action?: string | null
+          action_params?: Json | null
+          ai_response?: string
+          confidence?: number | null
+          created_at?: string | null
+          dashboard_type?: string
+          entities?: Json | null
+          id?: string
+          intent?: string | null
+          user_id?: string | null
+          user_message?: string
         }
         Relationships: []
       }

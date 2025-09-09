@@ -128,10 +128,11 @@ export const GPTBotRegistry: React.FC = () => {
 
     // Update bot configuration in database
     const { error } = await supabase
-      .from('bot_configurations')
+      .from('agent_management')
       .upsert({
-        bot_id: botId,
-        enabled,
+        agent_id: botId,
+        display_name: bots.find(b => b.id === botId)?.name || 'Unknown Bot',
+        status: enabled ? 'active' : 'inactive',
         updated_at: new Date().toISOString()
       });
 

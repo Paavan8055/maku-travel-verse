@@ -25,6 +25,7 @@ import { PredictiveAnalyticsDashboard } from '@/features/admin/components/Predic
 import { GPT5NanoTester } from '@/features/admin/components/GPT5NanoTester';
 import AgentTaskDashboard from '@/features/admin/components/AgentTaskDashboard';
 import { MasterBotControlCenter } from '@/components/admin/MasterBotControlCenter';
+import { MasterBotControllerPhases } from '@/components/master-bot/MasterBotControllerPhases';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -154,7 +155,7 @@ const AdminDashboard = () => {
           </TabsList>
           
           <TabsContent value="master-bot">
-            <MasterBotControlCenter />
+            <MasterBotControllerPhases />
           </TabsContent>
           
           <TabsContent value="ai-assistant">

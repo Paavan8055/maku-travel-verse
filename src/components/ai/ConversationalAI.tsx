@@ -54,8 +54,9 @@ export const ConversationalAI: React.FC<ConversationalAIProps> = ({
 
   useEffect(() => {
     // Initialize speech recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    if (typeof window !== 'undefined' && ((window as any).webkitSpeechRecognition || (window as any).SpeechRecognition)) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      if (!SpeechRecognition) return;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
@@ -164,7 +165,7 @@ export const ConversationalAI: React.FC<ConversationalAIProps> = ({
   };
 
   const handleVoiceInput = () => {
-    if (!recognitionRef.current) return;
+    if (!recognitionRef.current || typeof window === 'undefined') return;
 
     if (isListening) {
       recognitionRef.current.stop();
