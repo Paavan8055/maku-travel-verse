@@ -28,6 +28,11 @@ interface ServiceHealth {
 }
 
 export const SystemHealthIndicator = () => {
+  // Hide from regular users - only show in development or to admins
+  if (process.env.NODE_ENV === 'production') {
+    return null;
+  }
+
   const { 
     health, 
     loading, 
