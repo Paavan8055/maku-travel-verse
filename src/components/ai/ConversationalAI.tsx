@@ -16,6 +16,7 @@ import {
   VolumeX,
   Settings
 } from 'lucide-react';
+import type { SpeechRecognition } from '@/types/speech-recognition';
 
 interface Message {
   id: string;
