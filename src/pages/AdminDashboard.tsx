@@ -24,6 +24,7 @@ import { KnowledgeManagementSystem } from '@/features/admin/components/Knowledge
 import { PredictiveAnalyticsDashboard } from '@/features/admin/components/PredictiveAnalyticsDashboard';
 import { GPT5NanoTester } from '@/features/admin/components/GPT5NanoTester';
 import AgentTaskDashboard from '@/features/admin/components/AgentTaskDashboard';
+import { MasterBotControlCenter } from '@/components/admin/MasterBotControlCenter';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -129,8 +130,9 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="ai-assistant" className="space-y-4">
+        <Tabs defaultValue="master-bot" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="master-bot">Master Bot Control</TabsTrigger>
             <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
             <TabsTrigger value="agent-tasks">Agent Tasks</TabsTrigger>
             <TabsTrigger value="simplified">Simplified View</TabsTrigger>
@@ -150,6 +152,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="master-bot">
+            <MasterBotControlCenter />
+          </TabsContent>
           
           <TabsContent value="ai-assistant">
             <Card>

@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Calendar, DollarSign, Home, TrendingUp, Users, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import logger from '@/utils/logger';
+import { EnhancedPartnerDashboard } from '@/components/dashboard/EnhancedPartnerDashboard';
 
 interface PartnerStats {
   current_month_bookings: number;
@@ -139,8 +140,9 @@ export const PartnerDashboardReal = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <EnhancedPartnerDashboard />
+      <div className="max-w-7xl mx-auto space-y-8 p-6">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Partner Dashboard</h1>
