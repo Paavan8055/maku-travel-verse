@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { LayoutDashboard, Activity, Users, BookOpen, Shield, Settings, Eye, BarChart3, Database, FileText, UserCheck, AlertTriangle, Lock, TestTube, Search, Bell, User, Briefcase, Gauge, Bot } from 'lucide-react';
+import { LayoutDashboard, Activity, Users, BookOpen, Shield, Settings, Eye, BarChart3, Database, FileText, UserCheck, AlertTriangle, Lock, TestTube, Search, Bell, User, Briefcase, Gauge, Bot, Workflow, Zap, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -90,6 +90,26 @@ const adminMenuItems = [{
     title: 'Compliance Status',
     url: '/admin/compliance',
     icon: UserCheck
+  }]
+}, {
+  category: 'Automation',
+  icon: Zap,
+  items: [{
+    title: 'Automation Hub',
+    url: '/admin/automation/hub',
+    icon: Workflow
+  }, {
+    title: 'Master Bot Control',
+    url: '/admin/automation/master-bot',
+    icon: Brain
+  }, {
+    title: 'Workflow Builder',
+    url: '/admin/automation/workflows',
+    icon: Bot
+  }, {
+    title: 'Task Orchestration',
+    url: '/admin/automation/orchestration',
+    icon: Zap
   }]
 }, {
   category: 'Settings',

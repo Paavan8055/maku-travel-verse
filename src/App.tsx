@@ -78,6 +78,12 @@ const AdminEnvironmentPage = createLazyRoute(() => import("./components/admin/En
 const AdminProvidersSettingsPage = createLazyRoute(() => import("./pages/admin/settings/providers"));
 const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/SecureAdminPanel").then(m => ({ default: m.SecureAdminPanel })));
 
+// Automation Routes
+const AutomationHubPage = createLazyRoute(() => import("./pages/admin/automation/hub"));
+const MasterBotPage = createLazyRoute(() => import("./pages/admin/automation/master-bot"));
+const WorkflowsPage = createLazyRoute(() => import("./pages/admin/automation/workflows"));
+const OrchestrationPage = createLazyRoute(() => import("./pages/admin/automation/orchestration"));
+
 const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
 
 const queryClient = new QueryClient({
@@ -190,6 +196,12 @@ const App = () => (
                            {/* Analytics Routes */}
                            <Route path="analytics/search" element={<AdminSearchAnalyticsPage />} />
                            <Route path="metrics" element={<AgentMetricsPage />} />
+                           
+                           {/* Automation Routes */}
+                           <Route path="automation/hub" element={<AutomationHubPage />} />
+                           <Route path="automation/master-bot" element={<MasterBotPage />} />
+                           <Route path="automation/workflows" element={<WorkflowsPage />} />
+                           <Route path="automation/orchestration" element={<OrchestrationPage />} />
                            
                             {/* Settings Routes */}
                            <Route path="settings/features" element={<AdminFeatureFlagsPage />} />
