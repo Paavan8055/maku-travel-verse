@@ -463,7 +463,7 @@ export const ProductionDeploymentManager: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {performanceMetrics.map((metric, index) => (
+                {realPerformanceMetrics.map((metric, index) => (
                   <div 
                     key={index}
                     className="p-4 border rounded-lg space-y-3"
