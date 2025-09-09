@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { OpenAIServiceWrapper } from '../agents/_shared/openai-service-wrapper.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -145,7 +146,30 @@ serve(async (req) => {
 async function executeAnalysisCommand(supabase: any, command: string, parameters: any): Promise<any> {
   console.log('Executing analysis command:', command);
 
-  // Analyze system performance
+  const openAiClient = new OpenAIServiceWrapper(Deno.env.get('OPENAI_API_KEY') || '');
+
+  // Fetch relevant data for AI analysis
+  const systemData = await fetchSystemData(supabase);
+
+  // Use AI for sophisticated analysis
+  const aiResponse = await openAiClient.analyze(
+    'MAKU.Travel System Analysis',
+    { command, parameters, systemData },
+    'performance_analysis',
+    `Analyze the MAKU.Travel system focusing on: ${command}. Provide actionable insights, metrics, and recommendations.`
+  );
+
+  if (aiResponse.success) {
+    return {
+      summary: aiResponse.content,
+      ai_insights: true,
+      analysis_type: 'advanced',
+      recommendations: extractRecommendations(aiResponse.content),
+      metrics: systemData.metrics || {}
+    };
+  }
+
+  // Fallback to basic analysis
   if (command.toLowerCase().includes('performance') || command.toLowerCase().includes('booking')) {
     const { data: bookings } = await supabase
       .from('bookings')
