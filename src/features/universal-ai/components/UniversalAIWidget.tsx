@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMakuBot } from '@/features/makuBot/context/MakuBotContext';
 import { useAgenticBot } from '@/features/agenticBot/context/AgenticBotContext';
 import { useUniversalAI } from '../context/UniversalAIContext';
+import CrossDashboardInsights from './CrossDashboardInsights';
 import { 
   Bot, 
   Sparkles, 
@@ -247,16 +248,7 @@ export const UniversalAIWidget: React.FC<UniversalAIWidgetProps> = ({
               <Badge variant="outline">1.2s</Badge>
             </div>
           </div>
-          {insights.length > 0 && (
-            <div className="space-y-1">
-              <div className="text-xs font-medium">Smart Recommendations:</div>
-              {insights.slice(0, 2).map((insight, index) => (
-                <div key={index} className="text-xs p-2 bg-muted rounded text-muted-foreground">
-                  {insight}
-                </div>
-              ))}
-            </div>
-          )}
+          <CrossDashboardInsights dashboardType={dashboardType} />
         </TabsContent>
       </Tabs>
     </Card>

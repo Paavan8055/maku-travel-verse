@@ -19,6 +19,9 @@ import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor"
 import { createLazyRoute } from "@/components/performance/CodeSplitting";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { PersonalizationEngine } from "@/features/universal-ai/components/PersonalizationEngine";
+import { UniversalAIProvider } from "@/features/universal-ai/context/UniversalAIContext";
+import { AIContextBridge } from "@/features/universal-ai/components/AIContextBridge";
 import "./App.css";
 
 // Lazy load pages for better performance
@@ -115,19 +118,22 @@ const App = () => (
                     <SearchProvider>
                       <PaymentProvider>
                         <ABTestProvider>
-                          <AgenticBotProvider defaultVertical="Solo">
-                            <MakuBotProvider defaultVertical="Solo">
-                              <TooltipProvider>
-                                <div className="min-h-screen bg-background text-foreground">
-                                  <Helmet>
-                                    <meta name="theme-color" content="#ffffff" />
-                                    <meta name="apple-mobile-web-app-capable" content="yes" />
-                                    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-                                    <meta name="format-detection" content="telephone=no" />
-                                  </Helmet>
-                                  
-                                  <Toaster />
-                                  <Sonner />
+                          <UniversalAIProvider>
+                            <PersonalizationEngine>
+                              <AgenticBotProvider defaultVertical="Solo">
+                                <MakuBotProvider defaultVertical="Solo">
+                                  <TooltipProvider>
+                                    <div className="min-h-screen bg-background text-foreground">
+                                      <Helmet>
+                                        <meta name="theme-color" content="#ffffff" />
+                                        <meta name="apple-mobile-web-app-capable" content="yes" />
+                                        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+                                        <meta name="format-detection" content="telephone=no" />
+                                      </Helmet>
+                                      
+                                      <Toaster />
+                                      <Sonner />
+                                      <AIContextBridge />
                                   
                                     <BrowserRouter>
                                       <Routes>
@@ -217,9 +223,11 @@ const App = () => (
                                     </Routes>
                                   </BrowserRouter>
                                 </div>
-                              </TooltipProvider>
-                            </MakuBotProvider>
-                          </AgenticBotProvider>
+                                  </TooltipProvider>
+                                </MakuBotProvider>
+                              </AgenticBotProvider>
+                            </PersonalizationEngine>
+                          </UniversalAIProvider>
                         </ABTestProvider>
                       </PaymentProvider>
                     </SearchProvider>
