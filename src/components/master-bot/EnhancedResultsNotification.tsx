@@ -169,6 +169,12 @@ export const EnhancedResultsNotification: React.FC<EnhancedResultsNotificationPr
                       size="sm"
                       variant="outline"
                       className="h-7 text-xs"
+                      onClick={() => {
+                        // Show detailed result information
+                        console.log('Viewing result details:', result);
+                        // You could open a modal, navigate to details page, or expand inline
+                        alert(`Result Details:\n\nType: ${result.result_type}\nBot: ${result.bot_type}\nConfidence: ${result.confidence_score || 'N/A'}\nActionability: ${result.actionability_rating || 'N/A'}\n\nSummary: ${result.result_data?.summary || 'No summary available'}\n\nFull Data: ${JSON.stringify(result.result_data, null, 2)}`);
+                      }}
                     >
                       <ExternalLink className="h-3 w-3 mr-1" />
                       View
