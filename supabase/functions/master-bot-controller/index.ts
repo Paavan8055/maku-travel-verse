@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { OpenAIServiceWrapper } from '../agents/_shared/openai-service-wrapper.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -146,18 +145,11 @@ serve(async (req) => {
 async function executeAnalysisCommand(supabase: any, command: string, parameters: any): Promise<any> {
   console.log('Executing analysis command:', command);
 
-  const openAiClient = new OpenAIServiceWrapper(Deno.env.get('OPENAI_API_KEY') || '');
-
   // Fetch relevant data for AI analysis
   const systemData = await fetchSystemData(supabase);
 
   // Use AI for sophisticated analysis
-  const aiResponse = await openAiClient.analyze(
-    'MAKU.Travel System Analysis',
-    { command, parameters, systemData },
-    'performance_analysis',
-    `Analyze the MAKU.Travel system focusing on: ${command}. Provide actionable insights, metrics, and recommendations.`
-  );
+  const aiResponse = await callOpenAI(command, systemData, parameters);
 
   if (aiResponse.success) {
     return {
@@ -366,4 +358,121 @@ async function executeQueryCommand(supabase: any, command: string, parameters: a
     summary: 'Query processed',
     response: 'Information retrieved successfully',
   };
+}
+
+// Helper functions
+async function fetchSystemData(supabase: any) {
+  const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  
+  try {
+    const [bookings, tasks, botResults] = await Promise.all([
+      supabase.from('bookings').select('*').gte('created_at', startDate).limit(100),
+      supabase.from('agentic_tasks').select('*').gte('created_at', startDate).limit(50),
+      supabase.from('bot_result_aggregation').select('*').gte('created_at', startDate).limit(50)
+    ]);
+
+    return {
+      bookings: bookings.data || [],
+      tasks: tasks.data || [],
+      bot_results: botResults.data || [],
+      metrics: {
+        total_bookings: bookings.data?.length || 0,
+        task_success_rate: tasks.data ? 
+          Math.round((tasks.data.filter((t: any) => t.status === 'completed').length / tasks.data.length) * 100) : 0,
+        avg_booking_value: bookings.data ? 
+          bookings.data.reduce((sum: number, b: any) => sum + (b.total_amount || 0), 0) / bookings.data.length : 0
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching system data:', error);
+    return { error: 'Data fetch failed' };
+  }
+}
+
+function extractRecommendations(content: string): string[] {
+  const recommendationsMatch = content.match(/(?:recommendations?|suggestions?):\s*\n?((?:[-•*]\s*.+\n?)+)/i);
+  
+  if (recommendationsMatch) {
+    return recommendationsMatch[1]
+      .split(/[-•*]\s*/)
+      .filter(rec => rec.trim())
+      .map(rec => rec.trim().replace(/\n/g, ' '))
+      .slice(0, 5);
+  }
+
+  return [
+    'Continue monitoring system performance',
+    'Review and optimize key metrics',
+    'Implement suggested improvements'
+  ];
+}
+
+async function callOpenAI(command: string, systemData: any, parameters: any) {
+  const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+  
+  if (!openAIApiKey) {
+    return { success: false, content: 'OpenAI API key not configured' };
+  }
+
+  try {
+    const systemPrompt = `You are an expert analyst for MAKU.Travel specializing in system analysis.
+    
+Your task is to analyze the provided system data and provide comprehensive insights.
+
+ANALYSIS TYPE: PERFORMANCE ANALYSIS
+SPECIFIC INSTRUCTIONS: Analyze the MAKU.Travel system focusing on: ${command}. Provide actionable insights, metrics, and recommendations.
+
+Provide detailed analysis including:
+1. Key findings and patterns
+2. Risk assessment and opportunities
+3. Actionable recommendations
+4. Metrics and performance indicators
+5. Strategic implications
+
+Be thorough, data-driven, and focused on actionable insights.`;
+
+    const userPrompt = `Please analyze the following system data:
+
+${JSON.stringify({ command, parameters, systemData }, null, 2)}
+
+Provide comprehensive analysis with specific recommendations.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-2025-08-07',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_completion_tokens: 2000
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content || '';
+
+    return {
+      content,
+      success: true,
+      usage: data.usage
+    };
+
+  } catch (error) {
+    console.error('OpenAI Service Error:', error);
+    return {
+      content: '',
+      success: false,
+      error: error.message
+    };
+  }
 }
