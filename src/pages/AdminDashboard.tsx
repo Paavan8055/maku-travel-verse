@@ -26,6 +26,8 @@ import { GPT5NanoTester } from '@/features/admin/components/GPT5NanoTester';
 import AgentTaskDashboard from '@/features/admin/components/AgentTaskDashboard';
 import { MasterBotControlCenter } from '@/components/admin/MasterBotControlCenter';
 import { MasterBotControllerPhases } from '@/components/master-bot/MasterBotControllerPhases';
+import { UniversalAIProvider } from '@/features/universal-ai/context/UniversalAIContext';
+import UniversalAIWidget from '@/features/universal-ai/components/UniversalAIWidget';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -71,8 +73,9 @@ const AdminDashboard = () => {
   }
 
   return (
-    <AdminIntegrationProvider>
-      <div className="min-h-screen bg-background p-6">
+    <UniversalAIProvider>
+      <AdminIntegrationProvider>
+        <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -293,8 +296,10 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
         </div>
+        <UniversalAIWidget dashboardType="admin" />
       </div>
-    </AdminIntegrationProvider>
+      </AdminIntegrationProvider>
+    </UniversalAIProvider>
   );
 };
 

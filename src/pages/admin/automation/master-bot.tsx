@@ -1,5 +1,6 @@
 import React from 'react';
 import { MasterBotControlCenter } from '@/components/admin/MasterBotControlCenter';
+import AIAnalyticsDashboard from '@/features/universal-ai/components/AIAnalyticsDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Activity, Users, MessageSquare } from 'lucide-react';
