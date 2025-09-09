@@ -410,7 +410,25 @@ export const MasterBotControlCenter: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="assistant" className="space-y-6">
-            <UniversalBotInterface dashboardType="admin" />
+            <div className="grid grid-cols-1 gap-6">
+              <Card className="h-[600px]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-primary" />
+                    Master AI Analyst - Chat Interface
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Communicate directly with the Master AI Analyst for system insights, troubleshooting, and analysis
+                  </p>
+                </CardHeader>
+                <CardContent className="h-full">
+                  <UniversalBotInterface 
+                    dashboardType="admin" 
+                    className="h-full"
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

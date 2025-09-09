@@ -1,6 +1,5 @@
-// TODO: Replace with your Supabase edge function URL
 import logger from '@/utils/logger';
-const MAKU_BOT_API_URL = '/api/maku-bot'; // This will be a Supabase Edge Function
+import { supabase } from '@/integrations/supabase/client';
 
 interface MakuBotContext {
   vertical: 'Family' | 'Solo' | 'Pet' | 'Spiritual';
@@ -30,23 +29,22 @@ export const sendToMakuBot = async (
   context: MakuBotContext
 ): Promise<string> => {
   try {
-    const response = await fetch(MAKU_BOT_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    console.log('Calling Maku Bot edge function:', { message, context });
+    
+    const { data, error } = await supabase.functions.invoke('maku-bot', {
+      body: {
         message,
         context,
         timestamp: new Date().toISOString(),
-      }),
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (error) {
+      console.error('Maku Bot error:', error);
+      throw error;
     }
 
-    const data: MakuBotResponse = await response.json();
+    console.log('Maku Bot response:', data);
     
     if (data.error) {
       throw new Error(data.error);

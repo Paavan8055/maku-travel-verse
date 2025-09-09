@@ -91,9 +91,26 @@ const UniversalBotInterfaceInner: React.FC<UniversalBotInterfaceProps> = ({
             const newMessages = [...prev];
             if (newMessages.length > 0 && newMessages[newMessages.length - 1].type === 'analysis') {
               newMessages[newMessages.length - 1].content = streamedContent;
+              // Set analysisResponse for streaming messages to enable EnhancedResultsDisplay
+              newMessages[newMessages.length - 1].analysisResponse = {
+                content: streamedContent,
+                type: 'analysis_streaming',
+                confidence: 0.8,
+                recommendations: [],
+                insights: []
+              };
             }
             return newMessages;
           });
+        });
+
+        // Update final message with complete response
+        setMessages(prev => {
+          const newMessages = [...prev];
+          if (newMessages.length > 0 && newMessages[newMessages.length - 1].type === 'analysis') {
+            newMessages[newMessages.length - 1].analysisResponse = finalResponse;
+          }
+          return newMessages;
         });
       } else {
         finalResponse = await analyzeWithAI(query, config);

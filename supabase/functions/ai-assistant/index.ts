@@ -1,132 +1,197 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL');
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+interface AIAssistantRequest {
+  query: string;
+  type: 'natural_language' | 'troubleshooting' | 'knowledge_search' | 'predictive_analysis';
+  context: any;
+  conversationHistory?: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+  }>;
+  useExternalPrompt?: boolean;
+  promptId?: string;
+}
+
+interface AIAssistantResponse {
+  type: string;
+  response: string;
+  suggestions?: string[];
+  confidence: number;
+  context_used: boolean;
+  diagnosticSteps?: any[];
+  analysis?: any;
+  recommendedActions?: string[];
+  escalationLevel?: string;
+  predictions?: any;
+  results?: any[];
+  searchQuery?: string;
+  totalResults?: number;
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { 
-      query, 
-      context, 
-      type = 'natural_language',
-      conversationHistory = [],
-      promptId,
-      useExternalPrompt = false
-    } = await req.json();
+    console.log('AI Assistant request received');
     
-    const supabase = createClient(supabaseUrl!, supabaseKey!);
-    
-    console.log('AI Assistant request:', { 
-      query, 
-      type, 
-      useExternalPrompt, 
-      promptId,
-      contextKeys: Object.keys(context || {}) 
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get OpenAI API key
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not found');
+    }
+
+    // Parse request
+    const { query, type, context, conversationHistory, useExternalPrompt, promptId }: AIAssistantRequest = await req.json();
+    console.log('Processing AI query:', query, 'type:', type);
+
+    // Get Master AI Analyst bot configuration
+    const { data: botData, error: botError } = await supabase
+      .from('gpt_bot_registry')
+      .select('*')
+      .eq('bot_name', 'master-ai-analyst')
+      .eq('integration_status', 'active')
+      .maybeSingle();
+
+    if (botError) {
+      console.error('Bot registry error:', botError);
+    }
+
+    // Use bot configuration or fallback
+    const botConfig = botData?.configuration || {};
+    const model = botConfig.model || 'gpt-5-2025-08-07';
+    const systemPrompt = botConfig.system_prompt || getDefaultSystemPrompt(type);
+
+    // Build enhanced system prompt
+    const enhancedPrompt = systemPrompt + `
+
+Context Information:
+- Query Type: ${type}
+- Admin Section: ${context.adminSection || 'general'}
+- System Health: ${context.systemHealth ? 'Available' : 'Not available'}
+- User: ${context.currentUser || 'Unknown'}
+- Timestamp: ${context.timestamp || new Date().toISOString()}
+
+Instructions:
+- Provide comprehensive analysis with actionable insights
+- Include confidence ratings (0-1) for your recommendations
+- Structure responses with clear sections: Analysis, Recommendations, Actions
+- For troubleshooting: provide diagnostic steps and escalation levels
+- For predictions: include trend analysis and risk assessment
+- Always be specific and data-driven when possible`;
+
+    // Build conversation messages
+    const messages = [
+      {
+        role: 'system',
+        content: enhancedPrompt
+      },
+      ...(conversationHistory?.slice(-5) || []),
+      {
+        role: 'user',
+        content: `${query}\n\nAdditional Context: ${JSON.stringify(context, null, 2)}`
+      }
+    ];
+
+    console.log('Calling OpenAI with model:', model);
+
+    // Call OpenAI API
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        max_completion_tokens: botConfig.max_tokens || 2000,
+        // Note: temperature not supported for GPT-5 models
+        ...(model.includes('gpt-4') ? { temperature: botConfig.temperature || 0.7 } : {})
+      }),
     });
 
-    // Get system prompt - either from external prompt or built-in
-    let systemPrompt = '';
-    let promptAnalytics = { promptId: '', responseTime: 0, success: true };
-    
-    if (useExternalPrompt && promptId) {
-      const startTime = Date.now();
-      
-      try {
-        // Fetch external prompt
-        const promptResponse = await supabase.functions.invoke('prompt-manager', {
-          body: { 
-            action: 'fetch', 
-            externalId: promptId 
-          }
-        });
-        
-        if (promptResponse.data?.success && promptResponse.data?.prompt) {
-          systemPrompt = promptResponse.data.prompt.content;
-          promptAnalytics.promptId = promptId;
-        } else {
-          throw new Error('External prompt not found');
-        }
-      } catch (error) {
-        console.error('Failed to fetch external prompt:', error);
-        // Fallback to default prompt
-        systemPrompt = getDefaultSystemPrompt(type);
-        promptAnalytics.success = false;
-      }
-      
-      promptAnalytics.responseTime = Date.now() - startTime;
-    } else {
-      systemPrompt = getDefaultSystemPrompt(type);
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('OpenAI API error:', response.status, errorData);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
-    // Enhanced context gathering
-    const enhancedContext = await gatherEnhancedContext(supabase, context);
-    
-    let response;
-    
-    if (useExternalPrompt && systemPrompt) {
-      response = await processWithExternalPrompt(systemPrompt, query, enhancedContext, conversationHistory);
-    } else {
-      switch (type) {
-        case 'troubleshooting':
-          response = await performAdvancedTroubleshooting(query, enhancedContext);
-          break;
-        case 'knowledge_search':
-          response = await searchKnowledgeBase(supabase, query);
-          break;
-        case 'predictive_analysis':
-          response = await performPredictiveAnalysis(supabase, enhancedContext);
-          break;
-        case 'natural_language':
-        default:
-          response = await processNaturalLanguageQuery(query, enhancedContext);
-          break;
-      }
+    const data = await response.json();
+    console.log('OpenAI response received');
+
+    const aiResponse = data.choices[0].message.content;
+
+    // Parse structured response if possible
+    const structuredResponse = parseAIResponse(aiResponse, type);
+
+    // Generate contextual suggestions
+    const suggestions = generateSuggestions(type, context);
+
+    // Log usage to registry if bot exists
+    if (botData) {
+      const currentMetrics = botData.usage_metrics || {};
+      const updatedMetrics = {
+        ...currentMetrics,
+        total_requests: (currentMetrics.total_requests || 0) + 1,
+        last_used: new Date().toISOString(),
+        tokens_used: (currentMetrics.tokens_used || 0) + (data.usage?.total_tokens || 0)
+      };
+
+      await supabase
+        .from('gpt_bot_registry')
+        .update({ 
+          usage_metrics: updatedMetrics,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', botData.id);
     }
 
-    // Record analytics if external prompt was used
-    if (useExternalPrompt && promptId) {
-      supabase.functions.invoke('prompt-manager', {
-        body: {
-          action: 'analytics',
-          analyticsData: {
-            promptId,
-            responseTime: Date.now(),
-            success: true,
-            context: {
-              type,
-              queryLength: query.length,
-              responseLength: response?.response?.length || 0,
-              conversationLength: conversationHistory?.length || 0
-            }
-          }
-        }
-      }).catch(error => console.error('Failed to record analytics:', error));
-    }
+    const assistantResponse: AIAssistantResponse = {
+      type: `ai_${type}`,
+      response: aiResponse,
+      suggestions,
+      confidence: structuredResponse.confidence || 0.8,
+      context_used: true,
+      ...structuredResponse
+    };
 
-    // Log the interaction for learning
-    await logAIInteraction(supabase, query, response, type);
+    console.log('AI Assistant response ready');
 
-    return new Response(JSON.stringify(response), {
+    return new Response(JSON.stringify(assistantResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
-    console.error('AI Assistant error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to process AI request',
-      details: error.message 
-    }), {
+    console.error('Error in AI Assistant function:', error);
+    
+    const errorResponse: AIAssistantResponse = {
+      type: 'error_response',
+      response: 'I encountered an issue processing your request. Please try rephrasing your question or check the system health dashboard.',
+      suggestions: [
+        'Check system health dashboard',
+        'Review recent alerts',
+        'Contact technical support if the issue persists'
+      ],
+      confidence: 0.3,
+      context_used: false
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -135,406 +200,75 @@ serve(async (req) => {
 
 function getDefaultSystemPrompt(type: string): string {
   const prompts = {
-    troubleshooting: `You are an expert system administrator and troubleshooting specialist for MAKU.Travel.`,
-    knowledge_search: `You are a knowledge management expert for MAKU.Travel.`,
-    predictive_analysis: `You are a predictive analytics expert for MAKU.Travel.`,
-    natural_language: `You are an intelligent AI assistant for MAKU.Travel, a comprehensive travel booking platform.`
+    troubleshooting: "You are the Master AI Analyst for MAKU Travel specializing in system troubleshooting. Analyze issues systematically, provide diagnostic steps, and recommend solutions with confidence ratings.",
+    knowledge_search: "You are the Master AI Analyst for MAKU Travel with access to comprehensive system knowledge. Search and provide relevant information with clear explanations and actionable insights.",
+    predictive_analysis: "You are the Master AI Analyst for MAKU Travel specializing in predictive analytics. Analyze patterns, trends, and provide forecasts with risk assessments and strategic recommendations.",
+    natural_language: "You are the Master AI Analyst for MAKU Travel. You provide comprehensive system analysis, troubleshoot issues, and deliver actionable insights with confidence ratings and structured recommendations."
   };
   
-  return prompts[type as keyof typeof prompts] || prompts.natural_language;
+  return prompts[type] || prompts.natural_language;
 }
 
-async function processWithExternalPrompt(
-  systemPrompt: string, 
-  query: string, 
-  context: any, 
-  conversationHistory: any[] = []
-) {
-  if (!openAIApiKey) {
-    return fallbackResponse(query, context);
-  }
-
-  try {
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory.slice(-10), // Keep last 10 messages for context
-      { role: 'user', content: query }
-    ];
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
-        messages,
-        temperature: 0.7,
-        max_tokens: 1000
-      }),
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
-    }
-
-    const aiResponse = data.choices[0].message.content;
-    
-    return {
-      type: 'external_prompt_response',
-      response: aiResponse,
-      suggestions: generateActionSuggestions(query, context),
-      confidence: 0.95,
-      context_used: true,
-      external_prompt: true
-    };
-    
-  } catch (error) {
-    console.error('External prompt processing error:', error);
-    return fallbackResponse(query, context);
-  }
-}
-
-async function gatherEnhancedContext(supabase: any, baseContext: any) {
-  const enhanced = { ...baseContext };
+function parseAIResponse(response: string, type: string): any {
+  // Try to extract structured information from the AI response
+  const result: any = {};
   
-  try {
-    // Get recent critical alerts
-    const { data: alerts } = await supabase
-      .from('critical_alerts')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10);
-    
-    // Get recent system logs
-    const { data: logs } = await supabase
-      .from('system_logs')
-      .select('*')
-      .gte('created_at', new Date(Date.now() - 3600000).toISOString()) // Last hour
-      .order('created_at', { ascending: false })
-      .limit(50);
-    
-    // Get provider health status
-    const { data: providerHealth } = await supabase
-      .from('provider_health')
-      .select('*')
-      .order('last_checked', { ascending: false })
-      .limit(10);
-
-    enhanced.recentAlerts = alerts || [];
-    enhanced.recentLogs = logs || [];
-    enhanced.providerHealth = providerHealth || [];
-    enhanced.timestamp = new Date().toISOString();
-    
-  } catch (error) {
-    console.error('Error gathering enhanced context:', error);
+  // Extract confidence if mentioned
+  const confidenceMatch = response.match(/confidence[:\s]+([0-9.]+)/i);
+  if (confidenceMatch) {
+    result.confidence = parseFloat(confidenceMatch[1]);
   }
   
-  return enhanced;
-}
-
-async function processNaturalLanguageQuery(query: string, context: any) {
-  if (!openAIApiKey) {
-    return fallbackResponse(query, context);
-  }
-
-  try {
-    const systemPrompt = `You are MAKU.Travel's AI Assistant, specialized in helping administrators manage a travel booking platform. You have access to real-time system data and should provide specific, actionable guidance.
-
-System Context:
-- Recent Alerts: ${JSON.stringify(context.recentAlerts?.slice(0, 3) || [])}
-- Provider Health: ${JSON.stringify(context.providerHealth || [])}
-- Current Time: ${context.timestamp}
-
-Your responses should be:
-1. Specific and actionable
-2. Reference actual system data when relevant
-3. Suggest specific admin dashboard sections to visit
-4. Provide step-by-step guidance for complex issues
-5. Use simple, non-technical language for non-technical admins
-
-Focus on practical solutions and guide users to the right admin tools.`;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query }
-        ],
-        max_tokens: 800,
-        temperature: 0.7,
-      }),
-    });
-
-    const data = await response.json();
+  // Extract recommendations
+  const recommendationMatches = response.match(/(?:recommendations?|actions?)[:\n](.*?)(?:\n\n|\n[A-Z]|$)/is);
+  if (recommendationMatches) {
+    const recommendations = recommendationMatches[1]
+      .split(/\n[-•*]|\n\d+\./)
+      .map(r => r.trim())
+      .filter(r => r.length > 0)
+      .slice(0, 5);
     
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
-    }
-
-    const aiResponse = data.choices[0].message.content;
-    
-    // Enhance response with suggested actions
-    const suggestions = generateActionSuggestions(query, context);
-    
-    return {
-      type: 'ai_response',
-      response: aiResponse,
-      suggestions,
-      confidence: 0.9,
-      context_used: true
-    };
-    
-  } catch (error) {
-    console.error('OpenAI processing error:', error);
-    return fallbackResponse(query, context);
-  }
-}
-
-async function performAdvancedTroubleshooting(query: string, context: any) {
-  // Multi-step diagnostic workflow
-  const diagnosticSteps = [
-    {
-      step: 'System Health Check',
-      status: assessSystemHealth(context),
-      actions: ['Check provider health', 'Review recent alerts', 'Verify system metrics']
-    },
-    {
-      step: 'Issue Correlation',
-      status: 'analyzing',
-      actions: ['Cross-reference similar issues', 'Check timing patterns', 'Review user impact']
-    },
-    {
-      step: 'Root Cause Analysis',
-      status: 'pending',
-      actions: ['Identify primary cause', 'Map dependencies', 'Assess blast radius']
-    }
-  ];
-
-  const analysis = await analyzeIssuePatterns(query, context);
-  
-  return {
-    type: 'advanced_troubleshooting',
-    diagnosticSteps,
-    analysis,
-    recommendedActions: generateTroubleshootingActions(analysis),
-    escalationLevel: determineEscalationLevel(analysis)
-  };
-}
-
-async function searchKnowledgeBase(supabase: any, query: string) {
-  // Search existing knowledge entries
-  const { data: knowledge } = await supabase
-    .from('ai_training_bookings')
-    .select('*')
-    .textSearch('anonymized_data', query)
-    .limit(5);
-
-  // Search system logs for similar patterns
-  const { data: similarLogs } = await supabase
-    .from('system_logs')
-    .select('*')
-    .ilike('message', `%${query}%`)
-    .limit(10);
-
-  return {
-    type: 'knowledge_search',
-    results: knowledge || [],
-    similarPatterns: similarLogs || [],
-    searchQuery: query,
-    totalResults: (knowledge?.length || 0) + (similarLogs?.length || 0)
-  };
-}
-
-async function performPredictiveAnalysis(supabase: any, context: any) {
-  // Analyze patterns for predictive insights
-  const predictions = {
-    systemHealth: predictSystemHealth(context),
-    resourceNeeds: predictResourceNeeds(context),
-    maintenanceWindows: suggestMaintenanceWindows(context),
-    riskAssessment: assessUpcomingRisks(context)
-  };
-
-  return {
-    type: 'predictive_analysis',
-    predictions,
-    confidence: 0.75,
-    recommendations: generatePredictiveRecommendations(predictions)
-  };
-}
-
-function fallbackResponse(query: string, context: any) {
-  // Pattern-based fallback when OpenAI is unavailable
-  const patterns = {
-    booking: /booking|reservation|customer/i,
-    payment: /payment|transaction|refund/i,
-    system: /system|server|down|error/i,
-    user: /user|account|login|access/i
-  };
-
-  let category = 'general';
-  for (const [key, pattern] of Object.entries(patterns)) {
-    if (pattern.test(query)) {
-      category = key;
-      break;
+    if (recommendations.length > 0) {
+      result.recommendedActions = recommendations;
     }
   }
+  
+  // Type-specific parsing
+  if (type === 'troubleshooting') {
+    result.escalationLevel = response.toLowerCase().includes('critical') ? 'high' : 
+                            response.toLowerCase().includes('urgent') ? 'medium' : 'low';
+  }
+  
+  return result;
+}
 
-  const responses = {
-    booking: 'I can help with booking issues. Check the Bookings tab for recent transactions and their status.',
-    payment: 'For payment issues, review the Payments section and check with your payment provider.',
-    system: 'System issues should be checked in the System Health dashboard for current status.',
-    user: 'User account issues can be managed in the Users section of the admin dashboard.',
-    general: 'I can help you navigate the admin dashboard. What specific area would you like assistance with?'
+function generateSuggestions(type: string, context: any): string[] {
+  const baseSuggestions = {
+    troubleshooting: [
+      "Check system health metrics",
+      "Review error logs",
+      "Analyze performance trends",
+      "Generate diagnostic report"
+    ],
+    knowledge_search: [
+      "Search system documentation",
+      "Find best practices",
+      "Get configuration examples",
+      "Review API endpoints"
+    ],
+    predictive_analysis: [
+      "Analyze booking trends",
+      "Predict system load",
+      "Forecast revenue patterns",
+      "Risk assessment report"
+    ],
+    natural_language: [
+      "System performance overview",
+      "Recent alerts summary",
+      "Generate insights report",
+      "Optimization recommendations"
+    ]
   };
 
-  return {
-    type: 'fallback_response',
-    response: responses[category as keyof typeof responses],
-    suggestions: ['Check system health', 'Review recent alerts', 'Navigate to relevant admin section'],
-    confidence: 0.6,
-    context_used: false
-  };
-}
-
-function generateActionSuggestions(query: string, context: any): string[] {
-  const suggestions = [];
-  
-  if (context.recentAlerts?.length > 0) {
-    suggestions.push('Review critical alerts');
-  }
-  
-  if (context.providerHealth?.some((p: any) => p.status !== 'healthy')) {
-    suggestions.push('Check provider health');
-  }
-  
-  suggestions.push('Navigate to System Health dashboard');
-  suggestions.push('Review recent system logs');
-  
-  return suggestions;
-}
-
-function assessSystemHealth(context: any): string {
-  const alertCount = context.recentAlerts?.length || 0;
-  const unhealthyProviders = context.providerHealth?.filter((p: any) => p.status !== 'healthy').length || 0;
-  
-  if (alertCount > 5 || unhealthyProviders > 2) return 'critical';
-  if (alertCount > 2 || unhealthyProviders > 0) return 'warning';
-  return 'healthy';
-}
-
-function analyzeIssuePatterns(query: string, context: any) {
-  return {
-    severity: 'medium',
-    category: 'system',
-    similarIncidents: context.recentLogs?.filter((log: any) => 
-      log.message.toLowerCase().includes(query.toLowerCase())
-    ).length || 0,
-    timePattern: 'peak_hours',
-    userImpact: 'moderate'
-  };
-}
-
-function generateTroubleshootingActions(analysis: any): string[] {
-  const actions = [
-    'Check system metrics dashboard',
-    'Review provider health status',
-    'Examine recent error logs'
-  ];
-  
-  if (analysis.severity === 'critical') {
-    actions.unshift('Escalate to technical team immediately');
-  }
-  
-  return actions;
-}
-
-function determineEscalationLevel(analysis: any): string {
-  if (analysis.severity === 'critical') return 'immediate';
-  if (analysis.userImpact === 'high') return 'urgent';
-  return 'standard';
-}
-
-function predictSystemHealth(context: any) {
-  const trends = {
-    overall: 'stable',
-    providers: 'good',
-    capacity: 'adequate',
-    nextHours: 'stable'
-  };
-  
-  if (context.recentAlerts?.length > 3) {
-    trends.overall = 'declining';
-    trends.nextHours = 'at_risk';
-  }
-  
-  return trends;
-}
-
-function predictResourceNeeds(context: any) {
-  return {
-    storage: 'sufficient',
-    bandwidth: 'adequate',
-    processing: 'good',
-    scaling_needed: false
-  };
-}
-
-function suggestMaintenanceWindows(context: any) {
-  return [
-    { window: '02:00-04:00 UTC', impact: 'minimal', recommended: true },
-    { window: '14:00-16:00 UTC', impact: 'moderate', recommended: false }
-  ];
-}
-
-function assessUpcomingRisks(context: any) {
-  return {
-    high: [],
-    medium: ['Provider API rate limiting'],
-    low: ['Routine maintenance needed']
-  };
-}
-
-function generatePredictiveRecommendations(predictions: any): string[] {
-  const recommendations = [];
-  
-  if (predictions.systemHealth.overall !== 'stable') {
-    recommendations.push('Schedule system health review');
-  }
-  
-  if (predictions.maintenanceWindows.some((w: any) => w.recommended)) {
-    recommendations.push('Plan maintenance during recommended windows');
-  }
-  
-  return recommendations;
-}
-
-async function logAIInteraction(supabase: any, query: string, response: any, type: string) {
-  try {
-    await supabase
-      .from('system_logs')
-      .insert({
-        correlation_id: crypto.randomUUID(),
-        service_name: 'ai_assistant',
-        log_level: 'info',
-        level: 'info',
-        message: `AI interaction: ${type}`,
-        metadata: {
-          query: query.substring(0, 200),
-          response_type: response.type,
-          confidence: response.confidence || 0.5
-        }
-      });
-  } catch (error) {
-    console.error('Failed to log AI interaction:', error);
-  }
+  return baseSuggestions[type] || baseSuggestions.natural_language;
 }

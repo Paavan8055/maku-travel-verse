@@ -391,3 +391,9 @@ verify_jwt = false
 
 [functions.gpt-workflow-orchestrator]
 verify_jwt = false
+
+[functions.maku-bot]
+verify_jwt = false
+
+[functions.ai-assistant]
+verify_jwt = false
