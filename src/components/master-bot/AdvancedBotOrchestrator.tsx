@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMasterBotController } from '@/hooks/useMasterBotController';
 import { useAgentTaskIntegration } from '@/hooks/useAgentTaskIntegration';
+import { useRealBotData } from '@/hooks/useRealBotData';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -50,7 +51,7 @@ interface BotOrchestrationConfig {
 export const AdvancedBotOrchestrator: React.FC = () => {
   const { 
     botResults, 
-    isLoading,
+    isLoading: masterBotLoading,
     executeAdminCommand,
     getHighPriorityResults,
     refreshData 
@@ -62,7 +63,22 @@ export const AdvancedBotOrchestrator: React.FC = () => {
     fetchAgentTasks 
   } = useAgentTaskIntegration();
 
-  const [botHealthMetrics, setBotHealthMetrics] = useState<BotHealthMetrics[]>([]);
+  const {
+    bots,
+    botHealthMetrics,
+    performanceData,
+    isLoading: realDataLoading,
+    error,
+    getActiveBots,
+    getHealthyBots,
+    getDegradedBots,
+    getErrorBots,
+    getOfflineBots,
+    getAverageResponseTime,
+    getAverageSuccessRate,
+    getTotalThroughput,
+    refreshData: refreshRealData
+  } = useRealBotData();
   const [orchestrationConfig] = useState<BotOrchestrationConfig>({
     load_balancing: true,
     auto_failover: true,
@@ -76,51 +92,7 @@ export const AdvancedBotOrchestrator: React.FC = () => {
   const [isOrchestrating, setIsOrchestrating] = useState(false);
   const { toast } = useToast();
 
-  // Real-time bot health monitoring
-  useEffect(() => {
-    const monitorBotHealth = async () => {
-      try {
-        // Simulate bot configurations (avoiding complex Supabase types)
-        const mockBotConfigs = Array.from({ length: 10 }, (_, i) => ({
-          id: `bot_${i + 1}`,
-          name: `Bot ${i + 1}`,
-          is_active: true
-        }));
-
-        const healthMetrics: BotHealthMetrics[] = mockBotConfigs.map((bot) => {
-          // Simulate health check (in production, this would ping actual bot endpoints)
-          const responseTime = Math.random() * 200 + 50; // 50-250ms
-          const successRate = Math.random() * 20 + 80; // 80-100%
-          const errorCount = Math.floor(Math.random() * 5);
-          const throughput = Math.random() * 100 + 20; // 20-120 req/min
-
-          const status = successRate > 95 ? 'healthy' : 
-                        successRate > 80 ? 'degraded' : 
-                        successRate > 50 ? 'error' : 'offline';
-
-          return {
-            id: `health_${bot.id}`,
-            bot_id: bot.id,
-            status: status as 'healthy' | 'degraded' | 'offline' | 'error',
-            response_time: responseTime,
-            success_rate: successRate,
-            last_heartbeat: new Date().toISOString(),
-            error_count: errorCount,
-            throughput
-          };
-        });
-
-        setBotHealthMetrics(healthMetrics);
-      } catch (error) {
-        console.error('Error monitoring bot health:', error);
-      }
-    };
-
-    const interval = setInterval(monitorBotHealth, 5000); // Check every 5 seconds
-    monitorBotHealth(); // Initial check
-
-    return () => clearInterval(interval);
-  }, []);
+  // Note: Real-time bot health monitoring is now handled by useRealBotData hook
 
   const startOrchestration = async () => {
     setIsOrchestrating(true);
@@ -204,13 +176,14 @@ export const AdvancedBotOrchestrator: React.FC = () => {
     }
   };
 
-  const healthyBots = botHealthMetrics.filter(m => m.status === 'healthy').length;
-  const degradedBots = botHealthMetrics.filter(m => m.status === 'degraded').length;
-  const errorBots = botHealthMetrics.filter(m => m.status === 'error').length;
-  const offlineBots = botHealthMetrics.filter(m => m.status === 'offline').length;
-  const averageResponseTime = botHealthMetrics.reduce((sum, m) => sum + m.response_time, 0) / botHealthMetrics.length || 0;
-  const averageSuccessRate = botHealthMetrics.reduce((sum, m) => sum + m.success_rate, 0) / botHealthMetrics.length || 0;
-  const totalThroughput = botHealthMetrics.reduce((sum, m) => sum + m.throughput, 0);
+  const healthyBots = getHealthyBots().length;
+  const degradedBots = getDegradedBots().length;
+  const errorBots = getErrorBots().length;
+  const offlineBots = getOfflineBots().length;
+  const averageResponseTime = getAverageResponseTime();
+  const averageSuccessRate = getAverageSuccessRate();
+  const totalThroughput = getTotalThroughput();
+  const isLoading = masterBotLoading || realDataLoading;
 
   return (
     <div className="space-y-6">
@@ -246,7 +219,10 @@ export const AdvancedBotOrchestrator: React.FC = () => {
               </Button>
               <Button 
                 variant="ghost"
-                onClick={refreshData}
+                onClick={() => {
+                  refreshData();
+                  refreshRealData();
+                }}
                 className="flex items-center space-x-2"
               >
                 <RefreshCw className="h-4 w-4" />

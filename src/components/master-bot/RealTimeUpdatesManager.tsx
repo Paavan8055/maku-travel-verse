@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { supabase } from '@/integrations/supabase/client';
+import { useRealTimeData } from '@/hooks/useRealTimeData';
 import { useToast } from '@/hooks/use-toast';
 import {
   Activity,
@@ -41,164 +41,20 @@ interface ConnectionMetrics {
 }
 
 export const RealTimeUpdatesManager: React.FC = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [events, setEvents] = useState<RealtimeEvent[]>([]);
-  const [metrics, setMetrics] = useState<ConnectionMetrics>({
-    status: 'disconnected',
-    connectedUsers: 0,
-    activeChannels: 0,
-    messageQueue: 0,
-    lastHeartbeat: new Date(),
-    latency: 0,
-    totalMessages: 0,
-    errorRate: 0
-  });
+  const {
+    isConnected,
+    events,
+    metrics,
+    markEventAsProcessed,
+    clearAllEvents,
+    reconnect
+  } = useRealTimeData();
+  
   const [autoScroll, setAutoScroll] = useState(true);
-  const channelRef = useRef<any>(null);
   const eventsEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Initialize WebSocket connection with multiple channels
-  useEffect(() => {
-    const initializeRealtimeConnection = async () => {
-      try {
-        // Main master bot controller channel
-        const masterBotChannel = supabase
-          .channel('master-bot-realtime')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'bot_result_aggregation'
-            },
-            (payload) => {
-              handleRealtimeEvent({
-                id: `bot_result_${Date.now()}`,
-                type: 'bot_result',
-                source: 'bot_result_aggregation',
-                data: payload,
-                timestamp: new Date().toISOString(),
-                priority: 'medium',
-                processed: false
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'admin_bot_commands'
-            },
-            (payload) => {
-              handleRealtimeEvent({
-                id: `admin_command_${Date.now()}`,
-                type: 'admin_command',
-                source: 'admin_bot_commands',
-                data: payload,
-                timestamp: new Date().toISOString(),
-                priority: 'high',
-                processed: false
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'critical_alerts'
-            },
-            (payload) => {
-              handleRealtimeEvent({
-                id: `alert_${Date.now()}`,
-                type: 'system_alert',
-                source: 'critical_alerts',
-                data: payload,
-                timestamp: new Date().toISOString(),
-                priority: 'critical',
-                processed: false
-              });
-            }
-          )
-          .on('presence', { event: 'sync' }, () => {
-            const presenceState = masterBotChannel.presenceState();
-            setMetrics(prev => ({
-              ...prev,
-              connectedUsers: Object.keys(presenceState).length
-            }));
-          })
-          .on('broadcast', { event: 'heartbeat' }, (payload) => {
-            setMetrics(prev => ({
-              ...prev,
-              lastHeartbeat: new Date(),
-              latency: Date.now() - payload.timestamp
-            }));
-          });
-
-        channelRef.current = masterBotChannel;
-
-        const subscribeResult = await masterBotChannel.subscribe((status) => {
-          console.log('Realtime subscription status:', status);
-          setIsConnected(status === 'SUBSCRIBED');
-          setMetrics(prev => ({
-            ...prev,
-            status: status === 'SUBSCRIBED' ? 'connected' : 
-                   status === 'CHANNEL_ERROR' ? 'disconnected' : 'reconnecting'
-          }));
-
-          if (status === 'SUBSCRIBED') {
-            toast({
-              title: 'Real-time Connected',
-              description: 'Live updates are now active'
-            });
-
-            // Send presence and heartbeat
-            masterBotChannel.track({ 
-              user: 'admin',
-              online_at: new Date().toISOString() 
-            });
-
-            // Start heartbeat interval
-            const heartbeatInterval = setInterval(() => {
-              masterBotChannel.send({
-                type: 'broadcast',
-                event: 'heartbeat',
-                payload: { timestamp: Date.now() }
-              });
-            }, 30000); // Every 30 seconds
-
-            return () => clearInterval(heartbeatInterval);
-          }
-        });
-
-        // Update connection metrics
-        setMetrics(prev => ({
-          ...prev,
-          activeChannels: 1,
-          totalMessages: 0,
-          errorRate: 0
-        }));
-
-      } catch (error) {
-        console.error('Failed to initialize realtime connection:', error);
-        toast({
-          title: 'Connection Failed',
-          description: 'Failed to establish real-time connection',
-          variant: 'destructive'
-        });
-      }
-    };
-
-    initializeRealtimeConnection();
-
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-      }
-    };
-  }, [toast]);
+  // Real-time connection is now handled by useRealTimeData hook
 
   // Auto-scroll to latest events
   useEffect(() => {
@@ -207,55 +63,7 @@ export const RealTimeUpdatesManager: React.FC = () => {
     }
   }, [events, autoScroll]);
 
-  // Update total messages metric
-  useEffect(() => {
-    setMetrics(prev => ({
-      ...prev,
-      totalMessages: events.length,
-      messageQueue: events.filter(e => !e.processed).length
-    }));
-  }, [events]);
-
-  const handleRealtimeEvent = (event: RealtimeEvent) => {
-    setEvents(prev => {
-      const newEvents = [event, ...prev].slice(0, 100); // Keep last 100 events
-      return newEvents;
-    });
-
-    // Show toast for critical events
-    if (event.priority === 'critical') {
-      toast({
-        title: 'Critical Alert',
-        description: `New ${event.type} received`,
-        variant: 'destructive'
-      });
-    }
-
-    // Trigger audio notification for high priority events
-    if (event.priority === 'high' || event.priority === 'critical') {
-      // In a real implementation, you'd play an audio notification
-      console.log('High priority event received:', event);
-    }
-  };
-
-  const markEventAsProcessed = (eventId: string) => {
-    setEvents(prev => 
-      prev.map(event => 
-        event.id === eventId ? { ...event, processed: true } : event
-      )
-    );
-  };
-
-  const clearAllEvents = () => {
-    setEvents([]);
-  };
-
-  const reconnect = async () => {
-    if (channelRef.current) {
-      await channelRef.current.unsubscribe();
-      await channelRef.current.subscribe();
-    }
-  };
+  // Event handling is now managed by useRealTimeData hook
 
   const getEventIcon = (type: string) => {
     switch (type) {

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useRealAIData } from '@/hooks/useRealAIData';
 import { ConversationalAI } from '@/components/ai/ConversationalAI';
 import { VoiceSearchInterface } from '@/components/ai/VoiceSearchInterface';
 import {
@@ -105,20 +106,19 @@ export const EnhancedAICapabilities: React.FC = () => {
     { code: 'hi', name: 'Hindi', supported: false, accuracy: 0, voiceSupport: false }
   ]);
 
-  const [conversationStats, setConversationStats] = useState({
-    totalConversations: 1247,
-    activeUsers: 89,
-    averageResponseTime: 1.2,
-    satisfactionScore: 4.6,
-    multilingualUsage: 23
-  });
-
-  const [memoryStats, setMemoryStats] = useState({
-    totalSessions: 567,
-    averageContextLength: 15,
-    preferenceAccuracy: 87,
-    contextRetention: 92
-  });
+  const {
+    conversations,
+    memories,
+    feedback,
+    metrics,
+    isLoading: aiDataLoading,
+    error: aiDataError,
+    getRecentConversations,
+    getActiveMemories,
+    getUnprocessedFeedback,
+    getLanguageDistribution,
+    refreshData: refreshAIData
+  } = useRealAIData();
 
   const { toast } = useToast();
 
@@ -260,7 +260,7 @@ export const EnhancedAICapabilities: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">{conversationStats.totalConversations}</p>
+                <p className="text-2xl font-bold">{metrics.totalConversations}</p>
                 <p className="text-xs text-muted-foreground">Total Conversations</p>
               </div>
               <MessageSquare className="h-4 w-4 ml-auto text-blue-600" />
@@ -271,7 +271,7 @@ export const EnhancedAICapabilities: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">{conversationStats.activeUsers}</p>
+                <p className="text-2xl font-bold">{metrics.activeUsers}</p>
                 <p className="text-xs text-muted-foreground">Active Users</p>
               </div>
               <Users className="h-4 w-4 ml-auto text-green-600" />
@@ -282,7 +282,7 @@ export const EnhancedAICapabilities: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">{conversationStats.averageResponseTime}s</p>
+                <p className="text-2xl font-bold">{metrics.averageResponseTime.toFixed(1)}s</p>
                 <p className="text-xs text-muted-foreground">Avg Response Time</p>
               </div>
               <Zap className="h-4 w-4 ml-auto text-yellow-600" />
@@ -293,7 +293,7 @@ export const EnhancedAICapabilities: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">{conversationStats.satisfactionScore}/5</p>
+                <p className="text-2xl font-bold">{metrics.satisfactionScore.toFixed(1)}/5</p>
                 <p className="text-xs text-muted-foreground">Satisfaction Score</p>
               </div>
               <TrendingUp className="h-4 w-4 ml-auto text-purple-600" />
@@ -530,20 +530,20 @@ export const EnhancedAICapabilities: React.FC = () => {
               <div className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{memoryStats.totalSessions}</p>
+                    <p className="text-2xl font-bold text-blue-600">{getActiveMemories().length}</p>
                     <p className="text-sm text-muted-foreground">Active Sessions</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{memoryStats.averageContextLength}</p>
-                    <p className="text-sm text-muted-foreground">Avg Context Length</p>
+                    <p className="text-2xl font-bold text-green-600">{memories.length}</p>
+                    <p className="text-sm text-muted-foreground">Total Memories</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">{memoryStats.preferenceAccuracy}%</p>
-                    <p className="text-sm text-muted-foreground">Preference Accuracy</p>
+                    <p className="text-2xl font-bold text-purple-600">{metrics.contextAccuracy.toFixed(1)}%</p>
+                    <p className="text-sm text-muted-foreground">Context Accuracy</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-orange-600">{memoryStats.contextRetention}%</p>
-                    <p className="text-sm text-muted-foreground">Context Retention</p>
+                    <p className="text-2xl font-bold text-orange-600">{metrics.memoryRetention.toFixed(1)}%</p>
+                    <p className="text-sm text-muted-foreground">Memory Retention</p>
                   </div>
                 </div>
 

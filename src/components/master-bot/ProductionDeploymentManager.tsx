@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useRealProductionData } from '@/hooks/useRealProductionData';
 import {
   Rocket,
   Server,
@@ -59,38 +60,17 @@ interface PerformanceMetric {
 }
 
 export const ProductionDeploymentManager: React.FC = () => {
-  const [deploymentStatuses, setDeploymentStatuses] = useState<DeploymentStatus[]>([
-    {
-      environment: 'development',
-      status: 'healthy',
-      version: 'v2.8.0-dev',
-      lastDeployed: '2024-01-15T10:30:00Z',
-      uptime: 99.5,
-      errorRate: 2.1,
-      responseTime: 120,
-      activeUsers: 5
-    },
-    {
-      environment: 'staging',
-      status: 'healthy',
-      version: 'v2.7.5-staging',
-      lastDeployed: '2024-01-14T16:45:00Z',
-      uptime: 99.8,
-      errorRate: 0.8,
-      responseTime: 95,
-      activeUsers: 23
-    },
-    {
-      environment: 'production',
-      status: 'healthy',
-      version: 'v2.7.4',
-      lastDeployed: '2024-01-12T14:20:00Z',
-      uptime: 99.9,
-      errorRate: 0.3,
-      responseTime: 87,
-      activeUsers: 1247
-    }
-  ]);
+  const {
+    systemHealth,
+    deployments,
+    performanceMetrics: realPerformanceMetrics,
+    isLoading: productionDataLoading,
+    error: productionDataError,
+    getHealthyDeployments,
+    getCriticalMetrics,
+    getOverallHealthScore,
+    refreshData: refreshProductionData
+  } = useRealProductionData();
 
   const [abTests, setAbTests] = useState<ABTest[]>([
     {
@@ -113,15 +93,6 @@ export const ProductionDeploymentManager: React.FC = () => {
       participants: 3200,
       startDate: '2024-01-08T00:00:00Z'
     }
-  ]);
-
-  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetric[]>([
-    { name: 'Response Time', value: 87, target: 100, status: 'good', trend: 'down' },
-    { name: 'Error Rate', value: 0.3, target: 1.0, status: 'good', trend: 'stable' },
-    { name: 'Uptime', value: 99.9, target: 99.5, status: 'good', trend: 'up' },
-    { name: 'Conversion Rate', value: 15.2, target: 12.0, status: 'good', trend: 'up' },
-    { name: 'Page Load Speed', value: 1.8, target: 2.0, status: 'good', trend: 'down' },
-    { name: 'User Satisfaction', value: 4.6, target: 4.0, status: 'good', trend: 'up' }
   ]);
 
   const [isDeploying, setIsDeploying] = useState(false);
@@ -153,19 +124,8 @@ export const ProductionDeploymentManager: React.FC = () => {
         });
       }
 
-      // Update deployment status
-      setDeploymentStatuses(prev => 
-        prev.map(status => 
-          status.environment === environment 
-            ? { 
-                ...status, 
-                status: 'healthy',
-                version: 'v2.8.0',
-                lastDeployed: new Date().toISOString()
-              }
-            : status
-        )
-      );
+      // Refresh production data after deployment
+      refreshProductionData();
 
       toast({
         title: 'Deployment Successful',
@@ -189,17 +149,8 @@ export const ProductionDeploymentManager: React.FC = () => {
       // Simulate rollback
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      setDeploymentStatuses(prev => 
-        prev.map(status => 
-          status.environment === environment 
-            ? { 
-                ...status, 
-                version: 'v2.7.3',
-                lastDeployed: new Date().toISOString()
-              }
-            : status
-        )
-      );
+      // Refresh production data after rollback
+      refreshProductionData();
 
       toast({
         title: 'Rollback Complete',
@@ -288,7 +239,7 @@ export const ProductionDeploymentManager: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">99.9%</p>
+                <p className="text-2xl font-bold">{systemHealth?.uptime.toFixed(1) || '99.9'}%</p>
                 <p className="text-xs text-muted-foreground">System Uptime</p>
               </div>
               <Server className="h-4 w-4 ml-auto text-green-600" />
@@ -299,7 +250,7 @@ export const ProductionDeploymentManager: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">1,247</p>
+                <p className="text-2xl font-bold">{systemHealth?.activeUsers.toLocaleString() || '1,247'}</p>
                 <p className="text-xs text-muted-foreground">Active Users</p>
               </div>
               <Users className="h-4 w-4 ml-auto text-blue-600" />
@@ -310,7 +261,7 @@ export const ProductionDeploymentManager: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">87ms</p>
+                <p className="text-2xl font-bold">{systemHealth?.responseTime.toFixed(0) || '87'}ms</p>
                 <p className="text-xs text-muted-foreground">Response Time</p>
               </div>
               <Zap className="h-4 w-4 ml-auto text-yellow-600" />
@@ -321,7 +272,7 @@ export const ProductionDeploymentManager: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div>
-                <p className="text-2xl font-bold">0.3%</p>
+                <p className="text-2xl font-bold">{systemHealth?.errorRate.toFixed(1) || '0.3'}%</p>
                 <p className="text-xs text-muted-foreground">Error Rate</p>
               </div>
               <BarChart3 className="h-4 w-4 ml-auto text-purple-600" />
@@ -365,7 +316,7 @@ export const ProductionDeploymentManager: React.FC = () => {
                   </Alert>
                 )}
 
-                {deploymentStatuses.map((deployment) => (
+                {deployments.map((deployment) => (
                   <div 
                     key={deployment.environment}
                     className="p-4 border rounded-lg space-y-4"
@@ -403,20 +354,20 @@ export const ProductionDeploymentManager: React.FC = () => {
 
                     <div className="grid grid-cols-4 gap-4 text-center">
                       <div>
-                        <p className="text-sm text-muted-foreground">Uptime</p>
-                        <p className="font-bold">{deployment.uptime}%</p>
+                        <p className="text-sm text-muted-foreground">Deployment Logs</p>
+                        <p className="font-bold">{deployment.deploymentLogs?.length || 0}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Error Rate</p>
-                        <p className="font-bold">{deployment.errorRate}%</p>
+                        <p className="text-sm text-muted-foreground">Status</p>
+                        <p className="font-bold">{deployment.status.toUpperCase()}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Response Time</p>
-                        <p className="font-bold">{deployment.responseTime}ms</p>
+                        <p className="text-sm text-muted-foreground">Version</p>
+                        <p className="font-bold">{deployment.version}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Active Users</p>
-                        <p className="font-bold">{deployment.activeUsers}</p>
+                        <p className="text-sm text-muted-foreground">Environment</p>
+                        <p className="font-bold">{deployment.environment.toUpperCase()}</p>
                       </div>
                     </div>
 
