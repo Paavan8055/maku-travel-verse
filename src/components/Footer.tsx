@@ -1,6 +1,7 @@
 import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug, HelpCircle, MessageCircle, Shield, FileText, Mail, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const footerLinks = {
@@ -118,9 +119,9 @@ return <footer className="bg-primary text-primary-foreground">
               <ul className="space-y-3">
                 {footerLinks.company.map(link => (
                   <li key={link.name}>
-                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
+                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
                       {link.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -132,10 +133,10 @@ return <footer className="bg-primary text-primary-foreground">
               <ul className="space-y-3">
                 {footerLinks.technology.map(link => (
                   <li key={link.name}>
-                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
                       <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
                       {link.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -147,9 +148,9 @@ return <footer className="bg-primary text-primary-foreground">
               <ul className="space-y-3">
                 {footerLinks.services.map(link => (
                   <li key={link.name}>
-                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
+                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
                       {link.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -161,10 +162,10 @@ return <footer className="bg-primary text-primary-foreground">
               <ul className="space-y-3">
                 {footerLinks.developers.map(link => (
                   <li key={link.name}>
-                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
                       <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
                       {link.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -176,10 +177,17 @@ return <footer className="bg-primary text-primary-foreground">
               <ul className="space-y-3">
                 {footerLinks.support.map(link => (
                   <li key={link.name}>
-                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
-                      <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
-                      {link.name}
-                    </a>
+                    {link.href.startsWith('mailto:') ? (
+                      <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                        <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        {link.name}
+                      </a>
+                    ) : (
+                      <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                        <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        {link.name}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

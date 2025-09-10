@@ -28,6 +28,19 @@ import "./App.css";
 const Index = createLazyRoute(() => import("./pages/Index"));
 const Acknowledgments = createLazyRoute(() => import("./pages/Acknowledgments"));
 const Auth = createLazyRoute(() => import("./pages/Auth"));
+const About = createLazyRoute(() => import("./pages/About"));
+const Careers = createLazyRoute(() => import("./pages/Careers"));
+const Press = createLazyRoute(() => import("./pages/Press"));
+const AIAssistant = createLazyRoute(() => import("./pages/AIAssistant"));
+const TravelBot = createLazyRoute(() => import("./pages/TravelBot"));
+const AIEngine = createLazyRoute(() => import("./pages/AIEngine"));
+const CryptoPayments = createLazyRoute(() => import("./pages/CryptoPayments"));
+const Demo = createLazyRoute(() => import("./pages/Demo"));
+const Developers = createLazyRoute(() => import("./pages/Developers"));
+const APIDocs = createLazyRoute(() => import("./pages/APIDocs"));
+const Integrations = createLazyRoute(() => import("./pages/Integrations"));
+const PartnerPortal = createLazyRoute(() => import("./pages/PartnerPortal"));
+const Deals = createLazyRoute(() => import("./pages/Deals"));
 const Partners = createLazyRoute(() => import("./pages/Partners"));
 const GiftCards = createLazyRoute(() => import("./pages/GiftCards"));
 const Help = createLazyRoute(() => import("./pages/Help"));
@@ -145,6 +158,19 @@ const App = () => (
                                         <Route path="/" element={<Index />} />
                                         <Route path="/auth" element={<Auth />} />
                                         <Route path="/acknowledgments" element={<Acknowledgments />} />
+                                        <Route path="/about" element={<About />} />
+                                        <Route path="/careers" element={<Careers />} />
+                                        <Route path="/press" element={<Press />} />
+                                        <Route path="/ai-assistant" element={<AIAssistant />} />
+                                        <Route path="/travel-bot" element={<TravelBot />} />
+                                        <Route path="/ai-engine" element={<AIEngine />} />
+                                        <Route path="/crypto-payments" element={<CryptoPayments />} />
+                                        <Route path="/demo" element={<Demo />} />
+                                        <Route path="/developers" element={<Developers />} />
+                                        <Route path="/api-docs" element={<APIDocs />} />
+                                        <Route path="/integrations" element={<Integrations />} />
+                                        <Route path="/partner-portal" element={<PartnerPortal />} />
+                                        <Route path="/deals" element={<Deals />} />
                                         <Route path="/partners" element={<Partners />} />
                                         <Route path="/gift-cards" element={<GiftCards />} />
                                         <Route path="/help" element={<Help />} />
