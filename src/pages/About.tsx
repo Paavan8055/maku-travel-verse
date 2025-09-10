@@ -1,9 +1,10 @@
 
-import { Plane, Shield, Workflow, Wallet, Network, Sparkles } from "lucide-react";
+import { Plane, Shield, Workflow, Wallet, Network, Sparkles, CheckCircle, Clock, Circle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useLiveTimeline } from "@/hooks/useLiveTimeline";
 
 const bullets = [
   {
@@ -34,6 +35,19 @@ const bullets = [
 ];
 
 export default function About() {
+  const timeline = useLiveTimeline();
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'current':
+        return <Clock className="h-4 w-4 text-primary" />;
+      default:
+        return <Circle className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -57,37 +71,26 @@ export default function About() {
         </div>
       </section>
 
-      {/* Timeline (facts only) */}
+      {/* Timeline (live data) */}
       <section className="mx-auto max-w-6xl px-6 py-16">
         <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">Our Journey</h2>
         <div className="grid md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Q4 2024</p>
-              <h3 className="font-semibold text-xl mt-2">Concept & Research</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                We kicked off in Sydney with a clear aim: trusted, personalised travel for every type of journey.
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">June 2025</p>
-              <h3 className="font-semibold text-xl mt-2">MVP Delivered</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Hotels, flights and Travel Fund Manager integrated with our AI assistant and secure payment pipeline.
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">23 Oct 2025</p>
-              <h3 className="font-semibold text-xl mt-2">Public Launch (Diwali)</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Four-way marketplace—families/friends, solo and pet-friendly—powered by provider rotation.
-              </p>
-            </CardContent>
-          </Card>
+          {timeline.milestones.map((milestone) => (
+            <Card key={milestone.id} className={milestone.status === 'current' ? 'ring-2 ring-primary' : ''}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  {getStatusIcon(milestone.status)}
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {milestone.formattedDate}
+                  </p>
+                </div>
+                <h3 className="font-semibold text-xl mt-2">{milestone.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {milestone.description}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
