@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug, HelpCircle, MessageCircle, Shield, FileText, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -14,7 +14,7 @@ const Footer = () => {
       name: "Press",
       href: "/press"
     }],
-    aiCapabilities: [{
+    technology: [{
       name: "Maku AI Assistant",
       href: "/ai-assistant",
       icon: Bot
@@ -26,8 +26,7 @@ const Footer = () => {
       name: "Universal AI Engine",
       href: "/ai-engine",
       icon: Zap
-    }],
-    innovation: [{
+    }, {
       name: "Interactive Roadmap",
       href: "/roadmap",
       icon: Map
@@ -75,16 +74,20 @@ const Footer = () => {
     }],
     support: [{
       name: "Help Center",
-      href: "/partners?tab=help"
+      href: "/partners?tab=help",
+      icon: HelpCircle
     }, {
       name: "Safety & Security",
-      href: "/partners?tab=safety"
+      href: "/partners?tab=safety",
+      icon: Shield
     }, {
       name: "Cancellation Policy",
-      href: "/partners?tab=policies"
+      href: "/partners?tab=policies",
+      icon: FileText
     }, {
       name: "Contact Us",
-      href: "mailto:support@maku.travel"
+      href: "mailto:support@maku.travel",
+      icon: Mail
     }]
   };
   const socialLinks = [{
@@ -106,9 +109,9 @@ const Footer = () => {
   }];
 return <footer className="bg-primary text-primary-foreground">
       {/* Main Footer Content */}
-      <div className="py-16 px-6 bg-gradient-pink-orange">
+      <div className="py-12 px-6 bg-gradient-pink-orange">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {/* Company */}
             <div>
               <h4 className="font-semibold text-lg mb-4">Company</h4>
@@ -123,26 +126,11 @@ return <footer className="bg-primary text-primary-foreground">
               </ul>
             </div>
 
-            {/* AI Capabilities */}
+            {/* Technology */}
             <div className="relative">
-              <h4 className="font-semibold text-lg mb-4 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">AI Capabilities</h4>
+              <h4 className="font-semibold text-lg mb-4 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">Technology</h4>
               <ul className="space-y-3">
-                {footerLinks.aiCapabilities.map(link => (
-                  <li key={link.name}>
-                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
-                      <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
-                      {link.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Innovation */}
-            <div className="relative">
-              <h4 className="font-semibold text-lg mb-4">Innovation</h4>
-              <ul className="space-y-3">
-                {footerLinks.innovation.map(link => (
+                {footerLinks.technology.map(link => (
                   <li key={link.name}>
                     <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
                       <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -182,8 +170,23 @@ return <footer className="bg-primary text-primary-foreground">
               </ul>
             </div>
 
+            {/* Support */}
+            <div>
+              <h4 className="font-semibold text-lg mb-4">Support</h4>
+              <ul className="space-y-3">
+                {footerLinks.support.map(link => (
+                  <li key={link.name}>
+                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                      <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {/* Follow / Newsletter */}
-            <div className="md:col-span-2 lg:col-span-1">
+            <div>
               <h4 className="font-semibold text-lg mb-4">Follow</h4>
               <p className="text-sm text-primary-foreground/80 mb-4">Stay connected for travel updates and exclusive deals</p>
               <div className="flex items-center gap-3 mb-6">
