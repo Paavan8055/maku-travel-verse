@@ -27,10 +27,10 @@ const Press = () => {
       title: "Soft Beta Launch Date & Travel Eco-system Vision",
       date: "2025-07-15",
       category: "Company News",
-      excerpt: "Australian travel tech startup announces September 9, 2025 soft beta launch of revolutionary travel ecosystem connecting specialized marketplaces, AI-powered planning, and sustainable travel solutions.",
+      excerpt: "Australian travel tech startup announces October 23, 2025 (Diwali) launch of revolutionary travel ecosystem connecting specialized marketplaces, AI-powered planning, and sustainable travel solutions. We apologize for technical delays that required additional development time.",
       featured: true,
       readTime: "4 min read",
-      fullText: "Melbourne, Australia - Maku.travel, an innovative Australian travel technology startup, today announced its official soft beta launch date of September 9, 2025, alongside the unveiling of its comprehensive travel ecosystem vision. The platform introduces a revolutionary approach that goes beyond traditional booking platforms, creating an interconnected travel ecosystem that includes four specialized marketplaces (Family adventures, Solo explorations, Pet-friendly journeys, and Spiritual travel experiences), AI-powered travel planning, sustainable tourism initiatives, and blockchain-integrated payment solutions. This ecosystem approach addresses the growing demand for personalized, responsible travel solutions in the Australian market while setting the foundation for global expansion. The soft beta launch will initially serve Australian travelers, with plans to gather real-world feedback and refine the platform's unique ecosystem approach before full public launch in Q1 2026. The company's vision extends beyond simple booking functionality to create a comprehensive travel companion that supports every aspect of the modern traveler's journey, from inspiration and planning to booking and post-travel sharing."
+      fullText: "Melbourne, Australia - Maku.travel, an innovative Australian travel technology startup, today announced its official launch date of October 23, 2025 (coinciding with Diwali celebrations), alongside the unveiling of its comprehensive travel ecosystem vision. We sincerely apologize for the delay from our original September timeline due to critical technical refinements and security enhancements that required additional development time. The platform introduces a revolutionary approach that goes beyond traditional booking platforms, creating an interconnected travel ecosystem that includes four specialized marketplaces (Family adventures, Solo explorations, Pet-friendly journeys, and Spiritual travel experiences), AI-powered travel planning, sustainable tourism initiatives, and blockchain-integrated payment solutions. This ecosystem approach addresses the growing demand for personalized, responsible travel solutions in the Australian market while setting the foundation for global expansion. Our development has been significantly supported by the Lovable development platform, extensive GitHub repositories, Supabase backend integration, and ChatGPT plugin capabilities, enabling us to build a robust and scalable platform. The Diwali launch will initially serve Australian travelers, with plans to gather real-world feedback and refine the platform's unique ecosystem approach before full public launch in Q1 2026. The company's vision extends beyond simple booking functionality to create a comprehensive travel companion that supports every aspect of the modern traveler's journey, from inspiration and planning to booking and post-travel sharing."
     },
     {
       id: 2,
@@ -64,8 +64,8 @@ const Press = () => {
   const milestones = [
     { title: "Concept & Research", progress: 100, date: "Q4 2024" },
     { title: "MVP Development", progress: 100, date: "Q1-Q2 2025" },
-    { title: "Soft Launch", progress: 90, date: "Sep 9, 2025" },
-    { title: "Beta Testing", progress: 75, date: "Sep 15, 2025" },
+    { title: "Platform Launch", progress: 85, date: "Oct 23, 2025 (Diwali)" },
+    { title: "Beta Testing", progress: 90, date: "Nov 1, 2025" },
     { title: "Public Launch", progress: 25, date: "Q1 2026" },
     { title: "India Expansion", progress: 10, date: "Q2 2026" }
   ];
@@ -79,7 +79,7 @@ const Press = () => {
 
   // Countdown to soft launch
   useEffect(() => {
-    const targetDate = new Date("2025-09-09").getTime();
+    const targetDate = new Date("2025-10-23").getTime();
     
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -158,7 +158,7 @@ const Press = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20 animate-scale-in">
               <h3 className="text-lg font-semibold mb-4 flex items-center justify-center gap-2">
                 <Rocket className="h-5 w-5" />
-                Countdown to Soft Launch
+                 Countdown to Diwali Launch
               </h3>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>

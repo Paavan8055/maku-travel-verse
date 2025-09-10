@@ -46,7 +46,7 @@ const About = () => {
           </p>
           <div className="flex items-center justify-center gap-4 text-lg">
             <Plane className="h-6 w-6" />
-            <span>Concept begins Q4 2024 • MVP delivered June 2025 • Based in Sydney, Australia</span>
+            <span>Concept begins Q4 2024 • MVP delivered June 2025 • Launch October 23, 2025 (Diwali) • Based in Sydney, Australia</span>
           </div>
         </div>
       </section>
@@ -81,9 +81,10 @@ const About = () => {
             </p>
             <p className="text-lg leading-relaxed mb-6">
               Following intensive development through early 2025, we delivered our MVP in June 2025 
-              and launched our soft beta in September 2025. Our innovative four-way marketplace approach 
-              recognizes that a family vacation, solo adventure, pet-friendly trip, or spiritual retreat 
-              each requires a completely different approach.
+              and are launching on October 23, 2025 (Diwali). We apologize for the delay from our 
+              original September timeline due to critical technical refinements and security enhancements. 
+              Our innovative four-way marketplace approach recognizes that a family vacation, solo adventure, 
+              pet-friendly trip, or spiritual retreat each requires a completely different approach.
             </p>
             <p className="text-lg leading-relaxed">
               Today, as we refine our platform through beta testing, we're building partnerships with 
