@@ -28,6 +28,10 @@ import "./App.css";
 const Index = createLazyRoute(() => import("./pages/Index"));
 const Acknowledgments = createLazyRoute(() => import("./pages/Acknowledgments"));
 const Auth = createLazyRoute(() => import("./pages/Auth"));
+const Partners = createLazyRoute(() => import("./pages/Partners"));
+const GiftCards = createLazyRoute(() => import("./pages/GiftCards"));
+const Help = createLazyRoute(() => import("./pages/Help"));
+const Roadmap = createLazyRoute(() => import("./pages/Roadmap"));
 const FlightsPage = createLazyRoute(() => import("./pages/flights"));
 const ActivitiesPage = createLazyRoute(() => import("./pages/activities"));
 const HotelSearchPage = createLazyRoute(() => import("./pages/search/hotels"));
@@ -141,6 +145,10 @@ const App = () => (
                                         <Route path="/" element={<Index />} />
                                         <Route path="/auth" element={<Auth />} />
                                         <Route path="/acknowledgments" element={<Acknowledgments />} />
+                                        <Route path="/partners" element={<Partners />} />
+                                        <Route path="/gift-cards" element={<GiftCards />} />
+                                        <Route path="/help" element={<Help />} />
+                                        <Route path="/roadmap" element={<Roadmap />} />
                                         <Route path="/travel-fund" element={<TravelFundPage />} />
                                         <Route path="/join-fund" element={<JoinFundPage />} />
                                         <Route path="/booking-success" element={<BookingSuccessPage />} />
