@@ -120,6 +120,19 @@ const Navbar = () => {
               <span>Partners</span>
             </Button>
             
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" role="menuitem">
+                  <span>Web3</span>
+                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem onClick={() => navigate('/nft')}>NFT Collection</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/airdrop')}>Airdrop</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             {isAdmin && (
               <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/admin')} role="menuitem">
                 <Shield className="h-4 w-4" aria-hidden="true" />
@@ -246,6 +259,18 @@ const Navbar = () => {
               }}>
                 <UsersIcon className="mr-2 h-4 w-4" />
                 Partners
+              </Button>
+              <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                navigate('/nft');
+                setIsMenuOpen(false);
+              }}>
+                NFT Collection
+              </Button>
+              <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                navigate('/airdrop');
+                setIsMenuOpen(false);
+              }}>
+                Airdrop
               </Button>
               {isAdmin && (
                 <Button variant="ghost" className="w-full justify-start" onClick={() => {

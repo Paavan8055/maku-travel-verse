@@ -2,6 +2,7 @@
 import { Plane, Shield, Workflow, Wallet, Network, Sparkles, CheckCircle, Clock, Circle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import FooterCtas from "@/components/FooterCtas";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLiveTimeline } from "@/hooks/useLiveTimeline";
@@ -166,6 +167,7 @@ export default function About() {
         </div>
       </section>
 
+      <FooterCtas />
       <Footer />
     </div>
   );

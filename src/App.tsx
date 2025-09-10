@@ -29,6 +29,8 @@ const Index = createLazyRoute(() => import("./pages/Index"));
 const Acknowledgments = createLazyRoute(() => import("./pages/Acknowledgments"));
 const Auth = createLazyRoute(() => import("./pages/Auth"));
 const About = createLazyRoute(() => import("./pages/About"));
+const NFT = createLazyRoute(() => import("./pages/NFT"));
+const Airdrop = createLazyRoute(() => import("./pages/Airdrop"));
 const Careers = createLazyRoute(() => import("./pages/Careers"));
 const Press = createLazyRoute(() => import("./pages/Press"));
 const AIAssistant = createLazyRoute(() => import("./pages/AIAssistant"));
@@ -159,6 +161,8 @@ const App = () => (
                                         <Route path="/auth" element={<Auth />} />
                                         <Route path="/acknowledgments" element={<Acknowledgments />} />
                                         <Route path="/about" element={<About />} />
+                                        <Route path="/nft" element={<NFT />} />
+                                        <Route path="/airdrop" element={<Airdrop />} />
                                         <Route path="/careers" element={<Careers />} />
                                         <Route path="/press" element={<Press />} />
                                         <Route path="/ai-assistant" element={<AIAssistant />} />

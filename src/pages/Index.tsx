@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 // Lazy load below-the-fold components for better performance
 const MarketplaceSection = lazy(() => import("@/components/MarketplaceSection"));
 const FeaturedListings = lazy(() => import("@/components/FeaturedListings"));
+const FooterCtas = lazy(() => import("@/components/FooterCtas"));
 const Footer = lazy(() => import("@/components/Footer"));
 const ChatWidget = lazy(() => import("@/features/makuBot/components/ChatWidget"));
 const AgenticWidget = lazy(() => import("@/features/agenticBot/components/AgenticWidget"));
@@ -34,6 +35,10 @@ const Index = () => {
             <FeaturedListings />
           </Suspense>
       
+          <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse" />}>
+            <FooterCtas />
+          </Suspense>
+          
           <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse" />}>
             <Footer />
           </Suspense>
