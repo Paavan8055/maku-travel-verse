@@ -26,6 +26,7 @@ import "./App.css";
 
 // Lazy load pages for better performance
 const Index = createLazyRoute(() => import("./pages/Index"));
+const Acknowledgments = createLazyRoute(() => import("./pages/Acknowledgments"));
 const Auth = createLazyRoute(() => import("./pages/Auth"));
 const FlightsPage = createLazyRoute(() => import("./pages/flights"));
 const ActivitiesPage = createLazyRoute(() => import("./pages/activities"));
@@ -139,6 +140,7 @@ const App = () => (
                                       <Routes>
                                         <Route path="/" element={<Index />} />
                                         <Route path="/auth" element={<Auth />} />
+                                        <Route path="/acknowledgments" element={<Acknowledgments />} />
                                         <Route path="/travel-fund" element={<TravelFundPage />} />
                                         <Route path="/join-fund" element={<JoinFundPage />} />
                                         <Route path="/booking-success" element={<BookingSuccessPage />} />

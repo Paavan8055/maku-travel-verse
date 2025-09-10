@@ -217,6 +217,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown | null
+          is_active: boolean | null
+          last_activity: string | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -9981,6 +10017,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_secure_admin_action: {
+        Args: {
+          action_data?: Json
+          action_type: string
+          resource_id?: string
+          resource_type?: string
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           p_action_type: string
@@ -10100,6 +10145,10 @@ export type Database = {
       upsert_market_analytics: {
         Args: { p_data: Json; p_metric: string; p_scope: Json }
         Returns: string
+      }
+      verify_admin_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       verify_guest_booking_access: {
         Args: { _booking_id: string; _email: string; _token?: string }
