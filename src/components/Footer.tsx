@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug, HelpCircle, MessageCircle, Shield, FileText, Mail } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug, HelpCircle, MessageCircle, Shield, FileText, Mail, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -37,7 +37,7 @@ const Footer = () => {
     }, {
       name: "Live Demo Center",
       href: "/demo",
-      icon: Zap
+      icon: Play
     }],
     services: [{
       name: "Hotels & Accommodation",
@@ -111,7 +111,7 @@ return <footer className="bg-primary text-primary-foreground">
       {/* Main Footer Content */}
       <div className="py-12 px-6 bg-gradient-pink-orange">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
             {/* Company */}
             <div>
               <h4 className="font-semibold text-lg mb-4">Company</h4>
@@ -184,63 +184,38 @@ return <footer className="bg-primary text-primary-foreground">
                 ))}
               </ul>
             </div>
-
-            {/* Follow / Newsletter */}
-            <div>
-              <h4 className="font-semibold text-lg mb-4">Follow</h4>
-              <p className="text-sm text-primary-foreground/80 mb-4">Stay connected for travel updates and exclusive deals</p>
-              <div className="flex items-center gap-3 mb-6">
-                {socialLinks.map(social => (
-                  <a
-                    key={social.name}
-                    href={social.href}
-                    aria-label={social.name}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 transition-colors"
-                  >
-                    <social.icon className="h-5 w-5" />
-                  </a>
-                ))}
-              </div>
-              <p className="text-sm text-primary-foreground/80 mb-2">Subscribe to our newsletter</p>
-              <div className="flex gap-2">
-                <Input type="email" placeholder="Your email" className="bg-white/15 border-white/20 placeholder:text-white/70 text-white" />
-                <Button className="bg-white/20 hover:bg-white/30 text-white" aria-label="Subscribe">
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              {/* Support Section moved here for mobile */}
-              <div className="mt-8 lg:hidden">
-                <h4 className="font-semibold text-lg mb-4">Support</h4>
-                <ul className="space-y-3">
-                  {footerLinks.support.map(link => (
-                    <li key={link.name}>
-                      <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
-                        {link.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
           </div>
           
-          {/* Support Section for desktop */}
-          <div className="hidden lg:block mt-12 pt-8 border-t border-white/15">
-            <div className="grid grid-cols-4 gap-8">
+          {/* Follow / Newsletter */}
+          <div className="mt-12 pt-8 border-t border-white/15">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h4 className="font-semibold text-lg mb-4">Support</h4>
-                <ul className="space-y-3">
-                  {footerLinks.support.map(link => (
-                    <li key={link.name}>
-                      <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
-                        {link.name}
-                      </a>
-                    </li>
+                <h4 className="font-semibold text-lg mb-4">Follow</h4>
+                <p className="text-sm text-primary-foreground/80 mb-4">Stay connected for travel updates and exclusive deals</p>
+                <div className="flex items-center gap-3">
+                  {socialLinks.map(social => (
+                    <a
+                      key={social.name}
+                      href={social.href}
+                      aria-label={social.name}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 transition-colors"
+                    >
+                      <social.icon className="h-5 w-5" />
+                    </a>
                   ))}
-                </ul>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-lg mb-4">Newsletter</h4>
+                <p className="text-sm text-primary-foreground/80 mb-2">Subscribe to our newsletter</p>
+                <div className="flex gap-2">
+                  <Input type="email" placeholder="Your email" className="bg-white/15 border-white/20 placeholder:text-white/70 text-white" />
+                  <Button className="bg-white/20 hover:bg-white/30 text-white" aria-label="Subscribe">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
