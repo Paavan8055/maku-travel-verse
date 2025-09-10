@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -14,27 +14,62 @@ const Footer = () => {
       name: "Press",
       href: "/press"
     }, {
-      name: "Partner Portal",
-      href: "/partner-portal"
-    }, {
-      name: "Investor Relations",
-      href: "/partners?tab=investors"
+      name: "Interactive Roadmap",
+      href: "/roadmap"
     }],
-    marketplaces: [{
-      name: "Family Adventures",
-      href: "/search/hotels?vertical=family"
+    innovation: [{
+      name: "Maku AI Assistant",
+      href: "/ai-assistant",
+      icon: Bot
     }, {
-      name: "Solo Journeys",
-      href: "/search/hotels?vertical=solo"
+      name: "Agentic Travel Bot",
+      href: "/travel-bot",
+      icon: Cpu
     }, {
-      name: "Pet-Friendly Travel",
-      href: "/search/hotels?vertical=pet"
+      name: "Crypto Payments",
+      href: "/crypto-payments",
+      icon: Coins
     }, {
-      name: "Spiritual Retreats",
-      href: "/search/hotels?vertical=spiritual"
+      name: "Universal AI Engine",
+      href: "/ai-engine",
+      icon: Zap
     }, {
-      name: "Travel Fund Manager",
-      href: "/partners?tab=fund"
+      name: "Live Demo Center",
+      href: "/demo",
+      icon: Map
+    }],
+    services: [{
+      name: "Hotels & Accommodation",
+      href: "/search/hotels"
+    }, {
+      name: "Flight Booking",
+      href: "/search/flights"
+    }, {
+      name: "Tours & Activities",
+      href: "/search/activities"
+    }, {
+      name: "Gift Cards",
+      href: "/gift-cards"
+    }, {
+      name: "Travel Deals",
+      href: "/deals"
+    }],
+    developers: [{
+      name: "Developer Portal",
+      href: "/developers",
+      icon: Code
+    }, {
+      name: "API Documentation",
+      href: "/api-docs",
+      icon: BookOpen
+    }, {
+      name: "Integration Hub",
+      href: "/integrations",
+      icon: Plug
+    }, {
+      name: "Partner Portal",
+      href: "/partner-portal",
+      icon: ShieldCheck
     }],
     support: [{
       name: "Help Center",
@@ -46,27 +81,8 @@ const Footer = () => {
       name: "Cancellation Policy",
       href: "/partners?tab=policies"
     }, {
-      name: "Verified Reviews",
-      href: "/search/hotels?verified=true"
-    }, {
       name: "Contact Us",
       href: "mailto:support@maku.travel"
-    }],
-    legal: [{
-      name: "Privacy Policy",
-      href: "/partners?tab=privacy"
-    }, {
-      name: "Terms of Service",
-      href: "/partners?tab=terms"
-    }, {
-      name: "Cookie Policy",
-      href: "/partners?tab=cookies"
-    }, {
-      name: "GDPR",
-      href: "/partners?tab=gdpr"
-    }, {
-      name: "Accessibility",
-      href: "/partners?tab=accessibility"
     }]
   };
   const socialLinks = [{
@@ -90,7 +106,7 @@ return <footer className="bg-primary text-primary-foreground">
       {/* Main Footer Content */}
       <div className="py-16 px-6 bg-gradient-pink-orange">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
             {/* Company */}
             <div>
               <h4 className="font-semibold text-lg mb-4">Company</h4>
@@ -105,23 +121,26 @@ return <footer className="bg-primary text-primary-foreground">
               </ul>
             </div>
 
+            {/* Innovation */}
+            <div className="relative">
+              <h4 className="font-semibold text-lg mb-4 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">AI & Innovation</h4>
+              <ul className="space-y-3">
+                {footerLinks.innovation.map(link => (
+                  <li key={link.name}>
+                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                      <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {/* Services */}
             <div>
               <h4 className="font-semibold text-lg mb-4">Services</h4>
               <ul className="space-y-3">
-                <li><a href="/search/hotels" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Hotels & Accommodation</a></li>
-                <li><a href="/search/flights" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Flight Booking</a></li>
-                <li><a href="/search/activities" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Tours & Activities</a></li>
-                <li><a href="/gift-cards" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Gift Cards</a></li>
-                <li><a href="/deals" className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">Travel Deals</a></li>
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h4 className="font-semibold text-lg mb-4">Support</h4>
-              <ul className="space-y-3">
-                {footerLinks.support.map(link => (
+                {footerLinks.services.map(link => (
                   <li key={link.name}>
                     <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
                       {link.name}
@@ -131,8 +150,23 @@ return <footer className="bg-primary text-primary-foreground">
               </ul>
             </div>
 
-            {/* Follow / Newsletter */}
+            {/* Developers */}
             <div>
+              <h4 className="font-semibold text-lg mb-4">Developers</h4>
+              <ul className="space-y-3">
+                {footerLinks.developers.map(link => (
+                  <li key={link.name}>
+                    <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                      <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Follow / Newsletter */}
+            <div className="md:col-span-3 lg:col-span-1">
               <h4 className="font-semibold text-lg mb-4">Follow</h4>
               <p className="text-sm text-primary-foreground/80 mb-4">Stay connected for travel updates and exclusive deals</p>
               <div className="flex items-center gap-3 mb-6">
@@ -155,6 +189,38 @@ return <footer className="bg-primary text-primary-foreground">
                 <Button className="bg-white/20 hover:bg-white/30 text-white" aria-label="Subscribe">
                   <Send className="h-4 w-4" />
                 </Button>
+              </div>
+              
+              {/* Support Section moved here for mobile */}
+              <div className="mt-8 lg:hidden">
+                <h4 className="font-semibold text-lg mb-4">Support</h4>
+                <ul className="space-y-3">
+                  {footerLinks.support.map(link => (
+                    <li key={link.name}>
+                      <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
+                        {link.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          {/* Support Section for desktop */}
+          <div className="hidden lg:block mt-12 pt-8 border-t border-white/15">
+            <div className="grid grid-cols-4 gap-8">
+              <div>
+                <h4 className="font-semibold text-lg mb-4">Support</h4>
+                <ul className="space-y-3">
+                  {footerLinks.support.map(link => (
+                    <li key={link.name}>
+                      <a href={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
+                        {link.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
