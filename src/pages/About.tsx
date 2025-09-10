@@ -1,169 +1,169 @@
 
-import { Plane, Users, Heart, Shield, Award, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Plane, Shield, Workflow, Wallet, Network, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-const About = () => {
-  const stats = [
-    { label: "Countries", value: "5+", icon: Globe },
-    { label: "Beta Testers", value: "500+", icon: Users },
-    { label: "Partner Hotels", value: "50K+", icon: Heart },
-    { label: "Months in Development", value: "9+", icon: Award }
-  ];
+const bullets = [
+  {
+    icon: Sparkles,
+    title: "Agentic AI Assistant",
+    body: "A conversational assistant that plans, reflects, and recovers gracefully—grounded by guardrails and real system data.",
+  },
+  {
+    icon: Workflow,
+    title: "Provider Rotation Engine",
+    body: "Automatically selects the best available option across Sabre, HotelBeds and Amadeus with consistent output formats.",
+  },
+  {
+    icon: Shield,
+    title: "Booking Integrity + Stripe",
+    body: "Atomic booking and payment flows with idempotency, status transitions, and auditability end-to-end.",
+  },
+  {
+    icon: Wallet,
+    title: "Travel Fund Manager",
+    body: "Built-in collaborative savings for trips, wired to secure tables and RLS policies on Supabase.",
+  },
+  {
+    icon: Network,
+    title: "Four-Way Marketplace",
+    body: "Designed for families/friends, solo travellers, and pet-friendly stays—one platform, different needs.",
+  },
+];
 
-  const values = [
-    {
-      icon: Heart,
-      title: "Personalized Travel",
-      description: "We believe every journey should be unique. Our four specialized marketplaces - Family Adventures, Solo Journeys, Pet-Friendly Travel, and Spiritual Retreats - ensure you find exactly what your heart desires."
-    },
-    {
-      icon: Shield,
-      title: "Trust & Security",
-      description: "Your safety is our priority. With verified reviews, secure booking systems, and 24/7 support, we've built a platform you can trust with your most precious memories."
-    },
-    {
-      icon: Users,
-      title: "Community-Driven",
-      description: "Join a global community of travelers sharing authentic experiences. Our verified review system with Global-ID badges ensures you get real insights from fellow adventurers."
-    }
-  ];
-
+export default function About() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      
-      {/* Hero Section */}
-      <section className="py-20 px-6 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            About Maku.travel
+
+      {/* Hero */}
+      <section className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+        <div className="mx-auto max-w-6xl px-6 py-20 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            This isn't just where you book a trip —
+            <br className="hidden md:block" /> it's where you build your life's travel story.
           </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Building the world's most personalized travel marketplace, one journey at a time
+          <p className="text-lg opacity-90 max-w-2xl mx-auto">
+            Personalised planning, trustworthy payments, and an AI concierge that adapts to you.
           </p>
-          <div className="flex items-center justify-center gap-4 text-lg">
-            <Plane className="h-6 w-6" />
-            <span>Concept begins Q4 2024 • MVP delivered June 2025 • Launch October 23, 2025 (Diwali) • Based in Sydney, Australia</span>
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <Plane className="h-5 w-5" />
+            <span className="text-sm opacity-90">
+              Based in Sydney • Launching 23 Oct 2025 (Diwali)
+            </span>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <Card key={index} className="text-center border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <stat.icon className="h-8 w-8 mx-auto mb-4 text-primary" />
-                  <div className="text-3xl font-bold text-primary mb-2">{stat.value}</div>
-                  <div className="text-muted-foreground">{stat.label}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Timeline (facts only) */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">Our Journey</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Q4 2024</p>
+              <h3 className="font-semibold text-xl mt-2">Concept & Research</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                We kicked off in Sydney with a clear aim: trusted, personalised travel for every type of journey.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">June 2025</p>
+              <h3 className="font-semibold text-xl mt-2">MVP Delivered</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Hotels, flights and Travel Fund Manager integrated with our AI assistant and secure payment pipeline.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">23 Oct 2025</p>
+              <h3 className="font-semibold text-xl mt-2">Public Launch (Diwali)</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Four-way marketplace—families/friends, solo and pet-friendly—powered by provider rotation.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
-      {/* Our Story */}
-      <section className="py-16 px-6 bg-muted/30">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Our Story</h2>
-          <div className="prose prose-lg mx-auto text-muted-foreground">
-            <p className="text-lg leading-relaxed mb-6">
-              Maku.travel was born from a simple belief: travel should be as unique as the traveler. 
-              Our journey began with concept and research in Q4 2024, led by a team of passionate 
-              explorers in Sydney, Australia, who set out to revolutionize how people discover and 
-              book their perfect getaways.
+      {/* Mission & Vision */}
+      <section className="mx-auto max-w-4xl px-6 pb-4">
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-semibold">Our Mission</h2>
+            <p className="mt-3 text-muted-foreground">
+              To empower every traveller with fair, personalised booking tools built on trust, transparency, and innovation.
             </p>
-            <p className="text-lg leading-relaxed mb-6">
-              Following intensive development through early 2025, we delivered our MVP in June 2025 
-              and are launching on October 23, 2025 (Diwali). We apologize for the delay from our 
-              original September timeline due to critical technical refinements and security enhancements. 
-              Our innovative four-way marketplace approach recognizes that a family vacation, solo adventure, 
-              pet-friendly trip, or spiritual retreat each requires a completely different approach.
-            </p>
-            <p className="text-lg leading-relaxed">
-              Today, as we refine our platform through beta testing, we're building partnerships with 
-              hotels, airlines, and activity providers to offer everything from boutique accommodations 
-              to luxury resorts, all carefully curated to match your travel style and preferences.
+          </div>
+          <div>
+            <h2 className="text-2xl md:text-3xl font-semibold">Our Vision</h2>
+            <p className="mt-3 text-muted-foreground">
+              A global travel ecosystem where journeys are managed seamlessly through AI-driven assistance,
+              transparent pricing, and inclusive experiences for families, friends, solo travellers, and pets.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Our Values */}
-      <section className="py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">What Drives Us</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {values.map((value, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-8 text-center">
-                  <value.icon className="h-12 w-12 mx-auto mb-6 text-primary" />
-                  <h3 className="text-xl font-semibold mb-4">{value.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{value.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Innovation Grid (shipped features only) */}
+      <section className="mx-auto max-w-6xl px-6 py-12">
+        <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">What Makes Maku Different</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {bullets.map(({ icon: Icon, title, body }) => (
+            <Card key={title} className="h-full">
+              <CardContent className="p-6">
+                <Icon className="h-6 w-6 text-primary" />
+                <h3 className="font-semibold text-lg mt-3">{title}</h3>
+                <p className="text-sm text-muted-foreground mt-2">{body}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
-      {/* Mission Statement */}
-      <section className="py-16 px-6 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8">Our Mission</h2>
-          <p className="text-xl leading-relaxed mb-8">
-            To empower every traveler to build their life's travel story by connecting them with 
-            personalized experiences that match their unique journey, whether they're seeking 
-            family bonding, solo discovery, pet companionship, or spiritual growth.
-          </p>
-          <Button size="lg" variant="secondary" className="mt-4">
-            Start Your Journey
+      {/* Values (evidence-based) */}
+      <section className="mx-auto max-w-6xl px-6 pb-16">
+        <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">How We Operate</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-semibold">Trust & Security</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                PCI-compliant payments, role-based access, and Row Level Security for sensitive data.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-semibold">Transparency</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Clear booking states, error surfacing, and consistent provider outputs so you always know what's happening.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-semibold">Accessibility</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Mobile-first, semantic UI and inclusive journeys for families, friends, solo and pet-friendly travel.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex justify-center mt-10">
+          <Button asChild size="lg">
+            <a href="/hotels">Start Your Journey</a>
           </Button>
-        </div>
-      </section>
-
-      {/* Leadership Team */}
-      <section className="py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Leadership Team</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-full mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold mb-2">Sarah Chen</h3>
-                <p className="text-primary mb-3">CEO & Co-Founder</p>
-                <p className="text-muted-foreground text-sm">Former Expedia executive with 15+ years in travel technology</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-secondary to-secondary/80 rounded-full mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold mb-2">Marcus Rodriguez</h3>
-                <p className="text-primary mb-3">CTO & Co-Founder</p>
-                <p className="text-muted-foreground text-sm">Tech visionary who built scalable platforms at Airbnb and Uber</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-accent to-accent/80 rounded-full mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold mb-2">Dr. Priya Patel</h3>
-                <p className="text-primary mb-3">Chief Experience Officer</p>
-                <p className="text-muted-foreground text-sm">Travel psychologist specializing in personalized journey design</p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </section>
 
       <Footer />
     </div>
   );
-};
-
-export default About;
+}
