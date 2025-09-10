@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, DollarSign, Users, Calendar, Target } from 'lucide-react';
+import { TrendingUp, DollarSign, Users, Calendar, Target, Loader2 } from 'lucide-react';
+import { useStartupMetrics } from '@/hooks/useStartupMetrics';
 
 interface KPI {
   name: string;
@@ -14,44 +15,70 @@ interface KPI {
 }
 
 const StartupMetrics: React.FC = () => {
-  const [kpis, setKpis] = useState<KPI[]>([]);
+  const { metrics, loading, error } = useStartupMetrics();
 
-  useEffect(() => {
-    setKpis([
-      {
-        name: 'Monthly Revenue',
-        value: 12400,
-        unit: 'USD',
-        change: 23.5,
-        target: 15000,
-        icon: DollarSign
-      },
-      {
-        name: 'Active Users', 
-        value: 2847,
-        unit: 'users',
-        change: 18.2,
-        target: 5000,
-        icon: Users
-      },
-      {
-        name: 'Total Bookings',
-        value: 1234,
-        unit: 'bookings', 
-        change: 31.7,
-        target: 2000,
-        icon: Calendar
-      },
-      {
-        name: 'Conversion Rate',
-        value: 3.2,
-        unit: '%',
-        change: 0.8,
-        target: 5.0,
-        icon: Target
-      }
-    ]);
-  }, []);
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Startup Metrics</h1>
+          <p className="text-muted-foreground">Key performance indicators</p>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Startup Metrics</h1>
+          <p className="text-muted-foreground">Key performance indicators</p>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-destructive">Error loading metrics: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const kpis: KPI[] = [
+    {
+      name: 'Monthly Revenue',
+      value: metrics?.monthlyRevenue || 0,
+      unit: 'USD',
+      change: metrics?.revenueChange || 0,
+      target: 15000,
+      icon: DollarSign
+    },
+    {
+      name: 'Active Users', 
+      value: metrics?.activeUsers || 0,
+      unit: 'users',
+      change: metrics?.usersChange || 0,
+      target: 5000,
+      icon: Users
+    },
+    {
+      name: 'Total Bookings',
+      value: metrics?.totalBookings || 0,
+      unit: 'bookings', 
+      change: metrics?.bookingsChange || 0,
+      target: 2000,
+      icon: Calendar
+    },
+    {
+      name: 'Conversion Rate',
+      value: metrics?.conversionRate || 0,
+      unit: '%',
+      change: metrics?.conversionChange || 0,
+      target: 5.0,
+      icon: Target
+    }
+  ];
 
   return (
     <div className="p-6 space-y-6">

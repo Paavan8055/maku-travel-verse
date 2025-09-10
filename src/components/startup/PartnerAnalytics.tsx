@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Building2, TrendingUp, Users, DollarSign, Globe, Target } from 'lucide-react';
+import { Building2, TrendingUp, Users, DollarSign, Globe, Target, Loader2 } from 'lucide-react';
+import { usePartnerMetrics } from '@/hooks/usePartnerMetrics';
 
 interface AnalyticsMetric {
   title: string;
@@ -14,45 +15,69 @@ interface AnalyticsMetric {
 }
 
 const PartnerAnalytics: React.FC = () => {
+  const { metrics: partnerMetrics, topPartners, loading, error } = usePartnerMetrics();
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold">Partner Analytics</h2>
+          <p className="text-muted-foreground">Performance insights and partner growth metrics</p>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold">Partner Analytics</h2>
+          <p className="text-muted-foreground">Performance insights and partner growth metrics</p>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-destructive">Error loading partner analytics: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
   const metrics: AnalyticsMetric[] = [
     {
       title: 'Active Partners',
-      value: '2,847',
-      change: 23.5,
-      progress: 57,
+      value: partnerMetrics?.activePartners.toLocaleString() || '0',
+      change: partnerMetrics?.partnersChange || 0,
+      progress: Math.min((partnerMetrics?.activePartners || 0) / 5000 * 100, 100),
       target: '5,000',
       icon: Building2
     },
     {
       title: 'Partner Revenue',
-      value: '$1.2M',
-      change: 31.7,
-      progress: 73,
+      value: `$${((partnerMetrics?.partnerRevenue || 0) / 1000000).toFixed(1)}M`,
+      change: partnerMetrics?.revenueChange || 0,
+      progress: Math.min((partnerMetrics?.partnerRevenue || 0) / 2000000 * 100, 100),
       target: '$2M',
       icon: DollarSign
     },
     {
       title: 'Global Reach',
-      value: '147',
-      change: 18.2,
-      progress: 49,
+      value: partnerMetrics?.globalReach.toString() || '0',
+      change: partnerMetrics?.reachChange || 0,
+      progress: Math.min((partnerMetrics?.globalReach || 0) / 300 * 100, 100),
       target: '300',
       icon: Globe
     },
     {
       title: 'Partner Satisfaction',
-      value: '96%',
-      change: 4.8,
-      progress: 96,
+      value: `${partnerMetrics?.partnerSatisfaction || 0}%`,
+      change: partnerMetrics?.satisfactionChange || 0,
+      progress: partnerMetrics?.partnerSatisfaction || 0,
       target: '98%',
       icon: Target
     }
-  ];
-
-  const topPartners = [
-    { name: 'Amadeus', revenue: '$240K', growth: 25.3, status: 'Growing' },
-    { name: 'Hotelbeds', revenue: '$185K', growth: 18.7, status: 'Stable' },
-    { name: 'Local Hotels Co.', revenue: '$95K', growth: 42.1, status: 'Growing' }
   ];
 
   return (
@@ -117,7 +142,7 @@ const PartnerAnalytics: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold">{partner.name}</h4>
-                    <p className="text-sm text-muted-foreground">Revenue: {partner.revenue}</p>
+                    <p className="text-sm text-muted-foreground">Revenue: ${(partner.revenue / 1000).toFixed(0)}K</p>
                   </div>
                 </div>
                 <div className="text-right">
