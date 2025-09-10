@@ -9932,6 +9932,10 @@ export type Database = {
           quota_status: string
         }[]
       }
+      get_system_health_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_user_booking_updates: {
         Args: { p_user_id: string }
         Returns: {
@@ -10060,6 +10064,10 @@ export type Database = {
           p_user_id?: string
         }
         Returns: Json
+      }
+      run_automated_system_cleanup: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       run_validation_test: {
         Args: { p_test_id: string }
