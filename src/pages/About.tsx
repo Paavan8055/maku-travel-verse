@@ -41,7 +41,7 @@ export default function About() {
       {/* Hero */}
       <section className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
         <div className="mx-auto max-w-6xl px-6 py-20 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
             This isn't just where you book a trip —
             <br className="hidden md:block" /> it's where you build your life's travel story.
           </h1>
