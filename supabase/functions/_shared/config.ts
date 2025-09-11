@@ -20,6 +20,10 @@ export const ENV_CONFIG = {
   HOTELBEDS_ACTIVITY_API_KEY: Deno.env.get('HOTELBEDS_ACTIVITY_API_KEY'),
   HOTELBEDS_ACTIVITY_SECRET: Deno.env.get('HOTELBEDS_ACTIVITY_SECRET'),
   
+  // Duffel
+  DUFFEL_ACCESS_TOKEN: Deno.env.get('DUFFEL_ACCESS_TOKEN'),
+  DUFFEL_API_BASE: Deno.env.get('DUFFEL_API_BASE'),
+  
   // Stripe
   STRIPE_SECRET_KEY: Deno.env.get('STRIPE_SECRET_KEY'),
   
@@ -58,6 +62,9 @@ export const ENV_CONFIG = {
         : "https://api.test.hotelbeds.com"
     }
   },
+  duffel: {
+    baseUrl: ENV_CONFIG.DUFFEL_API_BASE || "https://api.duffel.com"
+  },
   
   // Environment flags
   isProduction: Deno.env.get('NODE_ENV') === 'production'
@@ -79,11 +86,16 @@ export const RATE_LIMITS = {
     requestsPerSecond: 5,
     requestsPerMinute: 300,
     requestsPerHour: 15000
+  },
+  duffel: {
+    requestsPerSecond: 10,
+    requestsPerMinute: 600,
+    requestsPerHour: 36000
   }
 };
 
 // Enhanced provider credential validation
-export function validateProviderCredentials(provider: 'amadeus' | 'sabre'): boolean {
+export function validateProviderCredentials(provider: 'amadeus' | 'sabre' | 'duffel'): boolean {
   try {
     switch (provider) {
       case 'amadeus':
@@ -105,6 +117,15 @@ export function validateProviderCredentials(provider: 'amadeus' | 'sabre'): bool
           });
         }
         return sabreValid;
+        
+      case 'duffel':
+        const duffelValid = !!ENV_CONFIG.DUFFEL_ACCESS_TOKEN;
+        if (!duffelValid) {
+          logger.warn('[CONFIG] Duffel credentials missing', {
+            hasAccessToken: !!ENV_CONFIG.DUFFEL_ACCESS_TOKEN
+          });
+        }
+        return duffelValid;
         
       default:
         return false;
@@ -192,6 +213,10 @@ export function getProviderHealthStatus() {
     hotelbeds: {
       available: validateHotelBedsCredentials('hotel') || validateHotelBedsCredentials('activity'),
       services: getAvailableHotelBedsServices()
+    },
+    duffel: {
+      available: validateProviderCredentials('duffel'),
+      services: ['flight']
     }
   };
 }
