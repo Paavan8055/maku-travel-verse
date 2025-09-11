@@ -5,6 +5,7 @@ import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
 import { UnifiedTestSuite } from '@/components/testing/UnifiedTestSuite';
 import { ProviderTestPanel } from '@/components/debug/ProviderTestPanel';
 import { ProviderRotationTestPanel } from '@/components/debug/ProviderRotationTestPanel';
+import { DuffelTestPanel } from '@/components/debug/DuffelTestPanel';
 import { DirectProviderTest } from '@/components/debug/DirectProviderTest';
 import HotelBedsMonitoringDashboard from '@/components/admin/HotelBedsMonitoringDashboard';
 import { CredentialTestSuite } from '@/components/admin/CredentialTestSuite';
@@ -83,6 +84,7 @@ const AdminTestingPage = () => {
           <div className="space-y-6">
             <ProviderTestPanel />
             <ProviderRotationTestPanel />
+            <DuffelTestPanel />
           </div>
         </TabsContent>
 
