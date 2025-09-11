@@ -63,7 +63,7 @@ export const ENV_CONFIG = {
     }
   },
   duffel: {
-    baseUrl: ENV_CONFIG.DUFFEL_API_BASE || "https://api.duffel.com"
+    baseUrl: Deno.env.get('DUFFEL_API_BASE') || "https://api.duffel.com"
   },
   
   // Environment flags

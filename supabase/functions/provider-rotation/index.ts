@@ -63,6 +63,21 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     responseTime: 0
   },
   {
+    id: 'duffel-flight',
+    name: 'Duffel',
+    type: 'flight',
+    enabled: true,
+    priority: 2,
+    circuitBreaker: {
+      failureCount: 0,
+      lastFailure: null,
+      timeout: 30000,
+      state: 'closed'
+    },
+    healthScore: 100,
+    responseTime: 0
+  },
+  {
     id: 'hotelbeds-hotel',
     name: 'HotelBeds',
     type: 'hotel',
@@ -383,6 +398,9 @@ function isProviderCredentialsValid(providerId: string): boolean {
       case 'hotelbeds-transfer':
         return validateHotelBedsCredentials('hotel');
       
+      case 'duffel-flight':
+        return validateProviderCredentials('duffel');
+      
       default:
         logger.warn(`[PROVIDER-ROTATION] Unknown provider ID: ${providerId}`);
         return false;
@@ -413,6 +431,7 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   const functionMap: Record<string, string> = {
     'amadeus-flight': 'amadeus-flight-search',
     'sabre-flight': 'sabre-flight-search',
+    'duffel-flight': 'duffel-flight-search',
     'amadeus-hotel': 'amadeus-hotel-search',
     'hotelbeds-hotel': 'hotelbeds-search',
     'sabre-hotel': 'sabre-hotel-search',
