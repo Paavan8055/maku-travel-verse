@@ -100,11 +100,6 @@ const Navbar = () => {
               <span>Travel Fund</span>
             </Button>
             
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/acknowledgments')} role="menuitem">
-              <Heart className="h-4 w-4" aria-hidden="true" />
-              <span>Credits</span>
-            </Button>
-            
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')} role="menuitem">
               <Gift className="h-4 w-4" aria-hidden="true" />
               <span>Gift Cards</span>

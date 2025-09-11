@@ -14,6 +14,9 @@ const Footer = () => {
     }, {
       name: "Press",
       href: "/press"
+    }, {
+      name: "Credits",
+      href: "/acknowledgments"
     }],
     technology: [{
       name: "Maku AI Assistant",
