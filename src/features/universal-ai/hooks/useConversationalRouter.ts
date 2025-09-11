@@ -154,16 +154,11 @@ export const useConversationalRouter = () => {
           break;
       }
 
-      // Log the conversation routing for analytics
-      await supabase.from('conversation_routing_logs').insert({
-        session_id: sessionId,
-        user_message: message,
-        routing_decision: routingDecision,
-        ai_system_used: response.aiSystem,
-        confidence: response.confidence,
-        dashboard_type: context.dashboardType,
-        user_id: context.userId,
-        created_at: new Date().toISOString()
+      // Log the conversation routing for analytics (simplified for now)
+      console.log('Conversation routing:', { 
+        sessionId, 
+        aiSystem: response.aiSystem, 
+        confidence: response.confidence 
       });
 
       return response;

@@ -19,9 +19,7 @@ import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor"
 import { createLazyRoute } from "@/components/performance/CodeSplitting";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { PersonalizationEngine } from "@/features/universal-ai/components/PersonalizationEngine";
 import { UniversalAIProvider } from "@/features/universal-ai/context/UniversalAIContext";
-import { AIContextBridge } from "@/features/universal-ai/components/AIContextBridge";
 import "./App.css";
 
 // Lazy load pages for better performance
@@ -141,8 +139,7 @@ const App = () => (
                           <AgenticBotProvider defaultVertical="Solo">
                             <MakuBotProvider defaultVertical="Solo">
                               <UniversalAIProvider>
-                                <PersonalizationEngine>
-                                  <TooltipProvider>
+                                 <TooltipProvider>
                                     <div className="min-h-screen bg-background text-foreground">
                                       <Helmet>
                                         <meta name="theme-color" content="#ffffff" />
@@ -151,9 +148,8 @@ const App = () => (
                                         <meta name="format-detection" content="telephone=no" />
                                       </Helmet>
                                       
-                                      <Toaster />
-                                      <Sonner />
-                                      <AIContextBridge />
+                                       <Toaster />
+                                       <Sonner />
                                   
                                     <BrowserRouter>
                                       <Routes>
@@ -263,9 +259,8 @@ const App = () => (
                                     </Routes>
                                   </BrowserRouter>
                                  </div>
-                                  </TooltipProvider>
-                                </PersonalizationEngine>
-                              </UniversalAIProvider>
+                                   </TooltipProvider>
+                               </UniversalAIProvider>
                             </MakuBotProvider>
                           </AgenticBotProvider>
                         </ABTestProvider>

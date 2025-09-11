@@ -56,7 +56,7 @@ export const UniversalAIWidget: React.FC<UniversalAIWidgetProps> = ({
       dashboardType,
       aiType: type === 'chat' ? 'maku' : 'agentic',
       timestamp: new Date(),
-      context: currentContext
+      context: { dashboardType: currentContext }
     });
 
     if (type === 'chat') {

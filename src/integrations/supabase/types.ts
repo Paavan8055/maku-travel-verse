@@ -3008,6 +3008,42 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_routing_logs: {
+        Row: {
+          ai_system_used: string
+          confidence: number | null
+          created_at: string
+          dashboard_type: string
+          id: string
+          routing_decision: Json | null
+          session_id: string
+          user_id: string | null
+          user_message: string
+        }
+        Insert: {
+          ai_system_used: string
+          confidence?: number | null
+          created_at?: string
+          dashboard_type: string
+          id?: string
+          routing_decision?: Json | null
+          session_id: string
+          user_id?: string | null
+          user_message: string
+        }
+        Update: {
+          ai_system_used?: string
+          confidence?: number | null
+          created_at?: string
+          dashboard_type?: string
+          id?: string
+          routing_decision?: Json | null
+          session_id?: string
+          user_id?: string | null
+          user_message?: string
+        }
+        Relationships: []
+      }
       conversion_events: {
         Row: {
           created_at: string | null
@@ -3756,6 +3792,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dialogflow_interactions: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          dashboard_type: string
+          id: string
+          intent: string | null
+          response_data: Json | null
+          session_id: string
+          user_id: string | null
+          user_message: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          dashboard_type: string
+          id?: string
+          intent?: string | null
+          response_data?: Json | null
+          session_id: string
+          user_id?: string | null
+          user_message: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          dashboard_type?: string
+          id?: string
+          intent?: string | null
+          response_data?: Json | null
+          session_id?: string
+          user_id?: string | null
+          user_message?: string
+        }
+        Relationships: []
       }
       document_intelligence: {
         Row: {
@@ -9310,6 +9382,48 @@ export type Database = {
         }
         Relationships: []
       }
+      universal_ai_interactions: {
+        Row: {
+          ai_type: string
+          context_data: Json | null
+          created_at: string
+          dashboard_type: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          interaction_type: string
+          session_id: string | null
+          success: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          ai_type: string
+          context_data?: Json | null
+          created_at?: string
+          dashboard_type: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          interaction_type: string
+          session_id?: string | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          ai_type?: string
+          context_data?: Json | null
+          created_at?: string
+          dashboard_type?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          interaction_type?: string
+          session_id?: string | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_activity_logs: {
         Row: {
           activity_type: string
@@ -9601,6 +9715,42 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      voice_interaction_logs: {
+        Row: {
+          audio_duration_ms: number | null
+          confidence_score: number | null
+          created_at: string
+          id: string
+          language_detected: string | null
+          processing_time_ms: number | null
+          session_id: string
+          transcribed_text: string | null
+          user_id: string | null
+        }
+        Insert: {
+          audio_duration_ms?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          language_detected?: string | null
+          processing_time_ms?: number | null
+          session_id: string
+          transcribed_text?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          audio_duration_ms?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          language_detected?: string | null
+          processing_time_ms?: number | null
+          session_id?: string
+          transcribed_text?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

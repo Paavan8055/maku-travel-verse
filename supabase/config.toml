@@ -399,6 +399,15 @@ verify_jwt = false
 verify_jwt = false
 
 
+[functions.conversational-ai]
+verify_jwt = false
+
+[functions.dialogflow-cx-webhook]
+verify_jwt = false
+
+[functions.speech-to-text]
+verify_jwt = true
+
 [functions.google-flight-search]
 verify_jwt = true
 
