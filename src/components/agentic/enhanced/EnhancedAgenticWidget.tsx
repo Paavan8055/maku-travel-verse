@@ -95,11 +95,10 @@ export const EnhancedAgenticWidget: React.FC<EnhancedAgenticWidgetProps> = ({
 
   const handleStartTravelWorkflow = async (workflowType: string) => {
     try {
-      const agent = await agentOrchestrator.createAgent('workflow-agent', 'user-session', 'general');
-      await workflowOrchestrator.executeWorkflow(agent, workflowType, {
+      await workflowOrchestrator.executeWorkflow(workflowType, {
         user_id: 'current-user',
         started_at: new Date().toISOString()
-      });
+      }, []);
       loadRunningWorkflows();
     } catch (error) {
       console.error('Failed to start workflow:', error);
@@ -114,7 +113,8 @@ export const EnhancedAgenticWidget: React.FC<EnhancedAgenticWidgetProps> = ({
         specialization === 'booking-coordinator' ? 'booking-specialist' :
         'general';
       
-      await agentOrchestrator.createAgent('specialized-agent', 'user-session', agentType);
+      const specializationArray = [specialization];
+      await agentOrchestrator.createAgent(agentType, specializationArray, 'user-session');
       loadActiveAgents();
     } catch (error) {
       console.error('Failed to create agent:', error);
