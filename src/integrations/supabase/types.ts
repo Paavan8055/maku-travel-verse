@@ -3829,6 +3829,51 @@ export type Database = {
         }
         Relationships: []
       }
+      discovery_automation_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered: string | null
+          priority: number | null
+          rule_name: string
+          rule_type: string
+          trigger_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          priority?: number | null
+          rule_name: string
+          rule_type: string
+          trigger_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          priority?: number | null
+          rule_name?: string
+          rule_type?: string
+          trigger_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_intelligence: {
         Row: {
           ai_analysis: Json | null
@@ -6738,6 +6783,71 @@ export type Database = {
           },
         ]
       }
+      pending_providers: {
+        Row: {
+          api_endpoint: string
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          authentication_type: string | null
+          capabilities: Json | null
+          cost_estimation: Json | null
+          created_at: string
+          discovery_log_id: string | null
+          estimated_setup_time_minutes: number | null
+          id: string
+          integration_complexity: string | null
+          provider_name: string
+          provider_type: string
+          rejection_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_endpoint: string
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          authentication_type?: string | null
+          capabilities?: Json | null
+          cost_estimation?: Json | null
+          created_at?: string
+          discovery_log_id?: string | null
+          estimated_setup_time_minutes?: number | null
+          id?: string
+          integration_complexity?: string | null
+          provider_name: string
+          provider_type: string
+          rejection_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_endpoint?: string
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          authentication_type?: string | null
+          capabilities?: Json | null
+          cost_estimation?: Json | null
+          created_at?: string
+          discovery_log_id?: string | null
+          estimated_setup_time_minutes?: number | null
+          id?: string
+          integration_complexity?: string | null
+          provider_name?: string
+          provider_type?: string
+          rejection_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_providers_discovery_log_id_fkey"
+            columns: ["discovery_log_id"]
+            isOneToOne: false
+            referencedRelation: "provider_discovery_log"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performance_metrics: {
         Row: {
           correlation_id: string | null
@@ -7429,13 +7539,18 @@ export type Database = {
       }
       provider_configs: {
         Row: {
+          auto_config_score: number | null
+          auto_discovered: boolean | null
           base_url: string | null
           circuit_breaker: Json
           circuit_breaker_state: string | null
           created_at: string
+          discovery_date: string | null
+          discovery_method: string | null
           enabled: boolean
           health_score: number
           id: string
+          marketplace_metadata: Json | null
           name: string
           priority: number
           response_time: number
@@ -7443,13 +7558,18 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_config_score?: number | null
+          auto_discovered?: boolean | null
           base_url?: string | null
           circuit_breaker?: Json
           circuit_breaker_state?: string | null
           created_at?: string
+          discovery_date?: string | null
+          discovery_method?: string | null
           enabled?: boolean
           health_score?: number
           id: string
+          marketplace_metadata?: Json | null
           name: string
           priority?: number
           response_time?: number
@@ -7457,18 +7577,68 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_config_score?: number | null
+          auto_discovered?: boolean | null
           base_url?: string | null
           circuit_breaker?: Json
           circuit_breaker_state?: string | null
           created_at?: string
+          discovery_date?: string | null
+          discovery_method?: string | null
           enabled?: boolean
           health_score?: number
           id?: string
+          marketplace_metadata?: Json | null
           name?: string
           priority?: number
           response_time?: number
           type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_discovery_log: {
+        Row: {
+          auto_configured: boolean | null
+          configured_at: string | null
+          created_at: string
+          discovered_capabilities: Json | null
+          discovered_endpoint: string | null
+          discovered_provider_name: string
+          discovery_metadata: Json | null
+          discovery_method: string
+          id: string
+          verification_errors: Json | null
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          auto_configured?: boolean | null
+          configured_at?: string | null
+          created_at?: string
+          discovered_capabilities?: Json | null
+          discovered_endpoint?: string | null
+          discovered_provider_name: string
+          discovery_metadata?: Json | null
+          discovery_method: string
+          id?: string
+          verification_errors?: Json | null
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          auto_configured?: boolean | null
+          configured_at?: string | null
+          created_at?: string
+          discovered_capabilities?: Json | null
+          discovered_endpoint?: string | null
+          discovered_provider_name?: string
+          discovery_metadata?: Json | null
+          discovery_method?: string
+          id?: string
+          verification_errors?: Json | null
+          verification_status?: string
+          verified_at?: string | null
         }
         Relationships: []
       }

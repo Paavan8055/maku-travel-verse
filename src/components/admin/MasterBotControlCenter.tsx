@@ -82,9 +82,11 @@ export const MasterBotControlCenter: React.FC = () => {
   const visibleResults = botResults.filter(result => !dismissedResults.includes(result.id));
 
   const quickCommands = [
+    { label: 'Provider Discovery Scan', command: 'Run comprehensive provider discovery across all marketplaces', type: 'analysis' as const },
     { label: 'System Health Check', command: 'Analyze overall system health and performance', type: 'analysis' as const },
     { label: 'Optimize Dashboard Performance', command: 'Optimize dashboard performance - improve loading times, enhance responsiveness, and implement performance best practices', type: 'optimization' as const },
     { label: 'Activate Travel Bots', command: 'Activate all travel-related bots for peak season', type: 'control' as const },
+    { label: 'Review Pending Providers', command: 'Review and approve pending provider integrations', type: 'control' as const },
     { label: 'Revenue Analysis', command: 'Analyze revenue performance across all partners', type: 'analysis' as const },
   ];
 
