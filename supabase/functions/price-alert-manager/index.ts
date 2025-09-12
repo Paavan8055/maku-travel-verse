@@ -1,24 +1,10 @@
-import { corsHeaders } from '../_shared/cors.ts';
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 
-interface PriceAlert {
-  id?: string
-  user_id?: string
-  search_criteria: {
-    type: 'flight' | 'hotel' | 'activity'
-    origin?: string
-    destination: string
-    dates: { start: string; end?: string }
-    passengers?: number
-    rooms?: number
-  }
-  target_price: number
-  current_price: number
-  threshold_percentage: number
-  is_active: boolean
-  notification_method: 'email' | 'push' | 'both'
-}
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -26,247 +12,266 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
-        auth: { autoRefreshToken: false, persistSession: false }
+        auth: {
+          persistSession: false,
+        },
       }
-    )
+    );
 
-    const authHeader = req.headers.get('Authorization')
-    let userId = null
-
-    if (authHeader) {
-      const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-      userId = user?.id
-    }
-
-    const { action, ...payload } = await req.json()
+    const { action, alertId, userId, alertData } = await req.json();
+    console.log('Price alert request:', { action, userId });
 
     switch (action) {
-      case 'create_alert':
-        return await createPriceAlert(supabase, userId, payload)
-      case 'get_alerts':
-        return await getUserAlerts(supabase, userId)
-      case 'update_alert':
-        return await updatePriceAlert(supabase, userId, payload)
-      case 'delete_alert':
-        return await deletePriceAlert(supabase, userId, payload.alert_id)
-      case 'check_prices':
-        return await checkPriceChanges(supabase)
+      case 'create':
+        return await createAlert(supabaseClient, userId, alertData);
+      case 'update':
+        return await updateAlert(supabaseClient, alertId, alertData);
+      case 'delete':
+        return await deleteAlert(supabaseClient, alertId);
+      case 'check':
+        return await checkAlerts(supabaseClient, alertId);
+      case 'list':
+        return await listAlerts(supabaseClient, userId);
       default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+        throw new Error(`Unknown action: ${action}`);
     }
 
   } catch (error) {
-    console.error('Price alert error:', error)
+    console.error('Price alert error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+      JSON.stringify({
+        success: false,
+        error: error.message,
+        meta: { timestamp: new Date().toISOString() }
+      }),
+      { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
-})
+});
 
-async function createPriceAlert(supabase: any, userId: string | null, alertData: PriceAlert) {
-  if (!userId) {
-    return new Response(
-      JSON.stringify({ error: 'Authentication required' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+async function createAlert(supabase: any, userId: string, alertData: any) {
+  const {
+    serviceType,
+    searchParams,
+    targetPrice,
+    currency = 'USD',
+    email,
+    alertName,
+    expiresAt
+  } = alertData;
+
+  if (!serviceType || !searchParams || !targetPrice || !email) {
+    throw new Error('Missing required alert data');
   }
 
-  const alert = {
-    user_id: userId,
-    search_criteria: alertData.search_criteria,
-    target_price: alertData.target_price,
-    current_price: alertData.current_price,
-    threshold_percentage: alertData.threshold_percentage || 10,
-    is_active: true,
-    notification_method: alertData.notification_method || 'email',
-    created_at: new Date().toISOString(),
-    last_checked: new Date().toISOString()
-  }
-
-  const { data, error } = await supabase
+  const { data: alert, error } = await supabase
     .from('price_alerts')
-    .insert(alert)
+    .insert({
+      user_id: userId,
+      service_type: serviceType,
+      search_params: searchParams,
+      target_price: targetPrice,
+      currency,
+      email,
+      alert_name: alertName || `${serviceType} price alert`,
+      status: 'active',
+      expires_at: expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    })
     .select()
-    .single()
+    .single();
 
   if (error) {
-    console.error('Failed to create price alert:', error)
-    return new Response(
-      JSON.stringify({ error: 'Failed to create alert' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    throw new Error('Failed to create price alert');
+  }
+
+  const currentPrice = await getCurrentPrice(serviceType, searchParams);
+  
+  if (currentPrice && currentPrice <= targetPrice) {
+    await triggerAlert(supabase, alert.id, currentPrice);
   }
 
   return new Response(
-    JSON.stringify({ success: true, alert: data }),
+    JSON.stringify({
+      success: true,
+      alert: {
+        id: alert.id,
+        serviceType,
+        targetPrice,
+        currentPrice,
+        status: alert.status
+      }
+    }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+  );
 }
 
-async function getUserAlerts(supabase: any, userId: string | null) {
-  if (!userId) {
-    return new Response(
-      JSON.stringify({ error: 'Authentication required' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
+async function updateAlert(supabase: any, alertId: string, alertData: any) {
+  const updateFields: any = { updated_at: new Date().toISOString() };
+  
+  if (alertData.targetPrice) updateFields.target_price = alertData.targetPrice;
+  if (alertData.email) updateFields.email = alertData.email;
+  if (alertData.alertName) updateFields.alert_name = alertData.alertName;
 
-  const { data, error } = await supabase
+  const { data: alert, error } = await supabase
     .from('price_alerts')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Failed to fetch alerts:', error)
-    return new Response(
-      JSON.stringify({ error: 'Failed to fetch alerts' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-
-  return new Response(
-    JSON.stringify({ alerts: data || [] }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
-}
-
-async function updatePriceAlert(supabase: any, userId: string | null, { alert_id, updates }: any) {
-  if (!userId) {
-    return new Response(
-      JSON.stringify({ error: 'Authentication required' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-
-  const { data, error } = await supabase
-    .from('price_alerts')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', alert_id)
-    .eq('user_id', userId)
+    .update(updateFields)
+    .eq('id', alertId)
     .select()
-    .single()
+    .single();
 
   if (error) {
-    console.error('Failed to update alert:', error)
-    return new Response(
-      JSON.stringify({ error: 'Failed to update alert' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    throw new Error('Failed to update price alert');
   }
 
   return new Response(
-    JSON.stringify({ success: true, alert: data }),
+    JSON.stringify({
+      success: true,
+      alert: {
+        id: alert.id,
+        targetPrice: alert.target_price,
+        status: alert.status
+      }
+    }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+  );
 }
 
-async function deletePriceAlert(supabase: any, userId: string | null, alertId: string) {
-  if (!userId) {
-    return new Response(
-      JSON.stringify({ error: 'Authentication required' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-
+async function deleteAlert(supabase: any, alertId: string) {
   const { error } = await supabase
     .from('price_alerts')
-    .delete()
-    .eq('id', alertId)
-    .eq('user_id', userId)
+    .update({ 
+      status: 'deleted',
+      deleted_at: new Date().toISOString() 
+    })
+    .eq('id', alertId);
 
   if (error) {
-    console.error('Failed to delete alert:', error)
-    return new Response(
-      JSON.stringify({ error: 'Failed to delete alert' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    throw new Error('Failed to delete price alert');
   }
 
   return new Response(
-    JSON.stringify({ success: true }),
+    JSON.stringify({
+      success: true,
+      message: 'Price alert deleted'
+    }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+  );
 }
 
-async function checkPriceChanges(supabase: any) {
-  console.log('Checking price changes for active alerts...')
-  
-  const { data: alerts, error } = await supabase
+async function checkAlerts(supabase: any, specificAlertId?: string) {
+  let query = supabase
     .from('price_alerts')
     .select('*')
-    .eq('is_active', true)
-    .lt('last_checked', new Date(Date.now() - 60 * 60 * 1000).toISOString()) // Check hourly
+    .eq('status', 'active');
 
-  if (error || !alerts?.length) {
-    return new Response(
-      JSON.stringify({ message: 'No alerts to check' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+  if (specificAlertId) {
+    query = query.eq('id', specificAlertId);
   }
 
-  const notifications = []
+  const { data: alerts, error } = await query;
+
+  if (error) {
+    throw new Error('Failed to fetch alerts');
+  }
+
+  const results = [];
 
   for (const alert of alerts) {
-    try {
-      const newPrice = await getCurrentPrice(alert.search_criteria)
-      const priceChange = ((newPrice - alert.current_price) / alert.current_price) * 100
+    const currentPrice = await getCurrentPrice(alert.service_type, alert.search_params);
+    
+    await supabase
+      .from('price_alerts')
+      .update({ 
+        last_checked: new Date().toISOString(),
+        last_price: currentPrice 
+      })
+      .eq('id', alert.id);
 
-      if (Math.abs(priceChange) >= alert.threshold_percentage) {
-        // Send notification
-        notifications.push({
-          user_id: alert.user_id,
-          alert_id: alert.id,
-          old_price: alert.current_price,
-          new_price: newPrice,
-          change_percentage: priceChange
-        })
-
-        // Update alert with new price
-        await supabase
-          .from('price_alerts')
-          .update({ 
-            current_price: newPrice, 
-            last_checked: new Date().toISOString(),
-            last_triggered: priceChange < 0 ? new Date().toISOString() : alert.last_triggered
-          })
-          .eq('id', alert.id)
-      } else {
-        // Just update last_checked
-        await supabase
-          .from('price_alerts')
-          .update({ last_checked: new Date().toISOString() })
-          .eq('id', alert.id)
-      }
-    } catch (error) {
-      console.error(`Failed to check price for alert ${alert.id}:`, error)
+    if (currentPrice && currentPrice <= alert.target_price) {
+      await triggerAlert(supabase, alert.id, currentPrice);
+      results.push({
+        alertId: alert.id,
+        triggered: true,
+        currentPrice,
+        targetPrice: alert.target_price
+      });
+    } else {
+      results.push({
+        alertId: alert.id,
+        triggered: false,
+        currentPrice,
+        targetPrice: alert.target_price
+      });
     }
   }
 
   return new Response(
-    JSON.stringify({ 
-      checked: alerts.length, 
-      triggered: notifications.length,
-      notifications 
+    JSON.stringify({
+      success: true,
+      checkedAlerts: results.length,
+      results
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+  );
 }
 
-async function getCurrentPrice(searchCriteria: any): Promise<number> {
-  // Simulate price checking - in production, this would call actual provider APIs
-  const basePrice = searchCriteria.type === 'flight' ? 350 : 
-                   searchCriteria.type === 'hotel' ? 180 : 65
+async function listAlerts(supabase: any, userId: string) {
+  const { data: alerts, error } = await supabase
+    .from('price_alerts')
+    .select('*')
+    .eq('user_id', userId)
+    .neq('status', 'deleted')
+    .order('created_at', { ascending: false });
 
-  // Add some randomness to simulate price fluctuation
-  const fluctuation = 0.8 + Math.random() * 0.4 // ±20% variation
-  return Math.round(basePrice * fluctuation)
+  if (error) {
+    throw new Error('Failed to fetch user alerts');
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      count: alerts.length,
+      alerts: alerts.map((alert: any) => ({
+        id: alert.id,
+        serviceType: alert.service_type,
+        alertName: alert.alert_name,
+        targetPrice: alert.target_price,
+        status: alert.status,
+        lastPrice: alert.last_price,
+        createdAt: alert.created_at
+      }))
+    }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+async function getCurrentPrice(serviceType: string, searchParams: any): Promise<number | null> {
+  // Mock price generation for demo
+  const mockPrices = {
+    flight: Math.floor(Math.random() * 800) + 200,
+    hotel: Math.floor(Math.random() * 300) + 100,
+    activity: Math.floor(Math.random() * 150) + 25
+  };
+
+  return mockPrices[serviceType as keyof typeof mockPrices] || null;
+}
+
+async function triggerAlert(supabase: any, alertId: string, currentPrice: number) {
+  await supabase
+    .from('price_alerts')
+    .update({ 
+      status: 'triggered',
+      triggered_at: new Date().toISOString(),
+      triggered_price: currentPrice
+    })
+    .eq('id', alertId);
+
+  console.log(`Price alert triggered: ${alertId} at ${currentPrice}`);
 }
