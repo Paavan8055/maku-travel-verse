@@ -25,8 +25,6 @@ interface CorrelationData {
   request_data: any;
   response_data?: any;
   user_id?: string;
-  service_name?: string;
-  error_message?: string;
   metadata?: any;
 }
 
@@ -66,68 +64,7 @@ export const CorrelationTracker = () => {
   } = useMasterBotAnalysis();
   const { isConnected, events } = useRealTimeData();
 
-  // Auto-populate correlation data from enhanced logging
-  const populateCorrelationData = useCallback(async () => {
-    try {
-      // Log the correlation tracking activity
-      await logSingle({
-        service_name: 'correlation_tracker',
-        log_level: 'info',
-        message: 'Auto-populating correlation data from system operations',
-        request_id: correlationId.getCurrentId()
-      });
-
-      // Generate sample correlation data for testing
-      const sampleData = [
-        {
-          correlation_id: correlationId.generateId(),
-          request_type: 'hotel_search',
-          status: 'completed',
-          service_name: 'booking_engine',
-          duration_ms: 1250,
-          request_data: { city: 'Sydney', checkin: '2024-02-15', checkout: '2024-02-18' },
-          response_data: { results: 45, cached: false },
-          user_id: 'user-123'
-        },
-        {
-          correlation_id: correlationId.generateId(),
-          request_type: 'flight_booking',
-          status: 'in_progress',
-          service_name: 'amadeus_api',
-          duration_ms: null,
-          request_data: { origin: 'SYD', destination: 'LAX', passengers: 2 },
-          user_id: 'user-456'
-        },
-        {
-          correlation_id: correlationId.generateId(),
-          request_type: 'payment_processing',
-          status: 'failed',
-          service_name: 'stripe_api',
-          duration_ms: 3400,
-          request_data: { amount: 1250.00, currency: 'AUD' },
-          error_message: 'Card declined',
-          user_id: 'user-789'
-        }
-      ];
-
-      // Insert sample data into correlation_tracking table
-      for (const item of sampleData) {
-        const { error } = await supabase
-          .from('correlation_tracking')
-          .upsert({
-            ...item,
-            created_at: new Date().toISOString(),
-            completed_at: item.status === 'completed' ? new Date().toISOString() : null
-          });
-        
-        if (error) {
-          console.error('Failed to insert correlation data:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Error populating correlation data:', error);
-    }
-  }, [logSingle]);
+  // Removed auto-populate function to prevent schema mismatch errors
 
   const fetchCorrelations = async () => {
     try {
@@ -190,15 +127,19 @@ export const CorrelationTracker = () => {
     setIsAnalyzing(true);
     
     try {
-      // Generate pattern analysis
-      const patternData = {
-        total_requests: data.length,
-        success_rate: (data.filter(d => d.status === 'completed').length / data.length) * 100,
-        avg_duration: data.reduce((acc, d) => acc + (d.duration_ms || 0), 0) / data.length,
-        common_failures: data.filter(d => d.status === 'failed').map(d => d.error_message || d.request_data?.error_message || d.response_data?.error_message || 'Unknown error'),
-        request_types: [...new Set(data.map(d => d.request_type))],
-        services: [...new Set(data.map(d => (d.service_name || d.request_data?.service_name || d.request_data?.service || d.response_data?.service_name)).filter(Boolean))]
-      };
+        // Generate pattern analysis
+        const patternData = {
+          total_requests: data.length,
+          success_rate: (data.filter(d => d.status === 'completed').length / data.length) * 100,
+          avg_duration: data.reduce((acc, d) => acc + (d.duration_ms || 0), 0) / data.length,
+          common_failures: data.filter(d => d.status === 'failed').map(d => 
+            d.request_data?.error_message || d.response_data?.error_message || 'Unknown error'
+          ),
+          request_types: [...new Set(data.map(d => d.request_type))],
+          services: [...new Set(data.map(d => 
+            d.request_data?.service_name || d.request_data?.service || d.response_data?.service_name
+          ).filter(Boolean))]
+        };
 
       // Request Master Bot analysis
       await requestAnalysis(
@@ -480,13 +421,11 @@ export const CorrelationTracker = () => {
                           <Badge className={`${getStatusColor(correlation.status)} border`}>
                             {correlation.status.toUpperCase()}
                           </Badge>
-                          {(correlation.service_name ||
-                            correlation.request_data?.service_name ||
+                          {(correlation.request_data?.service_name ||
                             correlation.request_data?.service ||
                             correlation.response_data?.service_name) && (
                             <Badge variant="outline" className="text-xs">
-                              {correlation.service_name ||
-                                correlation.request_data?.service_name ||
+                              {correlation.request_data?.service_name ||
                                 correlation.request_data?.service ||
                                 correlation.response_data?.service_name}
                             </Badge>
@@ -525,14 +464,12 @@ export const CorrelationTracker = () => {
                           </div>
                         )}
 
-                        {(correlation.error_message ||
-                          correlation.request_data?.error_message ||
+                        {(correlation.request_data?.error_message ||
                           correlation.response_data?.error_message) && (
                           <div>
                             <p className="text-sm font-medium mb-1 text-foreground">Error Message</p>
                             <p className="text-sm text-red-600 bg-red-50 p-2 rounded border">
-                              {correlation.error_message ||
-                                correlation.request_data?.error_message ||
+                              {correlation.request_data?.error_message ||
                                 correlation.response_data?.error_message}
                             </p>
                           </div>
