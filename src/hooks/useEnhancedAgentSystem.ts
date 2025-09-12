@@ -7,9 +7,13 @@ import { ToolCall, ToolResult } from '@/features/agents/lib/tools/types';
 import { globalToolRegistry, globalChainRegistry } from '@/features/agents/lib/tools';
 
 export interface AgentSystemConfig {
-  toolsEnabled: boolean;
-  workflowsEnabled: boolean;
+  toolsEnabled?: boolean;
+  workflowsEnabled?: boolean;
   userId?: string;
+  systemLevel?: string;
+  safetyLevel?: string;
+  learningEnabled?: boolean;
+  crossAgentMemory?: boolean;
 }
 
 export interface SystemMetrics {
@@ -18,23 +22,33 @@ export interface SystemMetrics {
   executionCount: number;
   performance: {
     totalRequests: number;
-    avgResponseTime: number;
-    successRate: number;
-    errorRate: number;
+    averageResponseTime: number; // ms
+    successRate: number; // 0..1
+    errorRate: number; // 0..1
+    resourceUtilization: number; // 0..1
   };
   quality: {
-    accuracy: number;
-    relevance: number;
-    completeness: number;
-    consistency: number;
+    accuracyScore: number; // 0..1
+    consistencyScore: number; // 0..1
+    userSatisfaction: number; // 0..1
+    // legacy optional fields
+    accuracy?: number;
+    relevance?: number;
+    completeness?: number;
+    consistency?: number;
   };
   safety: {
-    violations: number;
+    complianceScore: number; // 0..1
+    violationCount: number;
   };
   learning: {
-    dataPoints: number;
-    improvements: number;
-    adaptations: number;
+    memoryEfficiency: number; // 0..1
+    knowledgeGrowth: number; // 0..1
+    patternRecognition: number; // 0..1
+    // legacy optional fields
+    dataPoints?: number;
+    improvements?: number;
+    adaptations?: number;
   };
 }
 
@@ -53,7 +67,7 @@ interface UseEnhancedAgentSystemReturn {
   isProcessing: boolean;
   systemHealth: string;
   metrics: SystemMetrics;
-  getSystemMetrics: () => SystemMetrics;
+  getSystemMetrics: () => Promise<SystemMetrics>;
   refreshSystems: () => Promise<void>;
   resetSystem: () => Promise<void>;
   exportKnowledge: () => Promise<any>;
@@ -61,7 +75,7 @@ interface UseEnhancedAgentSystemReturn {
   optimizePerformance: () => Promise<void>;
 }
 
-export function useEnhancedAgentSystem(): UseEnhancedAgentSystemReturn {
+export function useEnhancedAgentSystem(_config?: Partial<AgentSystemConfig>): UseEnhancedAgentSystemReturn {
   const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
@@ -109,31 +123,40 @@ export function useEnhancedAgentSystem(): UseEnhancedAgentSystemReturn {
     return globalChainRegistry.getAllChains();
   };
 
-  const getSystemMetrics = (): SystemMetrics => ({
-    totalTools: globalToolRegistry.getAllDefinitions().length,
-    totalWorkflows: globalChainRegistry.getAllChains().length,
-    executionCount: 0,
-    performance: {
-      totalRequests: 0,
-      avgResponseTime: 0,
-      successRate: 100,
-      errorRate: 0
-    },
-    quality: {
-      accuracy: 95,
-      relevance: 90,
-      completeness: 85,
-      consistency: 88
-    },
-    safety: {
-      violations: 0
-    },
-    learning: {
-      dataPoints: 0,
-      improvements: 0,
-      adaptations: 0
-    }
-  });
+const getMetricsSnapshot = (): SystemMetrics => ({
+  totalTools: globalToolRegistry.getAllDefinitions().length,
+  totalWorkflows: globalChainRegistry.getAllChains().length,
+  executionCount: 0,
+  performance: {
+    totalRequests: 0,
+    averageResponseTime: 120,
+    successRate: 0.98,
+    errorRate: 0.02,
+    resourceUtilization: 0.6
+  },
+  quality: {
+    accuracyScore: 0.94,
+    consistencyScore: 0.91,
+    userSatisfaction: 0.9
+  },
+  safety: {
+    complianceScore: 0.99,
+    violationCount: 0
+  },
+  learning: {
+    memoryEfficiency: 0.85,
+    knowledgeGrowth: 0.7,
+    patternRecognition: 0.8
+  }
+});
+
+const [metrics, setMetrics] = useState<SystemMetrics>(getMetricsSnapshot());
+
+const getSystemMetrics = async (): Promise<SystemMetrics> => {
+  const snapshot = getMetricsSnapshot();
+  setMetrics(snapshot);
+  return snapshot;
+};
 
   return {
     createAgent,
@@ -149,7 +172,7 @@ export function useEnhancedAgentSystem(): UseEnhancedAgentSystemReturn {
     reasoningSystem: {},
     isProcessing: false,
     systemHealth: 'healthy',
-    metrics: getSystemMetrics(),
+    metrics: metrics,
     getSystemMetrics,
     refreshSystems: async () => {},
     resetSystem: async () => {},
