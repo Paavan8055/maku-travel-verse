@@ -375,8 +375,6 @@ export const CorrelationTracker = () => {
           </TabsContent>
 
           <TabsContent value="tracking" className="space-y-4">
-
-          <TabsContent value="tracking" className="space-y-4">
             {/* Filter Tabs for Tracking */}
             <Tabs value={filter} onValueChange={(value: any) => setFilter(value)}>
               <TabsList className="grid w-full grid-cols-4">
