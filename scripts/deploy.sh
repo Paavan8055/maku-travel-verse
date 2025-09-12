@@ -17,15 +17,20 @@ supabase db push --non-interactive
 
 # Deploy all edge functions with force flag to bust cache
 echo "⚡ Deploying edge functions..."
-FUNCTIONS=$(ls supabase/functions)
-if [ -n "$FUNCTIONS" ]; then
-  # Force redeploy all functions to ensure latest code is active
-  for func in $FUNCTIONS; do
-    echo "Deploying function: $func"
-    supabase functions deploy "$func" --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt || exit 1
+# Only deploy directories that contain an index.ts entrypoint
+FOUND_FUNCS=$(find supabase/functions -maxdepth 1 -mindepth 1 -type d)
+if [ -n "$FOUND_FUNCS" ]; then
+  for dir in $FOUND_FUNCS; do
+    func=$(basename "$dir")
+    if [ -f "$dir/index.ts" ]; then
+      echo "Deploying function: $func"
+      supabase functions deploy "$func" --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt || exit 1
+    else
+      echo "Skipping $func (no index.ts entrypoint)"
+    fi
   done
 else
-  echo "No functions found to deploy"
+  echo "No function directories found to deploy"
 fi
 
 echo "✅ Deployment completed successfully!"
