@@ -1,9 +1,11 @@
 import React from 'react';
-import { UnifiedHealthDashboard } from '@/components/admin/UnifiedHealthDashboard';
+import { ConsolidatedHealthDashboard } from '@/components/admin/ConsolidatedHealthDashboard';
+
 const AdminProvidersPage = () => {
-  return <div className="space-y-6">
-      
-      <UnifiedHealthDashboard />
-    </div>;
+  return (
+    <div className="space-y-6">
+      <ConsolidatedHealthDashboard />
+    </div>
+  );
 };
 export default AdminProvidersPage;
