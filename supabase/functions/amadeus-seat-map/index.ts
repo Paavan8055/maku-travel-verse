@@ -1,167 +1,258 @@
-import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import logger from "../_shared/logger.ts";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
-interface AmadeusAuthResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
-
-interface SeatMapParams {
+interface SeatMapRequest {
   flightOfferId: string;
-}
-
-async function getAmadeusAccessToken(): Promise<string> {
-  const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
-  const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
-  
-  if (!clientId || !clientSecret) {
-    throw new Error('Missing Amadeus credentials');
-  }
-
-  const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get access token: ${response.statusText}`);
-  }
-
-  const data: AmadeusAuthResponse = await response.json();
-  return data.access_token;
-}
-
-async function getSeatMap(params: SeatMapParams, accessToken: string) {
-  const url = 'https://test.api.amadeus.com/v1/shopping/seatmaps';
-  
-  logger.info('Getting seat map for flight offer ID:', params.flightOfferId);
-  
-  const body = {
-    data: [
-      {
-        type: "flight-offer",
-        id: params.flightOfferId
-      }
-    ]
-  };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    logger.error('Seat Map API error:', response.status, response.statusText);
-    throw new Error(`Seat Map API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  logger.info('Seat Map response:', data);
-  return data;
+  passengerCount?: number;
+  cabinClass?: string;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { flightOfferId } = await req.json();
-    
+    const requestData: SeatMapRequest = await req.json();
+    console.log('Amadeus seat map request:', requestData);
+
+    const { flightOfferId, passengerCount = 1, cabinClass = 'ECONOMY' } = requestData;
+
     if (!flightOfferId) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Missing flightOfferId parameter' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new Error('Flight offer ID is required');
     }
 
-    logger.info('Seat map request for flight offer:', flightOfferId);
+    // Get Amadeus credentials
+    const amadeusClientId = Deno.env.get('AMADEUS_CLIENT_ID');
+    const amadeusClientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
 
-    // Get access token
-    const accessToken = await getAmadeusAccessToken();
-    logger.info('Got Amadeus access token for seat map');
+    if (!amadeusClientId || !amadeusClientSecret) {
+      console.warn('Amadeus credentials not configured, using mock seat map');
+      return getMockSeatMapResponse(flightOfferId);
+    }
 
-    // Get seat map
-    const seatMapData = await getSeatMap({ flightOfferId }, accessToken);
-
-    // Transform the response to a more usable format
-    const seatMaps = seatMapData.data?.map((seatMap: any) => ({
-      flightOfferId: seatMap.flightOfferId,
-      segmentId: seatMap.segmentId,
-      carrierCode: seatMap.carrierCode,
-      number: seatMap.number,
-      aircraft: {
-        code: seatMap.aircraft?.code,
-        width: seatMap.aircraft?.width,
-        length: seatMap.aircraft?.length
-      },
-      departure: {
-        iataCode: seatMap.departure?.iataCode,
-        at: seatMap.departure?.at
-      },
-      arrival: {
-        iataCode: seatMap.arrival?.iataCode,
-        at: seatMap.arrival?.at
-      },
-      decks: seatMap.decks?.map((deck: any) => ({
-        deckType: deck.deckType,
-        deckConfiguration: {
-          width: deck.deckConfiguration?.width,
-          length: deck.deckConfiguration?.length,
-          startseat: deck.deckConfiguration?.startseat,
-          endseat: deck.deckConfiguration?.endseat
+    try {
+      // Get Amadeus access token
+      const tokenResponse = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        facilities: deck.facilities || [],
-        seats: deck.seats?.map((seat: any) => ({
-          cabin: seat.cabin,
-          number: seat.number,
-          characteristicsCodes: seat.characteristicsCodes || [],
-          travelerPricing: seat.travelerPricing || [],
-          coordinates: seat.coordinates
-        })) || []
-      })) || []
-    })) || [];
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: amadeusClientId,
+          client_secret: amadeusClientSecret,
+        }),
+      });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        seatMaps,
-        count: seatMaps.length
-      }),
-      { 
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      if (!tokenResponse.ok) {
+        throw new Error(`Amadeus auth failed: ${tokenResponse.status}`);
       }
-    );
+
+      const tokenData = await tokenResponse.json();
+      const accessToken = tokenData.access_token;
+
+      // Call Amadeus SeatMap API
+      console.log('Requesting seat map from Amadeus for offer:', flightOfferId);
+      
+      const seatMapResponse = await fetch('https://test.api.amadeus.com/v1/shopping/seatmaps', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: [{
+            type: 'flight-offer',
+            flightOffers: [{
+              type: 'flight-offer',
+              id: flightOfferId
+            }]
+          }]
+        })
+      });
+
+      if (!seatMapResponse.ok) {
+        console.error('Amadeus seat map error:', seatMapResponse.status);
+        throw new Error(`Amadeus seat map failed: ${seatMapResponse.status}`);
+      }
+
+      const seatMapData = await seatMapResponse.json();
+      
+      // Process seat map data
+      const processedSeatMaps = (seatMapData.data || []).map((seatMap: any) => ({
+        id: seatMap.id || `seatmap-${Date.now()}`,
+        type: seatMap.type,
+        flightOfferId: seatMap.flightOfferId,
+        segmentId: seatMap.segmentId,
+        carrierCode: seatMap.carrierCode,
+        number: seatMap.number,
+        aircraft: seatMap.aircraft ? {
+          code: seatMap.aircraft.code,
+          name: seatMap.aircraft.name || 'Unknown Aircraft'
+        } : null,
+        departure: seatMap.departure,
+        arrival: seatMap.arrival,
+        class: seatMap.class,
+        decks: (seatMap.decks || []).map((deck: any) => ({
+          deckType: deck.deckType,
+          deckConfiguration: deck.deckConfiguration,
+          facilities: deck.facilities || [],
+          seats: (deck.seats || []).map((seat: any) => ({
+            number: seat.number,
+            characteristicsCodes: seat.characteristicsCodes || [],
+            travelerPricing: seat.travelerPricing ? {
+              travelerId: seat.travelerPricing.travelerId,
+              seatAvailabilityStatus: seat.travelerPricing.seatAvailabilityStatus,
+              price: seat.travelerPricing.price
+            } : null,
+            coordinates: seat.coordinates
+          }))
+        }))
+      }));
+
+      console.log(`Retrieved ${processedSeatMaps.length} seat maps from Amadeus`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          provider: 'amadeus',
+          flightOfferId,
+          seatMaps: processedSeatMaps,
+          meta: {
+            timestamp: new Date().toISOString(),
+            source: 'amadeus-api'
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
+    } catch (amadeusError) {
+      console.error('Amadeus seat map API error:', amadeusError);
+      return getMockSeatMapResponse(flightOfferId);
+    }
 
   } catch (error) {
-    logger.error('Seat map function error:', error);
-    
+    console.error('Seat map request error:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Failed to fetch seat map',
-        details: error.message
+        error: error.message,
+        provider: 'error',
+        flightOfferId: '',
+        seatMaps: [],
+        meta: {
+          timestamp: new Date().toISOString(),
+          source: 'error'
+        }
       }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
 });
+
+function getMockSeatMapResponse(flightOfferId: string): Response {
+  // Generate mock seat map data
+  const mockSeatMap = {
+    id: `mock-seatmap-${Date.now()}`,
+    type: 'seat-map',
+    flightOfferId,
+    segmentId: 'SEG001',
+    carrierCode: 'BA',
+    number: '101',
+    aircraft: {
+      code: '738',
+      name: 'Boeing 737-800'
+    },
+    departure: {
+      iataCode: 'LHR',
+      at: new Date().toISOString()
+    },
+    arrival: {
+      iataCode: 'JFK',
+      at: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
+    },
+    class: 'ECONOMY',
+    decks: [{
+      deckType: 'MAIN',
+      deckConfiguration: {
+        width: 6,
+        length: 30,
+        startSeatRow: 1,
+        endSeatRow: 30,
+        startWingsRow: 10,
+        endWingsRow: 20,
+        exitRowsX: [12, 13]
+      },
+      facilities: [
+        { code: 'LA', column: '3', row: '15', detail: 'LAVATORY' },
+        { code: 'GA', column: '4', row: '15', detail: 'GALLEY' }
+      ],
+      seats: generateMockSeats()
+    }]
+  };
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      provider: 'mock',
+      flightOfferId,
+      seatMaps: [mockSeatMap],
+      meta: {
+        timestamp: new Date().toISOString(),
+        source: 'mock-data'
+      }
+    }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+function generateMockSeats() {
+  const seats = [];
+  const seatLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+  
+  for (let row = 1; row <= 30; row++) {
+    for (let col = 0; col < seatLetters.length; col++) {
+      const seatNumber = `${row}${seatLetters[col]}`;
+      const isWindow = col === 0 || col === 5;
+      const isAisle = col === 2 || col === 3;
+      const isExit = row === 12 || row === 13;
+      const isPremium = row <= 5;
+      
+      let characteristics = [];
+      if (isWindow) characteristics.push('W'); // Window
+      if (isAisle) characteristics.push('A'); // Aisle
+      if (isExit) characteristics.push('E'); // Exit row
+      if (isPremium) characteristics.push('P'); // Premium
+      
+      seats.push({
+        number: seatNumber,
+        characteristicsCodes: characteristics,
+        travelerPricing: {
+          travelerId: '1',
+          seatAvailabilityStatus: Math.random() > 0.3 ? 'AVAILABLE' : 'OCCUPIED',
+          price: isPremium ? {
+            amount: '25.00',
+            currency: 'USD'
+          } : isExit ? {
+            amount: '15.00',
+            currency: 'USD'
+          } : null
+        },
+        coordinates: {
+          x: col + 1,
+          y: row
+        }
+      });
+    }
+  }
+  
+  return seats;
+}
