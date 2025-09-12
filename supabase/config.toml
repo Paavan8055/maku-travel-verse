@@ -425,3 +425,9 @@ verify_jwt = true
 
 [functions.duffel-webhook]
 verify_jwt = false
+
+[functions.foundation-repair-test]
+verify_jwt = true
+
+[functions.provider-discovery-engine]
+verify_jwt = true
