@@ -1,4 +1,5 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
+import { StandardizedContext } from './standardized-context.ts';
 
 export interface AgentHandler {
   (
@@ -7,7 +8,8 @@ export interface AgentHandler {
     params: any,
     supabaseClient: SupabaseClient,
     openAiClient: string,
-    memory: AgentMemoryManager
+    memory: AgentMemoryManager,
+    context?: StandardizedContext
   ): Promise<{
     success: boolean;
     result?: any;
@@ -17,6 +19,11 @@ export interface AgentHandler {
       data: any;
       expiresAt?: string;
     }>;
+    contextUpdates?: {
+      sharedData?: Record<string, any>;
+      agentContext?: Record<string, any>;
+      taskProgress?: { progress: number; status?: string };
+    };
   }>;
 }
 
@@ -94,9 +101,19 @@ export class AgentMemoryManager {
 
 export class BaseAgent {
   protected agentId: string;
+  protected context?: StandardizedContext;
   
-  constructor(private supabase: SupabaseClient, agentId: string) {
+  constructor(private supabase: SupabaseClient, agentId: string, context?: StandardizedContext) {
     this.agentId = agentId;
+    this.context = context;
+  }
+
+  setContext(context: StandardizedContext): void {
+    this.context = context;
+  }
+
+  getContext(): StandardizedContext | undefined {
+    return this.context;
   }
 
   async getUserPreferences(userId: string): Promise<any> {

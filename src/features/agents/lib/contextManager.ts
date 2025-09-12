@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
+import { StandardizedContext } from './standardized-context';
+import { EnhancedContextManager } from './enhanced-context-manager';
 
+// Legacy interface - kept for backward compatibility
 export interface ConversationContext {
   id: string;
   userId: string;
@@ -48,6 +51,9 @@ export class ContextManager {
   private conversationContexts: Map<string, ConversationContext> = new Map();
   private sharedContexts: Map<string, SharedContext> = new Map();
   private userJourneys: Map<string, UserJourneyStep[]> = new Map();
+  
+  // New standardized context manager
+  private enhancedManager: EnhancedContextManager;
 
   async createConversationContext(
     userId: string,
@@ -333,8 +339,47 @@ export class ContextManager {
     this.cleanupExpiredContexts().catch(console.error);
   }, 5 * 60 * 1000); // Every 5 minutes
 
+  // New standardized context methods
+  constructor() {
+    this.enhancedManager = new EnhancedContextManager(supabase);
+  }
+
+  async createStandardizedContext(
+    agentId: string,
+    agentType: string,
+    userId?: string,
+    sessionId?: string
+  ): Promise<StandardizedContext> {
+    const actualSessionId = sessionId || await this.enhancedManager.createSession(userId);
+    return this.enhancedManager.createContext(actualSessionId, agentId, agentType, userId);
+  }
+
+  async getStandardizedContext(sessionId: string, agentId: string): Promise<StandardizedContext | null> {
+    return this.enhancedManager.getContext(sessionId, agentId);
+  }
+
+  async handoffStandardizedContext(
+    sessionId: string,
+    sourceAgentId: string,
+    targetAgentId: string,
+    reason: string,
+    preserveHistory: boolean = true
+  ): Promise<StandardizedContext> {
+    return this.enhancedManager.handoffContext(sessionId, {
+      sourceAgentId,
+      targetAgentId,
+      reason,
+      preserveHistory
+    });
+  }
+
+  getEnhancedManager(): EnhancedContextManager {
+    return this.enhancedManager;
+  }
+
   destroy(): void {
     clearInterval(this.cleanupInterval);
+    this.enhancedManager.destroy();
   }
 }
 
