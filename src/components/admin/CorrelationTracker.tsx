@@ -12,7 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useEnhancedLogging } from '@/hooks/useEnhancedLogging';
 import { useMasterBotAnalysis } from '@/hooks/useMasterBotAnalysis';
 import { useRealTimeData } from '@/hooks/useRealTimeData';
-import { correlationId } from '@/utils/correlationId';
+import { BusinessIntelligenceDashboard } from './correlation/BusinessIntelligenceDashboard';
+import { AdvancedPatternAnalyzer } from './correlation/AdvancedPatternAnalyzer';
+import { RealTimeBookingFlow } from './correlation/RealTimeBookingFlow';
 
 interface CorrelationData {
   id: string;
@@ -358,10 +360,17 @@ export const CorrelationTracker = () => {
               <TrendingUp className="h-4 w-4 mr-2" />
               Patterns & Analytics
             </TabsTrigger>
-            <TabsTrigger value="insights">
-              <Bot className="h-4 w-4 mr-2" />
-              Master Bot Insights
-            </TabsTrigger>
+        <TabsContent value="intelligence">
+          <BusinessIntelligenceDashboard />
+        </TabsContent>
+
+        <TabsContent value="patterns">
+          <AdvancedPatternAnalyzer />
+        </TabsContent>
+
+        <TabsContent value="flows">
+          <RealTimeBookingFlow />
+        </TabsContent>
           </TabsList>
 
           <TabsContent value="tracking" className="space-y-4">
