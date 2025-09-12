@@ -274,7 +274,7 @@ serve(async (req) => {
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 502
+      status: 200
     });
 
   } catch (error) {
@@ -289,7 +289,7 @@ serve(async (req) => {
       fallbackUsed: true
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500
+      status: 200
     });
   }
 });

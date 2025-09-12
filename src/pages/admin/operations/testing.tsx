@@ -2,11 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
-import { UnifiedTestSuite } from '@/components/testing/UnifiedTestSuite';
-import { ProviderTestPanel } from '@/components/debug/ProviderTestPanel';
-import { ProviderRotationTestPanel } from '@/components/debug/ProviderRotationTestPanel';
-import { DuffelTestPanel } from '@/components/debug/DuffelTestPanel';
-import { DirectProviderTest } from '@/components/debug/DirectProviderTest';
+import { UnifiedProviderDiagnostics } from '@/components/testing/UnifiedProviderDiagnostics';
 import HotelBedsMonitoringDashboard from '@/components/admin/HotelBedsMonitoringDashboard';
 import { CredentialTestSuite } from '@/components/admin/CredentialTestSuite';
 import { FoundationRepairPanel } from '@/components/testing/FoundationRepairPanel';
@@ -24,8 +20,12 @@ const AdminTestingPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="emergency" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9">
+      <Tabs defaultValue="diagnostics" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="diagnostics" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Provider Diagnostics
+          </TabsTrigger>
           <TabsTrigger value="emergency" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             Emergency
@@ -37,18 +37,6 @@ const AdminTestingPage = () => {
           <TabsTrigger value="foundation" className="flex items-center gap-2">
             <Wrench className="h-4 w-4" />
             Foundation
-          </TabsTrigger>
-          <TabsTrigger value="test-suite" className="flex items-center gap-2">
-            <Play className="h-4 w-4" />
-            Test Suite
-          </TabsTrigger>
-          <TabsTrigger value="provider-tests" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Provider Tests
-          </TabsTrigger>
-          <TabsTrigger value="direct-tests" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            Direct Tests
           </TabsTrigger>
           <TabsTrigger value="credentials" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -64,6 +52,10 @@ const AdminTestingPage = () => {
           </TabsTrigger>
           </TabsList>
 
+        <TabsContent value="diagnostics">
+          <UnifiedProviderDiagnostics />
+        </TabsContent>
+
         <TabsContent value="emergency">
           <EmergencyCleanupDashboard />
         </TabsContent>
@@ -75,22 +67,6 @@ const AdminTestingPage = () => {
           <TabsContent value="foundation">
             <FoundationRepairPanel />
           </TabsContent>
-
-          <TabsContent value="test-suite">
-            <UnifiedTestSuite />
-          </TabsContent>
-
-        <TabsContent value="provider-tests">
-          <div className="space-y-6">
-            <ProviderTestPanel />
-            <ProviderRotationTestPanel />
-            <DuffelTestPanel />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="direct-tests">
-          <DirectProviderTest />
-        </TabsContent>
 
         <TabsContent value="credentials">
           <CredentialTestSuite />
