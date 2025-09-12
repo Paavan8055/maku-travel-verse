@@ -1,143 +1,50 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { corsHeaders } from '../_shared/cors.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
-import logger from "../_shared/logger.ts";
-...
-import { ENV_CONFIG, validateApiKeys, RATE_LIMITS } from '../_shared/config.ts'
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-correlation-id',
+}
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    );
 
-    // Get correlation ID from headers or generate new one
-    const correlationIdHeader = req.headers.get('X-Correlation-ID') || req.headers.get('x-correlation-id')
-    const currentCorrelationId = correlationIdHeader || crypto.randomUUID()
-
-    const { logs }: { logs: LogEntry[] } = await req.json()
-
-    if (!Array.isArray(logs) || logs.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid logs format' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
-
-    // Batch insert logs with correlation ID
-    const logEntries = logs.map(log => ({
-      correlation_id: currentCorrelationId,
-      service_name: log.service_name,
-      log_level: log.log_level,
-      message: log.message,
-      metadata: log.metadata || {},
-      request_id: log.request_id,
-      user_id: log.user_id,
-      duration_ms: log.duration_ms,
-      status_code: log.status_code,
-      error_details: log.error_details
-    }))
-
-    const { error: logError } = await supabase
-      .from('system_logs')
-      .insert(logEntries)
-
-    if (logError) {
-      console.error('Failed to store logs:', logError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to store logs' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
-
-    // Store performance metrics for requests with duration
-    const performanceEntries = logs
-      .filter(log => log.duration_ms !== undefined)
-      .map(log => ({
-        correlation_id: currentCorrelationId,
-        metric_type: 'api_request',
-        operation: log.service_name,
-        duration_ms: log.duration_ms!,
-        success: !log.error_details,
-        error_message: log.error_details?.message,
-        metadata: {
-          status_code: log.status_code,
-          request_id: log.request_id,
-          ...log.metadata
-        },
-        user_id: log.user_id
-      }))
-
-    if (performanceEntries.length > 0) {
-      const { error: perfError } = await supabase
-        .from('performance_metrics')
-        .insert(performanceEntries)
-
-      if (perfError) {
-        console.error('Failed to store performance metrics:', perfError)
-      }
-    }
-
-    // Log security events for errors and auth failures
-    const securityEvents = logs
-      .filter(log => 
-        log.log_level === 'error' && 
-        (log.message.includes('auth') || log.message.includes('unauthorized') || log.status_code === 401 || log.status_code === 403)
-      )
-      .map(log => ({
-        event_type: 'authentication_failure',
-        severity: log.status_code === 401 ? 'medium' : 'high',
-        user_id: log.user_id,
-        details: {
-          correlation_id: currentCorrelationId,
-          service: log.service_name,
+    const { logs } = await req.json();
+    
+    // Insert system logs
+    if (logs && Array.isArray(logs)) {
+      const { error } = await supabaseClient
+        .from('system_logs')
+        .insert(logs.map(log => ({
+          correlation_id: req.headers.get('x-correlation-id') || crypto.randomUUID(),
+          service_name: log.service_name,
+          log_level: log.log_level,
+          level: log.log_level, 
           message: log.message,
-          status_code: log.status_code,
-          ...log.metadata
-        }
-      }))
+          metadata: log.metadata || {},
+          created_at: new Date().toISOString()
+        })));
 
-    if (securityEvents.length > 0) {
-      const { error: secError } = await supabase
-        .from('security_events')
-        .insert(securityEvents)
-
-      if (secError) {
-        console.error('Failed to store security events:', secError)
-      }
+      if (error) console.error('Failed to insert system logs:', error);
     }
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        correlation_id: currentCorrelationId,
-        logs_stored: logs.length,
-        performance_metrics: performanceEntries.length,
-        security_events: securityEvents.length
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
 
   } catch (error) {
-    console.error('Enhanced logging error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    )
+    return new Response(JSON.stringify({ error: 'Failed to process logs' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
-})
+});

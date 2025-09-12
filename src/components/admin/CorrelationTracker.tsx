@@ -360,18 +360,21 @@ export const CorrelationTracker = () => {
               <TrendingUp className="h-4 w-4 mr-2" />
               Patterns & Analytics
             </TabsTrigger>
-        <TabsContent value="intelligence">
-          <BusinessIntelligenceDashboard />
-        </TabsContent>
-
-        <TabsContent value="patterns">
-          <AdvancedPatternAnalyzer />
-        </TabsContent>
-
-        <TabsContent value="flows">
-          <RealTimeBookingFlow />
-        </TabsContent>
+            <TabsTrigger value="intelligence">
+              <Zap className="h-4 w-4 mr-2" />
+              Business Intelligence
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="intelligence">
+            <BusinessIntelligenceDashboard />
+          </TabsContent>
+
+          <TabsContent value="patterns">
+            <AdvancedPatternAnalyzer />
+          </TabsContent>
+
+          <TabsContent value="tracking" className="space-y-4">
 
           <TabsContent value="tracking" className="space-y-4">
             {/* Filter Tabs for Tracking */}

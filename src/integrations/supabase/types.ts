@@ -3193,39 +3193,60 @@ export type Database = {
       }
       correlation_tracking: {
         Row: {
+          booking_value: number | null
           completed_at: string | null
           correlation_id: string
           created_at: string
+          customer_tier: string | null
           duration_ms: number | null
+          error_message: string | null
           id: string
+          provider_id: string | null
           request_data: Json | null
           request_type: string
           response_data: Json | null
+          service_name: string | null
+          session_id: string | null
           status: string
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          booking_value?: number | null
           completed_at?: string | null
           correlation_id: string
           created_at?: string
+          customer_tier?: string | null
           duration_ms?: number | null
+          error_message?: string | null
           id?: string
+          provider_id?: string | null
           request_data?: Json | null
           request_type: string
           response_data?: Json | null
+          service_name?: string | null
+          session_id?: string | null
           status?: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          booking_value?: number | null
           completed_at?: string | null
           correlation_id?: string
           created_at?: string
+          customer_tier?: string | null
           duration_ms?: number | null
+          error_message?: string | null
           id?: string
+          provider_id?: string | null
           request_data?: Json | null
           request_type?: string
           response_data?: Json | null
+          service_name?: string | null
+          session_id?: string | null
           status?: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -10537,6 +10558,10 @@ export type Database = {
       }
       get_cleanup_stats: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_correlation_business_metrics: {
+        Args: { p_hours_back?: number }
         Returns: Json
       }
       get_database_performance_stats: {
