@@ -11,26 +11,63 @@ fi
 echo "🚀 Starting MAKU.Travel deployment..."
 echo "Timestamp: $(date)"
 
+# Verify edge functions integrity before deployment
+echo "🔍 Verifying edge functions..."
+if command -v deno >/dev/null 2>&1; then
+  if ! deno run --allow-read --allow-write scripts/verify-edge-functions.ts; then
+    echo "❌ Edge function verification failed. Use --auto-stub to create missing stubs."
+    echo "Or run: deno run --allow-read --allow-write scripts/verify-edge-functions.ts --auto-stub"
+    exit 1
+  fi
+else
+  echo "⚠️  Deno not found. Skipping edge function verification."
+fi
+
 # Push database migrations
 echo "📊 Deploying database migrations..."
 supabase db push --non-interactive
 
 # Deploy all edge functions with force flag to bust cache
 echo "⚡ Deploying edge functions..."
-# Only deploy directories that contain an index.ts entrypoint
-FOUND_FUNCS=$(find supabase/functions -maxdepth 1 -mindepth 1 -type d)
+
+# Get list of deployable functions
+DEPLOYABLE_FUNCS=""
+SKIPPED_FUNCS=""
+FOUND_FUNCS=$(find supabase/functions -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort)
+
 if [ -n "$FOUND_FUNCS" ]; then
   for dir in $FOUND_FUNCS; do
     func=$(basename "$dir")
+    
+    # Skip if disabled
+    if [ -f "$dir/.disabled" ]; then
+      SKIPPED_FUNCS="$SKIPPED_FUNCS $func(disabled)"
+      continue
+    fi
+    
+    # Check for entrypoint
     if [ -f "$dir/index.ts" ]; then
-      echo "Deploying function: $func"
-      supabase functions deploy "$func" --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt || exit 1
+      DEPLOYABLE_FUNCS="$DEPLOYABLE_FUNCS $func"
     else
-      echo "Skipping $func (no index.ts entrypoint)"
+      SKIPPED_FUNCS="$SKIPPED_FUNCS $func(no-entrypoint)"
+    fi
+  done
+  
+  echo "📋 Functions to deploy:$(echo "$DEPLOYABLE_FUNCS" | tr ' ' '\n' | sort | tr '\n' ' ')"
+  if [ -n "$SKIPPED_FUNCS" ]; then
+    echo "⏭️  Skipped functions: $SKIPPED_FUNCS"
+  fi
+  
+  # Deploy each function
+  for func in $DEPLOYABLE_FUNCS; do
+    echo "🚀 Deploying function: $func"
+    if ! supabase functions deploy "$func" --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt; then
+      echo "❌ Failed to deploy $func"
+      exit 1
     fi
   done
 else
-  echo "No function directories found to deploy"
+  echo "📭 No function directories found to deploy"
 fi
 
 echo "✅ Deployment completed successfully!"

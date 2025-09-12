@@ -34,4 +34,19 @@ else
 fi
 
 echo "🎉 All dependency versions are correct!"
+
+# Validate edge functions integrity
+echo "🔍 Validating edge functions integrity..."
+if command -v deno >/dev/null 2>&1; then
+  if deno run --allow-read scripts/verify-edge-functions.ts; then
+    echo "✅ All edge functions have proper entrypoints"
+  else
+    echo "❌ Some edge functions are missing entrypoints"
+    echo "💡 Run with --auto-stub to create missing stubs automatically"
+    exit 1
+  fi
+else
+  echo "⚠️  Deno not found. Skipping edge function verification."
+fi
+
 echo "🚀 Deployment validation successful!"
