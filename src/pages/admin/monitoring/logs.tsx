@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { RefreshCw, Search, Download, Filter, Calendar, Clock, AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RefreshCw, Search, Download, AlertTriangle, Info, CheckCircle, XCircle, Activity, Bot, Zap, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+import { useAgentOrchestration } from '@/hooks/useAgentOrchestration';
+import { useMasterBotAnalysis } from '@/hooks/useMasterBotAnalysis';
+import { useEnhancedLogging } from '@/hooks/useEnhancedLogging';
+import { usePerformanceOptimizer } from '@/hooks/usePerformanceOptimizer';
+import { useToast } from '@/hooks/use-toast';
 
 interface LogEntry {
   id: string;
@@ -19,126 +26,171 @@ interface LogEntry {
   metadata?: any;
   correlation_id?: string;
   function_name?: string;
+  service_name?: string;
+  user_id?: string;
+  duration_ms?: number;
+  status_code?: number;
+  error_details?: any;
 }
 
 const AdminLogsPage = () => {
+  const { toast } = useToast();
+  
+  // State management
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('recent');
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  const fetchLogs = async () => {
-    setLoading(true);
+  // Enhanced hooks integration
+  const { isInitialized } = useAgentOrchestration();
+  const { isAnalyzing, latestAnalysis, requestAnalysis } = useMasterBotAnalysis();
+  const { logApiCall } = useEnhancedLogging();
+  const { metrics: performanceMetrics, isHighMemoryUsage } = usePerformanceOptimizer({
+    componentName: 'AdminLogsPage',
+    enableMonitoring: true,
+    reportToAnalytics: true
+  });
+
+  // Real-time data fetching
+  const loadSystemLogs = useCallback(async () => {
     try {
-      // Fetch real edge function logs from Supabase analytics
-      const { data, error } = await supabase.functions.invoke('unified-health-monitor', {
-        body: { action: 'get_system_logs', limit: 100 }
-      });
+      setLoading(true);
+      
+      const { data: systemLogsResult, error } = await supabase
+        .from('system_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
 
       if (error) {
-        console.error('Failed to fetch logs:', error);
-        // Fall back to mock data
-        const mockLogs: LogEntry[] = [
+        console.error('Error loading logs:', error);
+        // Fallback to mock data
+        const fallbackLogs: LogEntry[] = [
           {
             id: 'log-1',
             timestamp: new Date().toISOString(),
             level: 'info',
-            source: 'provider_quota_monitor',
-            message: 'Quota check completed - 3 providers checked, no issues detected',
-            metadata: { totalProviders: 3, warningCount: 0, criticalCount: 0 }
-          },
-          {
-            id: 'log-2',
-            timestamp: new Date(Date.now() - 60000).toISOString(),
-            level: 'warning',
-            source: 'provider_quota_monitor',
-            message: 'Sabre API error 401 - authentication issue (not quota related)',
-            metadata: { provider: 'sabre', statusCode: 401 }
-          },
-          {
-            id: 'log-3',
-            timestamp: new Date(Date.now() - 120000).toISOString(),
-            level: 'warning',
-            source: 'provider_quota_monitor',
-            message: 'HotelBeds API error 403 - access forbidden (not quota related)',
-            metadata: { provider: 'hotelbeds', statusCode: 403 }
-          },
-          {
-            id: 'log-4',
-            timestamp: new Date(Date.now() - 180000).toISOString(),
-            level: 'info',
-            source: 'health_check',
-            message: 'Health check stored successfully',
+            source: 'enhanced_logging',
+            message: 'Real-time logging system active',
             metadata: { component: 'system_health' }
-          },
-          {
-            id: 'log-5',
-            timestamp: new Date(Date.now() - 300000).toISOString(),
-            level: 'info',
-            source: 'foundation_repair_test',
-            message: 'Foundation repair tests completed - 4 passed, 0 failed',
-            metadata: { passed: 4, failed: 0 }
-          },
-          {
-            id: 'log-6',
-            timestamp: new Date(Date.now() - 400000).toISOString(),
-            level: 'error',
-            source: 'deployment_validator',
-            message: 'Failed to send request to Edge Function - network connectivity issue',
-            metadata: { error: 'FunctionsFetchError', context: 'Failed to fetch' }
-          },
-          {
-            id: 'log-7',
-            timestamp: new Date(Date.now() - 500000).toISOString(),
-            level: 'info',
-            source: 'rate_limiter',
-            message: 'Rate limiter service booted successfully',
-            metadata: { component: 'rate_limiter', status: 'healthy' }
           }
         ];
-        setLogs(mockLogs);
-      } else {
-        // Process real logs if available
-        const processedLogs = data?.logs || [];
-        setLogs(processedLogs);
+        setLogs(fallbackLogs);
+      } else if (systemLogsResult) {
+        setLogs(systemLogsResult.map(log => ({
+          id: log.id,
+          timestamp: log.created_at,
+          level: (log.log_level || log.level) as 'info' | 'warning' | 'error' | 'debug',
+          source: log.service_name || 'system',
+          message: log.message,
+          metadata: log.metadata || {},
+          correlation_id: log.correlation_id,
+          user_id: log.user_id,
+          duration_ms: log.duration_ms,
+          status_code: log.status_code,
+          error_details: log.error_details
+        })));
       }
+
+      setLastUpdate(new Date());
     } catch (error) {
-      console.error('Failed to fetch logs:', error);
-      // Provide meaningful fallback data
-      const fallbackLogs: LogEntry[] = [
-        {
-          id: 'fallback-1',
-          timestamp: new Date().toISOString(),
-          level: 'warning',
-          source: 'log_service',
-          message: 'Unable to fetch real-time logs, showing cached data',
-          metadata: { reason: 'service_unavailable' }
-        }
-      ];
-      setLogs(fallbackLogs);
+      console.error('Failed to load system logs:', error);
+      toast({
+        title: "Log Loading Error",
+        description: "Failed to load system logs. Using cached data.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
+  // Real-time subscriptions
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    loadSystemLogs();
 
+    const systemLogsChannel = supabase
+      .channel('system-logs-updates')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'system_logs'
+      }, (payload) => {
+        const newLog: LogEntry = {
+          id: payload.new.id,
+          timestamp: payload.new.created_at,
+          level: (payload.new.log_level || payload.new.level) as 'info' | 'warning' | 'error' | 'debug',
+          source: payload.new.service_name || 'system',
+          message: payload.new.message,
+          metadata: payload.new.metadata || {},
+          correlation_id: payload.new.correlation_id,
+          user_id: payload.new.user_id,
+          duration_ms: payload.new.duration_ms,
+          status_code: payload.new.status_code,
+          error_details: payload.new.error_details
+        };
+        
+        setLogs(prev => [newLog, ...prev.slice(0, 199)]);
+        setLastUpdate(new Date());
+      })
+      .subscribe();
+
+    const interval = setInterval(loadSystemLogs, 30000);
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(systemLogsChannel);
+    };
+  }, [loadSystemLogs]);
+
+  // Enhanced logging integration
+  useEffect(() => {
+    if (logs.length > 0) {
+      logApiCall(
+        'admin_logs_page',
+        'page_view',
+        Date.now() - 1000,
+        true,
+        200,
+        undefined,
+        { 
+          totalLogs: logs.length,
+          errorCount: logs.filter(l => l.level === 'error').length,
+          performanceMetrics
+        }
+      );
+    }
+  }, [logs.length, logApiCall, performanceMetrics]);
+
+  // Master bot analysis integration
+  const runLogAnalysis = useCallback(async () => {
+    if (logs.length === 0) return;
+
+    const logAnalysisData = {
+      totalLogs: logs.length,
+      errorLogs: logs.filter(l => l.level === 'error'),
+      warningLogs: logs.filter(l => l.level === 'warning'),
+      performanceMetrics: performanceMetrics,
+      recentErrors: logs.filter(l => l.level === 'error').slice(0, 10)
+    };
+
+    await requestAnalysis('performance', logAnalysisData, 
+      'Analyze system logs for performance bottlenecks, error patterns, and optimization opportunities. Provide actionable recommendations.'
+    );
+  }, [logs, performanceMetrics, requestAnalysis]);
+
+  // Helper functions
   const getLogIcon = (level: string) => {
     switch (level) {
-      case 'error':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'info':
-        return <Info className="h-4 w-4 text-blue-500" />;
-      case 'debug':
-        return <CheckCircle className="h-4 w-4 text-gray-500" />;
-      default:
-        return <Info className="h-4 w-4 text-gray-500" />;
+      case 'error': return <XCircle className="h-4 w-4 text-destructive" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-warning" />;
+      case 'info': return <Info className="h-4 w-4 text-primary" />;
+      case 'debug': return <CheckCircle className="h-4 w-4 text-muted-foreground" />;
+      default: return <Info className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -172,51 +224,86 @@ const AdminLogsPage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Enhanced Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Performance Logs</h1>
           <p className="text-muted-foreground">
-            System and provider performance monitoring logs
+            Real-time system monitoring with AI analysis integration
           </p>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <span className="text-sm text-muted-foreground">
+                Last updated: {lastUpdate.toLocaleTimeString()}
+              </span>
+            </div>
+            {isInitialized && (
+              <Badge variant="outline" className="gap-1">
+                <Bot className="h-3 w-3" />
+                Agent System Active
+              </Badge>
+            )}
+            {isHighMemoryUsage && (
+              <Badge variant="destructive" className="gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                High Memory Usage
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchLogs} disabled={loading} variant="outline" size="sm">
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
           <Button 
+            onClick={runLogAnalysis} 
+            disabled={isAnalyzing || logs.length === 0}
             variant="outline" 
             size="sm"
-            onClick={() => {
-              const csvContent = [
-                'Timestamp,Level,Source,Message',
-                ...filteredLogs.map(log => 
-                  `"${log.timestamp}","${log.level}","${log.source}","${log.message.replace(/"/g, '""')}"`
-                )
-              ].join('\n');
-              
-              const blob = new Blob([csvContent], { type: 'text/csv' });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `performance-logs-${new Date().toISOString().split('T')[0]}.csv`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              window.URL.revokeObjectURL(url);
-            }}
+            className="gap-2"
           >
-            <Download className="h-4 w-4 mr-2" />
-            Export
+            <Bot className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
+            {isAnalyzing ? 'Analyzing...' : 'AI Analysis'}
+          </Button>
+          <Button onClick={loadSystemLogs} disabled={loading} variant="outline" size="sm">
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
         </div>
       </div>
 
+      {/* AI Analysis Results */}
+      {latestAnalysis && (
+        <Alert>
+          <Bot className="h-4 w-4" />
+          <div className="flex-1">
+            <div className="font-semibold">Master Bot Analysis</div>
+            <AlertDescription className="mt-1">
+              {latestAnalysis.summary}
+            </AlertDescription>
+            {latestAnalysis.recommendations.length > 0 && (
+              <div className="mt-3">
+                <div className="text-sm font-medium mb-2">Recommendations:</div>
+                <ul className="text-sm space-y-1 ml-4">
+                  {latestAnalysis.recommendations.slice(0, 3).map((rec, idx) => (
+                    <li key={idx} className="list-disc">{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <Badge variant={latestAnalysis.severity === 'critical' ? 'destructive' : 'secondary'}>
+            {latestAnalysis.severity}
+          </Badge>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Log Analysis
+            <Activity className="h-5 w-5" />
+            Enhanced Log Analysis
+            <Badge variant="outline" className="ml-auto">
+              {filteredLogs.length} logs
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -225,7 +312,7 @@ const AdminLogsPage = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search logs..."
+                  placeholder="Search logs, correlation IDs, error messages..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -280,7 +367,6 @@ const AdminLogsPage = () => {
                         <TableHead className="w-40">Timestamp</TableHead>
                         <TableHead className="w-32">Source</TableHead>
                         <TableHead>Message</TableHead>
-                        <TableHead className="w-24">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -306,16 +392,11 @@ const AdminLogsPage = () => {
                               </div>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <Info className="h-3 w-3" />
-                            </Button>
-                          </TableCell>
                         </TableRow>
                       ))}
                       {filteredLogs.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                             No logs found matching your criteria.
                           </TableCell>
                         </TableRow>
@@ -334,7 +415,6 @@ const AdminLogsPage = () => {
                       <TableHead>Timestamp</TableHead>
                       <TableHead>Source</TableHead>
                       <TableHead>Error Message</TableHead>
-                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -349,13 +429,8 @@ const AdminLogsPage = () => {
                           <TableCell className="text-sm font-mono">
                             {log.source.replace('_', ' ')}
                           </TableCell>
-                          <TableCell className="text-sm text-red-600">
+                          <TableCell className="text-sm text-destructive">
                             {log.message}
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="sm">
-                              <AlertTriangle className="h-3 w-3" />
-                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -368,7 +443,7 @@ const AdminLogsPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardContent className="p-4">
-                    <div className="text-2xl font-bold text-red-600">
+                    <div className="text-2xl font-bold text-destructive">
                       {logs.filter(log => log.level === 'error').length}
                     </div>
                     <div className="text-sm text-muted-foreground">Total Errors</div>
@@ -376,7 +451,7 @@ const AdminLogsPage = () => {
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <div className="text-2xl font-bold text-yellow-600">
+                    <div className="text-2xl font-bold text-warning">
                       {logs.filter(log => log.level === 'warning').length}
                     </div>
                     <div className="text-sm text-muted-foreground">Warnings</div>
@@ -384,7 +459,7 @@ const AdminLogsPage = () => {
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-2xl font-bold text-primary">
                       {logs.filter(log => log.level === 'info').length}
                     </div>
                     <div className="text-sm text-muted-foreground">Info Messages</div>
