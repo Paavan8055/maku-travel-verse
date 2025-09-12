@@ -11,7 +11,11 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useEnhancedLogging } from '@/hooks/useEnhancedLogging';
+import { useMasterBotAnalysis } from '@/hooks/useMasterBotAnalysis';
 import { MasterBotIntegrationStatus } from './MasterBotIntegrationStatus';
+import HealthMonitoringIntegration from './HealthMonitoringIntegration';
+import SystemLoggingIntegration from './SystemLoggingIntegration';
 
 interface TestResult {
   service: string;
@@ -39,6 +43,8 @@ export const UnifiedProviderDiagnostics = () => {
   const [progress, setProgress] = useState(0);
   const [currentTest, setCurrentTest] = useState<string>('');
   const { toast } = useToast();
+  const { logApiCall, logPerformance, logSingle } = useEnhancedLogging();
+  const { requestAnalysis } = useMasterBotAnalysis();
 
   const testConfigs = [
     {
@@ -644,6 +650,26 @@ export const UnifiedProviderDiagnostics = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Health Monitoring Integration */}
+      <HealthMonitoringIntegration 
+        testResults={testResults} 
+        onHealthUpdate={() => console.log('Provider health updated')} 
+      />
+
+      {/* System Logging Integration */}
+      <SystemLoggingIntegration 
+        testResults={testResults}
+        testSummary={{
+          totalTests: testResults.length,
+          successfulTests: testResults.filter(r => r.success).length,
+          failedTests: testResults.filter(r => !r.success).length,
+          averageResponseTime: testResults.length > 0 ? 
+            testResults.reduce((sum, r) => sum + r.responseTime, 0) / testResults.length : 0,
+          totalResultCount: testResults.reduce((sum, r) => sum + r.resultCount, 0)
+        }}
+        sessionId={`test_session_${Date.now()}`}
+      />
     </div>
   );
 };
