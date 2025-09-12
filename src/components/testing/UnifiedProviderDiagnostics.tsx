@@ -16,6 +16,10 @@ import { useMasterBotAnalysis } from '@/hooks/useMasterBotAnalysis';
 import { MasterBotIntegrationStatus } from './MasterBotIntegrationStatus';
 import HealthMonitoringIntegration from './HealthMonitoringIntegration';
 import SystemLoggingIntegration from './SystemLoggingIntegration';
+import { TestingPreferencesPanel } from './TestingPreferencesPanel';
+import { BackgroundTestScheduler } from './BackgroundTestScheduler';
+import { TestingNotificationCenter } from './TestingNotificationCenter';
+import { SmartFailureRecoveryPanel } from './SmartFailureRecoveryPanel';
 
 interface TestResult {
   service: string;
@@ -572,8 +576,19 @@ export const UnifiedProviderDiagnostics = () => {
                       <div className="mt-3 text-xs text-muted-foreground">
                         Analysis powered by GPT-5 with real system data integration
                       </div>
-                    </CardContent>
-                  </Card>
+        </CardContent>
+      </Card>
+
+      {/* Phase 6: Advanced Automation & Persistence */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TestingPreferencesPanel />
+        <BackgroundTestScheduler />
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TestingNotificationCenter />
+        <SmartFailureRecoveryPanel />
+      </div>
 
                   {masterBotResult.recommendations.length > 0 && (
                     <Card>
