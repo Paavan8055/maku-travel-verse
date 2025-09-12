@@ -77,9 +77,7 @@ const AdminAuth = createLazyRoute(() => import("./pages/AdminAuth"));
 const DeploymentTestPage = createLazyRoute(() => import("./pages/admin/deployment-test"));
 const AdminLayout = createLazyRoute(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
 const AdminOverviewPage = createLazyRoute(() => import("./pages/admin/dashboard/overview"));
-const AdminRealtimePage = createLazyRoute(() => import("./pages/admin/dashboard/realtime"));
 const AdminAlertsPage = createLazyRoute(() => import("./pages/admin/dashboard/alerts"));
-const AdminHealthPage = createLazyRoute(() => import("./pages/admin/monitoring/health"));
 const AdminProvidersPage = createLazyRoute(() => import("./pages/admin/monitoring/providers"));
 const AdminQuotasPage = createLazyRoute(() => import("./pages/admin/monitoring/quotas"));
 const AdminLogsPage = createLazyRoute(() => import("./pages/admin/monitoring/logs"));
@@ -212,17 +210,17 @@ const App = () => (
                                          </AdminGuard>
                                        }>
                                          {/* Dashboard Routes */}
-                                         <Route index element={<AdminOverviewPage />} />
-                                         <Route path="dashboard" element={<AdminOverviewPage />} />
-                                         <Route path="dashboard/realtime" element={<AdminRealtimePage />} />
-                                         <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
-                                         
-                         {/* Monitoring Routes */}
-                         <Route path="monitoring/health" element={<AdminHealthPage />} />
-                         <Route path="monitoring/providers" element={<AdminProvidersPage />} />
-                          <Route path="monitoring/quotas" element={<AdminQuotasPage />} />
-                          <Route path="monitoring/logs" element={<AdminLogsPage />} />
-                          <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
+                          <Route index element={<AdminOverviewPage />} />
+                          <Route path="dashboard" element={<AdminOverviewPage />} />
+                          <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
+                          
+                          {/* Monitoring Routes */}
+                          <Route path="monitoring" element={<AdminMonitoring />} />
+                          <Route path="monitoring/real-time" element={<AdminRealTimeMonitoringPage />} />
+                          <Route path="monitoring/providers" element={<AdminProvidersPage />} />
+                           <Route path="monitoring/quotas" element={<AdminQuotasPage />} />
+                           <Route path="monitoring/logs" element={<AdminLogsPage />} />
+                           <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
                                          
                                            {/* Operations Routes */}
                                            <Route path="operations/bookings" element={<AdminBookingsPage />} />

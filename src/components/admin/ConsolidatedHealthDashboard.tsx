@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -10,14 +11,19 @@ import {
   CheckCircle, 
   XCircle, 
   Clock,
-  Zap,
-  Database,
+  RefreshCw,
   TrendingUp,
-  RefreshCw
+  TrendingDown,
+  Minus,
+  Monitor,
+  Database,
+  Zap,
+  Globe
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useApiHealth } from '@/hooks/useApiHealth';
 
 interface ProviderHealthStatus {
   providerId: string;
@@ -48,12 +54,26 @@ interface UnifiedHealthData {
   recommendations: string[];
 }
 
-export const UnifiedHealthDashboard: React.FC = () => {
+interface QuotaStatus {
+  provider: string;
+  service: string;
+  quotaUsed: number;
+  quotaLimit: number;
+  percentageUsed: number;
+  status: 'healthy' | 'warning' | 'critical';
+  lastChecked: number;
+}
+
+export const ConsolidatedHealthDashboard: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { apiHealth, loading: legacyHealthLoading, checkApiHealth } = useApiHealth();
+  const [quotaData, setQuotaData] = useState<QuotaStatus[]>([]);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
+  // Unified health data from enhanced monitoring
   const { data: healthData, isLoading, error, refetch } = useQuery({
-    queryKey: ['unified-health'],
+    queryKey: ['consolidated-health'],
     queryFn: async (): Promise<UnifiedHealthData> => {
       const { data, error } = await supabase.functions.invoke('unified-health-monitor');
       if (error) throw error;
@@ -62,9 +82,29 @@ export const UnifiedHealthDashboard: React.FC = () => {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  useEffect(() => {
+    fetchQuotaData();
+    const interval = setInterval(fetchQuotaData, 2 * 60 * 1000); // Every 2 minutes
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchQuotaData = async () => {
+    try {
+      const { data: quotaResponse, error: quotaError } = await supabase.functions.invoke('provider-quota-monitor');
+      
+      if (!quotaError && quotaResponse?.success) {
+        setQuotaData(quotaResponse.quotas || []);
+      }
+      
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('Failed to fetch quota data:', error);
+    }
+  };
+
   const handleManualRefresh = async () => {
     try {
-      await refetch();
+      await Promise.all([refetch(), fetchQuotaData(), checkApiHealth()]);
       toast({
         title: "Health Status Refreshed",
         description: "Latest provider health data has been loaded.",
@@ -94,8 +134,7 @@ export const UnifiedHealthDashboard: React.FC = () => {
         description: `Circuit breaker for ${providerId} has been reset.`,
       });
       
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ['unified-health'] });
+      queryClient.invalidateQueries({ queryKey: ['consolidated-health'] });
     } catch (error) {
       toast({
         title: "Reset Failed",
@@ -104,6 +143,72 @@ export const UnifiedHealthDashboard: React.FC = () => {
       });
     }
   };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'healthy': return <CheckCircle className="h-5 w-5 text-success" />;
+      case 'degraded': return <AlertTriangle className="h-5 w-5 text-warning" />;
+      case 'critical': 
+      case 'outage': return <XCircle className="h-5 w-5 text-destructive" />;
+      default: return <Clock className="h-5 w-5 text-muted-foreground" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'healthy': return 'bg-success';
+      case 'degraded': return 'bg-warning';
+      case 'critical':
+      case 'outage': return 'bg-destructive';
+      default: return 'bg-muted';
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'healthy': return <Badge variant="default">Healthy</Badge>;
+      case 'warning': 
+      case 'degraded': return <Badge variant="secondary">Warning</Badge>;
+      case 'critical': 
+      case 'outage': return <Badge variant="destructive">Critical</Badge>;
+      default: return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+
+  const getQuotaBadge = (quota: QuotaStatus) => {
+    if (quota.percentageUsed >= 95) return <Badge variant="destructive">Critical</Badge>;
+    if (quota.percentageUsed >= 80) return <Badge variant="secondary">Warning</Badge>;
+    return <Badge variant="default">Healthy</Badge>;
+  };
+
+  const getQuotaColor = (percentage: number, status: string) => {
+    if (status === 'critical' || percentage >= 90) return 'destructive';
+    if (status === 'warning' || percentage >= 75) return 'secondary';
+    return 'outline';
+  };
+
+  const getCircuitBreakerIcon = (state: string) => {
+    switch (state) {
+      case 'closed': return <CheckCircle className="h-4 w-4 text-success" />;
+      case 'open': return <XCircle className="h-4 w-4 text-destructive" />;
+      case 'half-open': return <AlertTriangle className="h-4 w-4 text-warning" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const getTrendIcon = (status: string) => {
+    switch (status) {
+      case 'healthy': return <TrendingUp className="h-4 w-4 text-success" />;
+      case 'degraded': return <Minus className="h-4 w-4 text-warning" />;
+      case 'critical': return <TrendingDown className="h-4 w-4 text-destructive" />;
+      default: return <Minus className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const overallStatus = healthData?.overallStatus || 'unknown';
+  const averageResponseTime = healthData?.providers?.length > 0 
+    ? Math.round(healthData.providers.reduce((sum, p) => sum + p.responseTime, 0) / healthData.providers.length)
+    : 0;
 
   if (isLoading) {
     return (
@@ -124,52 +229,19 @@ export const UnifiedHealthDashboard: React.FC = () => {
     );
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'degraded': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'outage': return <XCircle className="h-4 w-4 text-red-500" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy': return 'bg-green-500';
-      case 'degraded': return 'bg-yellow-500';
-      case 'outage': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getQuotaColor = (percentage: number, status: string) => {
-    if (status === 'critical' || percentage >= 90) return 'destructive';
-    if (status === 'warning' || percentage >= 75) return 'secondary';
-    return 'outline';
-  };
-
-  const getCircuitBreakerIcon = (state: string) => {
-    switch (state) {
-      case 'closed': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'open': return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'half-open': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Unified Health Dashboard</h1>
+          <h1 className="text-3xl font-bold">System Health Dashboard</h1>
           <p className="text-muted-foreground">
-            Comprehensive provider health, quota, and circuit breaker monitoring
+            Comprehensive provider health, quota, and performance monitoring
           </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            Last updated: {healthData ? new Date(healthData.timestamp).toLocaleString() : 'Never'}
+            Last updated: {healthData ? new Date(healthData.timestamp).toLocaleString() : lastUpdate?.toLocaleTimeString() || 'Never'}
           </div>
           <Button variant="outline" size="sm" onClick={handleManualRefresh} className="gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -178,37 +250,45 @@ export const UnifiedHealthDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Overall Status */}
+      {/* System Overview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
+            {getStatusIcon(overallStatus)}
             System Health Overview
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${getStatusColor(healthData?.overallStatus || 'unknown')}`}>
-                {getStatusIcon(healthData?.overallStatus || 'unknown')}
+              <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${getStatusColor(overallStatus)}`}>
+                {getStatusIcon(overallStatus)}
               </div>
-              <p className="mt-2 font-semibold capitalize">{healthData?.overallStatus || 'Unknown'}</p>
+              <p className="mt-2 font-semibold capitalize">{overallStatus}</p>
               <p className="text-sm text-muted-foreground">Overall Status</p>
+              {getStatusBadge(overallStatus)}
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-500">{healthData?.summary?.healthyProviders || 0}</div>
-              <p className="text-sm text-muted-foreground">Healthy Providers</p>
+              <div className="text-2xl font-bold">
+                {healthData?.summary?.healthyProviders || 0} / {healthData?.summary?.totalProviders || 0}
+              </div>
+              <p className="text-sm text-muted-foreground">Services Online</p>
+              {getTrendIcon(overallStatus)}
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-500">{healthData?.summary?.degradedProviders || 0}</div>
-              <p className="text-sm text-muted-foreground">Degraded Providers</p>
+              <div className="text-2xl font-bold">{averageResponseTime}ms</div>
+              <p className="text-sm text-muted-foreground">Avg Response Time</p>
+              {getTrendIcon(averageResponseTime < 1000 ? 'healthy' : averageResponseTime < 2000 ? 'degraded' : 'critical')}
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-500">{healthData?.summary?.outageProviders || 0}</div>
-              <p className="text-sm text-muted-foreground">Outage Providers</p>
+              <div className="text-2xl font-bold">
+                {quotaData.filter(q => q.status === 'critical').length}
+              </div>
+              <p className="text-sm text-muted-foreground">Critical Quotas</p>
+              <AlertTriangle className="h-4 w-4 mx-auto text-warning" />
             </div>
           </div>
         </CardContent>
@@ -231,13 +311,14 @@ export const UnifiedHealthDashboard: React.FC = () => {
         </Alert>
       )}
 
-      {/* Provider Details */}
+      {/* Main Content Tabs */}
       <Tabs defaultValue="providers" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="providers">Provider Status</TabsTrigger>
-          <TabsTrigger value="quotas">Quota Management</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="providers">Providers</TabsTrigger>
+          <TabsTrigger value="quotas">Quotas</TabsTrigger>
           <TabsTrigger value="circuit-breakers">Circuit Breakers</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="legacy">Legacy Health</TabsTrigger>
         </TabsList>
 
         <TabsContent value="providers">
@@ -253,9 +334,7 @@ export const UnifiedHealthDashboard: React.FC = () => {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Status:</span>
-                    <Badge variant={provider.status === 'healthy' ? 'default' : 'destructive'}>
-                      {provider.status}
-                    </Badge>
+                    {getStatusBadge(provider.status)}
                   </div>
                   
                   <div className="flex justify-between items-center">
@@ -277,9 +356,9 @@ export const UnifiedHealthDashboard: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Credentials:</span>
                     {provider.credentialsValid ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <CheckCircle className="h-4 w-4 text-success" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-red-500" />
+                      <XCircle className="h-4 w-4 text-destructive" />
                     )}
                   </div>
                 </CardContent>
@@ -294,44 +373,33 @@ export const UnifiedHealthDashboard: React.FC = () => {
 
         <TabsContent value="quotas">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {healthData?.providers?.length > 0 ? healthData.providers.map((provider) => (
-              <Card key={provider.providerId}>
+            {quotaData.length > 0 ? quotaData.map((quota, index) => (
+              <Card key={index}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center justify-between text-base">
-                    <span>{provider.providerName}</span>
+                    <span className="capitalize">{quota.provider}</span>
                     <Database className="h-4 w-4" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                   <div className="flex justify-between items-center">
-                     <span className="text-sm">Quota Status:</span>
-                     <Badge variant={getQuotaColor(provider.quotaPercentage, provider.quotaStatus)}>
-                       {provider.quotaStatus || 'healthy'}
-                     </Badge>
-                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Quota Status:</span>
+                    {getQuotaBadge(quota)}
+                  </div>
                   
-                   <div className="flex justify-between items-center">
-                     <span className="text-sm">Usage:</span>
-                     <span className="text-sm font-mono">{provider.quotaPercentage || 0}%</span>
-                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Usage:</span>
+                    <span className="text-sm font-mono">{quota.percentageUsed.toFixed(1)}%</span>
+                  </div>
                   
-                   <div className="w-full bg-gray-200 rounded-full h-2">
-                     <div 
-                       className={`h-2 rounded-full ${
-                         (provider.quotaPercentage || 0) >= 90 ? 'bg-red-500' :
-                         (provider.quotaPercentage || 0) >= 75 ? 'bg-yellow-500' : 'bg-green-500'
-                       }`}
-                       style={{ width: `${Math.min(provider.quotaPercentage || 0, 100)}%` }}
-                     />
-                   </div>
-                   
-                   {/* Show quota monitoring status */}
-                   <div className="text-xs text-muted-foreground">
-                     <div className="flex items-center gap-1">
-                       <CheckCircle className="h-3 w-3 text-green-500" />
-                       <span>Real-time monitoring active</span>
-                     </div>
-                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Used / Limit:</span>
+                    <span className="text-sm font-mono">
+                      {quota.quotaUsed.toLocaleString()} / {quota.quotaLimit.toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  <Progress value={quota.percentageUsed} className="h-2" />
                 </CardContent>
               </Card>
             )) : (
@@ -392,7 +460,7 @@ export const UnifiedHealthDashboard: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Response Times
+                  Response Time Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -401,11 +469,11 @@ export const UnifiedHealthDashboard: React.FC = () => {
                     <div key={provider.providerId} className="flex justify-between items-center">
                       <span className="text-sm">{provider.providerName}:</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div className="w-20 bg-muted rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full ${
-                              provider.responseTime > 5000 ? 'bg-red-500' :
-                              provider.responseTime > 2000 ? 'bg-yellow-500' : 'bg-green-500'
+                              provider.responseTime > 5000 ? 'bg-destructive' :
+                              provider.responseTime > 2000 ? 'bg-warning' : 'bg-success'
                             }`}
                             style={{ width: `${Math.min((provider.responseTime / 5000) * 100, 100)}%` }}
                           />
@@ -446,29 +514,76 @@ export const UnifiedHealthDashboard: React.FC = () => {
                     </Alert>
                   )}
                   
-                  {(healthData?.summary?.outageProviders || 0) > 0 && (
-                    <Alert variant="destructive">
-                      <XCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        {healthData?.summary?.outageProviders || 0} provider(s) experiencing outages
-                      </AlertDescription>
-                    </Alert>
+                  {(!healthData?.summary?.criticalQuotaProviders?.length && !healthData?.summary?.circuitBreakersOpen?.length) && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No active alerts
+                    </div>
                   )}
-                  
-                  {(!healthData?.summary?.criticalQuotaProviders?.length || healthData.summary.criticalQuotaProviders.length === 0) && 
-                   (!healthData?.summary?.circuitBreakersOpen?.length || healthData.summary.circuitBreakersOpen.length === 0) && 
-                   (!healthData?.summary?.outageProviders || healthData.summary.outageProviders === 0) && (
-                     <Alert>
-                       <CheckCircle className="h-4 w-4" />
-                       <AlertDescription>
-                         All systems operating normally
-                       </AlertDescription>
-                     </Alert>
-                   )}
                 </div>
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="legacy">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Legacy API Health Check
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <span className="font-medium">Activities</span>
+                  {apiHealth.activities ? (
+                    <CheckCircle className="h-5 w-5 text-success" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-destructive" />
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <span className="font-medium">Hotels</span>
+                  {apiHealth.hotels ? (
+                    <CheckCircle className="h-5 w-5 text-success" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-destructive" />
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <span className="font-medium">Flights</span>
+                  {apiHealth.flights ? (
+                    <CheckCircle className="h-5 w-5 text-success" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-destructive" />
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <span className="font-medium">Transfers</span>
+                  {apiHealth.transfers ? (
+                    <CheckCircle className="h-5 w-5 text-success" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-destructive" />
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-4 text-center">
+                <Button 
+                  onClick={checkApiHealth}
+                  disabled={legacyHealthLoading}
+                  variant="outline"
+                  size="sm"
+                >
+                  {legacyHealthLoading ? 'Checking...' : 'Refresh Legacy Checks'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

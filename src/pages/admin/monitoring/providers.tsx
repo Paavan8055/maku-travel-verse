@@ -1,5 +1,5 @@
 import React from 'react';
-import { UnifiedHealthDashboard } from '@/components/admin/UnifiedHealthDashboard';
+import { ConsolidatedHealthDashboard } from '@/components/admin/ConsolidatedHealthDashboard';
 
 const AdminProvidersPage = () => {
   return (
@@ -10,7 +10,7 @@ const AdminProvidersPage = () => {
           Monitor API provider health, rotation, and performance metrics
         </p>
       </div>
-      <UnifiedHealthDashboard />
+      <ConsolidatedHealthDashboard />
     </div>
   );
 };

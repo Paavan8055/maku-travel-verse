@@ -7,7 +7,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { BookingManagement } from '@/components/admin/BookingManagement';
 import { SecurityMonitoring } from '@/components/admin/SecurityMonitoring';
 import { ProductionMonitoringDashboard } from '@/components/admin/ProductionMonitoringDashboard';
-import { RealTimeMetricsDashboard } from '@/components/admin/RealTimeMetricsDashboard';
+import { ConsolidatedRealTimeMonitoring } from '@/components/admin/ConsolidatedRealTimeMonitoring';
 import { CorrelationTracker } from '@/components/admin/CorrelationTracker';
 import { SecuritySettingsGuide } from '@/components/admin/SecuritySettingsGuide';
 import { ABTestDashboard } from '@/components/testing/ABTestingFramework';
@@ -255,7 +255,7 @@ const AdminDashboard = () => {
           </TabsContent>
           
           <TabsContent value="realtime">
-            <RealTimeMetricsDashboard />
+            <ConsolidatedRealTimeMonitoring />
           </TabsContent>
           
           <TabsContent value="correlation">

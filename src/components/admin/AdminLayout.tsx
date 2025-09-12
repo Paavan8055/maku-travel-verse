@@ -1,12 +1,13 @@
 import React from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { LayoutDashboard, Activity, Users, BookOpen, Shield, Settings, Eye, BarChart3, Database, FileText, UserCheck, AlertTriangle, Lock, TestTube, Search, Bell, User, Briefcase, Gauge, Bot, Workflow, Zap, Brain } from 'lucide-react';
+import { LayoutDashboard, Activity, Users, BookOpen, Shield, Settings, Eye, BarChart3, Database, FileText, UserCheck, AlertTriangle, Lock, TestTube, Search, Bell, User, Briefcase, Gauge, Bot, Workflow, Zap, Brain, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AdminBreadcrumb } from './AdminBreadcrumb';
+
 const adminMenuItems = [{
   category: 'Dashboard',
   icon: LayoutDashboard,
@@ -14,10 +15,6 @@ const adminMenuItems = [{
     title: 'Overview',
     url: '/admin/dashboard',
     icon: LayoutDashboard
-  }, {
-    title: 'Real-time Metrics',
-    url: '/admin/dashboard/realtime',
-    icon: Activity
   }, {
     title: 'Critical Alerts',
     url: '/admin/dashboard/alerts',
@@ -28,8 +25,12 @@ const adminMenuItems = [{
   icon: Eye,
   items: [{
     title: 'System Health',
-    url: '/admin/monitoring/health',
+    url: '/admin/monitoring',
     icon: Activity
+  }, {
+    title: 'Real-Time Monitoring',
+    url: '/admin/monitoring/real-time',
+    icon: Monitor
   }, {
     title: 'Provider Status',
     url: '/admin/monitoring/providers',
@@ -128,6 +129,7 @@ const adminMenuItems = [{
     icon: Settings
   }]
 }];
+
 export const AdminSidebar: React.FC = () => {
   const {
     state,
@@ -163,6 +165,7 @@ export const AdminSidebar: React.FC = () => {
       </SidebarContent>
     </Sidebar>;
 };
+
 export const AdminHeader: React.FC = () => {
   const {
     user
@@ -208,6 +211,7 @@ export const AdminHeader: React.FC = () => {
       </div>
     </header>;
 };
+
 export const AdminLayout: React.FC = () => {
   return <SidebarProvider>
       <div className="min-h-screen flex w-full">

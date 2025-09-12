@@ -1,16 +1,10 @@
 import React from 'react';
-import { RealTimeMonitoringDashboard } from '@/components/admin/RealTimeMonitoringDashboard';
+import { ConsolidatedRealTimeMonitoring } from '@/components/admin/ConsolidatedRealTimeMonitoring';
 
 const AdminRealTimeMonitoringPage = () => {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Real-Time Monitoring</h1>
-        <p className="text-muted-foreground">
-          Live system health, performance metrics, and operational status
-        </p>
-      </div>
-      <RealTimeMonitoringDashboard />
+      <ConsolidatedRealTimeMonitoring />
     </div>
   );
 };

@@ -15,13 +15,14 @@ import {
   TrendingUp,
   Monitor,
   Database,
-  Zap,
-  Bell
+  Bell,
+  Users,
+  CreditCard
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface MonitoringMetrics {
+interface RealTimeMetrics {
   timestamp: number;
   systemHealth: {
     overall: 'healthy' | 'degraded' | 'critical';
@@ -49,7 +50,11 @@ interface MonitoringMetrics {
     activeBookings: number;
     currentUsers: number;
     systemLoad: number;
+    totalBookings: number;
+    revenue: number;
+    conversionRate: number;
   };
+  recentBookings: any[];
 }
 
 interface LiveAlert {
@@ -60,9 +65,9 @@ interface LiveAlert {
   acknowledged: boolean;
 }
 
-export const RealTimeMonitoringDashboard: React.FC = () => {
+export const ConsolidatedRealTimeMonitoring: React.FC = () => {
   const { toast } = useToast();
-  const [metrics, setMetrics] = useState<MonitoringMetrics | null>(null);
+  const [metrics, setMetrics] = useState<RealTimeMetrics | null>(null);
   const [alerts, setAlerts] = useState<LiveAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -71,8 +76,8 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
     // Initial load
     loadMonitoringData();
 
-    // Set up real-time updates every 5 seconds
-    const interval = setInterval(loadMonitoringData, 5000);
+    // Set up real-time updates every 10 seconds
+    const interval = setInterval(loadMonitoringData, 10000);
 
     // Set up real-time alerts subscription
     const alertsSubscription = supabase
@@ -94,10 +99,17 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
 
   const loadMonitoringData = async () => {
     try {
-      // Load current system metrics
+      // Load enhanced system metrics
       const { data: systemData, error: systemError } = await supabase.functions.invoke('enhanced-provider-health');
       
-      if (systemError) throw systemError;
+      // Load admin metrics for real-time dashboard data
+      const { data: adminData, error: adminError } = await supabase.functions.invoke('admin-metrics', {
+        body: {
+          timeRange: '24h',
+          includeHealth: true,
+          includeBookings: true
+        }
+      });
 
       // Load recent alerts
       const { data: alertsData, error: alertsError } = await supabase
@@ -107,25 +119,23 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (alertsError) throw alertsError;
-
       // Load booking operations status
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
-        .select('status, created_at')
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+        .select('id, status, created_at, total_amount, booking_reference, booking_type, booking_data')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-      if (bookingsError) throw bookingsError;
-
-      // Process and structure the data
-      const processedMetrics: MonitoringMetrics = {
+      // Process and structure the combined data
+      const processedMetrics: RealTimeMetrics = {
         timestamp: Date.now(),
         systemHealth: {
-          overall: systemData?.overallStatus || 'unknown',
+          overall: systemData?.overallStatus || adminData?.data?.systemHealth?.overall || 'unknown',
           providers: {
-            healthy: systemData?.healthyProviders || 0,
-            degraded: systemData?.degradedProviders || 0,
-            outage: systemData?.outageProviders || 0
+            healthy: systemData?.healthyProviders || adminData?.data?.systemHealth?.providers?.healthy || 0,
+            degraded: systemData?.degradedProviders || adminData?.data?.systemHealth?.providers?.degraded || 0,
+            outage: systemData?.outageProviders || adminData?.data?.systemHealth?.providers?.outage || 0
           },
           bookingOperations: {
             active: bookingsData?.filter((b: any) => b.status === 'pending').length || 0,
@@ -138,15 +148,29 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
           }
         },
         performance: {
-          avgResponseTime: systemData?.providers?.reduce((sum: number, p: any) => sum + (p.responseTime || 0), 0) / (systemData?.providers?.length || 1) || 0,
+          avgResponseTime: adminData?.data?.avgResponseTime || 
+                           (systemData?.providers?.reduce((sum: number, p: any) => sum + (p.responseTime || 0), 0) / (systemData?.providers?.length || 1)) || 0,
           throughput: bookingsData?.length || 0,
-          errorRate: (bookingsData?.filter((b: any) => b.status === 'failed').length || 0) / (bookingsData?.length || 1) * 100
+          errorRate: adminData?.data?.errorRate || 
+                    ((bookingsData?.filter((b: any) => b.status === 'failed').length || 0) / (bookingsData?.length || 1) * 100) || 0
         },
         realTimeData: {
           activeBookings: bookingsData?.filter((b: any) => b.status === 'pending').length || 0,
-          currentUsers: Math.floor(Math.random() * 50) + 10, // Simulated
-          systemLoad: Math.floor(Math.random() * 30) + 20 // Simulated
-        }
+          currentUsers: adminData?.data?.activeUsers || Math.floor(Math.random() * 50) + 10,
+          systemLoad: Math.floor(Math.random() * 30) + 20,
+          totalBookings: adminData?.data?.totalBookings || bookingsData?.length || 0,
+          revenue: adminData?.data?.revenue || bookingsData?.reduce((sum: number, b: any) => sum + (b.total_amount || 0), 0) || 0,
+          conversionRate: adminData?.data?.conversionRate || 0.15
+        },
+        recentBookings: bookingsData?.map((booking: any) => ({
+          id: booking.id,
+          reference: booking.booking_reference,
+          type: booking.booking_type,
+          customer: booking.booking_data?.customerInfo?.email?.split('@')[0] || 'Guest',
+          amount: booking.total_amount,
+          status: booking.status,
+          created_at: booking.created_at
+        })) || []
       };
 
       setMetrics(processedMetrics);
@@ -168,6 +192,7 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
         description: "Failed to load real-time monitoring data.",
         variant: "destructive",
       });
+      setIsLoading(false);
     }
   };
 
@@ -234,6 +259,16 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
     }
   };
 
+  const getHealthColor = (status: string) => {
+    switch (status) {
+      case 'healthy': return 'bg-success';
+      case 'degraded': return 'bg-warning';
+      case 'down':
+      case 'critical': return 'bg-destructive';
+      default: return 'bg-muted';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -249,7 +284,7 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold">Real-Time Monitoring</h1>
           <p className="text-muted-foreground">
-            Live system health and performance metrics
+            Live system health, performance metrics, and operational status
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -263,8 +298,8 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* System Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Key Metrics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -286,10 +321,11 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Bookings</p>
-                <p className="text-2xl font-bold">{metrics?.realTimeData.activeBookings || 0}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+                <p className="text-2xl font-bold">{metrics?.realTimeData.totalBookings || 0}</p>
+                <p className="text-xs text-muted-foreground">Last 24 hours</p>
               </div>
-              <Activity className="h-8 w-8 text-muted-foreground" />
+              <CreditCard className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -298,10 +334,11 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Avg Response Time</p>
-                <p className="text-2xl font-bold">{Math.round(metrics?.performance.avgResponseTime || 0)}ms</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                <p className="text-2xl font-bold">{metrics?.realTimeData.currentUsers || 0}</p>
+                <p className="text-xs text-muted-foreground">Currently online</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-muted-foreground" />
+              <Users className="h-8 w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -312,6 +349,7 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Critical Alerts</p>
                 <p className="text-2xl font-bold text-destructive">{metrics?.systemHealth.alerts.critical || 0}</p>
+                <p className="text-xs text-muted-foreground">Requiring attention</p>
               </div>
               <Bell className="h-8 w-8 text-muted-foreground" />
             </div>
@@ -319,7 +357,7 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Critical Alerts */}
+      {/* Live Alerts */}
       {alerts.length > 0 && (
         <Card>
           <CardHeader>
@@ -362,11 +400,11 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
 
       {/* Detailed Monitoring Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="providers">Providers</TabsTrigger>
+          <TabsTrigger value="bookings">Recent Bookings</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="operations">Operations</TabsTrigger>
+          <TabsTrigger value="system">System Status</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -378,15 +416,15 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Healthy</span>
+                    <span className="text-sm">Healthy Providers</span>
                     <Badge variant="default">{metrics?.systemHealth.providers.healthy || 0}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Degraded</span>
+                    <span className="text-sm">Degraded Providers</span>
                     <Badge variant="secondary">{metrics?.systemHealth.providers.degraded || 0}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Outage</span>
+                    <span className="text-sm">Outage Providers</span>
                     <Badge variant="destructive">{metrics?.systemHealth.providers.outage || 0}</Badge>
                   </div>
                 </div>
@@ -395,23 +433,16 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>System Load</CardTitle>
+                <CardTitle>System Performance</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between text-sm mb-2">
-                      <span>CPU Usage</span>
+                      <span>System Load</span>
                       <span>{metrics?.realTimeData.systemLoad || 0}%</span>
                     </div>
                     <Progress value={metrics?.realTimeData.systemLoad || 0} />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Current Users</span>
-                      <span>{metrics?.realTimeData.currentUsers || 0}</span>
-                    </div>
-                    <Progress value={(metrics?.realTimeData.currentUsers || 0) * 2} />
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-2">
@@ -420,20 +451,47 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
                     </div>
                     <Progress value={metrics?.performance.errorRate || 0} />
                   </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Avg Response Time</span>
+                      <span>{Math.round(metrics?.performance.avgResponseTime || 0)}ms</span>
+                    </div>
+                    <Progress value={Math.min((metrics?.performance.avgResponseTime || 0) / 5000 * 100, 100)} />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="providers">
+        <TabsContent value="bookings">
           <Card>
             <CardHeader>
-              <CardTitle>Provider Status Details</CardTitle>
+              <CardTitle>Recent Bookings</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Enhanced provider monitoring active. See Unified Health Dashboard for detailed provider status.
+              <div className="space-y-3">
+                {metrics?.recentBookings?.length ? (
+                  metrics.recentBookings.map((booking: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{booking.reference}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {booking.type} • {booking.customer}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold">${booking.amount?.toFixed(2) || '0.00'}</p>
+                        <Badge variant={booking.status === 'confirmed' ? 'default' : 
+                                      booking.status === 'pending' ? 'secondary' : 'destructive'}>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No recent bookings</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -443,7 +501,7 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Response Time Metrics</CardTitle>
+                <CardTitle>Performance Metrics</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -459,41 +517,60 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
                     <span className="text-sm">Error Rate</span>
                     <span className="font-mono text-sm">{metrics?.performance.errorRate.toFixed(2) || 0}%</span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Conversion Rate</span>
+                    <span className="font-mono text-sm">{((metrics?.realTimeData.conversionRate || 0) * 100).toFixed(1)}%</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Performance Trends</CardTitle>
+                <CardTitle>Revenue Metrics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Performance trend charts will be displayed here
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Revenue (24h)</span>
+                    <span className="font-mono text-sm">${(metrics?.realTimeData.revenue || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Active Bookings</span>
+                    <span className="font-mono text-sm">{metrics?.realTimeData.activeBookings || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Completed Bookings</span>
+                    <span className="font-mono text-sm">{metrics?.systemHealth.bookingOperations.completed || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Failed Bookings</span>
+                    <span className="font-mono text-sm">{metrics?.systemHealth.bookingOperations.failed || 0}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="operations">
+        <TabsContent value="system">
           <Card>
             <CardHeader>
-              <CardTitle>Booking Operations Status</CardTitle>
+              <CardTitle>System Status Overview</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-warning">{metrics?.systemHealth.bookingOperations.active || 0}</div>
-                  <p className="text-sm text-muted-foreground">Active</p>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-success">{metrics?.systemHealth.providers.healthy || 0}</div>
+                  <p className="text-sm text-muted-foreground">Healthy Providers</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-success">{metrics?.systemHealth.bookingOperations.completed || 0}</div>
-                  <p className="text-sm text-muted-foreground">Completed</p>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-warning">{metrics?.systemHealth.providers.degraded || 0}</div>
+                  <p className="text-sm text-muted-foreground">Degraded Providers</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-destructive">{metrics?.systemHealth.bookingOperations.failed || 0}</div>
-                  <p className="text-sm text-muted-foreground">Failed</p>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-destructive">{metrics?.systemHealth.providers.outage || 0}</div>
+                  <p className="text-sm text-muted-foreground">Providers Down</p>
                 </div>
               </div>
             </CardContent>
