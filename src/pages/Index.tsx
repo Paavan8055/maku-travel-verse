@@ -6,6 +6,7 @@ import MarketplacePills from "@/components/MarketplacePills";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { EnhancedAgenticWidget } from "@/components/agentic/enhanced/EnhancedAgenticWidget";
 
 // Lazy load below-the-fold components for better performance
 const MarketplaceSection = lazy(() => import("@/components/MarketplaceSection"));
@@ -25,6 +26,11 @@ const Index = () => {
           <HeroSection />
           <MarketplacePills />
           <SearchSection />
+          <Suspense fallback={null}>
+            <div className="relative">
+              <EnhancedAgenticWidget dashboardType="user" />
+            </div>
+          </Suspense>
           
           {/* Lazy load below-the-fold content */}
           <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>

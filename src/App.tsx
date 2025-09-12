@@ -104,6 +104,7 @@ const AutomationHubPage = createLazyRoute(() => import("./pages/admin/automation
 const MasterBotPage = createLazyRoute(() => import("./pages/admin/automation/master-bot"));
 const WorkflowsPage = createLazyRoute(() => import("./pages/admin/automation/workflows"));
 const OrchestrationPage = createLazyRoute(() => import("./pages/admin/automation/orchestration"));
+const AgentCoordinationPage = createLazyRoute(() => import("./pages/admin/coordination/agent-orchestration"));
 
 const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
 
@@ -242,8 +243,9 @@ const App = () => (
                            {/* Automation Routes */}
                            <Route path="automation/hub" element={<AutomationHubPage />} />
                            <Route path="automation/master-bot" element={<MasterBotPage />} />
-                           <Route path="automation/workflows" element={<WorkflowsPage />} />
-                           <Route path="automation/orchestration" element={<OrchestrationPage />} />
+                            <Route path="automation/workflows" element={<WorkflowsPage />} />
+                            <Route path="automation/orchestration" element={<OrchestrationPage />} />
+                            <Route path="coordination/agents" element={<AgentCoordinationPage />} />
                            
                             {/* Settings Routes */}
                            <Route path="settings/features" element={<AdminFeatureFlagsPage />} />
