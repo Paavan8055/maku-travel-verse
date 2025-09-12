@@ -36,6 +36,46 @@ class CorrelationIdManager {
     };
   }
 
+  // Auto-log correlation tracking data
+  async logCorrelationData(
+    requestType: string,
+    status: 'in_progress' | 'completed' | 'failed',
+    requestData: any,
+    responseData?: any,
+    serviceName?: string,
+    errorMessage?: string,
+    durationMs?: number,
+    userId?: string
+  ) {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const correlationData = {
+        correlation_id: this.getCurrentId(),
+        request_type: requestType,
+        status,
+        request_data: requestData,
+        response_data: responseData,
+        service_name: serviceName,
+        error_message: errorMessage,
+        duration_ms: durationMs,
+        user_id: userId,
+        created_at: new Date().toISOString(),
+        completed_at: status !== 'in_progress' ? new Date().toISOString() : null
+      };
+
+      const { error } = await supabase
+        .from('correlation_tracking')
+        .upsert(correlationData);
+
+      if (error) {
+        console.error('Failed to log correlation data:', error);
+      }
+    } catch (error) {
+      console.error('Error logging correlation data:', error);
+    }
+  }
+
   // Extract correlation ID from request headers
   extractFromHeaders(headers: Headers | Record<string, string>): string | null {
     if (headers instanceof Headers) {
