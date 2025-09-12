@@ -1,7 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.53.0";
-import logger from "../_shared/simpleLogger.ts";
+import logger from "../_shared/logger.ts";
 
 
 interface ErrorReport {
