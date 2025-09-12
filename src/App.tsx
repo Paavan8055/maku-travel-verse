@@ -78,6 +78,8 @@ const DeploymentTestPage = createLazyRoute(() => import("./pages/admin/deploymen
 const AdminLayout = createLazyRoute(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
 const AdminOverviewPage = createLazyRoute(() => import("./pages/admin/dashboard/overview"));
 const AdminAlertsPage = createLazyRoute(() => import("./pages/admin/dashboard/alerts"));
+const AdminMonitoring = createLazyRoute(() => import("./pages/admin/monitoring"));
+const AdminRealTimeMonitoringPage = createLazyRoute(() => import("./pages/admin/monitoring/real-time"));
 const AdminProvidersPage = createLazyRoute(() => import("./pages/admin/monitoring/providers"));
 const AdminQuotasPage = createLazyRoute(() => import("./pages/admin/monitoring/quotas"));
 const AdminLogsPage = createLazyRoute(() => import("./pages/admin/monitoring/logs"));
