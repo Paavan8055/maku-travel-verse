@@ -162,11 +162,9 @@ export const CorrelationTracker = () => {
       } else {
         setCorrelations(data || []);
         
-        // If no data found, populate with sample data
+        // If no data found, show empty state; do not auto-populate
         if (!data || data.length === 0) {
-          await populateCorrelationData();
-          // Refetch after populating
-          setTimeout(() => fetchCorrelations(), 1000);
+          setCorrelations([]);
         } else {
           analyzeCorrelationPatterns(data);
         }
@@ -197,9 +195,9 @@ export const CorrelationTracker = () => {
         total_requests: data.length,
         success_rate: (data.filter(d => d.status === 'completed').length / data.length) * 100,
         avg_duration: data.reduce((acc, d) => acc + (d.duration_ms || 0), 0) / data.length,
-        common_failures: data.filter(d => d.status === 'failed').map(d => d.error_message || 'Unknown error'),
+        common_failures: data.filter(d => d.status === 'failed').map(d => d.error_message || d.request_data?.error_message || d.response_data?.error_message || 'Unknown error'),
         request_types: [...new Set(data.map(d => d.request_type))],
-        services: [...new Set(data.map(d => d.service_name).filter(Boolean))]
+        services: [...new Set(data.map(d => (d.service_name || d.request_data?.service_name || d.request_data?.service || d.response_data?.service_name)).filter(Boolean))]
       };
 
       // Request Master Bot analysis
@@ -314,6 +312,22 @@ export const CorrelationTracker = () => {
     return `${(ms / 1000).toFixed(2)}s`;
   };
 
+  const formatDateTime = (iso: string) => {
+    try {
+      return new Intl.DateTimeFormat('en-AU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Australia/Sydney',
+        hour12: false
+      }).format(new Date(iso));
+    } catch {
+      return new Date(iso).toLocaleString('en-AU', { timeZone: 'Australia/Sydney' });
+    }
+  };
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchCorrelations();
@@ -466,9 +480,15 @@ export const CorrelationTracker = () => {
                           <Badge className={`${getStatusColor(correlation.status)} border`}>
                             {correlation.status.toUpperCase()}
                           </Badge>
-                          {correlation.service_name && (
+                          {(correlation.service_name ||
+                            correlation.request_data?.service_name ||
+                            correlation.request_data?.service ||
+                            correlation.response_data?.service_name) && (
                             <Badge variant="outline" className="text-xs">
-                              {correlation.service_name}
+                              {correlation.service_name ||
+                                correlation.request_data?.service_name ||
+                                correlation.request_data?.service ||
+                                correlation.response_data?.service_name}
                             </Badge>
                           )}
                         </div>
@@ -489,9 +509,9 @@ export const CorrelationTracker = () => {
                         <div>
                           <p className="text-sm font-medium mb-1 text-foreground">Timestamps</p>
                           <div className="text-sm text-muted-foreground space-y-1">
-                            <p>Started: {new Date(correlation.created_at).toLocaleString()}</p>
+                            <p>Started: {formatDateTime(correlation.created_at)}</p>
                             {correlation.completed_at && (
-                              <p>Completed: {new Date(correlation.completed_at).toLocaleString()}</p>
+                              <p>Completed: {formatDateTime(correlation.completed_at)}</p>
                             )}
                           </div>
                         </div>
@@ -505,11 +525,15 @@ export const CorrelationTracker = () => {
                           </div>
                         )}
 
-                        {correlation.error_message && (
+                        {(correlation.error_message ||
+                          correlation.request_data?.error_message ||
+                          correlation.response_data?.error_message) && (
                           <div>
                             <p className="text-sm font-medium mb-1 text-foreground">Error Message</p>
                             <p className="text-sm text-red-600 bg-red-50 p-2 rounded border">
-                              {correlation.error_message}
+                              {correlation.error_message ||
+                                correlation.request_data?.error_message ||
+                                correlation.response_data?.error_message}
                             </p>
                           </div>
                         )}

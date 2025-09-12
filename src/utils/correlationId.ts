@@ -54,10 +54,12 @@ class CorrelationIdManager {
         correlation_id: this.getCurrentId(),
         request_type: requestType,
         status,
-        request_data: requestData,
+        request_data: {
+          ...requestData,
+          ...(serviceName ? { service_name: serviceName } : {}),
+          ...(errorMessage ? { error_message: errorMessage } : {})
+        },
         response_data: responseData,
-        service_name: serviceName,
-        error_message: errorMessage,
         duration_ms: durationMs,
         user_id: userId,
         created_at: new Date().toISOString(),
