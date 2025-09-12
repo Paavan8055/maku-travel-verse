@@ -426,6 +426,9 @@ verify_jwt = true
 [functions.duffel-webhook]
 verify_jwt = false
 
+[functions.confirm-hotel-booking]
+verify_jwt = true
+
 [functions.foundation-repair-test]
 verify_jwt = true
 
