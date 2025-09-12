@@ -2560,6 +2560,63 @@ export type Database = {
         }
         Relationships: []
       }
+      business_alerts: {
+        Row: {
+          alert_type: string
+          auto_generated: boolean | null
+          correlation_id: string | null
+          created_at: string | null
+          escalation_level: number | null
+          id: string
+          message: string
+          metadata: Json | null
+          provider_id: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          revenue_impact: number | null
+          severity: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          auto_generated?: boolean | null
+          correlation_id?: string | null
+          created_at?: string | null
+          escalation_level?: number | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          provider_id?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          revenue_impact?: number | null
+          severity?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          auto_generated?: boolean | null
+          correlation_id?: string | null
+          created_at?: string | null
+          escalation_level?: number | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          provider_id?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          revenue_impact?: number | null
+          severity?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       calendar_integrations: {
         Row: {
           access_token_encrypted: string
@@ -3487,6 +3544,60 @@ export type Database = {
           personalization_data?: Json | null
           preferred_destinations?: Json | null
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      customer_journey_analytics: {
+        Row: {
+          abandoned: boolean | null
+          abandonment_reason: string | null
+          booking_type: string | null
+          booking_value: number | null
+          correlation_id: string | null
+          created_at: string | null
+          customer_lifetime_value: number | null
+          device_type: string | null
+          duration_ms: number | null
+          funnel_step: number
+          id: string
+          journey_stage: string
+          provider_used: string | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          abandoned?: boolean | null
+          abandonment_reason?: string | null
+          booking_type?: string | null
+          booking_value?: number | null
+          correlation_id?: string | null
+          created_at?: string | null
+          customer_lifetime_value?: number | null
+          device_type?: string | null
+          duration_ms?: number | null
+          funnel_step: number
+          id?: string
+          journey_stage: string
+          provider_used?: string | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          abandoned?: boolean | null
+          abandonment_reason?: string | null
+          booking_type?: string | null
+          booking_value?: number | null
+          correlation_id?: string | null
+          created_at?: string | null
+          customer_lifetime_value?: number | null
+          device_type?: string | null
+          duration_ms?: number | null
+          funnel_step?: number
+          id?: string
+          journey_stage?: string
+          provider_used?: string | null
+          session_id?: string
           user_id?: string | null
         }
         Relationships: []
@@ -6276,6 +6387,66 @@ export type Database = {
           },
         ]
       }
+      partner_onboarding_metrics: {
+        Row: {
+          assigned_to: string | null
+          competitive_advantage_score: number | null
+          created_at: string | null
+          discovery_method: string
+          id: string
+          integration_complexity_score: number | null
+          market_opportunity_score: number | null
+          notes: string | null
+          onboarding_stage: string | null
+          partner_name: string
+          predicted_roi: number | null
+          priority_level: number | null
+          revenue_potential: number | null
+          risk_assessment_score: number | null
+          status: string | null
+          time_to_onboard_days: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          competitive_advantage_score?: number | null
+          created_at?: string | null
+          discovery_method: string
+          id?: string
+          integration_complexity_score?: number | null
+          market_opportunity_score?: number | null
+          notes?: string | null
+          onboarding_stage?: string | null
+          partner_name: string
+          predicted_roi?: number | null
+          priority_level?: number | null
+          revenue_potential?: number | null
+          risk_assessment_score?: number | null
+          status?: string | null
+          time_to_onboard_days?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          competitive_advantage_score?: number | null
+          created_at?: string | null
+          discovery_method?: string
+          id?: string
+          integration_complexity_score?: number | null
+          market_opportunity_score?: number | null
+          notes?: string | null
+          onboarding_stage?: string | null
+          partner_name?: string
+          predicted_roi?: number | null
+          priority_level?: number | null
+          revenue_potential?: number | null
+          risk_assessment_score?: number | null
+          status?: string | null
+          time_to_onboard_days?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       partner_onboarding_payments: {
         Row: {
           amount: number
@@ -7084,6 +7255,48 @@ export type Database = {
         }
         Relationships: []
       }
+      predictive_analytics_data: {
+        Row: {
+          actual_value: number | null
+          booking_type: string | null
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          metric_type: string
+          model_version: string | null
+          predicted_value: number
+          provider_id: string | null
+          time_period: string
+        }
+        Insert: {
+          actual_value?: number | null
+          booking_type?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          model_version?: string | null
+          predicted_value: number
+          provider_id?: string | null
+          time_period: string
+        }
+        Update: {
+          actual_value?: number | null
+          booking_type?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          model_version?: string | null
+          predicted_value?: number
+          provider_id?: string | null
+          time_period?: string
+        }
+        Relationships: []
+      }
       price_adjustments: {
         Row: {
           adjustment_type: string
@@ -7750,6 +7963,54 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_performance_metrics: {
+        Row: {
+          avg_response_time_ms: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          customer_satisfaction_score: number | null
+          date: string | null
+          failed_requests: number | null
+          id: string
+          provider_id: string
+          provider_name: string
+          revenue_generated: number | null
+          successful_requests: number | null
+          total_requests: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_response_time_ms?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          customer_satisfaction_score?: number | null
+          date?: string | null
+          failed_requests?: number | null
+          id?: string
+          provider_id: string
+          provider_name: string
+          revenue_generated?: number | null
+          successful_requests?: number | null
+          total_requests?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_response_time_ms?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          customer_satisfaction_score?: number | null
+          date?: string | null
+          failed_requests?: number | null
+          id?: string
+          provider_id?: string
+          provider_name?: string
+          revenue_generated?: number | null
+          successful_requests?: number | null
+          total_requests?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       provider_quotas: {
         Row: {
           created_at: string
@@ -7891,6 +8152,54 @@ export type Database = {
           updated_at?: string
           upper_bound?: number
           variance_percentage?: number | null
+        }
+        Relationships: []
+      }
+      revenue_protection_metrics: {
+        Row: {
+          booking_type: string
+          correlation_id: string
+          created_at: string | null
+          customer_tier: string | null
+          escalated: boolean | null
+          failure_reason: string | null
+          id: string
+          lost_revenue: number | null
+          potential_revenue: number
+          provider_id: string | null
+          recovery_attempted: boolean | null
+          recovery_successful: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_type: string
+          correlation_id: string
+          created_at?: string | null
+          customer_tier?: string | null
+          escalated?: boolean | null
+          failure_reason?: string | null
+          id?: string
+          lost_revenue?: number | null
+          potential_revenue?: number
+          provider_id?: string | null
+          recovery_attempted?: boolean | null
+          recovery_successful?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_type?: string
+          correlation_id?: string
+          created_at?: string | null
+          customer_tier?: string | null
+          escalated?: boolean | null
+          failure_reason?: string | null
+          id?: string
+          lost_revenue?: number | null
+          potential_revenue?: number
+          provider_id?: string | null
+          recovery_attempted?: boolean | null
+          recovery_successful?: boolean | null
+          updated_at?: string | null
         }
         Relationships: []
       }
