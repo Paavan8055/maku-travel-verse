@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { MasterBotIntegrationStatus } from './MasterBotIntegrationStatus';
 
 interface TestResult {
   service: string;
@@ -236,20 +237,120 @@ export const UnifiedProviderDiagnostics = () => {
           });
       }
 
-      // Real Master Bot integration
-      // Simplified Master Bot integration to avoid type conflicts
-      console.log('Analyzing results with Master Bot...', {
-        total_tests: results.length,
-        passed: results.filter(r => r.success).length,
-        failed: results.filter(r => !r.success).length
-      });
-
-      // Generate fallback analysis for now
-      generateFallbackAnalysis(results);
+      // PHASE 4: Complete Master Bot Integration
+      await integrateWithMasterBot(results);
+      
     } catch (error) {
       console.error('Master Bot communication failed:', error);
       generateFallbackAnalysis(results);
     }
+  };
+
+  const integrateWithMasterBot = async (results: TestResult[]) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        console.warn('User not authenticated, skipping Master Bot integration');
+        generateFallbackAnalysis(results);
+        return;
+      }
+
+      // 1. Create analysis command for Master Bot
+      const analysisCommand = {
+        admin_user_id: userData.user.id,
+        command_text: `Analyze provider test results: ${results.length} tests completed with ${results.filter(r => r.success).length} successes and ${results.filter(r => !r.success).length} failures. Generate comprehensive health assessment and actionable recommendations.`,
+        command_type: 'analysis' as const,
+        target_bots: ['provider-health-analyzer', 'system-optimizer'],
+        command_parameters: {
+          test_results: results.map(r => ({
+            service: r.service,
+            provider: r.provider,
+            success: r.success,
+            response_time: r.responseTime,
+            error: r.error,
+            timestamp: r.timestamp.toISOString()
+          })),
+          analysis_type: 'provider_diagnostics',
+          priority: results.filter(r => !r.success).length > 0 ? 'high' : 'medium'
+        }
+      };
+
+      // 2. Insert command and trigger Master Bot processing
+      const { data: commandData, error: commandError } = await supabase
+        .from('admin_bot_commands')
+        .insert(analysisCommand)
+        .select()
+        .single();
+
+      if (commandError) throw commandError;
+
+      // 3. Invoke Master Bot Controller for immediate processing
+      const { data: masterBotResponse, error: invokeError } = await supabase.functions.invoke(
+        'master-bot-controller',
+        {
+          body: {
+            command_id: commandData.id,
+            command_text: analysisCommand.command_text,
+            command_type: analysisCommand.command_type,
+            target_bots: analysisCommand.target_bots,
+            parameters: analysisCommand.command_parameters
+          }
+        }
+      );
+
+      if (invokeError) {
+        console.error('Master Bot invocation failed:', invokeError);
+        generateFallbackAnalysis(results);
+        return;
+      }
+
+      // 4. Fetch and display real AI analysis from bot_result_aggregation
+      const { data: botResults, error: resultsError } = await supabase
+        .from('bot_result_aggregation')
+        .select('*')
+        .eq('correlation_id', commandData.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (resultsError || !botResults?.length) {
+        console.warn('No bot results found, using fallback analysis');
+        generateFallbackAnalysis(results);
+        return;
+      }
+
+      // 5. Process real AI analysis
+      const aiResult = botResults[0];
+      const aiAnalysis = aiResult.result_data as any;
+
+      setMasterBotResult({
+        summary: aiAnalysis?.summary || 'AI analysis completed successfully',
+        recommendations: aiAnalysis?.recommendations || aiAnalysis?.optimization_suggestions || [],
+        actionItems: aiAnalysis?.action_items || [],
+        severity: determineSeverityFromAI(aiAnalysis, results)
+      });
+
+      toast({
+        title: "AI Analysis Complete",
+        description: `Master Bot provided ${aiAnalysis?.recommendations?.length || 0} recommendations`,
+        variant: "default"
+      });
+
+    } catch (error) {
+      console.error('Master Bot integration error:', error);
+      generateFallbackAnalysis(results);
+    }
+  };
+
+  const determineSeverityFromAI = (aiAnalysis: any, results: TestResult[]): 'low' | 'medium' | 'high' | 'critical' => {
+    // Check if AI provided severity
+    if (aiAnalysis?.severity) return aiAnalysis.severity;
+    
+    const failureRate = results.filter(r => !r.success).length / results.length;
+    
+    if (failureRate === 1) return 'critical';
+    if (failureRate > 0.5) return 'high';
+    if (failureRate > 0.2) return 'medium';
+    return 'low';
   };
 
   const generateFallbackAnalysis = (results: TestResult[]) => {
@@ -388,6 +489,10 @@ export const UnifiedProviderDiagnostics = () => {
             </TabsList>
 
             <TabsContent value="results" className="space-y-4">
+              <div className="mb-4">
+                <MasterBotIntegrationStatus />
+              </div>
+              
               {testResults.length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-4 text-sm">
@@ -450,7 +555,7 @@ export const UnifiedProviderDiagnostics = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Bot className="h-5 w-5" />
-                        AI Analysis Summary
+                        Master Bot AI Analysis
                         <Badge variant="outline" className={getSeverityColor(masterBotResult.severity)}>
                           {masterBotResult.severity.toUpperCase()}
                         </Badge>
@@ -458,13 +563,19 @@ export const UnifiedProviderDiagnostics = () => {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm">{masterBotResult.summary}</p>
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        Analysis powered by GPT-5 with real system data integration
+                      </div>
                     </CardContent>
                   </Card>
 
                   {masterBotResult.recommendations.length > 0 && (
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Recommendations</CardTitle>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          AI Recommendations
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
