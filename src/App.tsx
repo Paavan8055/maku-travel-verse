@@ -81,7 +81,7 @@ const AdminAlertsPage = createLazyRoute(() => import("./pages/admin/dashboard/al
 const AdminMonitoring = createLazyRoute(() => import("./pages/admin/monitoring"));
 const AdminRealTimeMonitoringPage = createLazyRoute(() => import("./pages/admin/monitoring/real-time"));
 const AdminProvidersPage = createLazyRoute(() => import("./pages/admin/monitoring/providers"));
-const AdminQuotasPage = createLazyRoute(() => import("./pages/admin/monitoring/quotas"));
+
 const AdminLogsPage = createLazyRoute(() => import("./pages/admin/monitoring/logs"));
 const AdminCorrelationPage = createLazyRoute(() => import("./pages/admin/monitoring/correlation"));
 const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations/bookings"));
@@ -220,7 +220,7 @@ const App = () => (
                           <Route path="monitoring" element={<AdminMonitoring />} />
                           <Route path="monitoring/real-time" element={<AdminRealTimeMonitoringPage />} />
                           <Route path="monitoring/providers" element={<AdminProvidersPage />} />
-                           <Route path="monitoring/quotas" element={<AdminQuotasPage />} />
+                           
                            <Route path="monitoring/logs" element={<AdminLogsPage />} />
                            <Route path="monitoring/correlation" element={<AdminCorrelationPage />} />
                                          

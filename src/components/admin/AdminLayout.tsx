@@ -36,10 +36,6 @@ const adminMenuItems = [{
     url: '/admin/monitoring/providers',
     icon: Database
   }, {
-    title: 'Quota Management',
-    url: '/admin/monitoring/quotas',
-    icon: Gauge
-  }, {
     title: 'Performance Logs',
     url: '/admin/monitoring/logs',
     icon: FileText
