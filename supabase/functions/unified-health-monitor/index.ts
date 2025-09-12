@@ -1,37 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
-
-interface ProviderHealthStatus {
-  providerId: string;
-  providerName: string;
-  status: 'healthy' | 'degraded' | 'outage';
-  responseTime: number;
-  lastChecked: number;
-  circuitBreakerState: 'closed' | 'open' | 'half-open';
-  failureCount: number;
-  quotaStatus: string;
-  quotaPercentage: number;
-  credentialsValid: boolean;
-  serviceTypes: string[];
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
+import logger from "../_shared/logger.ts";
+...
 }
 
-interface UnifiedHealthData {
-  overallStatus: 'healthy' | 'degraded' | 'critical';
-  timestamp: number;
-  providers: ProviderHealthStatus[];
-  summary: {
-    totalProviders: number;
-    healthyProviders: number;
-    degradedProviders: number;
-    outageProviders: number;
-    criticalQuotaProviders: string[];
-    circuitBreakersOpen: string[];
-  };
-  recommendations: string[];
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

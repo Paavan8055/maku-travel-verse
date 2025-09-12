@@ -1,18 +1,10 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
+...
 
-interface CreateNotificationRequest {
-  user_id: string;
-  type: 'flight_delay' | 'price_drop' | 'check_in' | 'weather_alert' | 'document_expiry' | 'booking_confirmed' | 'payment_success' | 'security_alert';
-  title: string;
-  message: string;
-  priority?: 'high' | 'medium' | 'low';
-  action_url?: string;
-  metadata?: Record<string, any>;
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

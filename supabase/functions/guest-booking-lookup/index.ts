@@ -1,16 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-
-interface GuestLookupParams {
-  bookingId?: string;
-  email?: string;
-  bookingReference?: string;
-  accessToken?: string;
+...
 }
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

@@ -1,53 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
-
-interface ScalabilityConfig {
-  auto_scaling: {
-    enabled: boolean
-    min_instances: number
-    max_instances: number
-    target_cpu: number
-    target_memory: number
-  }
-  load_balancing: {
-    algorithm: 'round_robin' | 'least_connections' | 'weighted'
-    health_check_interval: number
-    failover_threshold: number
-  }
-  caching: {
-    layers: string[]
-    ttl_policies: Record<string, number>
-    eviction_policy: string
-  }
-  monitoring: {
-    metrics: string[]
-    alert_thresholds: Record<string, number>
-    notification_channels: string[]
-  }
+import logger from "../_shared/logger.ts";
+...
 }
 
-interface DisasterRecoveryPlan {
-  rpo_target: number // Recovery Point Objective in minutes
-  rto_target: number // Recovery Time Objective in minutes
-  backup_strategy: {
-    frequency: string
-    retention_policy: string
-    storage_locations: string[]
-  }
-  failover_procedures: Array<{
-    trigger: string
-    action: string
-    estimated_time: number
-  }>
-  recovery_procedures: Array<{
-    step: number
-    description: string
-    responsible_team: string
-    estimated_duration: number
-  }>
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }

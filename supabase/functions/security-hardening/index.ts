@@ -1,33 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
+import logger from "../_shared/logger.ts";
+...
+import { ENV_CONFIG, validateApiKeys, RATE_LIMITS } from '../_shared/config.ts'
 
-interface SecurityScan {
-  id: string
-  scan_type: 'vulnerability' | 'penetration' | 'compliance' | 'configuration'
-  target: string
-  status: 'running' | 'completed' | 'failed'
-  severity_counts: {
-    critical: number
-    high: number
-    medium: number
-    low: number
-  }
-  findings: SecurityFinding[]
-  recommendations: string[]
-}
-
-interface SecurityFinding {
-  id: string
-  severity: 'critical' | 'high' | 'medium' | 'low'
-  category: string
-  title: string
-  description: string
-  affected_component: string
-  remediation: string
-  risk_score: number
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }

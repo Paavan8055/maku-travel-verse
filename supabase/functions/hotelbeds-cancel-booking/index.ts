@@ -1,111 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
-import { ENV_CONFIG } from '../_shared/config.ts';
-
-
-interface CancelBookingParams {
-  bookingId: string;
-  reason?: string;
-  correlationId?: string;
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
+import logger from "../_shared/logger.ts";
+...
 }
 
-async function generateHotelBedsSignature(apiKey: string, secret: string, timestamp: number): Promise<string> {
-  const message = apiKey + secret + timestamp;
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign('HMAC', key, data);
-  return Array.from(new Uint8Array(signature))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function cancelHotelBooking(params: CancelBookingParams): Promise<any> {
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY');
-  const secret = Deno.env.get('HOTELBEDS_SECRET');
-  
-  if (!apiKey || !secret) {
-    throw new Error('HotelBeds credentials not configured');
-  }
-
-  const timestamp = Math.floor(Date.now() / 1000);
-  const signature = await generateHotelBedsSignature(apiKey, secret, timestamp);
-  
-  const baseUrl = ENV_CONFIG.hotelbeds.baseUrl;
-  const url = `${baseUrl}/hotel-api/1.0/bookings/${params.bookingId}?cancellationFlag=CANCELLATION`;
-
-  console.log(`Cancelling HotelBeds booking: ${params.bookingId}`);
-  
-  try {
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Api-Key': apiKey,
-        'X-Signature': signature,
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip',
-        'User-Agent': 'MAKU Travel/1.0'
-      }
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`HotelBeds cancellation failed: ${response.status} - ${errorText}`);
-      throw new Error(`HotelBeds API error: ${response.status} - ${errorText}`);
-    }
-
-    const cancellationData = await response.json();
-    console.log('HotelBeds cancellation response:', JSON.stringify(cancellationData, null, 2));
-    
-    return cancellationData;
-  } catch (error) {
-    console.error('Error calling HotelBeds cancellation API:', error);
-    throw error;
-  }
-}
-
-function transformCancellationResponse(cancellationData: any): any {
-  if (!cancellationData || !cancellationData.booking) {
-    return {
-      success: false,
-      error: 'Invalid cancellation response from HotelBeds'
-    };
-  }
-
-  const booking = cancellationData.booking;
-  
-  return {
-    success: true,
-    bookingId: booking.reference,
-    status: booking.status,
-    cancellationDate: booking.cancellationDate || new Date().toISOString(),
-    cancellationDetails: {
-      reference: booking.reference,
-      clientReference: booking.clientReference,
-      status: booking.status,
-      totalNet: booking.totalNet,
-      currency: booking.currency,
-      cancellationPolicies: booking.cancellationPolicies || [],
-      refundAmount: booking.totalNet || 0,
-      cancellationFees: booking.cancellationFees || []
-    },
-    hotelDetails: {
-      code: booking.hotel?.code,
-      name: booking.hotel?.name,
-      checkIn: booking.hotel?.checkIn,
-      checkOut: booking.hotel?.checkOut
-    },
-    timestamp: new Date().toISOString()
-  };
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

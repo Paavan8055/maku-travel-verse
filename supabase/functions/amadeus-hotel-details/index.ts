@@ -1,46 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-
-interface AmadeusAuthResponse {
-  access_token: string;
-  expires_in: number;
+...
 }
 
-async function getAmadeusAccessToken(): Promise<string> {
-  const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
-  const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
-  const amadeusEnv = Deno.env.get('AMADEUS_ENV') || 'test';
-  
-  if (!clientId || !clientSecret) {
-    throw new Error('Missing Amadeus credentials');
-  }
-
-  const baseUrl = amadeusEnv === 'prod' 
-    ? 'https://api.amadeus.com' 
-    : 'https://test.api.amadeus.com';
-
-  const response = await fetch(`${baseUrl}/v1/security/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Amadeus auth failed: ${response.status} ${response.statusText}`);
-  }
-
-  const data: AmadeusAuthResponse = await response.json();
-  return data.access_token;
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

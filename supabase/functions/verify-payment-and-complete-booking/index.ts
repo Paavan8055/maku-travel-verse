@@ -1,68 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-
-interface VerifyPaymentParams {
-  payment_intent_id: string;
-  booking_id: string;
+...
 }
 
-async function getAmadeusAccessToken(): Promise<string> {
-  const clientId = Deno.env.get('AMADEUS_CLIENT_ID');
-  const clientSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
-  
-  if (!clientId || !clientSecret) {
-    throw new Error('Amadeus credentials not configured');
-  }
-
-  const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Amadeus auth failed: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.access_token;
-}
-
-async function completeHotelBookingWithSupplier(bookingData: any, accessToken: string) {
-  // This would make the actual hotel booking with Amadeus
-  // For now, simulate successful booking
-  logger.info('Completing hotel booking with supplier:', {
-    hotelId: bookingData.hotelId,
-    offerId: bookingData.offerId,
-    checkIn: bookingData.checkIn,
-    checkOut: bookingData.checkOut
-  });
-
-  const confirmationNumber = `AMB${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-  
-  return {
-    success: true,
-    confirmation: {
-      id: `amadeus_booking_${Date.now()}`,
-      confirmationNumber,
-      status: 'confirmed',
-      hotelId: bookingData.hotelId,
-      checkIn: bookingData.checkIn,
-      checkOut: bookingData.checkOut,
-      supplierReference: confirmationNumber
-    }
-  };
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

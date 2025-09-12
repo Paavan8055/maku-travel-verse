@@ -1,114 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
-import { ENV_CONFIG, RATE_LIMITS } from '../_shared/config.ts'
-
-interface MonitoringEntry {
-  endpoint: string
-  responseTime: number
-  statusCode: number
-  success: boolean
-  errorMessage?: string
-  rateLimit?: {
-    current: number
-    limit: number
-    window: number
-  }
-  timestamp: string
+import logger from "../_shared/logger.ts";
+...
 }
 
-async function logToMonitoring(entry: MonitoringEntry): Promise<void> {
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  )
-
-  await supabase.from('hotelbeds_monitoring').insert({
-    endpoint: entry.endpoint,
-    response_time_ms: entry.responseTime,
-    status_code: entry.statusCode,
-    success: entry.success,
-    error_message: entry.errorMessage,
-    rate_limit_data: entry.rateLimit ? {
-      current: entry.rateLimit.current,
-      limit: entry.rateLimit.limit,
-      window: entry.rateLimit.window
-    } : null,
-    created_at: new Date().toISOString()
-  })
-}
-
-async function testHotelBedsEndpoint(endpoint: string, testData: any = null): Promise<MonitoringEntry> {
-  const startTime = Date.now()
-  const apiKey = Deno.env.get('HOTELBEDS_API_KEY')
-  const secret = Deno.env.get('HOTELBEDS_SECRET')
-  
-  if (!apiKey || !secret) {
-    return {
-      endpoint,
-      responseTime: Date.now() - startTime,
-      statusCode: 500,
-      success: false,
-      errorMessage: 'HotelBeds credentials not configured',
-      timestamp: new Date().toISOString()
-    }
-  }
-
-  try {
-    const timestamp = Math.floor(Date.now() / 1000)
-    
-    // Generate signature (simplified version)
-    const stringToSign = apiKey + secret + timestamp
-    const encoder = new TextEncoder()
-    const data = encoder.encode(stringToSign)
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-
-    const headers = {
-      'Api-key': apiKey,
-      'X-Signature': signature,
-      'Accept': 'application/json',
-      'Accept-Encoding': 'gzip'
-    }
-
-    let url = `${ENV_CONFIG.hotelbeds.baseUrl}${endpoint}`
-    let fetchOptions: RequestInit = {
-      method: 'GET',
-      headers
-    }
-
-    // Handle different endpoint types
-    if (testData) {
-      fetchOptions.method = 'POST'
-      fetchOptions.headers = { ...headers, 'Content-Type': 'application/json' }
-      fetchOptions.body = JSON.stringify(testData)
-    }
-
-    const response = await fetch(url, fetchOptions)
-    const responseTime = Date.now() - startTime
-
-    return {
-      endpoint,
-      responseTime,
-      statusCode: response.status,
-      success: response.ok,
-      errorMessage: response.ok ? undefined : await response.text(),
-      timestamp: new Date().toISOString()
-    }
-
-  } catch (error) {
-    return {
-      endpoint,
-      responseTime: Date.now() - startTime,
-      statusCode: 500,
-      success: false,
-      errorMessage: error.message,
-      timestamp: new Date().toISOString()
-    }
-  }
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })

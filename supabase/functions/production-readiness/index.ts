@@ -1,27 +1,10 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
+...
 
-interface ReadinessCheck {
-  name: string;
-  status: 'pass' | 'fail' | 'warn';
-  message: string;
-  details?: any;
-}
-
-interface ProductionReadinessResponse {
-  success: boolean;
-  overall_status: 'ready' | 'not_ready' | 'warnings';
-  checks: ReadinessCheck[];
-  summary: {
-    passed: number;
-    failed: number;
-    warnings: number;
-    total: number;
-  };
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

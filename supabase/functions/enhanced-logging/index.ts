@@ -1,19 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
+import logger from "../_shared/logger.ts";
+...
+import { ENV_CONFIG, validateApiKeys, RATE_LIMITS } from '../_shared/config.ts'
 
-interface LogEntry {
-  service_name: string
-  log_level: 'debug' | 'info' | 'warn' | 'error'
-  message: string
-  metadata?: Record<string, any>
-  request_id?: string
-  user_id?: string
-  duration_ms?: number
-  status_code?: number
-  error_details?: Record<string, any>
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })

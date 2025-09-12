@@ -1,21 +1,11 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
+...
 
-interface CreatePaymentIntentParams {
-  booking_type: string;
-  amount: number;
-  currency: string;
-  metadata?: Record<string, any>;
-  // Legacy support for existing signature
-  bookingId?: string;
-  customerInfo?: { email?: string };
-  paymentMethod?: string;
-  correlationId?: string;
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
