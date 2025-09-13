@@ -32,6 +32,19 @@ jobs:
         run: npm ci --prefer-offline
         timeout-minutes: 10
 
+      - name: Secrets quick-scan (grep heuristics)
+        run: |
+          set -e
+          echo "Running lightweight secrets scan"
+          # Search for likely secret variable names or keys committed directly
+          if git grep -I --line-number -n "SUPABASE_SERVICE_ROLE_KEY\|STRIPE_SECRET_KEY\|SECRET_KEY\|PRIVATE_KEY\|AWS_SECRET_ACCESS_KEY\|BEGIN PRIVATE KEY"; then
+            echo "Potential secret literals found in repository files - please ensure secrets are not committed.";
+            git --no-pager grep -n "SUPABASE_SERVICE_ROLE_KEY\|STRIPE_SECRET_KEY\|SECRET_KEY\|PRIVATE_KEY\|AWS_SECRET_ACCESS_KEY\|BEGIN PRIVATE KEY"
+            exit 1;
+          else
+            echo "No obvious secret literals found by quick-scan.";
+          fi
+
       - name: Run ESLint
         run: npm run lint
         timeout-minutes: 5
@@ -118,6 +131,34 @@ jobs:
           name: build-artifacts
           path: dist/
           retention-days: 7
+
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run gitleaks
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: "--verbose --redact"
+
+  verify-jwt-check:
+    name: Verify JWT enforcement check
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run verify_jwt report
+        run: |
+          node scripts/report-verify-jwt.js
+        env:
+          # Optional: provide comma-separated critical function names to enforce
+          CRITICAL_FUNCTIONS: "create-booking,create-booking-payment,create-hotel-booking,create-flight-booking,verify-booking-payment,create-payment-intent"
 
   quality-gates:
     name: Quality Gates
