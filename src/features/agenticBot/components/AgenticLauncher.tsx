@@ -38,16 +38,17 @@ const AgenticLauncher: React.FC<AgenticLauncherProps> = ({
         </Badge>
       )}
       
-      {/* Main Launcher Button */}
-      <Button
-        onClick={onToggle}
-        className={`h-16 w-16 rounded-full shadow-floating transition-all duration-300 ${
-          isOpen ? 'scale-0' : 'scale-100 hover-scale'
-        } ${color}`}
-        size="icon"
-      >
-        <StatusIcon className="h-6 w-6 text-white" />
-      </Button>
+       {/* Main Launcher Button */}
+       <Button
+         onClick={onToggle}
+         className={`h-16 w-16 rounded-full shadow-floating transition-all duration-300 ${
+           isOpen ? 'scale-0' : 'scale-100 hover-scale'
+         } ${color}`}
+         size="icon"
+         aria-label={`Open AI assistant - Status: ${label}`}
+       >
+         <StatusIcon className="h-6 w-6 text-white" />
+       </Button>
     </div>
   );
 };

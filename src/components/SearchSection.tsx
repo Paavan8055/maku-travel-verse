@@ -164,11 +164,11 @@ const [activityChildren, setActivityChildren] = useState(0);
                 </Popover>
 
                 {/* Guests */}
-                <Select value={guests} onValueChange={setGuests}>
-                  <SelectTrigger className="search-input">
-                    <Users className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder={t('search.guests')} />
-                  </SelectTrigger>
+                 <Select value={guests} onValueChange={setGuests}>
+                   <SelectTrigger className="search-input" aria-label="Select number of guests">
+                     <Users className="mr-2 h-4 w-4" />
+                     <SelectValue placeholder={t('search.guests')} />
+                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">1 Guest</SelectItem>
                     <SelectItem value="2">2 Guests</SelectItem>

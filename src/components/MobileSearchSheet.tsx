@@ -69,22 +69,22 @@ export const MobileSearchSheet = ({ trigger }: MobileSearchSheetProps) => {
                 />
                 
                 <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="justify-start text-left font-normal">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {checkIn ? format(checkIn, "MMM dd") : "Check-in"}
-                  </Button>
+                   <Button variant="outline" className="justify-start text-left font-normal" aria-label="Select check-in date">
+                     <Calendar className="mr-2 h-4 w-4" />
+                     {checkIn ? format(checkIn, "MMM dd") : "Check-in"}
+                   </Button>
                   
-                  <Button variant="outline" className="justify-start text-left font-normal">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {checkOut ? format(checkOut, "MMM dd") : "Check-out"}
-                  </Button>
+                   <Button variant="outline" className="justify-start text-left font-normal" aria-label="Select check-out date">
+                     <Calendar className="mr-2 h-4 w-4" />
+                     {checkOut ? format(checkOut, "MMM dd") : "Check-out"}
+                   </Button>
                 </div>
 
-                <Select value={guests} onValueChange={setGuests}>
-                  <SelectTrigger>
-                    <Users className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Guests" />
-                  </SelectTrigger>
+                 <Select value={guests} onValueChange={setGuests}>
+                   <SelectTrigger aria-label="Select number of guests">
+                     <Users className="mr-2 h-4 w-4" />
+                     <SelectValue placeholder="Guests" />
+                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">1 Guest</SelectItem>
                     <SelectItem value="2">2 Guests</SelectItem>
@@ -123,16 +123,16 @@ export const MobileSearchSheet = ({ trigger }: MobileSearchSheetProps) => {
                   className="w-full"
                 />
                 
-                <Button variant="outline" className="justify-start text-left font-normal w-full">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {checkIn ? format(checkIn, "MMM dd") : "Activity date"}
-                </Button>
+                 <Button variant="outline" className="justify-start text-left font-normal w-full" aria-label="Select activity date">
+                   <Calendar className="mr-2 h-4 w-4" />
+                   {checkIn ? format(checkIn, "MMM dd") : "Activity date"}
+                 </Button>
 
-                <Select value={guests} onValueChange={setGuests}>
-                  <SelectTrigger>
-                    <Users className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Participants" />
-                  </SelectTrigger>
+                 <Select value={guests} onValueChange={setGuests}>
+                   <SelectTrigger aria-label="Select number of participants">
+                     <Users className="mr-2 h-4 w-4" />
+                     <SelectValue placeholder="Participants" />
+                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">1 Person</SelectItem>
                     <SelectItem value="2">2 People</SelectItem>
