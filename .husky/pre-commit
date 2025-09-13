@@ -1,0 +1,6 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run quick local secret scan and tests before committing
+npm run secret-scan
+npm test || echo "Tests failed but commit will proceed (consider fixing tests before pushing)."
