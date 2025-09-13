@@ -1,0 +1,31 @@
+title = "Maku Travel Verse gitleaks config"
+
+description = "A tuned gitleaks ruleset to prioritize high-confidence findings and reduce noise for this repo."
+
+[[rules]]
+description = "Supabase service role key"
+regex = '''(?i)(service-role-[0-9a-zA-Z_-]{20,})|SUPABASE_SERVICE_ROLE_KEY\s*=\s*['\"]?[A-Za-z0-9-_]{20,}['\"]?'''
+tags = ["supabase","service-role","high"]
+
+[[rules]]
+description = "Stripe secret key"
+regex = '''(?i)(sk_live_[0-9a-zA-Z]{24,})|STRIPE_SECRET_KEY\s*=\s*['\"]?sk_live_[A-Za-z0-9]{24,}['\"]?'''
+tags = ["stripe","secret","high"]
+
+[[rules]]
+description = "JWT or long opaque token (likely service token)"
+regex = '''(?i)(eyJ[a-z0-9_-]{10,}\.[a-z0-9_-]{10,}\.[a-z0-9_-]{10,})|([A-Za-z0-9-_]{40,})'''
+tags = ["jwt","token","high"]
+
+[[rules]]
+description = "Private key block"
+regex = '''-----BEGIN (RSA |)PRIVATE KEY-----[\s\S]{20,}-----END (RSA |)PRIVATE KEY-----'''
+secret = true
+tags = ["private-key","high"]
+
+# Reduce noise: ignore common env var placeholders and examples
+[allowlist]
+files = ["env.example",".gitleaks.toml","README.md","docs/**","maku-supabase-action/README.md"]
+
+[options]
+max_results = 200

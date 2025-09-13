@@ -1,0 +1,12 @@
+     18 scripts/validate-deployment.sh
+     15 .env.example
+     12 .env
+     10 src/integrations/supabase/types.ts
+      6 src/integrations/supabase/client.ts
+      3 src/components/dashboard/TravelDocuments.tsx
+      3 src/components/SystemHealthIndicator.tsx
+      2 supabase/functions/configure-auth-security/index.ts
+      2 index.html
+      1 src/pages/PaymentSetup.tsx
+      1 src/pages/HotelCheckout.tsx
+      1 src/components/PromptSelector.tsx
