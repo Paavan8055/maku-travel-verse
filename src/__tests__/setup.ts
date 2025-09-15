@@ -11,7 +11,7 @@ import {
   createAuthMock, 
   createToastMock, 
   createBookingDataClientMock 
-} from './mockFactories';
+} from '../test-utils/mockFactories';
 
 // Extend Vitest's expect with jest-dom matchers
 // This is crucial for toBeInTheDocument and similar assertions
