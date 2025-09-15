@@ -1,0 +1,13 @@
+{
+  "apiKey": "${VITE_GEMINI_API_KEY}",
+  "model": "gemini-pro",
+  "projectContext": "MAKU.Travel - AI-powered travel booking platform",
+  "travelPrompts": {
+    "flightSearch": "Help users find and book flights with personalized recommendations",
+    "hotelRecommendation": "Suggest accommodations based on destination, budget, and preferences", 
+    "itineraryPlanning": "Create detailed travel itineraries with activities and logistics",
+    "travelTips": "Provide local insights, cultural tips, and practical travel advice"
+  },
+  "outputFormat": "markdown",
+  "temperature": 0.7
+}
