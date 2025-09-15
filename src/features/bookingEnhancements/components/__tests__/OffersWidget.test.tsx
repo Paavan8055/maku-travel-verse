@@ -13,7 +13,7 @@ describe('OffersWidget', () => {
   });
 
   const renderComponent = () => {
-    return render(<OffersWidget destination="global" />);
+    return render(<OffersWidget route="global" />);
   };
 
   it('should display offers when the API call is successful', async () => {

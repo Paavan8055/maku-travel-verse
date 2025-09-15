@@ -7,17 +7,17 @@ import { createAuthMock, createToastMock, createSupabaseMock, createBookingDataC
  */
 
 // Standard setup for components requiring auth, toast, and booking data
-export const setupStandardMocks = (userId = 'user1') => {
-  const authMock = createAuthMock(userId);
+export const setupStandardMocks = () => {
+  const authMock = createAuthMock();
   const toastMock = createToastMock();
   const bookingMocks = createBookingDataClientMock();
-  const { mockSupabaseClient } = createSupabaseMock(); // Call createSupabaseMock here
+  const { mockSupabaseClient } = createSupabaseMock();
 
   return {
     ...authMock,
     ...toastMock,
     ...bookingMocks,
-    mockSupabaseClient // Expose it if needed by specific tests
+    mockSupabaseClient
   };
 };
 
@@ -38,28 +38,26 @@ export const mockAsyncError = (message = 'Test error') => {
 
 // Re-export mock factories
 export * from './mockFactories';
-export const createMockBooking = (overrides = {}) => ({
-  id: '1',
-  booking_reference: 'TEST123',
-  status: 'confirmed',
-  booking_data: { destination: 'NYC' },
-  ...overrides
+
+export const createMockTask = (overrides = {}) => ({
+  id: 'test-task-id',
+  agent_id: 'booking-assistant',
+  intent: 'test_intent',
+  status: 'completed',
+  progress: 100,
+  created_at: '2024-01-01T10:00:00Z',
+  updated_at: '2024-01-01T10:05:00Z',
+  params: { test: true },
+  result: { success: true, message: 'Test completed' },
+  error_message: null,
+  user_id: 'test-user',
+  ...overrides,
 });
 
-export const createMockOffer = (overrides = {}) => ({
-  id: '1',
-  route: 'SYD-MEL',
-  discount_pct: 20,
-  offer_type: 'flash_sale',
-  description: 'Flash sale deal',
-  valid_until: new Date().toISOString(),
-  ...overrides
-});
-
-export const createMockPaymentMethod = (overrides = {}) => ({
-  id: '1',
-  provider: 'visa',
-  type: 'card',
-  is_default: true,
-  ...overrides
+export const createMockAgentResponse = (overrides = {}) => ({
+  success: true,
+  message: 'Agent completed successfully',
+  data: { result: 'test' },
+  timestamp: new Date().toISOString(),
+  ...overrides,
 });

@@ -24,11 +24,24 @@ export const createSupabaseMock = () => {
 
 export const createAuthMock = () => ({
   useAuth: vi.fn(() => ({
-    user: null,
+    user: { id: 'test-user', email: 'test@example.com' },
     isLoading: false,
     signOut: vi.fn()
   }))
 });
+
+export const createConsoleMock = () => {
+  const originalConsole = { ...console };
+  console.error = vi.fn();
+  console.warn = vi.fn();
+  console.log = vi.fn();
+  
+  return {
+    restore: () => {
+      Object.assign(console, originalConsole);
+    }
+  };
+};
 
 export const createToastMock = () => ({
   toast: vi.fn()
@@ -36,5 +49,27 @@ export const createToastMock = () => ({
 
 export const createBookingDataClientMock = () => ({
   fetchSpecialOffers: vi.fn().mockResolvedValue([]),
-  fetchLocalTips: vi.fn().mockResolvedValue([])
+  fetchLocalTips: vi.fn().mockResolvedValue([]),
+  fetchUserFavorites: vi.fn().mockResolvedValue([]),
+  toggleFavorite: vi.fn().mockResolvedValue(true)
+});
+
+export const createMockBooking = (overrides = {}) => ({
+  id: '123',
+  title: 'Wine Tasting in Napa',
+  booking_reference: 'TEST123',
+  status: 'confirmed',
+  booking_data: { destination: 'Napa Valley' },
+  ...overrides
+});
+
+export const createMockOffer = (overrides = {}) => ({
+  id: '1',
+  title: 'Last Minute Deal to Hawaii',
+  route: 'SYD-HNL',
+  discount_pct: 20,
+  offer_type: 'flash_sale',
+  description: 'Amazing Hawaii deal',
+  valid_until: new Date().toISOString(),
+  ...overrides
 });

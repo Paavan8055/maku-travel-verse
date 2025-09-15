@@ -13,7 +13,7 @@ describe('LocalTipsPanel', () => {
   });
 
   const renderComponent = () => {
-    return render(<LocalTipsPanel destination="Paris" />);
+    return render(<LocalTipsPanel locationId="Paris" />);
   };
 
   it('should display tips for the given destination', async () => {

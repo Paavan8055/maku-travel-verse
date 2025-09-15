@@ -293,3 +293,28 @@ export async function getBookingAccessAudit(bookingId?: string, limit = 50) {
   if (error) throw error;
   return data || [];
 }
+
+// Special Offers API (for tests)
+export async function fetchSpecialOffers(destination?: string) {
+  const { data, error } = await supabase
+    .from('dynamic_offers')
+    .select('*')
+    .eq('is_active', true)
+    .gt('valid_until', new Date().toISOString())
+    .order('discount_pct', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+// Local Tips API (for tests)
+export async function fetchLocalTips(destination: string) {
+  const { data, error } = await supabase
+    .from('local_insights')
+    .select('*')
+    .eq('location_id', destination)
+    .order('rating', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}

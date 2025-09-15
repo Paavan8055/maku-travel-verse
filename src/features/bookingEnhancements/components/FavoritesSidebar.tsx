@@ -133,13 +133,21 @@ export default function FavoritesSidebar() {
               <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
-        ) : favorites.length === 0 ? (
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Error fetching favorites. Please try again.</p>
+          </div>
+        )}
+        
+        {favorites.length === 0 && !loading && (
           <div className="text-center py-8 text-muted-foreground">
             <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No favorites saved yet.</p>
+            <p>No saved favorites yet.</p>
             <p className="text-sm">Heart items while browsing to see them here.</p>
           </div>
-        ) : (
+        )}
+        
+        {favorites.length > 0 && (
           <div className="space-y-3">
             {favorites.map((favorite) => (
               <div
@@ -169,6 +177,7 @@ export default function FavoritesSidebar() {
                     size="sm"
                     onClick={() => handleToggleFavorite(favorite)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600"
+                    data-testid="remove-favorite-btn"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
