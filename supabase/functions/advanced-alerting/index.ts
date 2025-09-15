@@ -2,8 +2,25 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-...
-import { ENV_CONFIG, RATE_LIMITS } from '../_shared/config.ts'
+import { ENV_CONFIG, RATE_LIMITS } from '../_shared/config.ts';
+
+type Severity = 'low' | 'medium' | 'high' | 'critical';
+interface AlertRule {
+  id: string;
+  name: string;
+  condition: string;
+  severity: Severity;
+  notification_channels: ('email' | 'sms' | 'slack' | 'webhook')[];
+  escalation_delay_minutes: number;
+  auto_resolve: boolean;
+}
+
+interface AlertNotification {
+  channel: 'email' | 'sms' | 'slack' | 'webhook';
+  recipients: string[];
+  template: string;
+  metadata: any;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
