@@ -1,14 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// Extend expect matchers
-expect.extend({
-  toBeInTheDocument: expect.any(Function),
-  toHaveClass: expect.any(Function),
-  toHaveAttribute: expect.any(Function),
-  toHaveTextContent: expect.any(Function),
-});
-
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
   root: Element | null = null;

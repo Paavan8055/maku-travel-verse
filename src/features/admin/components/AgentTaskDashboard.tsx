@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { cancelAgenticTask } from '@/features/agenticBot/lib/agenticClient';
 import { 
   Clock, 
   CheckCircle, 
@@ -118,23 +117,6 @@ const AgentTaskDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
-
-  const handleCancelTask = async (taskId: string) => {
-    const success = await cancelAgenticTask(taskId, 'Cancelled by admin');
-    if (success) {
-      toast({
-        title: "Task Cancelled",
-        description: "Task has been cancelled successfully",
-      });
-      fetchAllTasks();
-    } else {
-      toast({
-        title: "Cancellation Failed",
-        description: "Failed to cancel the task. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -373,17 +355,6 @@ const AgentTaskDashboard = () => {
                       >
                         View
                       </Button>
-                      
-                      {(task.status === 'pending' || task.status === 'running') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleCancelTask(task.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </div>

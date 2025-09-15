@@ -10,8 +10,6 @@ import { CurrencyProvider } from "@/features/currency/CurrencyProvider";
 import { SearchProvider } from "@/features/search/context/SearchContext";
 import { HealthMonitorProvider } from "@/providers/HealthMonitorProvider";
 import { PaymentProvider } from "@/features/payment/PaymentProvider";
-import { AgenticBotProvider } from "@/features/agenticBot/context/AgenticBotContext";
-import { MakuBotProvider } from "@/features/makuBot/context/MakuBotContext";
 import { ABTestProvider } from "@/components/testing/ABTestingFramework";
 import { ProductionProvider } from "@/contexts/ProductionContext";
 import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
@@ -31,9 +29,6 @@ const NFT = createLazyRoute(() => import("./pages/NFT"));
 const Airdrop = createLazyRoute(() => import("./pages/Airdrop"));
 const Careers = createLazyRoute(() => import("./pages/Careers"));
 const Press = createLazyRoute(() => import("./pages/Press"));
-const AIAssistant = createLazyRoute(() => import("./pages/AIAssistant"));
-const TravelBot = createLazyRoute(() => import("./pages/TravelBot"));
-const AIEngine = createLazyRoute(() => import("./pages/AIEngine"));
 const CryptoPayments = createLazyRoute(() => import("./pages/CryptoPayments"));
 const Demo = createLazyRoute(() => import("./pages/Demo"));
 const Developers = createLazyRoute(() => import("./pages/Developers"));
@@ -101,7 +96,6 @@ const SecureAdminPanelPage = createLazyRoute(() => import("./components/admin/Se
 
 // Automation Routes
 const AutomationHubPage = createLazyRoute(() => import("./pages/admin/automation/hub"));
-const MasterBotPage = createLazyRoute(() => import("./pages/admin/automation/master-bot"));
 const WorkflowsPage = createLazyRoute(() => import("./pages/admin/automation/workflows"));
 const OrchestrationPage = createLazyRoute(() => import("./pages/admin/automation/orchestration"));
 const AgentCoordinationPage = createLazyRoute(() => import("./pages/admin/coordination/agent-orchestration"));
@@ -137,8 +131,6 @@ const App = () => (
                     <SearchProvider>
                       <PaymentProvider>
                         <ABTestProvider>
-                          <AgenticBotProvider defaultVertical="Solo">
-                            <MakuBotProvider defaultVertical="Solo">
                               <UniversalAIProvider>
                                  <TooltipProvider>
                                     <div className="min-h-screen bg-background text-foreground">
@@ -162,9 +154,6 @@ const App = () => (
                                         <Route path="/airdrop" element={<Airdrop />} />
                                         <Route path="/careers" element={<Careers />} />
                                         <Route path="/press" element={<Press />} />
-                                        <Route path="/ai-assistant" element={<AIAssistant />} />
-                                        <Route path="/travel-bot" element={<TravelBot />} />
-                                        <Route path="/ai-engine" element={<AIEngine />} />
                                         <Route path="/crypto-payments" element={<CryptoPayments />} />
                                         <Route path="/demo" element={<Demo />} />
                                         <Route path="/developers" element={<Developers />} />
@@ -242,7 +231,6 @@ const App = () => (
                            
                            {/* Automation Routes */}
                            <Route path="automation/hub" element={<AutomationHubPage />} />
-                           <Route path="automation/master-bot" element={<MasterBotPage />} />
                             <Route path="automation/workflows" element={<WorkflowsPage />} />
                             <Route path="automation/orchestration" element={<OrchestrationPage />} />
                             <Route path="coordination/agents" element={<AgentCoordinationPage />} />
@@ -263,8 +251,6 @@ const App = () => (
                                  </div>
                                    </TooltipProvider>
                                </UniversalAIProvider>
-                            </MakuBotProvider>
-                          </AgenticBotProvider>
                         </ABTestProvider>
                       </PaymentProvider>
                     </SearchProvider>

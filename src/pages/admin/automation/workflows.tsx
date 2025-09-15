@@ -1,5 +1,4 @@
 import React from 'react';
-import { WorkflowBuilder } from '@/features/gptBots/components/WorkflowBuilder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bot, Workflow, Play, Clock } from 'lucide-react';
@@ -55,7 +54,17 @@ export default function WorkflowsPage() {
         </Card>
       </div>
 
-      <WorkflowBuilder />
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Workflow Builder</CardTitle>
+            <CardDescription>This component has been disabled.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>The workflow builder is temporarily unavailable.</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

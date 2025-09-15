@@ -2,7 +2,6 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AgentManagementDashboard } from '@/components/admin/AgentManagementDashboard';
 import { StrategicImplementationDashboard } from '@/components/admin/StrategicImplementationDashboard';
-import { GPTBotIntegrationDashboard } from '@/components/admin/GPTBotIntegrationDashboard';
 import { ConsolidatedAgentDashboard } from '@/components/admin/ConsolidatedAgentDashboard';
 import { SecurityHardeningDashboard } from '@/components/admin/SecurityHardeningDashboard';
 import { PerformanceOptimizationDashboard } from '@/components/admin/PerformanceOptimizationDashboard';
@@ -12,7 +11,7 @@ import { AgentConsolidationDashboard } from '@/components/admin/AgentConsolidati
 export default function AgentsPage() {
   return (
     <Tabs defaultValue="week3-progress" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-8">
+      <TabsList className="grid w-full grid-cols-7">
         <TabsTrigger value="week3-progress">Week 4 Progress</TabsTrigger>
         <TabsTrigger value="consolidated">Consolidated</TabsTrigger>
         <TabsTrigger value="security">Security</TabsTrigger>
@@ -20,7 +19,6 @@ export default function AgentsPage() {
         <TabsTrigger value="database">Database</TabsTrigger>
         <TabsTrigger value="management">Management</TabsTrigger>
         <TabsTrigger value="strategic">Strategic</TabsTrigger>
-        <TabsTrigger value="gpt-bots">GPT Bots</TabsTrigger>
       </TabsList>
       
       <TabsContent value="week3-progress">
@@ -49,10 +47,6 @@ export default function AgentsPage() {
       
       <TabsContent value="strategic">
         <StrategicImplementationDashboard />
-      </TabsContent>
-      
-      <TabsContent value="gpt-bots">
-        <GPTBotIntegrationDashboard />
       </TabsContent>
     </Tabs>
   );

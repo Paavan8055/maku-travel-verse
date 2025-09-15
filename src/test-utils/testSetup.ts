@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { createAuthMock, createToastMock, createBookingDataClientMock } from './mockFactories';
+import { createAuthMock, createToastMock, createSupabaseMock, createBookingDataClientMock } from './mockFactories';
 
 /**
  * Reusable test setup functions
@@ -11,11 +11,13 @@ export const setupStandardMocks = (userId = 'user1') => {
   const authMock = createAuthMock(userId);
   const toastMock = createToastMock();
   const bookingMocks = createBookingDataClientMock();
+  const { mockSupabaseClient } = createSupabaseMock(); // Call createSupabaseMock here
 
   return {
     ...authMock,
     ...toastMock,
-    ...bookingMocks
+    ...bookingMocks,
+    mockSupabaseClient // Expose it if needed by specific tests
   };
 };
 

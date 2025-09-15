@@ -1,32 +1,70 @@
-import { render, waitFor, vi } from '@/test-utils';
-import { setupStandardMocks, clearAllMocks } from '@/test-utils/testSetup';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { setupStandardMocks, clearAllMocks, createMockBooking } from '@/test-utils';
 import FavoritesSidebar from '../FavoritesSidebar';
-import React from 'react';
+import { fetchUserFavorites, toggleFavorite } from '@/lib/bookingDataClient';
+import { AuthProvider } from '@/features/auth/context/AuthContext';
+
+vi.mock('@/lib/bookingDataClient');
 
 describe('FavoritesSidebar', () => {
-  const { toast, fetchUserFavorites } = setupStandardMocks();
-
   beforeEach(() => {
     clearAllMocks();
+    setupStandardMocks();
   });
 
-  it('loads favorites on mount', async () => {
-    fetchUserFavorites.mockResolvedValue([]);
+  const renderComponent = () => {
+    return render(
+        <AuthProvider>
+            <FavoritesSidebar />
+        </AuthProvider>
+    );
+  };
 
-    render(<FavoritesSidebar />);
+  it('should render favorites on successful data fetch', async () => {
+    const mockFavorites = [createMockBooking()];
+    (fetchUserFavorites as vi.Mock).mockResolvedValue(mockFavorites);
+
+    renderComponent();
 
     await waitFor(() => {
-      expect(fetchUserFavorites).toHaveBeenCalled();
+      expect(screen.getByText('Wine Tasting in Napa')).toBeInTheDocument();
     });
   });
 
-  it('shows error toast on failure', async () => {
-    fetchUserFavorites.mockRejectedValue(new Error('fail'));
+  it('should show empty state when there are no favorites', async () => {
+    (fetchUserFavorites as vi.Mock).mockResolvedValue([]);
 
-    render(<FavoritesSidebar />);
+    renderComponent();
 
     await waitFor(() => {
-      expect(toast).toHaveBeenCalled();
+      expect(screen.getByText(/no saved favorites/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle data fetch error gracefully', async () => {
+    (fetchUserFavorites as vi.Mock).mockRejectedValue(new Error('Failed to fetch'));
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/error fetching favorites/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should allow removing a favorite', async () => {
+    const mockFavorites = [createMockBooking()];
+    (fetchUserFavorites as vi.Mock).mockResolvedValue(mockFavorites);
+    (toggleFavorite as vi.Mock).mockResolvedValue(true);
+
+    renderComponent();
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByTestId('remove-favorite-btn'));
+    });
+
+    await waitFor(() => {
+      expect(toggleFavorite).toHaveBeenCalledWith('123');
     });
   });
 });

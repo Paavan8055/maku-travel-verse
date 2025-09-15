@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { cancelAgenticTask } from '@/features/agenticBot/lib/agenticClient';
 import { 
   Clock, 
   CheckCircle, 
@@ -129,23 +128,6 @@ const MyTrips = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
-
-  const handleCancelTask = async (taskId: string) => {
-    const success = await cancelAgenticTask(taskId, 'Cancelled by user');
-    if (success) {
-      toast({
-        title: "Task Cancelled",
-        description: "Your task has been cancelled successfully",
-      });
-      fetchTasks();
-    } else {
-      toast({
-        title: "Cancellation Failed",
-        description: "Failed to cancel the task. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -312,7 +294,6 @@ const MyTrips = () => {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleCancelTask(task.id);
                             }}
                             className="w-full"
                           >

@@ -7,48 +7,38 @@ import { vi } from 'vitest';
 
 // Auth Mock Factory
 export const createAuthMock = (userId = 'user1') => {
-  const mockAuth = {
+  return {
     useAuth: () => ({ user: { id: userId } })
   };
-
-  vi.mock('@/features/auth/hooks/useAuth', () => mockAuth);
-  return mockAuth;
 };
 
 // Toast Mock Factory  
 export const createToastMock = () => {
   const toast = vi.fn();
-  vi.mock('@/hooks/use-toast', () => ({
-    useToast: () => ({ toast })
-  }));
   return { toast };
 };
 
 // Supabase Client Mock Factory
 export const createSupabaseMock = () => {
-  const mockInvoke = vi.fn();
-  const mockSupabase = {
-    supabase: {
-      functions: { invoke: mockInvoke },
-      from: vi.fn(() => ({
-        select: vi.fn().mockReturnThis(),
-        insert: vi.fn().mockReturnThis(),
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockReturnThis(),
-      }))
-    }
+  const mockSupabaseClient = {
+    functions: { invoke: vi.fn() },
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockReturnThis(),
+    }))
   };
-
-  vi.mock('@/integrations/supabase/client', () => mockSupabase);
-  return { mockInvoke, mockSupabase };
+  return mockSupabaseClient;
 };
 
 // Booking Data Client Mock Factory
 export const createBookingDataClientMock = () => {
-  const mocks = {
+  return {
     fetchUserFavorites: vi.fn(),
+    toggleFavorite: vi.fn(),
     fetchLocalInsights: vi.fn(),
     listDynamicOffers: vi.fn(),
     fetchPaymentMethods: vi.fn(),
@@ -56,10 +46,9 @@ export const createBookingDataClientMock = () => {
     saveUserPreferences: vi.fn(),
     fetchPassportInfo: vi.fn(),
     savePassportInfo: vi.fn(),
+    fetchLocalTips: vi.fn(),
+    fetchSpecialOffers: vi.fn(),
   };
-
-  vi.mock('@/lib/bookingDataClient', () => mocks);
-  return mocks;
 };
 
 // Console Mock Factory (for error logging tests)

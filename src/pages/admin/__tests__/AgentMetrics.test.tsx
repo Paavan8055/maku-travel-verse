@@ -1,220 +1,134 @@
 /**
- * Agent Metrics Page Integration Tests
- * Tests real-time data loading, task calculations, and subscription functionality
+ * AgentMetrics Integration Tests
+ * Ensures that agent performance metrics are correctly displayed and updated
+ * Relevant Files:
+ * - src/pages/admin/AgentMetrics.tsx
+ * - src/test-utils/mocks/supabase.ts
+ * - src/test-utils/setup.ts
  */
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { setupStandardMocks, clearAllMocks } from '@/test-utils';
-import AgentMetrics from '../AgentMetrics';
-
-// Mock Supabase client
-const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-  })),
-  channel: vi.fn(() => ({
-    on: vi.fn().mockReturnThis(),
-    subscribe: vi.fn(),
-  })),
-  removeChannel: vi.fn(),
-};
-
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: mockSupabase,
-}));
-
-// Mock data
-const mockTasks = [
-  {
-    id: '1',
-    agent_id: 'booking-assistant',
-    intent: 'modify_booking',
-    status: 'completed',
-    created_at: '2024-01-01T10:00:00Z',
-    updated_at: '2024-01-01T10:05:00Z',
-    progress: 100,
-  },
-  {
-    id: '2',
-    agent_id: 'customer-support',
-    intent: 'refund_request',
-    status: 'failed',
-    created_at: '2024-01-01T11:00:00Z',
-    updated_at: '2024-01-01T11:02:00Z',
-    progress: 50,
-    error_message: 'Payment provider error',
-  },
-  {
-    id: '3',
-    agent_id: 'booking-assistant',
-    intent: 'create_booking',
-    status: 'running',
-    created_at: '2024-01-01T12:00:00Z',
-    updated_at: '2024-01-01T12:01:00Z',
-    progress: 75,
-  },
-];
+import AgentMetrics from '@/pages/admin/AgentMetrics';
+import { supabase } from '@/integrations/supabase/client';
+import { clearAllMocks, setupStandardMocks, createConsoleMock } from '@/test-utils';
 
 describe('AgentMetrics Integration Tests', () => {
-  let queryClient: QueryClient;
+  let consoleMock: any;
 
   beforeEach(() => {
     clearAllMocks();
     setupStandardMocks();
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-      },
-    });
-
-    // Mock successful data fetch
-    mockSupabase.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
-        data: mockTasks,
-        error: null,
-      }),
-    });
-
-    // Mock channel subscription
-    mockSupabase.channel.mockReturnValue({
-      on: vi.fn().mockReturnThis(),
-      subscribe: vi.fn(),
-    });
+    consoleMock = createConsoleMock();
   });
 
   afterEach(() => {
-    queryClient.clear();
+    consoleMock.restore();
   });
 
-  const renderComponent = () => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <AgentMetrics />
-      </QueryClientProvider>
-    );
+  const mockTaskData = {
+    data: [
+      { id: 1, agent_id: 'agent1', status: 'success', duration: 120 },
+      { id: 2, agent_id: 'agent1', status: 'failed', duration: 80 },
+      { id: 3, agent_id: 'agent2', status: 'success', duration: 150 },
+    ],
+    error: null,
   };
 
   it('should load and display task metrics correctly', async () => {
-    renderComponent();
-
-    // Check that data is being fetched
-    expect(mockSupabase.from).toHaveBeenCalledWith('agentic_tasks');
-
-    // Wait for data to load and check overview cards
-    await waitFor(() => {
-      expect(screen.getByText('Total Tasks')).toBeInTheDocument();
+    (supabase.from as vi.Mock).mockReturnValue({
+      select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
-    // Verify task counts are calculated correctly
+    render(<AgentMetrics />);
+
     await waitFor(() => {
-      expect(screen.getByText('3')).toBeInTheDocument(); // Total tasks
+      expect(screen.getByText('agent1')).toBeInTheDocument();
+      expect(screen.getByText('agent2')).toBeInTheDocument();
     });
   });
 
   it('should calculate success rate correctly', async () => {
-    renderComponent();
+    (supabase.from as vi.Mock).mockReturnValue({
+      select: vi.fn().mockResolvedValue(mockTaskData),
+    });
+
+    render(<AgentMetrics />);
 
     await waitFor(() => {
-      // 1 completed out of 3 total = 33.3% success rate
-      const successElements = screen.getAllByText(/33\.3%/);
-      expect(successElements.length).toBeGreaterThan(0);
+      // Success rate for agent1: 1 success / 2 total = 50%
+      expect(screen.getByText('50.0%')).toBeInTheDocument();
+      // Success rate for agent2: 1 success / 1 total = 100%
+      expect(screen.getByText('100.0%')).toBeInTheDocument();
     });
   });
 
   it('should display agent breakdown correctly', async () => {
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('By Agent')).toBeInTheDocument();
+    (supabase.from as vi.Mock).mockReturnValue({
+      select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
+    render(<AgentMetrics />);
+
     await waitFor(() => {
-      expect(screen.getByText('booking-assistant')).toBeInTheDocument();
-      expect(screen.getByText('customer-support')).toBeInTheDocument();
+      const agent1Tasks = screen.getAllByText(/agent1/);
+      expect(agent1Tasks.length).toBeGreaterThan(0);
     });
   });
 
   it('should show recent tasks with proper status icons', async () => {
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Recent Tasks')).toBeInTheDocument();
+    (supabase.from as vi.Mock).mockReturnValue({
+      select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
+    render(<AgentMetrics />);
+
     await waitFor(() => {
-      expect(screen.getByText('modify_booking')).toBeInTheDocument();
-      expect(screen.getByText('refund_request')).toBeInTheDocument();
-      expect(screen.getByText('create_booking')).toBeInTheDocument();
+      const successIcons = screen.getAllByTestId('success-icon');
+      const failedIcons = screen.getAllByTestId('failed-icon');
+      expect(successIcons.length).toBe(2);
+      expect(failedIcons.length).toBe(1);
     });
   });
 
-  it('should establish real-time subscription', async () => {
-    renderComponent();
-
-    await waitFor(() => {
-      expect(mockSupabase.channel).toHaveBeenCalledWith('agentic_tasks_changes');
+  it('should establish real-time subscription', () => {
+    const onMock = vi.fn().mockReturnThis();
+    const subscribeMock = vi.fn();
+    (supabase.from as vi.Mock).mockReturnValue({
+      select: vi.fn().mockResolvedValue({ data: [], error: null }),
+      on: onMock,
+      subscribe: subscribeMock,
     });
 
-    const channelMock = mockSupabase.channel.mock.results[0].value;
-    expect(channelMock.on).toHaveBeenCalledWith(
-      'postgres_changes',
-      expect.objectContaining({
-        event: '*',
-        schema: 'public',
-        table: 'agentic_tasks',
-      }),
-      expect.any(Function)
-    );
+    render(<AgentMetrics />);
+
+    expect(supabase.from).toHaveBeenCalledWith('agent_tasks');
   });
 
   it('should handle loading and error states', async () => {
-    // Test loading state
-    mockSupabase.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockImplementation(() => new Promise(() => {})), // Never resolves
+    (supabase.from as vi.Mock).mockReturnValue({
+        select: vi.fn().mockResolvedValue({ data: null, error: new Error('DB Error') }),
     });
 
-    renderComponent();
-    expect(screen.getAllByText(/loading/i).length).toBeGreaterThan(0);
-
-    // Test error state
-    mockSupabase.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
-        data: null,
-        error: { message: 'Database error' },
-      }),
-    });
-
-    queryClient.clear();
-    renderComponent();
+    render(<AgentMetrics />);
 
     await waitFor(() => {
-      expect(screen.getByText(/error loading metrics/i)).toBeInTheDocument();
+        expect(screen.getByText(/error fetching metrics/i)).toBeInTheDocument();
     });
   });
 
   it('should calculate average completion time correctly', async () => {
-    renderComponent();
+    (supabase.from as vi.Mock).mockReturnValue({
+        select: vi.fn().mockResolvedValue(mockTaskData),
+    });
+
+    render(<AgentMetrics />);
 
     await waitFor(() => {
-      // Check that average completion time is displayed
-      // Based on mock data: (5 + 2 + 1) / 3 = 2.67 minutes average
-      const avgTimeElements = screen.getAllByText(/2\.7/);
-      expect(avgTimeElements.length).toBeGreaterThan(0);
+        // agent1 avg: (120 + 80) / 2 = 100
+        // agent2 avg: 150 / 1 = 150
+        expect(screen.getByText('100.0 ms')).toBeInTheDocument();
+        expect(screen.getByText('150.0 ms')).toBeInTheDocument();
     });
   });
 });

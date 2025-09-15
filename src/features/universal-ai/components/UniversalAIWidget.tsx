@@ -3,8 +3,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useMakuBot } from '@/features/makuBot/context/MakuBotContext';
-import { useAgenticBot } from '@/features/agenticBot/context/AgenticBotContext';
 import { useUniversalAI } from '../context/UniversalAIContext';
 import CrossDashboardInsights from './CrossDashboardInsights';
 import { 
@@ -32,8 +30,6 @@ export const UniversalAIWidget: React.FC<UniversalAIWidgetProps> = ({
   dashboardType,
   className
 }) => {
-  const { state: makuState, openChat, closeChat, setUserVertical } = useMakuBot();
-  const { state: agenticState, openPanel, closePanel } = useAgenticBot();
   const { 
     currentContext, 
     aiInteractions, 
@@ -43,33 +39,16 @@ export const UniversalAIWidget: React.FC<UniversalAIWidgetProps> = ({
   } = useUniversalAI();
 
   const [isMinimized, setIsMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('insights');
   const [insights] = useState(getCrossDashboardInsights(dashboardType));
 
   useEffect(() => {
     setDashboardContext(dashboardType);
   }, [dashboardType, setDashboardContext]);
 
-  const handleOpenAI = (type: 'chat' | 'agentic') => {
-    trackInteraction({
-      type: 'widget_opened',
-      dashboardType,
-      aiType: type === 'chat' ? 'maku' : 'agentic',
-      timestamp: new Date(),
-      context: { dashboardType: currentContext }
-    });
-
-    if (type === 'chat') {
-      openChat();
-    } else {
-      openPanel();
-    }
-    setActiveTab(type);
-  };
-
   const handleCloseAI = () => {
-    closeChat();
-    closePanel();
+    // This can be used to hide the widget entirely.
+    setIsMinimized(true);
   };
 
   const getDashboardIcon = () => {
@@ -89,24 +68,6 @@ export const UniversalAIWidget: React.FC<UniversalAIWidgetProps> = ({
       default: return 'border-primary/20 bg-primary/10';
     }
   };
-
-  const contextualRecommendations = [
-    ...(dashboardType === 'admin' ? [
-      'System Health Analysis',
-      'Performance Optimization',
-      'User Behavior Insights'
-    ] : []),
-    ...(dashboardType === 'partner' ? [
-      'Revenue Optimization',
-      'Market Intelligence', 
-      'Booking Performance'
-    ] : []),
-    ...(dashboardType === 'user' ? [
-      'Trip Planning Assistance',
-      'Deal Recommendations',
-      'Itinerary Optimization'
-    ] : [])
-  ];
 
   if (isMinimized) {
     return (
@@ -157,74 +118,12 @@ export const UniversalAIWidget: React.FC<UniversalAIWidgetProps> = ({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <TabsList className="grid w-full grid-cols-3 p-2">
-          <TabsTrigger value="chat" className="text-xs">
-            <MessageCircle className="h-3 w-3 mr-1" />
-            Chat
-          </TabsTrigger>
-          <TabsTrigger value="agentic" className="text-xs">
-            <Zap className="h-3 w-3 mr-1" />
-            Tasks
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1 p-2">
           <TabsTrigger value="insights" className="text-xs">
             <BarChart3 className="h-3 w-3 mr-1" />
             Insights
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="chat" className="p-4 space-y-3">
-          <div className="text-sm text-muted-foreground">
-            Chat with Maku for {dashboardType} assistance
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            {contextualRecommendations.map((rec, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => handleOpenAI('chat')}
-                className="text-xs h-8 justify-start"
-              >
-                <Sparkles className="h-3 w-3 mr-1" />
-                {rec}
-              </Button>
-            ))}
-          </div>
-          <Button 
-            onClick={() => handleOpenAI('chat')} 
-            className="w-full mt-4"
-            size="sm"
-          >
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Open Chat
-          </Button>
-        </TabsContent>
-
-        <TabsContent value="agentic" className="p-4 space-y-3">
-          <div className="text-sm text-muted-foreground">
-            Automated task management for {dashboardType}
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span>Active Tasks</span>
-              <Badge variant="secondary">{agenticState.currentTaskId ? 1 : 0}</Badge>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span>Auto-booking</span>
-              <Badge variant={agenticState.settings.autoBook ? 'default' : 'secondary'}>
-                {agenticState.settings.autoBook ? 'On' : 'Off'}
-              </Badge>
-            </div>
-          </div>
-          <Button 
-            onClick={() => handleOpenAI('agentic')} 
-            className="w-full mt-4"
-            size="sm"
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            Open Tasks
-          </Button>
-        </TabsContent>
 
         <TabsContent value="insights" className="p-4 space-y-3">
           <div className="text-sm text-muted-foreground">

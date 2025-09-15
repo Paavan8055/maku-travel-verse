@@ -1,36 +1,49 @@
-import { render, screen, waitFor, vi } from '@/test-utils';
-import { clearAllMocks, createMockOffer, createConsoleMock } from '@/test-utils/testSetup';
-import { createBookingDataClientMock } from '@/test-utils/mockFactories';
+import { render, screen, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { setupStandardMocks, clearAllMocks, createMockOffer } from '@/test-utils';
 import OffersWidget from '../OffersWidget';
-import React from 'react';
+import { fetchSpecialOffers } from '@/lib/bookingDataClient';
+
+vi.mock('@/lib/bookingDataClient');
 
 describe('OffersWidget', () => {
-  const { listDynamicOffers } = createBookingDataClientMock();
-
   beforeEach(() => {
     clearAllMocks();
+    setupStandardMocks();
   });
 
-  it('renders offers on success', async () => {
-    const offer = createMockOffer({ discount_pct: 20 });
-    listDynamicOffers.mockResolvedValue([offer]);
+  const renderComponent = () => {
+    return render(<OffersWidget destination="global" />);
+  };
 
-    render(<OffersWidget />);
+  it('should display offers when the API call is successful', async () => {
+    const mockOffers = [createMockOffer()];
+    (fetchSpecialOffers as vi.Mock).mockResolvedValue(mockOffers);
+
+    renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/20% OFF/)).toBeInTheDocument();
+      expect(screen.getByText('Last Minute Deal to Hawaii')).toBeInTheDocument();
     });
   });
 
-  it('logs error on failure', async () => {
-    const consoleMock = createConsoleMock();
-    listDynamicOffers.mockRejectedValue(new Error('fail'));
+  it('should show an empty state when no offers are available', async () => {
+    (fetchSpecialOffers as vi.Mock).mockResolvedValue([]);
 
-    render(<OffersWidget />);
+    renderComponent();
 
     await waitFor(() => {
-      expect(consoleMock.error).toHaveBeenCalled();
+      expect(screen.getByText(/no special offers/i)).toBeInTheDocument();
     });
-    consoleMock.restore();
+  });
+
+  it('should display an error message on API failure', async () => {
+    (fetchSpecialOffers as vi.Mock).mockRejectedValue(new Error('Failed to fetch'));
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/error loading offers/i)).toBeInTheDocument();
+    });
   });
 });

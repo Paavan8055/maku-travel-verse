@@ -1,35 +1,49 @@
-import { render, screen, waitFor, vi } from '@/test-utils';
-import { clearAllMocks, createConsoleMock } from '@/test-utils/testSetup';
-import { createBookingDataClientMock } from '@/test-utils/mockFactories';
+import { render, screen, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { setupStandardMocks, clearAllMocks } from '@/test-utils';
 import LocalTipsPanel from '../LocalTipsPanel';
-import React from 'react';
+import { fetchLocalTips } from '@/lib/bookingDataClient';
+
+vi.mock('@/lib/bookingDataClient');
 
 describe('LocalTipsPanel', () => {
-  const { fetchLocalInsights } = createBookingDataClientMock();
-
   beforeEach(() => {
     clearAllMocks();
+    setupStandardMocks();
   });
 
-  it('fetches insights on success', async () => {
-    fetchLocalInsights.mockResolvedValue([{ id: '1', tip_type: 'dining', content: 'Tip' }]);
+  const renderComponent = () => {
+    return render(<LocalTipsPanel destination="Paris" />);
+  };
 
-    render(<LocalTipsPanel locationId="LOC" />);
+  it('should display tips for the given destination', async () => {
+    const mockTips = [{ id: '1', tip: 'Try the pizza!' }];
+    (fetchLocalTips as vi.Mock).mockResolvedValue(mockTips);
+
+    renderComponent();
 
     await waitFor(() => {
-      expect(fetchLocalInsights).toHaveBeenCalledWith('LOC');
+      expect(screen.getByText('Try the pizza!')).toBeInTheDocument();
     });
   });
 
-  it('handles fetch failure gracefully', async () => {
-    const consoleMock = createConsoleMock();
-    fetchLocalInsights.mockRejectedValue(new Error('fail'));
+  it('should display a message when no tips are available', async () => {
+    (fetchLocalTips as vi.Mock).mockResolvedValue([]);
 
-    render(<LocalTipsPanel locationId="LOC" />);
+    renderComponent();
 
     await waitFor(() => {
-      expect(consoleMock.error).toHaveBeenCalled();
+      expect(screen.getByText(/no local tips/i)).toBeInTheDocument();
     });
-    consoleMock.restore();
+  });
+
+  it('should handle API errors gracefully', async () => {
+    (fetchLocalTips as vi.Mock).mockRejectedValue(new Error('API Error'));
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/error fetching tips/i)).toBeInTheDocument();
+    });
   });
 });

@@ -3,62 +3,47 @@
  * Provides comprehensive mocking and utilities
  */
 
-import { vi } from 'vitest';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom'; // Must be imported before any tests or mocks that rely on its matchers
+import * as matchers from '@testing-library/jest-dom/matchers'; // Import matchers
+import { vi, expect } from 'vitest';
+import { 
+  createSupabaseMock, 
+  createAuthMock, 
+  createToastMock, 
+  createBookingDataClientMock 
+} from './mockFactories';
+
+// Extend Vitest's expect with jest-dom matchers
+// This is crucial for toBeInTheDocument and similar assertions
+expect.extend(matchers);
+
+// Initialize mocks using factories
+const { mockSupabaseClient } = createSupabaseMock();
+const authMocks = createAuthMock();
+const { toast: mockToast } = createToastMock();
+const bookingDataClientMocks = createBookingDataClientMock();
 
 // Mock Supabase client with comprehensive functionality
-export const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(),
-    single: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockReturnThis(),
-  })),
-  channel: vi.fn(() => ({
-    on: vi.fn().mockReturnThis(),
-    subscribe: vi.fn(),
-  })),
-  removeChannel: vi.fn(),
-  functions: {
-    invoke: vi.fn(),
-  },
-  auth: {
-    getUser: vi.fn().mockResolvedValue({
-      data: { user: { id: 'test-user', email: 'test@example.com' } },
-      error: null,
-    }),
-  },
-};
-
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: mockSupabase,
+  supabase: mockSupabaseClient,
 }));
 
 // Mock auth context
-export const mockAuthContext = {
-  user: { id: 'test-user', email: 'test@example.com' },
-  session: { access_token: 'test-token' },
-  loading: false,
-};
+vi.mock('@/features/auth/hooks/useAuth', () => authMocks);
 
 vi.mock('@/features/auth/context/AuthContext', () => ({
-  useAuth: () => mockAuthContext,
+  useAuth: authMocks.useAuth,
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock toast functionality
-export const mockToast = vi.fn();
-
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: mockToast }),
   toast: mockToast,
 }));
+
+// Mock booking data client
+vi.mock('@/lib/bookingDataClient', () => bookingDataClientMocks);
 
 // Mock React Router
 vi.mock('react-router-dom', async () => {
