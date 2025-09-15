@@ -2,7 +2,56 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-...
+
+interface BusinessMetrics {
+  revenue: {
+    total: number;
+    growth_rate: number;
+    by_service: Record<string, number>;
+    by_month: Array<{month: string; amount: number}>;
+  };
+  bookings: {
+    total: number;
+    conversion_rate: number;
+    average_value: number;
+    by_status: Record<string, number>;
+  };
+  customers: {
+    total: number;
+    new_customers: number;
+    retention_rate: number;
+    lifetime_value: number;
+  };
+  performance: {
+    search_success_rate: number;
+    booking_completion_rate: number;
+    average_response_time: number;
+    uptime_percentage: number;
+  };
+}
+
+interface PredictiveAnalytics {
+  booking_forecast: Array<{
+    date: string;
+    predicted_bookings: number;
+    confidence_interval: [number, number];
+  }>;
+  revenue_forecast: Array<{
+    month: string;
+    predicted_revenue: number;
+    growth_rate: number;
+  }>;
+  demand_patterns: Array<{
+    destination: string;
+    peak_months: string[];
+    demand_score: number;
+  }>;
+  customer_segments: Array<{
+    segment: string;
+    size: number;
+    avg_booking_value: number;
+    characteristics: string[];
+  }>;
 }
 
 serve(async (req) => {
