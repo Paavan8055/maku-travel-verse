@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest';
 import { setupStandardMocks, clearAllMocks, createMockOffer } from '@/test-utils';
 import OffersWidget from '../OffersWidget';
 import { fetchSpecialOffers } from '@/lib/bookingDataClient';
@@ -18,7 +18,7 @@ describe('OffersWidget', () => {
 
   it('should display offers when the API call is successful', async () => {
     const mockOffers = [createMockOffer()];
-    (fetchSpecialOffers as vi.Mock).mockResolvedValue(mockOffers);
+    (fetchSpecialOffers as Mock).mockResolvedValue(mockOffers);
 
     renderComponent();
 
@@ -28,7 +28,7 @@ describe('OffersWidget', () => {
   });
 
   it('should show an empty state when no offers are available', async () => {
-    (fetchSpecialOffers as vi.Mock).mockResolvedValue([]);
+    (fetchSpecialOffers as Mock).mockResolvedValue([]);
 
     renderComponent();
 
@@ -38,7 +38,7 @@ describe('OffersWidget', () => {
   });
 
   it('should display an error message on API failure', async () => {
-    (fetchSpecialOffers as vi.Mock).mockRejectedValue(new Error('Failed to fetch'));
+    (fetchSpecialOffers as Mock).mockRejectedValue(new Error('Failed to fetch'));
 
     renderComponent();
 

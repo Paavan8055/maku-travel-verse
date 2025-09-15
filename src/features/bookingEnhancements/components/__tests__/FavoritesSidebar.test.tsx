@@ -1,5 +1,5 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest';
 import { setupStandardMocks, clearAllMocks, createMockBooking } from '@/test-utils';
 import FavoritesSidebar from '../FavoritesSidebar';
 import { fetchUserFavorites, toggleFavorite } from '@/lib/bookingDataClient';
@@ -23,7 +23,7 @@ describe('FavoritesSidebar', () => {
 
   it('should render favorites on successful data fetch', async () => {
     const mockFavorites = [createMockBooking()];
-    (fetchUserFavorites as vi.Mock).mockResolvedValue(mockFavorites);
+    (fetchUserFavorites as Mock).mockResolvedValue(mockFavorites);
 
     renderComponent();
 
@@ -33,7 +33,7 @@ describe('FavoritesSidebar', () => {
   });
 
   it('should show empty state when there are no favorites', async () => {
-    (fetchUserFavorites as vi.Mock).mockResolvedValue([]);
+    (fetchUserFavorites as Mock).mockResolvedValue([]);
 
     renderComponent();
 
@@ -43,7 +43,7 @@ describe('FavoritesSidebar', () => {
   });
 
   it('should handle data fetch error gracefully', async () => {
-    (fetchUserFavorites as vi.Mock).mockRejectedValue(new Error('Failed to fetch'));
+    (fetchUserFavorites as Mock).mockRejectedValue(new Error('Failed to fetch'));
 
     renderComponent();
 
@@ -54,8 +54,8 @@ describe('FavoritesSidebar', () => {
 
   it('should allow removing a favorite', async () => {
     const mockFavorites = [createMockBooking()];
-    (fetchUserFavorites as vi.Mock).mockResolvedValue(mockFavorites);
-    (toggleFavorite as vi.Mock).mockResolvedValue(true);
+    (fetchUserFavorites as Mock).mockResolvedValue(mockFavorites);
+    (toggleFavorite as Mock).mockResolvedValue(true);
 
     renderComponent();
 

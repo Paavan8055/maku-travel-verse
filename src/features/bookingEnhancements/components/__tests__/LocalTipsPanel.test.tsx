@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest';
 import { setupStandardMocks, clearAllMocks } from '@/test-utils';
 import LocalTipsPanel from '../LocalTipsPanel';
 import { fetchLocalTips } from '@/lib/bookingDataClient';
@@ -18,7 +18,7 @@ describe('LocalTipsPanel', () => {
 
   it('should display tips for the given destination', async () => {
     const mockTips = [{ id: '1', tip: 'Try the pizza!' }];
-    (fetchLocalTips as vi.Mock).mockResolvedValue(mockTips);
+    (fetchLocalTips as Mock).mockResolvedValue(mockTips);
 
     renderComponent();
 
@@ -28,7 +28,7 @@ describe('LocalTipsPanel', () => {
   });
 
   it('should display a message when no tips are available', async () => {
-    (fetchLocalTips as vi.Mock).mockResolvedValue([]);
+    (fetchLocalTips as Mock).mockResolvedValue([]);
 
     renderComponent();
 
@@ -38,7 +38,7 @@ describe('LocalTipsPanel', () => {
   });
 
   it('should handle API errors gracefully', async () => {
-    (fetchLocalTips as vi.Mock).mockRejectedValue(new Error('API Error'));
+    (fetchLocalTips as Mock).mockRejectedValue(new Error('API Error'));
 
     renderComponent();
 

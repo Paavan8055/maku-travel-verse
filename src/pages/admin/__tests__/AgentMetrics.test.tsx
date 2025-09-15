@@ -8,7 +8,7 @@
  */
 
 import { render, screen, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach, type Mock } from 'vitest';
 import AgentMetrics from '@/pages/admin/AgentMetrics';
 import { supabase } from '@/integrations/supabase/client';
 import { clearAllMocks, setupStandardMocks, createConsoleMock } from '@/test-utils';
@@ -36,7 +36,7 @@ describe('AgentMetrics Integration Tests', () => {
   };
 
   it('should load and display task metrics correctly', async () => {
-    (supabase.from as vi.Mock).mockReturnValue({
+    (supabase.from as Mock).mockReturnValue({
       select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
@@ -49,7 +49,7 @@ describe('AgentMetrics Integration Tests', () => {
   });
 
   it('should calculate success rate correctly', async () => {
-    (supabase.from as vi.Mock).mockReturnValue({
+    (supabase.from as Mock).mockReturnValue({
       select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
@@ -64,7 +64,7 @@ describe('AgentMetrics Integration Tests', () => {
   });
 
   it('should display agent breakdown correctly', async () => {
-    (supabase.from as vi.Mock).mockReturnValue({
+    (supabase.from as Mock).mockReturnValue({
       select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
@@ -77,7 +77,7 @@ describe('AgentMetrics Integration Tests', () => {
   });
 
   it('should show recent tasks with proper status icons', async () => {
-    (supabase.from as vi.Mock).mockReturnValue({
+    (supabase.from as Mock).mockReturnValue({
       select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
@@ -94,7 +94,7 @@ describe('AgentMetrics Integration Tests', () => {
   it('should establish real-time subscription', () => {
     const onMock = vi.fn().mockReturnThis();
     const subscribeMock = vi.fn();
-    (supabase.from as vi.Mock).mockReturnValue({
+    (supabase.from as Mock).mockReturnValue({
       select: vi.fn().mockResolvedValue({ data: [], error: null }),
       on: onMock,
       subscribe: subscribeMock,
@@ -106,7 +106,7 @@ describe('AgentMetrics Integration Tests', () => {
   });
 
   it('should handle loading and error states', async () => {
-    (supabase.from as vi.Mock).mockReturnValue({
+    (supabase.from as Mock).mockReturnValue({
         select: vi.fn().mockResolvedValue({ data: null, error: new Error('DB Error') }),
     });
 
@@ -118,7 +118,7 @@ describe('AgentMetrics Integration Tests', () => {
   });
 
   it('should calculate average completion time correctly', async () => {
-    (supabase.from as vi.Mock).mockReturnValue({
+    (supabase.from as Mock).mockReturnValue({
         select: vi.fn().mockResolvedValue(mockTaskData),
     });
 
