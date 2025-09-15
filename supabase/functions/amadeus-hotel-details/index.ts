@@ -2,7 +2,33 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-...
+
+async function getAmadeusAccessToken(): Promise<string> {
+  const amadeusEnv = Deno.env.get('AMADEUS_ENV') || 'test';
+  const baseUrl = amadeusEnv === 'prod'
+    ? 'https://api.amadeus.com'
+    : 'https://test.api.amadeus.com';
+
+  const response = await fetch(`${baseUrl}/v1/security/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: Deno.env.get('AMADEUS_CLIENT_ID') || '',
+      client_secret: Deno.env.get('AMADEUS_CLIENT_SECRET') || '',
+    }),
+  });
+
+  if (!response.ok) {
+    const details = await response.text().catch(() => '');
+    logger.error('Failed to obtain Amadeus access token', { status: response.status, details });
+    throw new Error(`Amadeus auth failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
 }
 
 serve(async (req) => {
