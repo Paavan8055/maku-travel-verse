@@ -7,7 +7,33 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
-...
+
+type AgentAction =
+  | 'list_agents'
+  | 'get_agent'
+  | 'update_agent_config'
+  | 'assign_task'
+  | 'bulk_assign_task'
+  | 'schedule_task'
+  | 'get_agent_performance'
+  | 'get_agent_groups'
+  | 'manage_agent_group'
+  | 'emergency_stop'
+  | 'get_batch_operations'
+  | 'get_agent_alerts';
+
+interface AgentCommand {
+  action: AgentAction;
+  agentId?: string;
+  groupId?: string;
+  taskData?: any;
+  batchData?: {
+    name: string;
+    agentIds: string[];
+    taskConfig: { intent: string; params?: Record<string, any> };
+  };
+  scheduleData?: any;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -111,7 +137,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Internal server error' 
+        error: (error as any).message || 'Internal server error' 
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
