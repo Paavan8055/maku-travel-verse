@@ -3,7 +3,24 @@ import { corsHeaders } from '../_shared/cors.ts';
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-...
+
+interface CreatePaymentIntentParams {
+  // New signature (preferred)
+  booking_type?: string;
+  amount: number;
+  currency: string;
+  metadata?: Record<string, any>;
+  
+  // Legacy signature (for backwards compatibility)
+  bookingId?: string;
+  customerInfo?: {
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  paymentMethod?: string;
+  correlationId?: string;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests

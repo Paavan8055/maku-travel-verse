@@ -2,7 +2,10 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 import logger from "../_shared/logger.ts";
-...
+
+interface CancelBookingRequest {
+  booking_id: string;
+  cancellation_reason?: string;
 }
 
 serve(async (req) => {

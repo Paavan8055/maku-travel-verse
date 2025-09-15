@@ -2,7 +2,25 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
-...
+
+interface ReadinessCheck {
+  name: string;
+  status: 'pass' | 'fail' | 'warn';
+  message: string;
+  details?: any;
+}
+
+interface ProductionReadinessResponse {
+  success: boolean;
+  overall_status: 'ready' | 'not_ready' | 'warnings';
+  checks: ReadinessCheck[];
+  summary: {
+    passed: number;
+    failed: number;
+    warnings: number;
+    total: number;
+  };
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -81,8 +99,8 @@ serve(async (req) => {
       checks.push({
         name: 'Database Connectivity',
         status: 'fail',
-        message: `Database connection failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Database connection failed: ${(error as Error).message}`,
+        details: { error: (error as Error).message }
       });
     }
 
@@ -106,8 +124,8 @@ serve(async (req) => {
       checks.push({
         name: 'Provider Configurations',
         status: 'fail',
-        message: `Failed to check provider configs: ${error.message}`,
-        details: { error: error.message }
+        message: `Failed to check provider configs: ${(error as Error).message}`,
+        details: { error: (error as Error).message }
       });
     }
 
@@ -131,8 +149,8 @@ serve(async (req) => {
       checks.push({
         name: 'Admin Users',
         status: 'fail',
-        message: `Failed to check admin users: ${error.message}`,
-        details: { error: error.message }
+        message: `Failed to check admin users: ${(error as Error).message}`,
+        details: { error: (error as Error).message }
       });
     }
 
@@ -169,8 +187,8 @@ serve(async (req) => {
       checks: [{
         name: 'System Check',
         status: 'fail',
-        message: `Production readiness check failed: ${error.message}`,
-        details: { error: error.message }
+        message: `Production readiness check failed: ${(error as Error).message}`,
+        details: { error: (error as Error).message }
       }],
       summary: { passed: 0, failed: 1, warnings: 0, total: 1 }
     }), {

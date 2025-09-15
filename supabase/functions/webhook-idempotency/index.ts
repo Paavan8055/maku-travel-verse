@@ -2,7 +2,13 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from '../_shared/cors.ts';
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2.53.0'
-...
+
+interface WebhookIdempotencyRecord {
+  idempotency_key: string;
+  webhook_id: string;
+  response_data?: any;
+  processed_at: string;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
