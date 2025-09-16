@@ -10424,7 +10424,7 @@ export type Database = {
         Args:
           | { _booking_id: string; _reason?: string }
           | { p_booking_id: string }
-        Returns: Json
+        Returns: boolean
       }
       check_document_expiry: {
         Args: Record<PropertyKey, never>
