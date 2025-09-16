@@ -351,11 +351,6 @@ const FlightSearchPage = () => {
       <div className="min-h-screen bg-background">
       <Navbar />
       
-      
-      {hasSearched && (
-        <FlightBookingProgress currentStep={1} />
-      )}
-      
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Search Controls */}
         <div className="bg-card border border-border rounded-lg p-4 mb-6 space-y-4">
@@ -700,6 +695,9 @@ const FlightSearchPage = () => {
 
         {hasSearched && !showModifySearch && !loading && !error && (
           <div className="w-full">
+            {/* Flight Booking Progress */}
+            <FlightBookingProgress currentStep={1} />
+            
             {/* Results Section - Full width clean layout */}
             <div className="space-y-6">
               <div className="mb-4 text-sm text-muted-foreground">
