@@ -128,6 +128,12 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
+            {/* Environment Manager - Development Tool */}
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/environment-manager')} role="menuitem">
+              <Settings className="h-4 w-4" aria-hidden="true" />
+              <span>Environment</span>
+            </Button>
+
             {isAdmin && (
               <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/admin')} role="menuitem">
                 <Shield className="h-4 w-4" aria-hidden="true" />
