@@ -6,10 +6,6 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  build: {
-    outDir: 'build'
-  },
-  
   // Server configuration
   server: {
     port: 3000,
@@ -26,6 +22,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    outDir: 'build',
     target: ['es2020', 'chrome80', 'firefox78', 'safari14', 'edge79'], // Modern browsers supporting ES6+
     rollupOptions: {
       output: {
