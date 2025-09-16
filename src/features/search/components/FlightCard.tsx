@@ -119,21 +119,15 @@ export const FlightCard = ({
             {/* Airline Info */}
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
-                {flight.airlineLogo ? (
-                  <img 
-                    src={flight.airlineLogo} 
-                    alt={`${flight.airline} logo`}
-                    className="w-8 h-8 object-contain"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                      if (nextElement) nextElement.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div className={`w-full h-full flex items-center justify-center ${flight.airlineLogo ? 'hidden' : ''}`}>
-                  <span className="text-primary font-bold text-xs">{flight.airlineCode}</span>
-                </div>
+                <img 
+                  src={flight.airlineLogo || '/placeholder-airline.svg'} 
+                  alt={`${flight.airline} logo`}
+                  className="w-8 h-8 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder-airline.svg';
+                    e.currentTarget.onerror = null;
+                  }}
+                />
               </div>
               <div>
                 <p className="font-medium text-foreground">{flight.airline}</p>

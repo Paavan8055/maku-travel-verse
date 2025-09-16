@@ -97,11 +97,9 @@ export const EnhancedFlightCard = ({
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const imgElement = e.currentTarget;
-    const fallbackElement = imgElement.nextElementSibling as HTMLElement;
-    if (fallbackElement) {
-      imgElement.style.display = 'none';
-      fallbackElement.style.display = 'flex';
-    }
+    // Switch to placeholder SVG on error
+    imgElement.src = '/placeholder-airline.svg';
+    imgElement.onerror = null; // Prevent infinite loop if placeholder also fails
   };
 
   // Use real fare options from flight data, fallback to default if none
@@ -152,20 +150,12 @@ export const EnhancedFlightCard = ({
               <div className="flex items-center space-x-3">
                 {/* Airline Logo */}
                 <div className="flex-shrink-0">
-                  {flight.airlineLogo && (
-                    <img 
-                      src={flight.airlineLogo} 
-                      alt={`${flight.airline} logo`}
-                      className="w-8 h-8 object-contain"
-                      onError={handleImageError}
-                    />
-                  )}
-                  <div 
-                    className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs font-bold"
-                    style={{ display: flight.airlineLogo ? 'none' : 'flex' }}
-                  >
-                    {getAirlineLogo(flight.airline)}
-                  </div>
+                  <img 
+                    src={flight.airlineLogo || '/placeholder-airline.svg'} 
+                    alt={`${flight.airline} logo`}
+                    className="w-8 h-8 object-contain"
+                    onError={handleImageError}
+                  />
                 </div>
                 
                 {/* Flight Number Badge */}

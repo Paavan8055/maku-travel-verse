@@ -7,37 +7,38 @@ export interface AirlineData {
   logo: string;
 }
 
-// Common airline logos - using public CDN for airline logos
+// Common airline logos - using reliable CDN for airline logos
 const AIRLINE_LOGOS: Record<string, string> = {
-  'AA': 'https://logos-world.net/wp-content/uploads/2020/03/American-Airlines-Logo.png',
-  'UA': 'https://logos-world.net/wp-content/uploads/2020/03/United-Airlines-Logo.png',
-  'DL': 'https://logos-world.net/wp-content/uploads/2020/03/Delta-Air-Lines-Logo.png',
-  'WN': 'https://logos-world.net/wp-content/uploads/2020/03/Southwest-Airlines-Logo.png',
-  'B6': 'https://logos-world.net/wp-content/uploads/2020/03/JetBlue-Logo.png',
-  'NK': 'https://logos-world.net/wp-content/uploads/2020/03/Spirit-Airlines-Logo.png',
-  'F9': 'https://logos-world.net/wp-content/uploads/2020/03/Frontier-Airlines-Logo.png',
-  'AS': 'https://logos-world.net/wp-content/uploads/2020/03/Alaska-Airlines-Logo.png',
+  // US Airlines
+  'AA': 'https://pics.avs.io/200/100/AA.png',
+  'UA': 'https://pics.avs.io/200/100/UA.png',
+  'DL': 'https://pics.avs.io/200/100/DL.png',
+  'WN': 'https://pics.avs.io/200/100/WN.png',
+  'B6': 'https://pics.avs.io/200/100/B6.png',
+  'NK': 'https://pics.avs.io/200/100/NK.png',
+  'F9': 'https://pics.avs.io/200/100/F9.png',
+  'AS': 'https://pics.avs.io/200/100/AS.png',
   
   // Australian Airlines
-  'QF': 'https://logos-world.net/wp-content/uploads/2020/03/Qantas-Logo.png',
-  'JQ': 'https://logos-world.net/wp-content/uploads/2020/03/Jetstar-Airways-Logo.png',
-  'VA': 'https://logos-world.net/wp-content/uploads/2020/03/Virgin-Australia-Logo.png',
-  'TT': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvmqE2k7Y7yZLJdIkP8FTlYqGRQVJJ9HJU3Q&s',
-  'ZL': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Rex_Airlines_logo.svg/1200px-Rex_Airlines_logo.svg.png',
+  'QF': 'https://pics.avs.io/200/100/QF.png',
+  'JQ': 'https://pics.avs.io/200/100/JQ.png',
+  'VA': 'https://pics.avs.io/200/100/VA.png',
+  'TT': 'https://pics.avs.io/200/100/TT.png',
+  'ZL': 'https://pics.avs.io/200/100/ZL.png',
   
   // European Airlines  
-  'LH': 'https://logos-world.net/wp-content/uploads/2020/03/Lufthansa-Logo.png',
-  'AF': 'https://logos-world.net/wp-content/uploads/2020/03/Air-France-Logo.png',
-  'BA': 'https://logos-world.net/wp-content/uploads/2020/03/British-Airways-Logo.png',
-  'KL': 'https://logos-world.net/wp-content/uploads/2020/03/KLM-Logo.png',
-  'LX': 'https://logos-world.net/wp-content/uploads/2020/03/Swiss-International-Air-Lines-Logo.png',
+  'LH': 'https://pics.avs.io/200/100/LH.png',
+  'AF': 'https://pics.avs.io/200/100/AF.png',
+  'BA': 'https://pics.avs.io/200/100/BA.png',
+  'KL': 'https://pics.avs.io/200/100/KL.png',
+  'LX': 'https://pics.avs.io/200/100/LX.png',
   
   // Asian Airlines
-  'SQ': 'https://logos-world.net/wp-content/uploads/2020/03/Singapore-Airlines-Logo.png',
-  'CX': 'https://logos-world.net/wp-content/uploads/2020/03/Cathay-Pacific-Logo.png',
-  'ANA': 'https://logos-world.net/wp-content/uploads/2020/03/ANA-Logo.png',
-  'JAL': 'https://logos-world.net/wp-content/uploads/2020/03/Japan-Airlines-Logo.png',
-  'TG': 'https://logos-world.net/wp-content/uploads/2020/03/Thai-Airways-Logo.png',
+  'SQ': 'https://pics.avs.io/200/100/SQ.png',
+  'CX': 'https://pics.avs.io/200/100/CX.png',
+  'NH': 'https://pics.avs.io/200/100/NH.png', // ANA (corrected IATA code)
+  'JL': 'https://pics.avs.io/200/100/JL.png', // JAL (corrected IATA code)
+  'TG': 'https://pics.avs.io/200/100/TG.png',
   
   // Test/Demo Airlines
   'ZZ': '/placeholder-airline.svg'
@@ -83,7 +84,7 @@ export const getAirlineLogo = (iataCode: string): string => {
   if (!iataCode) return '/placeholder-airline.svg';
   
   const code = iataCode.toUpperCase();
-  return AIRLINE_LOGOS[code] || `/airline-logos/${code.toLowerCase()}.png`;
+  return AIRLINE_LOGOS[code] || '/placeholder-airline.svg';
 };
 
 export const getAirlineName = (iataCode: string): string => {
