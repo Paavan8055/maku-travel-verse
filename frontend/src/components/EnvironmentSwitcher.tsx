@@ -26,12 +26,18 @@ export const EnvironmentSwitcher: React.FC = () => {
 
   const fetchConfig = async () => {
     try {
-      // In a real implementation, this would be an API call
-      // For now, we'll simulate it
-      const response = await fetch('/preview-config.json');
+      const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/api/environment/config`);
       if (response.ok) {
         const data = await response.json();
         setConfig(data);
+      } else {
+        // Fallback to local config file
+        const fallbackResponse = await fetch('/preview-config.json');
+        if (fallbackResponse.ok) {
+          const data = await fallbackResponse.json();
+          setConfig(data);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch preview config:', error);
