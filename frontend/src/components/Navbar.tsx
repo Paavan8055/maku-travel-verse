@@ -273,6 +273,16 @@ const Navbar = () => {
               }}>
                 Airdrop
               </Button>
+              
+              {/* Environment Manager - Development Tool */}
+              <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                navigate('/environment-manager');
+                setIsMenuOpen(false);
+              }}>
+                <Settings className="mr-2 h-4 w-4" />
+                Environment
+              </Button>
+
               {isAdmin && (
                 <Button variant="ghost" className="w-full justify-start" onClick={() => {
                   navigate('/admin');
