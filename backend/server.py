@@ -37,6 +37,15 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+class EnvironmentSwitch(BaseModel):
+    environment: str
+
+class EnvironmentConfig(BaseModel):
+    environments: dict
+    current_environment: str
+    switch_mode: str
+    last_updated: str
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
