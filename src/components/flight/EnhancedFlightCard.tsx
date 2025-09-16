@@ -64,6 +64,7 @@ export const EnhancedFlightCard = ({
 }: EnhancedFlightCardProps) => {
   const { formatCurrency } = useCurrency();
   const [selectedFare, setSelectedFare] = useState<string>("economy");
+  const [showDetails, setShowDetails] = useState<boolean>(false);
 
   const formatDuration = (duration: number | string) => {
     if (typeof duration === 'string') return duration;
@@ -137,6 +138,8 @@ export const EnhancedFlightCard = ({
     return `${day}, ${dayNum} ${month} ${year}`;
   };
 
+  const detailsId = `flight-details-${flight.id || 'x'}`;
+
   return (
     <Card className="mb-3 hover:shadow-lg transition-all duration-300 border border-border/30 w-full max-w-none">
       <div className="px-8 py-6">
@@ -198,11 +201,46 @@ export const EnhancedFlightCard = ({
 
             {/* View Flight Details Link */}
             <div className="flex justify-end mt-4">
-              <Button variant="link" className="text-destructive hover:text-destructive/80 p-0 h-auto text-sm font-medium">
-                View Flight Details
+              <Button
+                variant="link"
+                className="text-destructive hover:text-destructive/80 p-0 h-auto text-sm font-medium"
+                onClick={() => setShowDetails(v => !v)}
+                aria-expanded={showDetails}
+                aria-controls={detailsId}
+              >
+                {showDetails ? 'Hide Details' : 'View Flight Details'}
                 <ExternalLink className="h-3 w-3 ml-1" />
               </Button>
             </div>
+
+            {showDetails && (
+              <section id={detailsId} aria-label="Flight details" className="mt-3 text-sm text-muted-foreground border border-border rounded-md p-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="font-medium text-foreground">Flight</div>
+                    <div>{flight.airline} {flight.outboundFlightNumber || flight.flightNumber}</div>
+                    {flight.aircraft && !flight.aircraft.toLowerCase().includes('unknown') && (
+                      <div>Aircraft: {flight.aircraft}</div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-foreground">Route</div>
+                    <div>{flight.origin} → {flight.destination}</div>
+                    <div>Stops: {typeof flight.stops === 'number' ? flight.stops : String(flight.stops)}</div>
+                  </div>
+                </div>
+                {flight.amenities && (
+                  <div className="mt-3">
+                    <div className="font-medium text-foreground">Amenities</div>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {flight.amenities.slice(0, 6).map((a, i) => (
+                        <span key={i} className="px-2 py-0.5 border border-border rounded-md">{a}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
 
           {/* Right Section - Fare Options */}
