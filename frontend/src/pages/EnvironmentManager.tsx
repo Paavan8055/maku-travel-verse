@@ -83,3 +83,5 @@ export const EnvironmentManager: React.FC = () => {
     </div>
   );
 };
+
+export default EnvironmentManager;
