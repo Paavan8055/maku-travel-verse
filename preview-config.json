@@ -5,17 +5,17 @@
       "description": "Original state with current features and implementations",
       "backend_url": "https://travel-tech-audit.preview.emergentagent.com",
       "source": "lovable",
-      "active": false
+      "active": true
     },
     "emergent": {
       "name": "Emergent State",
       "description": "Enhanced state with CTO recommendations and improvements",
       "backend_url": "https://travel-tech-audit-emergent.preview.emergentagent.com",
       "source": "emergent",
-      "active": true
+      "active": false
     }
   },
-  "current_environment": "emergent",
+  "current_environment": "lovable",
   "switch_mode": "manual",
-  "last_updated": "2025-09-16T14:18:33.745Z"
+  "last_updated": "2025-09-16T14:18:39.514Z"
 }
