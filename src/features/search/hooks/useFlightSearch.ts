@@ -116,18 +116,25 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           body: {
             searchType: 'flight',
             params: {
+              // Provide multiple shapes for best provider compatibility
               origin: criteria.origin.toUpperCase(),
               destination: criteria.destination.toUpperCase(),
-              departure_date: criteria.departureDate, // Use snake_case for API consistency
+              originLocationCode: criteria.origin.toUpperCase(),
+              destinationLocationCode: criteria.destination.toUpperCase(),
+              departure_date: criteria.departureDate, // snake_case for rotation
               return_date: criteria.returnDate,
-              passengers: criteria.passengers || 1,
+              departureDate: criteria.departureDate, // camelCase for some providers
               adults: criteria.passengers || 1,
+              passengers: criteria.passengers || 1,
               children: 0,
               infants: 0,
               travelClass: 'ECONOMY',
               cabin: 'ECONOMY',
               nonStop: false,
-              currency: currencyCode
+              currency: currencyCode,
+              max: 25,
+              timeout: 30000,
+              ts: Date.now() // cache-buster to avoid stale cached responses
             }
           }
         });

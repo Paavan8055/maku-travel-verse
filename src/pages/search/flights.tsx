@@ -717,7 +717,7 @@ const FlightSearchPage = () => {
               </div>
               {filteredFlights.map((flight, index) => (
                 <EnhancedFlightCard
-                  key={`${flight.id}-${index}`}
+                  key={`${flight.id}-${searchCriteria.origin}-${searchCriteria.destination}-${searchCriteria.departureDate}-${index}`}
                   flight={flight}
                   onSelectFare={handleSelectFare}
                   showFareOptions={true}
