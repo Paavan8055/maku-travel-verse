@@ -445,6 +445,9 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     throw new Error(`Unknown provider function: ${provider.id}`);
   }
 
+  // Transform parameters for provider-specific requirements
+  const transformedParams = transformParamsForProvider(provider.id, params);
+
   // Enhanced credential check with detailed logging
   const credentialCheck = isProviderCredentialsValid(provider.id);
   if (!credentialCheck) {
@@ -459,13 +462,13 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
   
   try {
     logger.info(`[PROVIDER-ROTATION] Calling ${functionName} with params:`, {
-      ...params,
+      ...transformedParams,
       timeout: timeoutMs,
       providerId: provider.id
     });
     
     const { data, error } = await supabase.functions.invoke(functionName, {
-      body: params,
+      body: transformedParams,
       signal: controller.signal
     });
     
@@ -493,19 +496,33 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     
     // Standardize response format for different providers
     let standardizedData;
-    if (data?.data && Array.isArray(data.data)) {
-      standardizedData = data.data;
-    } else if (data?.flights) {
-      standardizedData = data.flights;
-    } else if (data?.hotels) {
-      standardizedData = data.hotels;
-    } else if (data?.activities) {
-      standardizedData = data.activities;
-    } else if (Array.isArray(data)) {
-      standardizedData = data;
+    
+    // Handle provider-specific response formats
+    if (provider.id === 'duffel-flight') {
+      // Duffel returns data directly, wrap it in flights structure
+      if (data?.data && Array.isArray(data.data)) {
+        standardizedData = { flights: data.data };
+      } else if (Array.isArray(data)) {
+        standardizedData = { flights: data };
+      } else {
+        standardizedData = { flights: data ? [data] : [] };
+      }
     } else {
-      standardizedData = data;
-      logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
+      // Standard handling for other providers
+      if (data?.data && Array.isArray(data.data)) {
+        standardizedData = data.data;
+      } else if (data?.flights) {
+        standardizedData = data.flights;
+      } else if (data?.hotels) {
+        standardizedData = data.hotels;
+      } else if (data?.activities) {
+        standardizedData = data.activities;
+      } else if (Array.isArray(data)) {
+        standardizedData = data;
+      } else {
+        standardizedData = data;
+        logger.warn(`[PROVIDER-ROTATION] Unexpected data structure from ${provider.id}:`, typeof data);
+      }
     }
     
     return {
@@ -608,4 +625,74 @@ async function getFallbackData(searchType: string): Promise<any> {
     default:
       return { error: 'Unknown search type' };
   }
+}
+
+// Transform parameters for provider-specific requirements
+function transformParamsForProvider(providerId: string, params: any): any {
+  const transformed = { ...params };
+  
+  switch (providerId) {
+    case 'duffel-flight':
+      // Duffel expects different parameter names and formats
+      return {
+        origin: params.originLocationCode || params.origin,
+        destination: params.destinationLocationCode || params.destination,
+        departureDate: params.departureDate || params.departure_date,
+        returnDate: params.returnDate,
+        adults: params.passengers || params.adults || 1,
+        cabin: transformCabinClass(params.travelClass || params.cabin),
+        max: params.max || 25
+      };
+      
+    case 'amadeus-flight':
+    case 'sabre-flight':
+      // Amadeus and Sabre expect originLocationCode/destinationLocationCode
+      return {
+        originLocationCode: params.origin || params.originLocationCode,
+        destinationLocationCode: params.destination || params.destinationLocationCode,
+        departureDate: params.departureDate || params.departure_date,
+        returnDate: params.returnDate,
+        adults: params.passengers || params.adults || 1,
+        travelClass: params.travelClass || params.cabin || 'ECONOMY'
+      };
+      
+    case 'hotelbeds-hotel':
+    case 'sabre-hotel':
+    case 'amadeus-hotel':
+      // Hotel providers expect different parameters
+      return {
+        cityCode: params.destination || params.cityCode,
+        checkInDate: params.checkIn || params.checkInDate,
+        checkOutDate: params.checkOut || params.checkOutDate,
+        adults: params.guests || params.adults || 2,
+        roomQuantity: params.rooms || params.roomQuantity || 1
+      };
+      
+    case 'hotelbeds-activity':
+    case 'sabre-activity':
+    case 'amadeus-activity':
+      // Activity providers expect different parameters
+      return {
+        destination: params.destination || params.cityCode,
+        date: params.from || params.date,
+        participants: params.participants || params.guests || 1
+      };
+      
+    default:
+      return transformed;
+  }
+}
+
+// Transform travel class for Duffel (lowercase format)
+function transformCabinClass(travelClass: string): string {
+  if (!travelClass) return 'economy';
+  
+  const mapping: Record<string, string> = {
+    'ECONOMY': 'economy',
+    'PREMIUM_ECONOMY': 'premium_economy',
+    'BUSINESS': 'business',
+    'FIRST': 'first'
+  };
+  
+  return mapping[travelClass.toUpperCase()] || travelClass.toLowerCase();
 }

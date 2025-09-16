@@ -50,8 +50,8 @@ const FlightsPage = () => {
       const result = await searchWithRotation({
         searchType: 'flight',
         params: {
-          origin: searchCriteria.origin,
-          destination: searchCriteria.destination,
+          originLocationCode: searchCriteria.origin,
+          destinationLocationCode: searchCriteria.destination,
           departureDate: searchCriteria.departureDate,
           returnDate: searchCriteria.tripType === 'roundtrip' ? searchCriteria.returnDate : undefined,
           passengers: searchCriteria.passengers,
@@ -62,7 +62,16 @@ const FlightsPage = () => {
       console.log('FlightsPage: Provider rotation result:', result);
 
       if (result.success && result.data) {
-        const flightData = result.data.flights || [];
+        // Handle different response structures
+        let flightData = [];
+        if (result.data.flights) {
+          flightData = result.data.flights;
+        } else if (Array.isArray(result.data)) {
+          flightData = result.data;
+        } else if (result.data.data && Array.isArray(result.data.data)) {
+          flightData = result.data.data;
+        }
+        
         console.log('FlightsPage: Setting flights data:', flightData);
         setFlights(flightData);
         
