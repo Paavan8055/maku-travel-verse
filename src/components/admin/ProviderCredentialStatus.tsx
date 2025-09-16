@@ -11,6 +11,7 @@ interface ProviderStatus {
   authSuccess: boolean;
   environment: string;
   error?: string;
+  service?: string[];
 }
 
 interface CredentialTestResult {
@@ -31,7 +32,7 @@ export const ProviderCredentialStatus = () => {
   const testCredentials = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('credential-test', {
+      const { data, error } = await supabase.functions.invoke('provider-credential-test', {
         body: {}
       });
 
@@ -65,9 +66,20 @@ export const ProviderCredentialStatus = () => {
       return <Badge variant="destructive">Missing Credentials</Badge>;
     }
     if (provider.authSuccess) {
-      return <Badge variant="secondary" className="bg-green-100 text-green-800">Connected</Badge>;
+      return <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">Connected</Badge>;
     }
     return <Badge variant="outline" className="border-amber-500 text-amber-700">Auth Failed</Badge>;
+  };
+
+  const getProviderDisplayName = (provider: string) => {
+    const displayNames: Record<string, string> = {
+      'amadeus': 'Amadeus',
+      'sabre': 'Sabre',
+      'duffel': 'Duffel',
+      'hotelbeds-hotel': 'HotelBeds Hotels',
+      'hotelbeds-activity': 'HotelBeds Activities'
+    };
+    return displayNames[provider] || provider.charAt(0).toUpperCase() + provider.slice(1);
   };
 
   return (
@@ -118,9 +130,20 @@ export const ProviderCredentialStatus = () => {
                   <div className="flex items-center gap-3">
                     {getStatusIcon(provider)}
                     <div>
-                      <div className="font-medium capitalize">{provider.provider}</div>
+                      <div className="font-medium capitalize flex items-center gap-2">
+                        {getProviderDisplayName(provider.provider)}
+                        {provider.service && provider.service.length > 0 && (
+                          <div className="flex gap-1">
+                            {provider.service.map(service => (
+                              <Badge key={service} variant="outline" className="text-xs">
+                                {service}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       {provider.error && (
-                        <div className="text-sm text-red-600">{provider.error}</div>
+                        <div className="text-sm text-destructive mt-1">{provider.error}</div>
                       )}
                     </div>
                   </div>

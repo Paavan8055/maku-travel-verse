@@ -95,6 +95,48 @@ async function testSabreCredentials(): Promise<CredentialTestResult> {
   return result;
 }
 
+async function testDuffelCredentials(): Promise<CredentialTestResult> {
+  const result: CredentialTestResult = {
+    provider: 'duffel',
+    status: 'missing_credentials',
+    credentials_present: false
+  };
+
+  try {
+    const hasCredentials = validateProviderCredentials('duffel');
+    result.credentials_present = hasCredentials;
+
+    if (!hasCredentials) {
+      result.error = 'Duffel access token not configured';
+      return result;
+    }
+
+    // Test actual API call
+    const testResponse = await fetch(`${ENV_CONFIG.duffel.baseUrl}/air/aircraft`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Duffel-Version': 'v1',
+        'Authorization': `Bearer ${ENV_CONFIG.DUFFEL_ACCESS_TOKEN}`
+      }
+    });
+
+    result.api_test_result = testResponse.ok;
+    result.status = testResponse.ok ? 'success' : 'failed';
+    
+    if (!testResponse.ok) {
+      const errorText = await testResponse.text();
+      result.error = `Duffel authentication failed: ${testResponse.status} - ${errorText}`;
+    }
+
+  } catch (error) {
+    result.status = 'failed';
+    result.error = error.message;
+  }
+
+  return result;
+}
+
 async function testHotelBedsCredentials(service: 'hotel' | 'activity'): Promise<CredentialTestResult> {
   const result: CredentialTestResult = {
     provider: 'hotelbeds',
@@ -145,20 +187,30 @@ serve(async (req) => {
     const sabre = await testSabreCredentials();
     testResults.push(sabre);
 
+    const duffel = await testDuffelCredentials();
+    testResults.push(duffel);
+
     const hotelbedsHotel = await testHotelBedsCredentials('hotel');
     testResults.push(hotelbedsHotel);
 
     const hotelbedsActivity = await testHotelBedsCredentials('activity');
     testResults.push(hotelbedsActivity);
 
-    // Create summary
+    // Transform results to match frontend interface expectations
+    const transformedProviders = testResults.map(result => ({
+      provider: result.service ? `${result.provider}-${result.service}` : result.provider,
+      credentialsValid: result.credentials_present,
+      authSuccess: result.status === 'success',
+      environment: ENV_CONFIG.isProduction ? 'production' : 'test',
+      error: result.error,
+      service: getProviderServices(result.provider, result.service)
+    }));
+
+    // Create summary with correct field names
     const summary = {
-      total_providers: testResults.length,
-      working_providers: testResults.filter(r => r.status === 'success').length,
-      failed_providers: testResults.filter(r => r.status === 'failed').length,
-      missing_credentials: testResults.filter(r => r.status === 'missing_credentials').length,
-      overall_status: testResults.every(r => r.status === 'success') ? 'all_working' :
-                     testResults.some(r => r.status === 'success') ? 'partial_working' : 'all_failed'
+      total: testResults.length,
+      working: testResults.filter(r => r.status === 'success').length,
+      failed: testResults.filter(r => r.status !== 'success').length
     };
 
     logger.info('[CREDENTIAL-TEST] Test completed', summary);
@@ -166,8 +218,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       timestamp: new Date().toISOString(),
+      environment: ENV_CONFIG.isProduction ? 'production' : 'test',
+      providers: transformedProviders,
       summary,
-      detailed_results: testResults,
       recommendations: generateRecommendations(testResults)
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -186,6 +239,16 @@ serve(async (req) => {
     });
   }
 });
+
+function getProviderServices(provider: string, service?: string): string[] {
+  const serviceMap: Record<string, string[]> = {
+    'amadeus': ['flight', 'hotel', 'activity', 'transfer'],
+    'sabre': ['flight', 'hotel'],
+    'duffel': ['flight'],
+    'hotelbeds': service === 'hotel' ? ['hotel'] : ['activity']
+  };
+  return serviceMap[provider] || [];
+}
 
 function generateRecommendations(results: CredentialTestResult[]): string[] {
   const recommendations: string[] = [];
@@ -210,7 +273,7 @@ function generateRecommendations(results: CredentialTestResult[]): string[] {
   recommendations.push('');
   recommendations.push('🔧 Next steps:');
   recommendations.push('1. Add missing API keys to Supabase Edge Functions secrets');
-  recommendations.push('2. Verify API keys are valid and not expired');
+  recommendations.push('2. Verify API keys are valid and not expired');  
   recommendations.push('3. Check if you need to switch from test to production endpoints');
   recommendations.push('4. Run this test again after adding credentials');
 
