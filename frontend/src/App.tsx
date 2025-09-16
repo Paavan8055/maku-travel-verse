@@ -101,6 +101,7 @@ const OrchestrationPage = createLazyRoute(() => import("./pages/admin/automation
 const AgentCoordinationPage = createLazyRoute(() => import("./pages/admin/coordination/agent-orchestration"));
 
 const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
+const EnvironmentManager = createLazyRoute(() => import("./pages/EnvironmentManager"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
