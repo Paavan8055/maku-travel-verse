@@ -37,7 +37,10 @@ const AIRLINE_LOGOS: Record<string, string> = {
   'CX': 'https://logos-world.net/wp-content/uploads/2020/03/Cathay-Pacific-Logo.png',
   'ANA': 'https://logos-world.net/wp-content/uploads/2020/03/ANA-Logo.png',
   'JAL': 'https://logos-world.net/wp-content/uploads/2020/03/Japan-Airlines-Logo.png',
-  'TG': 'https://logos-world.net/wp-content/uploads/2020/03/Thai-Airways-Logo.png'
+  'TG': 'https://logos-world.net/wp-content/uploads/2020/03/Thai-Airways-Logo.png',
+  
+  // Test/Demo Airlines
+  'ZZ': '/placeholder-airline.svg'
 };
 
 // Common airline names
@@ -70,7 +73,10 @@ const AIRLINE_NAMES: Record<string, string> = {
   'CX': 'Cathay Pacific',
   'NH': 'ANA',
   'JL': 'Japan Airlines',
-  'TG': 'Thai Airways'
+  'TG': 'Thai Airways',
+  
+  // Test/Demo Airlines
+  'ZZ': 'Demo Airways'
 };
 
 export const getAirlineLogo = (iataCode: string): string => {

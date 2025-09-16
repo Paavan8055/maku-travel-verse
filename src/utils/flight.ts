@@ -122,9 +122,30 @@ export const calculateStops = (segments?: any[]): number => {
  * Transform Duffel flight data to standardized format
  */
 export const transformDuffelFlight = (duffelFlight: any): StandardizedFlight => {
-  const firstSlice = duffelFlight.slices?.[0];
+  const firstSlice = duffelFlight?.slices?.[0];
   const firstSegment = firstSlice?.segments?.[0];
-  const lastSegment = firstSlice?.segments?.[firstSlice.segments.length - 1];
+  const lastSegment = firstSlice?.segments?.[firstSlice?.segments?.length - 1];
+  
+  // Handle case where data might already be partially transformed
+  if (duffelFlight.carrier && duffelFlight.departure && duffelFlight.arrival) {
+    return {
+      id: duffelFlight.id || 'unknown',
+      flightNumber: duffelFlight.flightNumber || 'Unknown',
+      carrier: duffelFlight.carrier,
+      carrierName: duffelFlight.carrierName || 'Unknown Airline',
+      aircraft: duffelFlight.aircraft,
+      departure: duffelFlight.departure,
+      arrival: duffelFlight.arrival,
+      duration: duffelFlight.duration || '',
+      price: {
+        total: typeof duffelFlight.price?.total === 'number' ? duffelFlight.price.total : parseFloat(duffelFlight.price?.total || '0'),
+        currency: duffelFlight.price?.currency || 'USD'
+      },
+      stops: duffelFlight.stops || 0,
+      provider: 'Duffel',
+      offerId: duffelFlight.offerId || duffelFlight.id
+    };
+  }
   
   return {
     id: duffelFlight.offer_id || duffelFlight.id || 'unknown',
@@ -217,6 +238,13 @@ export const transformSabreFlight = (sabreData: any): StandardizedFlight => {
 export const standardizeFlightData = (flightData: any, provider?: string): StandardizedFlight => {
   if (!flightData) {
     throw new Error('Flight data is required');
+  }
+  
+  // Check if data is already standardized (has the right structure and numeric price)
+  if (flightData.id && flightData.carrier && flightData.departure && flightData.arrival && 
+      flightData.price && typeof flightData.price.total === 'number') {
+    console.log('Flight data already standardized, returning as-is');
+    return flightData as StandardizedFlight;
   }
   
   // Auto-detect provider if not specified

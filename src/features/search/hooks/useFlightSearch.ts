@@ -146,8 +146,8 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           const transformedFlights = rawFlights.map((rawFlight: any, index: number) => {
             console.log(`Processing flight ${index + 1}:`, rawFlight);
 
-            // Use standardizeFlightData to normalize the data structure
-            const std = standardizeFlightData(rawFlight, rawFlight.provider || data.provider);
+            // Use standardizeFlightData to normalize the data structure (let it auto-detect provider)
+            const std = standardizeFlightData(rawFlight);
             
             // Extract airline information
             const airlineCode = std.carrier || rawFlight.validatingAirlineCodes?.[0] || rawFlight.carrierCode || 'XX';
