@@ -9,7 +9,6 @@ import { FeaturedDealsCarousel } from "@/components/search/FeaturedDealsCarousel
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import { FlightBookingProgress } from "@/components/flight/FlightBookingProgress";
 import { FlightRouteHeader } from "@/components/flight/FlightRouteHeader";
-import { DateFlexibilityCalendar } from "@/components/flight/DateFlexibilityCalendar";
 import { EnhancedFlightCard } from "@/components/flight/EnhancedFlightCard";
 import { FlightSortingToolbar } from "@/components/flight/FlightSortingToolbar";
 import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
@@ -553,16 +552,7 @@ const FlightSearchPage = () => {
             
             {!showModifySearch && (
               <>
-                <DateFlexibilityCalendar 
-                  selectedDate={departureDate}
-                  onDateSelect={handleDateChange}
-                  origin={origin}
-                  destination={destination}
-                  passengers={adults + children + infants}
-                  cabin={cabinClass}
-                />
-                
-                <FlightSortingToolbar 
+                <FlightSortingToolbar
                   sortBy={sortBy}
                   onSortChange={setSortBy}
                   activeFilters={activeFilters}
