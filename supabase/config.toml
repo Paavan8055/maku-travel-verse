@@ -73,3 +73,6 @@ backend = "postgres"
 
 [functions.sentry-setup-guide]
 verify_jwt = false
+
+[functions.admin-fix-providers]
+verify_jwt = false

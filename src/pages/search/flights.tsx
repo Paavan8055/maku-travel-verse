@@ -671,14 +671,19 @@ const FlightSearchPage = () => {
           <div className="text-center py-12">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">
-              {error.includes('temporarily unavailable') ? 'Service Temporarily Unavailable' : 'Search Error'}
+              Flight Search Issue
             </h3>
             <div className="mb-4 space-y-2">
-              <p className="text-muted-foreground">{error}</p>
-              {error.includes('temporarily unavailable') && (
-                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mx-auto max-w-md">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Our flight search providers are experiencing temporary issues. This usually resolves within a few minutes.
+              <p className="text-muted-foreground">
+                {error.includes('temporarily unavailable') 
+                  ? 'Some flight providers are temporarily unavailable, but we\'re still finding flights through our active providers.'
+                  : error
+                }
+              </p>
+              {(error.includes('temporarily unavailable') || error.includes('quota')) && (
+                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mx-auto max-w-md">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    ✅ Flight search is still working through Sabre and other active providers. You may see fewer results than usual.
                   </p>
                 </div>
               )}
