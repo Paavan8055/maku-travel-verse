@@ -121,7 +121,7 @@ export const BookingManagementDashboard = () => {
       
       if (error) throw error;
       
-      const result = data as { success: boolean; message: string };
+      const result = (data || { success: false, message: 'Unknown error' }) as { success: boolean; message: string };
       if (result.success) {
         toast({
           title: "Success",

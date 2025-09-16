@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { format as formatDate } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { getAirlineLogo, getAirlineName, formatFlightNumber } from '@/utils/airline';
+import { formatCurrency } from '@/utils/currency';
 
 interface FlightResultsProps {
   searchParams: {
@@ -117,23 +119,47 @@ export const FlightResults: React.FC<FlightResultsProps> = ({
         {flights.map((flight, index) => (
           <Card key={`${flight.id || index}`} className="p-6 hover:shadow-md transition-shadow">
             <div className="space-y-4">
-              {/* Flight Header */}
+              {/* Flight Header with Airline Info */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline">
-                    {flight.validatingAirlineCodes?.[0] || flight.carrier || 'XX'}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Flight {flight.flightNumber || flight.id}
-                  </span>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <img 
+                      src={getAirlineLogo(flight.carrier || flight.validatingAirlineCodes?.[0] || 'XX')}
+                      alt={getAirlineName(flight.carrier || flight.validatingAirlineCodes?.[0] || 'XX')}
+                      className="w-8 h-8 rounded object-contain bg-white border"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder-airline.svg';
+                      }}
+                    />
+                    <div className="flex flex-col">
+                      <Badge variant="outline" className="w-fit">
+                        {flight.carrier || flight.validatingAirlineCodes?.[0] || 'XX'}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {getAirlineName(flight.carrier || flight.validatingAirlineCodes?.[0] || 'XX')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-l pl-3">
+                    <span className="text-sm font-medium">
+                      {formatFlightNumber(
+                        flight.carrier || flight.validatingAirlineCodes?.[0] || 'XX',
+                        flight.flightNumber || flight.id
+                      )}
+                    </span>
+                    {flight.aircraft && (
+                      <div className="text-xs text-muted-foreground">{flight.aircraft}</div>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-primary">
-                    ${flight.price?.total || flight.totalPrice || '0'}
+                    {formatCurrency(
+                      parseFloat(flight.price?.total || flight.totalPrice || '0'),
+                      flight.price?.currency || 'AUD'
+                    )}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {flight.price?.currency || 'AUD'} • per person
-                  </div>
+                  <div className="text-sm text-muted-foreground">per person</div>
                 </div>
               </div>
 
@@ -180,12 +206,20 @@ export const FlightResults: React.FC<FlightResultsProps> = ({
                 </div>
               )}
 
-              {/* Flight Stops */}
-              {flight.stops && flight.stops > 0 && (
-                <Badge variant="outline" className="w-fit">
-                  {flight.stops} stop{flight.stops > 1 ? 's' : ''}
-                </Badge>
-              )}
+              {/* Flight Stops and Aircraft Info */}
+              <div className="flex items-center gap-4 text-sm">
+                {flight.stops !== undefined && flight.stops >= 0 && (
+                  <Badge variant="outline" className="w-fit">
+                    {flight.stops === 0 ? 'Non-stop' : `${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}
+                  </Badge>
+                )}
+                {flight.cabinClass && (
+                  <span className="text-muted-foreground">{flight.cabinClass}</span>
+                )}
+                {flight.provider && (
+                  <span className="text-xs text-muted-foreground">via {flight.provider}</span>
+                )}
+              </div>
 
               {/* Action Button */}
               <div className="pt-2">

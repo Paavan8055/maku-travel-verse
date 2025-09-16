@@ -8,6 +8,83 @@ import {
   getAvailableHotelBedsServices 
 } from "../_shared/config.ts";
 
+// Flight data transformation utilities
+function parseDuration(duration: string): string {
+  if (!duration) return '0h 0m';
+  
+  if (duration.startsWith('PT')) {
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+    if (match) {
+      const hours = parseInt(match[1] || '0', 10);
+      const minutes = parseInt(match[2] || '0', 10);
+      
+      if (hours > 0 && minutes > 0) {
+        return `${hours}h ${minutes}m`;
+      } else if (hours > 0) {
+        return `${hours}h`;
+      } else if (minutes > 0) {
+        return `${minutes}m`;
+      }
+    }
+  }
+  
+  return duration;
+}
+
+function formatFlightTime(timeString: string): string {
+  if (!timeString) return '00:00';
+  
+  try {
+    const date = new Date(timeString);
+    if (isNaN(date.getTime())) {
+      const timeMatch = timeString.match(/(\d{2}):(\d{2})/);
+      if (timeMatch) {
+        return `${timeMatch[1]}:${timeMatch[2]}`;
+      }
+      return timeString;
+    }
+    
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  } catch (error) {
+    return timeString;
+  }
+}
+
+function transformDuffelFlight(duffelFlight: any): any {
+  const firstSlice = duffelFlight.slices?.[0];
+  const firstSegment = firstSlice?.segments?.[0];
+  const lastSegment = firstSlice?.segments?.[firstSlice.segments.length - 1];
+  
+  return {
+    id: duffelFlight.offer_id || duffelFlight.id || 'unknown',
+    flightNumber: firstSegment?.flight_number || 'Unknown',
+    carrier: firstSegment?.marketing_carrier_iata || 'XX',
+    carrierName: firstSegment?.marketing_carrier || 'Unknown Airline',
+    aircraft: firstSegment?.aircraft || 'Unknown Aircraft',
+    departure: {
+      time: formatFlightTime(firstSegment?.depart_at || ''),
+      airport: firstSlice?.origin || 'Unknown'
+    },
+    arrival: {
+      time: formatFlightTime(lastSegment?.arrive_at || ''),
+      airport: firstSlice?.destination || 'Unknown'
+    },
+    duration: parseDuration(firstSlice?.duration || ''),
+    price: {
+      total: parseFloat(duffelFlight.total_amount || '0'),
+      currency: duffelFlight.total_currency || 'USD'
+    },
+    stops: Math.max(0, (firstSlice?.segments?.length || 1) - 1),
+    provider: 'Duffel',
+    offerId: duffelFlight.offer_id,
+    validatingAirlineCodes: [firstSegment?.marketing_carrier_iata || 'XX']
+  };
+}
+
 
 interface ProviderConfig {
   id: string;
@@ -497,16 +574,18 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     // Standardize response format for different providers
     let standardizedData;
     
-    // Handle provider-specific response formats
+    // Handle provider-specific response formats and standardize flight data
     if (provider.id === 'duffel-flight') {
-      // Duffel returns data directly, wrap it in flights structure
+      // Transform Duffel flight data to standardized format
+      let flightData = [];
       if (data?.data && Array.isArray(data.data)) {
-        standardizedData = { flights: data.data };
+        flightData = data.data.map(transformDuffelFlight);
       } else if (Array.isArray(data)) {
-        standardizedData = { flights: data };
-      } else {
-        standardizedData = { flights: data ? [data] : [] };
+        flightData = data.map(transformDuffelFlight);
+      } else if (data) {
+        flightData = [transformDuffelFlight(data)];
       }
+      standardizedData = flightData;
     } else {
       // Standard handling for other providers
       if (data?.data && Array.isArray(data.data)) {
