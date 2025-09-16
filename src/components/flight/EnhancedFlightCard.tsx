@@ -175,7 +175,9 @@ export const EnhancedFlightCard = ({
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold text-sm">{flight.airline}</span>
-                <span className="text-xs text-muted-foreground">{flight.aircraft || 'Aircraft Type'}</span>
+                {flight.aircraft && !flight.aircraft.toLowerCase().includes('unknown') && (
+                  <span className="text-xs text-muted-foreground">{flight.aircraft}</span>
+                )}
               </div>
             </div>
 

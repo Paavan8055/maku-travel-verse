@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { detectFlightCurrency } from "@/lib/currencyDetection";
 import logger from '@/utils/logger';
+import { getAirlineLogo, getAirlineName, formatFlightNumber } from '@/utils/airline';
+import { standardizeFlightData } from '@/utils/flight';
 
 interface FlightSearchCriteria {
   origin: string;
@@ -134,63 +136,79 @@ export const useFlightSearch = (criteria: FlightSearchCriteria | null) => {
           throw functionError;
         }
 
-        if (data?.success && data?.data?.flights && Array.isArray(data.data.flights)) {
-          const flights = data.data.flights;
-          console.log("useFlightSearch: Provider rotation success, transforming", flights.length, "flights");
+        // Handle different response structures from provider-rotation
+        const rawFlights = data?.data?.flights || data?.flights || (Array.isArray(data?.data) ? data.data : []);
+        
+        if (data?.success && rawFlights && Array.isArray(rawFlights) && rawFlights.length > 0) {
+          console.log("useFlightSearch: Provider rotation success, transforming", rawFlights.length, "flights");
           console.log("Used provider:", data.provider, "Fallback used:", data.fallbackUsed);
           
-          if (flights.length === 0) {
-            console.log("useFlightSearch: No flights found in provider response");
-            setFlights([]);
-            setError("No flights found for your search criteria. Please try different dates or destinations.");
-            return;
-          }
-          
-          console.log("Raw provider flights:", flights.length);
-          
-          const transformedFlights = flights.map((flight: any, index: number) => {
-            console.log(`Processing flight ${index + 1}:`, {
-              flightId: flight.id,
-              airline: flight.airline?.name,
-              price: flight.price
-            });
+          const transformedFlights = rawFlights.map((rawFlight: any, index: number) => {
+            console.log(`Processing flight ${index + 1}:`, rawFlight);
 
-            // Map flight data to our expected format
-            return {
-              id: flight.id,
-              airline: flight.airline?.name || flight.airline?.code || 'Unknown',
-              airlineCode: flight.airline?.code,
-              airlineLogo: flight.airline?.logo,
-              flightNumber: flight.flightNumber,
-              outboundFlightNumber: flight.outboundFlightNumber,
-              returnFlightNumber: flight.returnFlightNumber,
-              aircraft: flight.aircraft,
-              origin: flight.departure?.airport,
-              destination: flight.arrival?.airport,
-              departureTime: flight.departure?.time,
-              arrivalTime: flight.arrival?.time,
-              departure: flight.departure,
-              arrival: flight.arrival,
-              duration: flight.durationMinutes || flight.duration,
-              stops: flight.stops || 0,
-              stopoverInfo: flight.stopoverInfo,
-              price: flight.price?.amount || 0,
-              currency: flight.price?.currency || 'USD',
-              availableSeats: flight.availableSeats || 9,
-              cabin: flight.cabinClass || 'ECONOMY',
-              baggage: flight.baggage || { carry: true, checked: false },
-              segments: flight.segments || [],
+            // Use standardizeFlightData to normalize the data structure
+            const std = standardizeFlightData(rawFlight, rawFlight.provider || data.provider);
+            
+            // Extract airline information
+            const airlineCode = std.carrier || rawFlight.validatingAirlineCodes?.[0] || rawFlight.carrierCode || 'XX';
+            const airlineName = std.carrierName || getAirlineName(airlineCode);
+            
+            // Extract price information
+            const priceNumber = typeof std.price?.total === 'string' ? parseFloat(std.price.total) : (std.price?.total ?? 0);
+            const currency = std.price?.currency || 'AUD';
+
+            const transformedFlight = {
+              id: std.id,
+              airline: airlineName,
+              airlineCode,
+              airlineLogo: getAirlineLogo(airlineCode),
+              flightNumber: formatFlightNumber(airlineCode, std.flightNumber || ''),
+              outboundFlightNumber: formatFlightNumber(airlineCode, std.flightNumber || ''),
+              returnFlightNumber: undefined, // Not available in StandardizedFlight
+              aircraft: std.aircraft || 'Unknown Aircraft',
+              origin: std.departure?.airport,
+              destination: std.arrival?.airport,
+              departureTime: std.departure?.time,
+              arrivalTime: std.arrival?.time,
+              departure: std.departure,
+              arrival: std.arrival,
+              duration: std.duration,
+              stops: std.stops ?? 0,
+              stopoverInfo: std.stops && std.stops > 0 ? `${std.stops} stop${std.stops > 1 ? 's' : ''}` : undefined,
+              price: priceNumber,
+              currency,
+              availableSeats: std.availableSeats ?? 9,
+              cabin: std.cabinClass || 'ECONOMY',
+              baggage: { 
+                carry: std.amenities?.baggage ?? true, 
+                checked: std.amenities?.baggage ?? false 
+              },
+              segments: [], // Not available in StandardizedFlight, could be added later
               fareOptions: [{
                 type: 'economy',
-                price: flight.price?.amount || 0,
-                currency: flight.price?.currency || 'USD',
+                price: priceNumber,
+                currency,
                 features: ['Standard seat selection', 'Carry-on bag included'],
                 seatsAvailable: 9,
                 bookingClass: 'M'
               }],
               isRoundTrip: !!criteria.returnDate,
-              amadeusOfferId: flight.id
+              amadeusOfferId: std.offerId || std.id
             } as Flight;
+
+            // Log the first transformed flight for debugging
+            if (index === 0) {
+              console.log("First transformed flight:", {
+                id: transformedFlight.id,
+                airline: transformedFlight.airline,
+                airlineCode: transformedFlight.airlineCode,
+                price: transformedFlight.price,
+                currency: transformedFlight.currency,
+                airlineLogo: transformedFlight.airlineLogo
+              });
+            }
+
+            return transformedFlight;
           });
 
           console.log("useFlightSearch: Setting", transformedFlights.length, "transformed flights");
