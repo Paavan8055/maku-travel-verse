@@ -48,6 +48,8 @@ serve(async (req) => {
     const { origin, destination, departureDate, returnDate, adults = 1, cabin = "economy", max = 25 } =
       sanitizedData as SearchBody;
 
+    logger.info("Duffel flight search params:", { origin, destination, departureDate, adults, cabin });
+
     // Create Offer Request
     const base = duffelBase();
     const requestBody: any = {
@@ -74,7 +76,12 @@ serve(async (req) => {
     });
     if (!orRes.ok) {
       const t = await orRes.text();
-      logger.error("Duffel offer request error", { status: orRes.status, body: t });
+      logger.error("Duffel offer request error", { 
+        status: orRes.status, 
+        body: t, 
+        requestParams: { origin, destination, departureDate, adults, cabin },
+        requestBody: JSON.stringify(requestBody)
+      });
       return new Response(
         JSON.stringify({ success: false, error: "Offer request failed", details: t }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }

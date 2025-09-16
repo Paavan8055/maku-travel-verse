@@ -5,7 +5,7 @@ export function duffelHeaders() {
   return {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${ENV_CONFIG.DUFFEL_ACCESS_TOKEN}`,
-    "Duffel-Version": "v1",
+    "Duffel-Version": "v2",
   };
 }
 

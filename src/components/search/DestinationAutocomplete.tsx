@@ -99,11 +99,25 @@ export const DestinationAutocomplete = ({
         clearTimeout(debounceTimerRef.current);
       }
 
-      // Debounce API calls
+      // Debounce API calls (increased from 300ms to 600ms for quota protection)
       debounceTimerRef.current = setTimeout(async () => {
         setIsLoading(true);
         const q = value.trim();
         let results: Destination[] = [];
+
+        // Skip API calls for very short queries
+        if (q.length < 3) {
+          if (searchType === "airport") {
+            results = searchLocalAirports(q).slice(0, 5);
+          } else {
+            results = popularDestinations.filter(dest => 
+              dest.name.toLowerCase().includes(q.toLowerCase())
+            ).slice(0, 3);
+          }
+          setSuggestions(results);
+          setIsLoading(false);
+          return;
+        }
 
         try {
           // Priority 1: Hotel search for hotel searchType - Try HotelBeds first, then Amadeus
@@ -176,14 +190,14 @@ export const DestinationAutocomplete = ({
               results = [...localAirports];
             }
 
-            // If local search found results, still try Amadeus but don't overwrite good local results
-            if (results.length < 3) {
+            // If local search found results, still try Amadeus but only for longer queries
+            if (results.length < 2 && q.length >= 4) {
               try {
                 const { data: amadeusData } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
                   body: { 
                     query: q, 
                     types: ['AIRPORT'],
-                    limit: 8 
+                    limit: 6  // Reduced from 8 for quota protection
                   }
                 });
 
@@ -218,14 +232,14 @@ export const DestinationAutocomplete = ({
             }
           }
 
-          // Priority 3: City/destination search (fallback for hotels or primary for cities)
-          if ((searchType === "city" || searchType === "both") && results.length < 3) {
+          // Priority 3: City/destination search (only for longer, specific queries)
+          if ((searchType === "city" || searchType === "both") && results.length < 2 && q.length >= 4) {
             try {
               const { data: amadeusData } = await supabase.functions.invoke('amadeus-locations-autocomplete', {
                 body: { 
                   query: q, 
                   types: ['CITY'],
-                  limit: 8 
+                  limit: 4  // Reduced from 8 for quota protection
                 }
               });
 
@@ -284,7 +298,7 @@ export const DestinationAutocomplete = ({
         } finally {
           setIsLoading(false);
         }
-      }, 300); // 300ms debounce
+      }, 600); // Increased from 300ms to 600ms for better quota protection
     };
 
     fetchSuggestions();

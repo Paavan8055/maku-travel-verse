@@ -114,10 +114,10 @@ function searchFallbackAirports(query: string, limit: number = 12) {
     }));
 }
 
-// API call with retry and exponential backoff
+// API call with conservative retry and rate limiting
 async function callAmadeusWithRetry<T>(
   apiCall: () => Promise<T>, 
-  maxRetries: number = 3
+  maxRetries: number = 2  // Reduced from 3 to 2
 ): Promise<T | null> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -127,15 +127,15 @@ async function callAmadeusWithRetry<T>(
       const isLastAttempt = attempt === maxRetries - 1;
       
       if (is429 && !isLastAttempt) {
-        // Exponential backoff: 1s, 2s, 4s
-        const delayMs = Math.pow(2, attempt) * 1000;
+        // More aggressive backoff for quota protection: 2s, 5s
+        const delayMs = attempt === 0 ? 2000 : 5000;
         logger.info(`Rate limited, retrying in ${delayMs}ms (attempt ${attempt + 1}/${maxRetries})`);
         await delay(delayMs);
         continue;
       }
       
       if (isLastAttempt) {
-        logger.error(`Final attempt failed:`, error.message);
+        logger.error(`Final attempt failed:`, { error: error.message });
         return null;
       }
       
@@ -180,13 +180,16 @@ serve(async (req) => {
     const requestedTypes = Array.isArray(types) && types.length > 0 ? types : ["AIRPORT"];
     const max = Number.isFinite(limit) ? Math.min(Number(limit), 20) : 12;
 
-    // Enhanced API helpers with retry logic
+    // Enhanced API helpers with quota-friendly retry logic
     const tryLocations = async (keyword: string, subType: string): Promise<AmadeusLocation[]> => {
+      // Skip empty or invalid keywords to prevent quota waste
+      if (!keyword || keyword.length < 2) return [];
+      
       return await callAmadeusWithRetry(async () => {
         const url = new URL("https://test.api.amadeus.com/v1/reference-data/locations");
         url.searchParams.set("subType", subType);
         url.searchParams.set("keyword", keyword);
-        url.searchParams.set("page[limit]", String(max));
+        url.searchParams.set("page[limit]", String(Math.min(max, 10))); // Reduced limit
         const resp = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
         if (!resp.ok) {
           const txt = await resp.text();
@@ -198,10 +201,13 @@ serve(async (req) => {
     };
 
     const tryAirportsEndpoint = async (keyword: string): Promise<AmadeusLocation[]> => {
+      // Use airports endpoint only for specific searches to save quota
+      if (!keyword || keyword.length < 3) return [];
+      
       return await callAmadeusWithRetry(async () => {
         const url = new URL("https://test.api.amadeus.com/v1/reference-data/locations/airports");
         url.searchParams.set("keyword", keyword);
-        url.searchParams.set("page[limit]", String(max));
+        url.searchParams.set("page[limit]", String(Math.min(max, 8))); // Further reduced limit
         const resp = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
         if (!resp.ok) {
           const txt = await resp.text();
@@ -213,10 +219,13 @@ serve(async (req) => {
     };
 
     const tryCitiesEndpoint = async (keyword: string): Promise<AmadeusLocation[]> => {
+      // Cities endpoint for non-airport searches only
+      if (!keyword || keyword.length < 3) return [];
+      
       return await callAmadeusWithRetry(async () => {
         const url = new URL("https://test.api.amadeus.com/v1/reference-data/locations/cities");
         url.searchParams.set("keyword", keyword);
-        url.searchParams.set("max", String(max));
+        url.searchParams.set("max", String(Math.min(max, 6))); // Reduced for cities
         const resp = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
         if (!resp.ok) {
           const txt = await resp.text();
@@ -230,9 +239,9 @@ serve(async (req) => {
     let data: AmadeusLocation[] = [];
     const iataCode = extractIataCode(query) || (isIataCode(query) ? query.toUpperCase() : null);
 
-    // Enhanced search strategy
+    // Quota-friendly search strategy - prioritize efficiency
     if (requestedTypes.includes("AIRPORT")) {
-      // 1) Direct IATA code search if detected
+      // 1) Direct IATA code search if detected (most efficient)
       if (iataCode) {
         logger.info("amadeus-locations step=iata-search code=%s", iataCode);
         const iataResults = await tryLocations(iataCode, "AIRPORT");
@@ -240,35 +249,22 @@ serve(async (req) => {
         data.push(...iataResults);
       }
 
-      // 2) Dedicated airports endpoint
-      if (data.length === 0) {
+      // 2) For longer queries, use dedicated airports endpoint
+      if (data.length === 0 && query.length >= 4) {
         const airportResults = await tryAirportsEndpoint(query);
         logger.info("amadeus-locations step=airports-endpoint q=%s count=%d", query, airportResults.length);
         data.push(...airportResults);
       }
 
-      // 3) General locations search for airports
-      if (data.length === 0) {
+      // 3) Only use general locations as last resort for airports
+      if (data.length === 0 && query.length >= 3) {
         const locationResults = await tryLocations(query, "AIRPORT");
         logger.info("amadeus-locations step=locations subtype=AIRPORT q=%s count=%d", query, locationResults.length);
         data.push(...locationResults);
       }
 
-      // 4) Prefix search with multiple variations
-      if (data.length === 0 && query.length >= 3) {
-        const variations = [
-          query.slice(0, 3),
-          query.slice(0, 4),
-          query.split(' ')[0]?.slice(0, 3)
-        ].filter(Boolean);
-
-        for (const variation of variations) {
-          if (data.length > 0) break;
-          const prefixResults = await tryLocations(variation, "AIRPORT");
-          logger.info("amadeus-locations step=prefix-airport q=%s prefix=%s count=%d", query, variation, prefixResults.length);
-          data.push(...prefixResults);
-        }
-      }
+      // 4) Skip aggressive prefix searching to save quota
+      // Removed multiple prefix variations to prevent quota drain
     }
 
     // Search other types (cities, etc.)
