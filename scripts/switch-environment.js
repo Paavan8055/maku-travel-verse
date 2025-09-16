@@ -86,6 +86,7 @@ function switchEnvironment() {
   const frontendEnvPath = path.join(__dirname, '../frontend/.env');
   const backendUrl = config.environments[targetEnv].backend_url;
   updateEnvFile(frontendEnvPath, 'REACT_APP_BACKEND_URL', backendUrl);
+  updateEnvFile(frontendEnvPath, 'VITE_REACT_APP_BACKEND_URL', backendUrl);
 
   console.log(`✅ Successfully switched to ${targetEnv} environment`);
   console.log(`📍 Backend URL: ${backendUrl}`);
