@@ -51,25 +51,27 @@ export const EnvironmentSwitcher: React.FC = () => {
     
     setSwitching(true);
     try {
-      // In a real implementation, this would call the backend API
-      // For demo purposes, we'll update local state
-      const updatedConfig = {
-        ...config,
-        current_environment: targetEnv,
-        last_updated: new Date().toISOString(),
-      };
-
-      Object.keys(updatedConfig.environments).forEach(env => {
-        updatedConfig.environments[env].active = (env === targetEnv);
+      const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/api/environment/switch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ environment: targetEnv }),
       });
 
-      setConfig(updatedConfig);
+      const result = await response.json();
       
-      // Show success message
-      alert(`Successfully switched to ${targetEnv} environment. Please restart services if needed.`);
+      if (result.success) {
+        // Refresh config after successful switch
+        await fetchConfig();
+        alert(`Successfully switched to ${targetEnv} environment. You may need to refresh the page to see changes.`);
+      } else {
+        throw new Error(result.error || 'Failed to switch environment');
+      }
     } catch (error) {
       console.error('Failed to switch environment:', error);
-      alert('Failed to switch environment');
+      alert(`Failed to switch environment: ${error.message}`);
     } finally {
       setSwitching(false);
     }
