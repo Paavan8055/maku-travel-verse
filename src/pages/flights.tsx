@@ -169,13 +169,11 @@ const FlightsPage = () => {
           />
 
           {/* Real-time Search Progress */}
-          {isLoading && searchProgress && (
-            <RealTimeSearchProgress
-              searchId={searchId || ''}
-              searchType="flight"
-              progress={searchProgress}
-              className="mb-6"
-            />
+          {isLoading && (
+            <div className="mb-6 text-center">
+              <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Searching for flights...</p>
+            </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -221,6 +219,7 @@ const FlightsPage = () => {
                   />
                 </div>
               )}
+            </div>
 
             {/* Sidebar with Personalization and Recommendations */}
             <div className="lg:col-span-1 space-y-6">
