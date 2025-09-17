@@ -10283,6 +10283,92 @@ export type Database = {
           },
         ]
       }
+      viator_booking_questions: {
+        Row: {
+          created_at: string
+          id: string
+          options: Json | null
+          product_code: string
+          question_id: string
+          question_text: string
+          question_type: string
+          required: boolean
+          updated_at: string
+          validation_rules: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          options?: Json | null
+          product_code: string
+          question_id: string
+          question_text: string
+          question_type?: string
+          required?: boolean
+          updated_at?: string
+          validation_rules?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          options?: Json | null
+          product_code?: string
+          question_id?: string
+          question_text?: string
+          question_type?: string
+          required?: boolean
+          updated_at?: string
+          validation_rules?: Json | null
+        }
+        Relationships: []
+      }
+      viator_bookings: {
+        Row: {
+          booking_data: Json
+          booking_id: string
+          booking_status: string
+          created_at: string
+          customer_answers: Json
+          id: string
+          product_code: string
+          updated_at: string
+          viator_booking_reference: string | null
+          voucher_info: Json | null
+        }
+        Insert: {
+          booking_data?: Json
+          booking_id: string
+          booking_status?: string
+          created_at?: string
+          customer_answers?: Json
+          id?: string
+          product_code: string
+          updated_at?: string
+          viator_booking_reference?: string | null
+          voucher_info?: Json | null
+        }
+        Update: {
+          booking_data?: Json
+          booking_id?: string
+          booking_status?: string
+          created_at?: string
+          customer_answers?: Json
+          id?: string
+          product_code?: string
+          updated_at?: string
+          viator_booking_reference?: string | null
+          voucher_info?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viator_bookings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       viator_pricing_history: {
         Row: {
           currency: string | null
@@ -10314,6 +10400,51 @@ export type Database = {
             referencedColumns: ["product_code"]
           },
         ]
+      }
+      viator_product_options: {
+        Row: {
+          age_restrictions: Json | null
+          created_at: string
+          description: string | null
+          duration: string | null
+          id: string
+          max_travelers: number | null
+          meeting_point: Json | null
+          option_code: string
+          option_title: string
+          pricing: Json
+          product_code: string
+          updated_at: string
+        }
+        Insert: {
+          age_restrictions?: Json | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          max_travelers?: number | null
+          meeting_point?: Json | null
+          option_code: string
+          option_title: string
+          pricing?: Json
+          product_code: string
+          updated_at?: string
+        }
+        Update: {
+          age_restrictions?: Json | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          max_travelers?: number | null
+          meeting_point?: Json | null
+          option_code?: string
+          option_title?: string
+          pricing?: Json
+          product_code?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       viator_search_cache: {
         Row: {

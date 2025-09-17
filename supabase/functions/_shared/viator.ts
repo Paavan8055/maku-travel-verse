@@ -60,6 +60,96 @@ export interface ViatorProduct {
     };
   };
   tags: string[];
+  bookingQuestions?: ViatorBookingQuestion[];
+  productOptions?: ViatorProductOption[];
+}
+
+export interface ViatorBookingQuestion {
+  id: string;
+  question: string;
+  required: boolean;
+  questionType: 'text' | 'select' | 'date' | 'number' | 'boolean';
+  options?: Array<{
+    value: string;
+    label: string;
+  }>;
+  validationRules?: {
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+  };
+}
+
+export interface ViatorProductOption {
+  productOptionCode: string;
+  title: string;
+  description?: string;
+  languageGuides?: string[];
+  pricing: {
+    currency: string;
+    price: number;
+  };
+  ageBands?: Array<{
+    ageBand: string;
+    minimumAge: number;
+    maximumAge?: number;
+  }>;
+  duration?: string;
+  maxTravelers?: number;
+}
+
+export interface ViatorAvailability {
+  productCode: string;
+  localDate: string;
+  available: boolean;
+  status: 'AVAILABLE' | 'LIMITED' | 'SOLD_OUT';
+  vacancies?: number;
+  pricing?: {
+    currency: string;
+    price: number;
+  };
+  nextAvailableDate?: string;
+}
+
+export interface ViatorBookingData {
+  productCode: string;
+  optionCode: string;
+  travelDate: string;
+  travelers: Array<{
+    bandId: string;
+    firstName: string;
+    lastName: string;
+    title?: string;
+    leadTraveler?: boolean;
+  }>;
+  bookingQuestionAnswers?: Array<{
+    questionId: string;
+    answer: string;
+  }>;
+  customerInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    country: string;
+  };
+}
+
+export interface ViatorBookingResponse {
+  bookingReference: string;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'FAILED';
+  totalPrice: {
+    currency: string;
+    amount: number;
+  };
+  voucher?: {
+    type: 'URL' | 'PDF';
+    url: string;
+  };
+  confirmation?: {
+    confirmationNumber: string;
+    instructions: string;
+  };
 }
 
 export interface ViatorSearchParams {
@@ -274,6 +364,214 @@ export function validateViatorCredentials(): boolean {
     logger.warn('[VIATOR] API key not configured');
   }
   return isValid;
+}
+
+// Enhanced Viator API functions for certification compliance
+
+export async function getViatorProductBookingQuestions(productCode: string): Promise<ViatorBookingQuestion[]> {
+  const url = `${VIATOR_CONFIG.baseUrl}/products/${productCode}/booking-questions`;
+  
+  logger.info('[VIATOR] Getting product booking questions', { productCode });
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getViatorHeaders()
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('[VIATOR] Booking questions API error', { 
+        productCode,
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Viator booking questions error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    logger.info('[VIATOR] Booking questions retrieved', { productCode, questionCount: data.length });
+
+    return data || [];
+  } catch (error) {
+    logger.error('[VIATOR] Booking questions failed', { productCode, error: error.message });
+    return []; // Return empty array on error to not break booking flow
+  }
+}
+
+export async function checkViatorProductAvailability(
+  productCode: string, 
+  month: string, 
+  year: string
+): Promise<ViatorAvailability[]> {
+  const url = `${VIATOR_CONFIG.baseUrl}/products/${productCode}/availability`;
+  
+  const requestBody = {
+    productCode,
+    month: month.padStart(2, '0'),
+    year
+  };
+
+  logger.info('[VIATOR] Checking product availability', { productCode, month, year });
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: getViatorHeaders(),
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('[VIATOR] Availability API error', { 
+        productCode,
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Viator availability error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    logger.info('[VIATOR] Availability retrieved', { 
+      productCode, 
+      availableDates: data.length 
+    });
+
+    return data || [];
+  } catch (error) {
+    logger.error('[VIATOR] Availability check failed', { productCode, error: error.message });
+    throw error;
+  }
+}
+
+export async function createViatorBooking(bookingData: ViatorBookingData): Promise<ViatorBookingResponse> {
+  const url = `${VIATOR_CONFIG.baseUrl}/bookings`;
+  
+  logger.info('[VIATOR] Creating booking', { 
+    productCode: bookingData.productCode,
+    travelDate: bookingData.travelDate,
+    travelerCount: bookingData.travelers.length
+  });
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: getViatorHeaders(),
+      body: JSON.stringify(bookingData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('[VIATOR] Booking creation API error', { 
+        productCode: bookingData.productCode,
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Viator booking error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    logger.info('[VIATOR] Booking created successfully', { 
+      productCode: bookingData.productCode,
+      bookingReference: data.bookingReference,
+      status: data.status
+    });
+
+    return data;
+  } catch (error) {
+    logger.error('[VIATOR] Booking creation failed', { 
+      productCode: bookingData.productCode, 
+      error: error.message 
+    });
+    throw error;
+  }
+}
+
+export async function getViatorBookingDetails(bookingReference: string): Promise<ViatorBookingResponse> {
+  const url = `${VIATOR_CONFIG.baseUrl}/bookings/${bookingReference}`;
+  
+  logger.info('[VIATOR] Getting booking details', { bookingReference });
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getViatorHeaders()
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('[VIATOR] Booking details API error', { 
+        bookingReference,
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Viator booking details error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    logger.info('[VIATOR] Booking details retrieved', { bookingReference, status: data.status });
+
+    return data;
+  } catch (error) {
+    logger.error('[VIATOR] Booking details failed', { bookingReference, error: error.message });
+    throw error;
+  }
+}
+
+export async function cancelViatorBooking(
+  bookingReference: string, 
+  reason?: string
+): Promise<{ success: boolean; refundAmount?: number; currency?: string }> {
+  const url = `${VIATOR_CONFIG.baseUrl}/bookings/${bookingReference}/cancel`;
+  
+  const requestBody = {
+    reason: reason || 'Customer request'
+  };
+
+  logger.info('[VIATOR] Cancelling booking', { bookingReference, reason });
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: getViatorHeaders(),
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('[VIATOR] Booking cancellation API error', { 
+        bookingReference,
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Viator cancellation error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    logger.info('[VIATOR] Booking cancelled successfully', { 
+      bookingReference, 
+      refundAmount: data.refundAmount 
+    });
+
+    return {
+      success: true,
+      refundAmount: data.refundAmount,
+      currency: data.currency
+    };
+  } catch (error) {
+    logger.error('[VIATOR] Booking cancellation failed', { bookingReference, error: error.message });
+    throw error;
+  }
 }
 
 // Viator category mappings
