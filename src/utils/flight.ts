@@ -37,30 +37,30 @@ export interface StandardizedFlight {
 }
 
 /**
- * Parse ISO duration string (PT1H31M) to human readable format (1h 31m)
+ * Parse ISO duration string (P1DT7H, PT1H31M) to human readable format (1d 7h, 1h 31m)
  */
 export const parseDuration = (duration: string): string => {
   if (!duration) return '0h 0m';
   
-  // Handle ISO 8601 duration format (PT1H31M)
-  if (duration.startsWith('PT')) {
-    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
-    if (match) {
-      const hours = parseInt(match[1] || '0', 10);
-      const minutes = parseInt(match[2] || '0', 10);
-      
-      if (hours > 0 && minutes > 0) {
-        return `${hours}h ${minutes}m`;
-      } else if (hours > 0) {
-        return `${hours}h`;
-      } else if (minutes > 0) {
-        return `${minutes}m`;
-      }
-    }
+  // Handle ISO 8601 duration format with days (P1DT7H, P1DT7H30M)
+  if (duration.startsWith('P')) {
+    const dayMatch = duration.match(/P(?:(\d+)D)?/);
+    const timeMatch = duration.match(/T(?:(\d+)H)?(?:(\d+)M)?/);
+    
+    const days = dayMatch && dayMatch[1] ? parseInt(dayMatch[1], 10) : 0;
+    const hours = timeMatch && timeMatch[1] ? parseInt(timeMatch[1], 10) : 0;
+    const minutes = timeMatch && timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+    
+    const parts = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    
+    return parts.length > 0 ? parts.join(' ') : '0h 0m';
   }
   
-  // Handle already formatted duration (1h 31m)
-  if (duration.match(/^\d+h\s?\d*m?$/)) {
+  // Handle already formatted duration (1h 31m, 1d 7h)
+  if (duration.match(/^\d+[dhm]\s?(\d+[hm])?(\s?\d+m)?$/)) {
     return duration;
   }
   
@@ -80,6 +80,25 @@ export const parseDuration = (duration: string): string => {
   }
   
   return duration;
+};
+
+/**
+ * Human readable flight duration helper
+ */
+export const humanizeFlightDuration = (duration: number | string): string => {
+  if (!duration) return "Duration unknown";
+  
+  if (typeof duration === 'string') {
+    return parseDuration(duration);
+  }
+  
+  if (typeof duration === 'number') {
+    const hours = Math.floor(duration / 60);
+    const mins = Math.round(duration % 60);
+    return `${hours}h ${mins}m`;
+  }
+  
+  return "Duration unknown";
 };
 
 /**

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCurrency } from "@/features/currency/CurrencyProvider";
+import { humanizeFlightDuration } from "@/utils/flight";
 import { 
   Plane, 
   Clock, 
@@ -66,29 +67,6 @@ export const EnhancedFlightCard = ({
   const [selectedFare, setSelectedFare] = useState<string>("economy");
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
-  const formatDuration = (duration: number | string) => {
-    if (!duration) return "Duration unknown";
-    if (typeof duration === 'string') {
-      // Handle string durations like "2h 30m" or "PT2H30M" (ISO format)
-      if (duration.includes('H') && duration.includes('M')) {
-        return duration;
-      }
-      // Try to parse if it's a number string
-      const parsed = parseFloat(duration);
-      if (!isNaN(parsed)) {
-        const hours = Math.floor(parsed / 60);
-        const mins = Math.round(parsed % 60);
-        return `${hours}h ${mins}m`;
-      }
-      return duration;
-    }
-    if (typeof duration === 'number') {
-      const hours = Math.floor(duration / 60);
-      const mins = Math.round(duration % 60);
-      return `${hours}h ${mins}m`;
-    }
-    return "Duration unknown";
-  };
 
   const getStopsText = (stops: number, stopoverInfo?: string) => {
     if (stops === 0) return "Direct";
@@ -200,7 +178,7 @@ export const EnhancedFlightCard = ({
               </div>
               
               <div className="flex-1 flex flex-col items-center px-8">
-                <div className="text-xs text-muted-foreground mb-2">{formatDuration(flight.duration)}</div>
+                <div className="text-xs text-muted-foreground mb-2">{humanizeFlightDuration(flight.duration)}</div>
                 <div className="w-full border-t-2 border-dotted border-muted-foreground/30 relative">
                   <Plane className="h-4 w-4 text-muted-foreground absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-1/2 bg-background px-1 rotate-90" />
                 </div>
