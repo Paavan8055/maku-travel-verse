@@ -9,7 +9,9 @@ import {
   Plane, 
   Clock, 
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  ArrowRight,
+  Info
 } from "lucide-react";
 
 interface FareOption {
@@ -209,45 +211,104 @@ export const EnhancedFlightCard = ({
             </div>
 
             {showDetails && (
-              <section id={detailsId} aria-label="Flight details" className="mt-3 text-sm text-muted-foreground border border-border rounded-md p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <div className="font-medium text-foreground mb-2">Flight Information</div>
-                    <div className="space-y-1">
-                      <div><span className="font-medium">Airline:</span> {flight.airline}</div>
-                      <div><span className="font-medium">Flight:</span> {flight.outboundFlightNumber || flight.flightNumber}</div>
-                      {flight.aircraft && !flight.aircraft.toLowerCase().includes('unknown') && (
-                        <div><span className="font-medium">Aircraft:</span> {flight.aircraft}</div>
-                      )}
-                      <div><span className="font-medium">Duration:</span> {humanizeFlightDuration(flight.duration)}</div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="font-medium text-foreground mb-2">Route & Schedule</div>
-                    <div className="space-y-1">
-                      <div><span className="font-medium">Route:</span> {flight.origin} → {flight.destination}</div>
-                      <div><span className="font-medium">Departure:</span> {flight.departure?.time || flight.departureTime}</div>
-                      <div><span className="font-medium">Arrival:</span> {flight.arrival?.time || flight.arrivalTime}</div>
-                      <div><span className="font-medium">Stops:</span> {getStopsText(flight.stops, flight.stopoverInfo)}</div>
+              <section id={detailsId} aria-label="Flight details" className="mt-3 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-lg p-6 space-y-6">
+                {/* Critical Travel Info - Always Visible */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                          <Plane className="h-4 w-4 text-primary" />
+                          Essential Flight Info
+                        </h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Flight</span>
+                              <span className="font-medium text-foreground">{flight.outboundFlightNumber || flight.flightNumber}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Duration</span>
+                              <span className="font-medium text-primary">{humanizeFlightDuration(flight.duration)}</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Stops</span>
+                              <span className="font-medium text-foreground">{getStopsText(flight.stops, flight.stopoverInfo)}</span>
+                            </div>
+                            {flight.aircraft && !flight.aircraft.toLowerCase().includes('unknown') && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Aircraft</span>
+                                <span className="font-medium text-foreground">{flight.aircraft}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <div className="font-medium text-foreground mb-2">Booking Details</div>
-                    <div className="space-y-1">
-                      <div><span className="font-medium">Price:</span> {formatCurrency(flight.price, flight.currency || 'USD')}</div>
-                      {flight.amadeusOfferId && (
-                        <div><span className="font-medium">Offer ID:</span> {flight.amadeusOfferId}</div>
-                      )}
-                      {flight.isRoundTrip !== undefined && (
-                        <div><span className="font-medium">Trip Type:</span> {flight.isRoundTrip ? 'Round Trip' : 'One Way'}</div>
-                      )}
-                      {flight.returnFlightNumber && (
-                        <div><span className="font-medium">Return Flight:</span> {flight.returnFlightNumber}</div>
-                      )}
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-secondary mt-2 flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-secondary" />
+                          Schedule & Route
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-3 bg-card/50 rounded-md border border-border/50">
+                            <div className="text-center">
+                              <div className="text-xs text-muted-foreground uppercase tracking-wide">Departure</div>
+                              <div className="font-semibold text-lg text-foreground">{flight.departure?.time || flight.departureTime}</div>
+                              <div className="text-sm font-medium text-primary">{flight.origin}</div>
+                            </div>
+                            <div className="flex-1 flex justify-center">
+                              <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="text-center">
+                              <div className="text-xs text-muted-foreground uppercase tracking-wide">Arrival</div>
+                              <div className="font-semibold text-lg text-foreground">{flight.arrival?.time || flight.arrivalTime}</div>
+                              <div className="text-sm font-medium text-primary">{flight.destination}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Secondary Info - Collapsible for Advanced Users */}
+                <div className="pt-4 border-t border-border/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">Booking Reference & Trip Details</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                    <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                      <span className="text-muted-foreground">Total Price</span>
+                      <span className="font-semibold text-lg text-primary">{formatCurrency(flight.price, flight.currency || 'USD')}</span>
+                    </div>
+                    {flight.isRoundTrip !== undefined && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Trip Type</span>
+                        <span className="font-medium text-foreground">{flight.isRoundTrip ? 'Round Trip' : 'One Way'}</span>
+                      </div>
+                    )}
+                    {flight.returnFlightNumber && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Return Flight</span>
+                        <span className="font-medium text-foreground">{flight.returnFlightNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                  {flight.amadeusOfferId && (
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      <span className="font-mono bg-muted/50 px-2 py-1 rounded">Ref: {flight.amadeusOfferId.slice(0, 12)}...</span>
+                    </div>
+                  )}
                 </div>
 
                 {flight.fareOptions && flight.fareOptions.length > 0 && (
