@@ -174,8 +174,9 @@ const App = () => (
                                         <Route path="/hotels" element={<HotelSearchPage />} />
                                        <Route path="/search" element={<UnifiedSearchPage />} />
                                        <Route path="/search/hotels" element={<HotelSearchPage />} />
-                                       <Route path="/search/flights" element={<FlightSearchPage />} />
-                                       <Route path="/search/activities" element={<ActivitySearchPage />} />
+                                        <Route path="/search/flights" element={<FlightSearchPage />} />
+                                        <Route path="/search/activities" element={<ActivitySearchPage />} />
+                                        <Route path="/search/transfers" element={<TransferSearchPage />} />
                                        <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
                                         <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
                                         <Route path="/flight-management" element={<FlightManagementPage />} />

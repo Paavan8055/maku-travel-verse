@@ -163,8 +163,14 @@ const HotelSearchPage = () => {
           <div className="mb-6">
             <IntelligentHotelSearchForm 
               onSearch={(params) => {
-                const newParams = new URLSearchParams(params);
-                newParams.set('searched', 'true');
+                const newParams = new URLSearchParams({
+                  destination: params.destination,
+                  checkIn: params.checkIn,
+                  checkOut: params.checkOut,
+                  guests: params.guests.toString(),
+                  rooms: params.rooms.toString(),
+                  searched: 'true'
+                });
                 window.location.href = `/search/hotels?${newParams.toString()}`;
               }}
             />
@@ -187,6 +193,18 @@ const HotelSearchPage = () => {
           onAccessibilityChange={(filters) => console.log('Accessibility filters:', filters)}
           className="mb-6"
         />
+
+        {/* Show intelligent insights when search criteria are available */}
+        {hasSearched && destination && checkIn && checkOut && (
+          <div className="mb-6">
+            <IntelligentHotelInfo
+              destination={destination}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              guests={guests}
+            />
+          </div>
+        )}
 
         {!hasSearched ? (
           <div className="space-y-8">

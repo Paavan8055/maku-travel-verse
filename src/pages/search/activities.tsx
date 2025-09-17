@@ -101,22 +101,32 @@ const ActivitySearchPage = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Search Bar */}
+        {/* Intelligent Activity Search Form */}
         <div className="mb-8">
-          <ActivitySearchBar
-            destination={destination}
-            setDestination={setDestination}
-            checkIn={checkIn}
-            setCheckIn={setCheckIn}
-            checkOut={checkOut}
-            setCheckOut={setCheckOut}
-            adults={adults}
-            setAdults={setAdults}
-            children={children}
-            setChildren={setChildren}
-            onSearch={handleSearch}
+          <IntelligentActivitySearchForm
+            onSearch={(params) => {
+              const searchParams = new URLSearchParams({
+                destination: params.destination,
+                checkIn: params.date,
+                adults: params.adults.toString(),
+                children: params.children.toString(),
+                searched: 'true'
+              });
+              window.location.href = `/search/activities?${searchParams.toString()}`;
+            }}
           />
         </div>
+
+        {/* Show intelligent insights when search has been performed */}
+        {destination && checkIn && (
+          <div className="mb-6">
+            <IntelligentActivityInfo
+              destination={destination}
+              date={checkIn.toISOString().split('T')[0]}
+              participants={adults + children}
+            />
+          </div>
+        )}
 
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">
