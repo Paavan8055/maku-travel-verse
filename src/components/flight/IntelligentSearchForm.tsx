@@ -61,20 +61,20 @@ const SmartAirportSearch = ({
     if (!searchTerm.trim()) {
       // Show popular airports when no search term
       return AIRPORT_DATA.filter(airport => 
-        airport.iata !== excludeAirport && 
+        airport.iata && airport.iata !== excludeAirport && 
         ['SYD', 'MEL', 'BNE', 'PER', 'LAX', 'JFK', 'LHR', 'NRT'].includes(airport.iata)
       ).slice(0, 8);
     }
     
     const term = searchTerm.toLowerCase().trim();
     const results = AIRPORT_DATA
-      .filter(airport => airport.iata !== excludeAirport)
+      .filter(airport => airport.iata && airport.iata !== excludeAirport)
       .map(airport => {
         let score = 0;
-        const code = airport.iata.toLowerCase();
-        const city = airport.city.toLowerCase();
-        const name = airport.name.toLowerCase();
-        const country = airport.country.toLowerCase();
+        const code = (airport.iata || '').toLowerCase();
+        const city = (airport.city || '').toLowerCase();
+        const name = (airport.name || '').toLowerCase();
+        const country = (airport.country || '').toLowerCase();
         
         // Exact matches get highest priority
         if (code === term) score += 1000;
