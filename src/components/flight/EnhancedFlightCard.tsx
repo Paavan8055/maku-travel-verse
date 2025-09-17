@@ -11,7 +11,8 @@ import {
   AlertTriangle,
   ExternalLink,
   ArrowRight,
-  Info
+  Info,
+  MapPin
 } from "lucide-react";
 
 interface FareOption {
@@ -139,7 +140,31 @@ export const EnhancedFlightCard = ({
 
   return (
     <Card className="mb-3 hover:shadow-lg transition-all duration-300 border border-border/30 w-full max-w-none">
-      <div className="px-8 py-6">
+      <div className="p-6 lg:px-8 lg:py-6 bg-gradient-to-r from-card via-card to-muted/5 relative overflow-hidden">
+        {/* Subtle background pattern for premium feel */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_30%_40%,_theme(colors.primary),transparent_70%)]"></div>
+        
+        {/* Content wrapper with proper spacing hierarchy */}
+        <div className="relative z-10 space-y-6">
+          {/* Priority Information Bar - Critical travel details at a glance */}
+          <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                <Clock className="h-4 w-4" />
+                <span>{humanizeFlightDuration(flight.duration)}</span>
+              </div>
+              <div className="w-px h-6 bg-border"></div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span>{getStopsText(flight.stops, flight.stopoverInfo)}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-foreground">{formatCurrency(flight.price, flight.currency || 'USD')}</div>
+              <div className="text-xs text-muted-foreground">per person</div>
+            </div>
+          </div>
+
         <div className="flex items-center justify-between w-full">
           
           {/* Left Section - Flight Details */}
@@ -453,9 +478,10 @@ export const EnhancedFlightCard = ({
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
-          </div>
+               </div>
+             )}
+           </div>
+         </div>
         </div>
       </div>
     </Card>
