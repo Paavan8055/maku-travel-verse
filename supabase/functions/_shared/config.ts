@@ -29,6 +29,11 @@ export const ENV_CONFIG = {
   
   // Email
   RESEND_API_KEY: Deno.env.get('RESEND_API_KEY'),
+  
+  // Activity Providers
+  FOURSQUARE_API_KEY: Deno.env.get('FOURSQUARE_API_KEY'),
+  VIATOR_API_KEY: Deno.env.get('VIATOR_API_KEY'),
+  GETYOURGUIDE_API_KEY: Deno.env.get('GETYOURGUIDE_API_KEY'),
 
   // Provider API URLs - Production environment check
   amadeus: {
@@ -95,7 +100,7 @@ export const RATE_LIMITS = {
 };
 
 // Enhanced provider credential validation
-export function validateProviderCredentials(provider: 'amadeus' | 'sabre' | 'duffel'): boolean {
+export function validateProviderCredentials(provider: 'amadeus' | 'sabre' | 'duffel' | 'foursquare' | 'viator'): boolean {
   try {
     switch (provider) {
       case 'amadeus':
@@ -126,6 +131,24 @@ export function validateProviderCredentials(provider: 'amadeus' | 'sabre' | 'duf
           });
         }
         return duffelValid;
+        
+      case 'foursquare':
+        const foursquareValid = !!ENV_CONFIG.FOURSQUARE_API_KEY;
+        if (!foursquareValid) {
+          logger.warn('[CONFIG] Foursquare credentials missing', {
+            hasApiKey: !!ENV_CONFIG.FOURSQUARE_API_KEY
+          });
+        }
+        return foursquareValid;
+        
+      case 'viator':
+        const viatorValid = !!ENV_CONFIG.VIATOR_API_KEY;
+        if (!viatorValid) {
+          logger.warn('[CONFIG] Viator credentials missing', {
+            hasApiKey: !!ENV_CONFIG.VIATOR_API_KEY
+          });
+        }
+        return viatorValid;
         
       default:
         return false;
@@ -217,6 +240,14 @@ export function getProviderHealthStatus() {
     duffel: {
       available: validateProviderCredentials('duffel'),
       services: ['flight']
+    },
+    foursquare: {
+      available: validateProviderCredentials('foursquare'),
+      services: ['activity']
+    },
+    viator: {
+      available: validateProviderCredentials('viator'),
+      services: ['activity']
     }
   };
 }

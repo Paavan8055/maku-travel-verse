@@ -234,11 +234,41 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     name: 'Amadeus',
     type: 'activity',
     enabled: true,
-    priority: 3,
+    priority: 4,
     circuitBreaker: {
       failureCount: 0,
       lastFailure: null,
       timeout: 30000,
+      state: 'closed'
+    },
+    healthScore: 100,
+    responseTime: 0
+  },
+  {
+    id: 'foursquare-activity',
+    name: 'Foursquare',
+    type: 'activity',
+    enabled: true,
+    priority: 1,
+    circuitBreaker: {
+      failureCount: 0,
+      lastFailure: null,
+      timeout: 20000,
+      state: 'closed'
+    },
+    healthScore: 100,
+    responseTime: 0
+  },
+  {
+    id: 'viator-activity',
+    name: 'Viator',
+    type: 'activity',
+    enabled: true,
+    priority: 2,
+    circuitBreaker: {
+      failureCount: 0,
+      lastFailure: null,
+      timeout: 25000,
       state: 'closed'
     },
     healthScore: 100,
@@ -478,6 +508,12 @@ function isProviderCredentialsValid(providerId: string): boolean {
       case 'duffel-flight':
         return validateProviderCredentials('duffel');
       
+      case 'foursquare-activity':
+        return validateProviderCredentials('foursquare');
+      
+      case 'viator-activity':
+        return validateProviderCredentials('viator');
+      
       default:
         logger.warn(`[PROVIDER-ROTATION] Unknown provider ID: ${providerId}`);
         return false;
@@ -514,7 +550,9 @@ async function callProvider(supabase: any, provider: ProviderConfig, params: any
     'sabre-hotel': 'sabre-hotel-search',
     'amadeus-activity': 'amadeus-activity-search',
     'hotelbeds-activity': 'hotelbeds-activities',
-    'sabre-activity': 'sabre-activities'
+    'sabre-activity': 'sabre-activities',
+    'foursquare-activity': 'foursquare-activity-search',
+    'viator-activity': 'viator-activity-search'
   };
   
   const functionName = functionMap[provider.id];
@@ -750,11 +788,14 @@ function transformParamsForProvider(providerId: string, params: any): any {
     case 'hotelbeds-activity':
     case 'sabre-activity':
     case 'amadeus-activity':
+    case 'foursquare-activity':
+    case 'viator-activity':
       // Activity providers expect different parameters
       return {
         destination: params.destination || params.cityCode,
         date: params.from || params.date,
-        participants: params.participants || params.guests || 1
+        participants: params.participants || params.guests || 1,
+        activityTypes: params.activityTypes || ['sightseeing']
       };
       
     default:
