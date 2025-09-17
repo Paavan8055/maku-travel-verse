@@ -4,6 +4,11 @@ export { AdvancedCacheManager, advancedCacheManager } from './AdvancedCacheManag
 export { UnifiedApiClient, unifiedApiClient } from './UnifiedApiClient';
 export { CircuitBreaker, CircuitBreakerRegistry, circuitBreakerRegistry } from './CircuitBreaker';
 export { WeightedProviderSelector, weightedProviderSelector } from './WeightedProviderSelector';
+export { IntelligentCacheManager, intelligentCacheManager } from './IntelligentCacheManager';
+export { CrossModuleContextManager, crossModuleContextManager } from './CrossModuleContextManager';
+export { AdvancedProviderRotation, advancedProviderRotation } from './AdvancedProviderRotation';
+export { UnifiedSearchOrchestrator, unifiedSearchOrchestrator } from './UnifiedSearchOrchestrator';
+export { DataQualityValidator, dataQualityValidator } from './DataQualityValidator';
 
 export type { 
   UnifiedFlight, 
