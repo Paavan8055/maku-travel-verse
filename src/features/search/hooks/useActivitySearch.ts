@@ -82,10 +82,10 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
           throw functionError;
         }
 
+        // Handle both successful and fallback responses with demo data
+        const activitiesData = data?.data?.activities || data?.activities || [];
+        
         if (data?.success) {
-          // Handle provider rotation response format
-          const activitiesData = data?.data || data?.activities || [];
-          
           if (data.fallbackUsed) {
             toast.info("Showing sample activities while we restore full service.");
           }
@@ -99,9 +99,16 @@ export const useActivitySearch = (criteria: ActivitySearchCriteria) => {
             setError("No activities found for your search criteria. Please try a different destination or check back later.");
           }
         } else {
-          console.log("Activity search failed");
-          setActivities([]);
-          setError(data?.error || "No activities found for your search criteria. Please try a different destination or check back later.");
+          // Check if we have demo data available when providers are unavailable
+          if (Array.isArray(activitiesData) && activitiesData.length > 0 && data?.data?.meta?.isDemoData) {
+            console.log("Using demo activity data:", activitiesData.length, "activities found");
+            setActivities(activitiesData);
+            toast.info(data.data.meta.message || "Showing sample activities while we restore full service.");
+          } else {
+            console.log("Activity search failed");
+            setActivities([]);
+            setError(data?.error || "No activities found for your search criteria. Please try a different destination or check back later.");
+          }
         }
         } catch (err) {
           logger.error("Activity search error:", err);
