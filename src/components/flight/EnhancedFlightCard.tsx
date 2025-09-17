@@ -209,29 +209,90 @@ export const EnhancedFlightCard = ({
             </div>
 
             {showDetails && (
-              <section id={detailsId} aria-label="Flight details" className="mt-3 text-sm text-muted-foreground border border-border rounded-md p-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <section id={detailsId} aria-label="Flight details" className="mt-3 text-sm text-muted-foreground border border-border rounded-md p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <div className="font-medium text-foreground">Flight</div>
-                    <div>{flight.airline} {flight.outboundFlightNumber || flight.flightNumber}</div>
-                    {flight.aircraft && !flight.aircraft.toLowerCase().includes('unknown') && (
-                      <div>Aircraft: {flight.aircraft}</div>
-                    )}
+                    <div className="font-medium text-foreground mb-2">Flight Information</div>
+                    <div className="space-y-1">
+                      <div><span className="font-medium">Airline:</span> {flight.airline}</div>
+                      <div><span className="font-medium">Flight:</span> {flight.outboundFlightNumber || flight.flightNumber}</div>
+                      {flight.aircraft && !flight.aircraft.toLowerCase().includes('unknown') && (
+                        <div><span className="font-medium">Aircraft:</span> {flight.aircraft}</div>
+                      )}
+                      <div><span className="font-medium">Duration:</span> {humanizeFlightDuration(flight.duration)}</div>
+                    </div>
                   </div>
+                  
                   <div>
-                    <div className="font-medium text-foreground">Route</div>
-                    <div>{flight.origin} → {flight.destination}</div>
-                    <div>Stops: {typeof flight.stops === 'number' ? flight.stops : String(flight.stops)}</div>
+                    <div className="font-medium text-foreground mb-2">Route & Schedule</div>
+                    <div className="space-y-1">
+                      <div><span className="font-medium">Route:</span> {flight.origin} → {flight.destination}</div>
+                      <div><span className="font-medium">Departure:</span> {flight.departure?.time || flight.departureTime}</div>
+                      <div><span className="font-medium">Arrival:</span> {flight.arrival?.time || flight.arrivalTime}</div>
+                      <div><span className="font-medium">Stops:</span> {getStopsText(flight.stops, flight.stopoverInfo)}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-medium text-foreground mb-2">Booking Details</div>
+                    <div className="space-y-1">
+                      <div><span className="font-medium">Price:</span> {formatCurrency(flight.price, flight.currency || 'USD')}</div>
+                      {flight.amadeusOfferId && (
+                        <div><span className="font-medium">Offer ID:</span> {flight.amadeusOfferId}</div>
+                      )}
+                      {flight.isRoundTrip !== undefined && (
+                        <div><span className="font-medium">Trip Type:</span> {flight.isRoundTrip ? 'Round Trip' : 'One Way'}</div>
+                      )}
+                      {flight.returnFlightNumber && (
+                        <div><span className="font-medium">Return Flight:</span> {flight.returnFlightNumber}</div>
+                      )}
+                    </div>
                   </div>
                 </div>
-                {flight.amenities && (
-                  <div className="mt-3">
-                    <div className="font-medium text-foreground">Amenities</div>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {flight.amenities.slice(0, 6).map((a, i) => (
-                        <span key={i} className="px-2 py-0.5 border border-border rounded-md">{a}</span>
+
+                {flight.fareOptions && flight.fareOptions.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <div className="font-medium text-foreground mb-2">Available Fare Classes</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {flight.fareOptions.slice(0, 4).map((fare, i) => (
+                        <div key={i} className="bg-muted/30 rounded p-3">
+                          <div className="font-medium capitalize">{fare.type}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatCurrency(fare.price, fare.currency || flight.currency || 'USD')}
+                            {fare.seatsAvailable && fare.seatsAvailable <= 10 && (
+                              <span className="ml-2 text-orange-600">• Only {fare.seatsAvailable} left</span>
+                            )}
+                          </div>
+                          {fare.features && (
+                            <div className="text-xs mt-1">
+                              {fare.features.slice(0, 2).map((feature, j) => (
+                                <div key={j}>• {feature}</div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {flight.amenities && flight.amenities.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <div className="font-medium text-foreground mb-2">Flight Amenities</div>
+                    <div className="flex flex-wrap gap-2">
+                      {flight.amenities.map((amenity, i) => (
+                        <span key={i} className="px-2 py-1 bg-secondary text-secondary-foreground rounded-sm text-xs">
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {flight.stopoverInfo && (
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <div className="font-medium text-foreground mb-2">Stopover Information</div>
+                    <div className="text-xs">{flight.stopoverInfo}</div>
                   </div>
                 )}
               </section>
