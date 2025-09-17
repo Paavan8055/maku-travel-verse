@@ -244,11 +244,27 @@ export class UnifiedSearchOrchestrator {
 
       // Store in cross-module context for other services
       if (result.success) {
-        await crossModuleContextManager.shareContext(
-          `${request.type}_result`,
-          result.data,
-          'search_orchestrator',
-          { searchId: dependency.searchId, executionTime: Date.now() - startTime }
+        await crossModuleContextManager.setModuleContext(
+          request.type,
+          {
+            destination: enhancedParams.destination || enhancedParams.cityCode,
+            dates: {
+              checkIn: new Date(enhancedParams.checkIn || enhancedParams.departureDate),
+              checkOut: enhancedParams.checkOut ? new Date(enhancedParams.checkOut) : undefined
+            },
+            travelers: {
+              adults: enhancedParams.adults || enhancedParams.guests || 1,
+              children: enhancedParams.children || 0
+            },
+            sessionId: dependency.searchId
+          },
+          {
+            moduleType: request.type,
+            lastSearched: new Date(),
+            results: result.data ? [result.data] : [],
+            searchParams: enhancedParams,
+            userInteractions: []
+          }
         );
       }
 
