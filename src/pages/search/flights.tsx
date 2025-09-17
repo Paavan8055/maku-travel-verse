@@ -8,6 +8,7 @@ import { PopularRoutesSection } from "@/components/search/PopularRoutesSection";
 import { FeaturedDealsCarousel } from "@/components/search/FeaturedDealsCarousel";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import { FlightBookingProgress } from "@/components/flight/FlightBookingProgress";
+import { IntelligentSearchForm } from "@/components/flight/IntelligentSearchForm";
 import { IntelligentTravelInfo } from "@/components/flight/IntelligentTravelInfo";
 import { EnhancedFlightCard } from "@/components/flight/EnhancedFlightCard";
 import { FlightSortingToolbar } from "@/components/flight/FlightSortingToolbar";
@@ -397,175 +398,14 @@ const FlightSearchPage = () => {
       
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Search Controls */}
-        <div className="bg-card border border-border rounded-lg p-4 mb-6 space-y-4">
-          {/* Trip Type and Passenger Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Trip</label>
-              <Select value={tripType} onValueChange={setTripType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="oneway">One-way</SelectItem>
-                  <SelectItem value="roundtrip">Round trip</SelectItem>
-                  <SelectItem value="multicity">Multi-city</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Passengers</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Users className="h-4 w-4 mr-2" />
-                    {adults + children + infants} passenger{adults + children + infants !== 1 ? 's' : ''}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span>Adults</span>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setAdults(Math.max(1, adults - 1))}>-</Button>
-                        <span className="w-8 text-center">{adults}</span>
-                        <Button size="sm" variant="outline" onClick={() => setAdults(adults + 1)}>+</Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Children</span>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setChildren(Math.max(0, children - 1))}>-</Button>
-                        <span className="w-8 text-center">{children}</span>
-                        <Button size="sm" variant="outline" onClick={() => setChildren(children + 1)}>+</Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Infants</span>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setInfants(Math.max(0, infants - 1))}>-</Button>
-                        <span className="w-8 text-center">{infants}</span>
-                        <Button size="sm" variant="outline" onClick={() => setInfants(infants + 1)}>+</Button>
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Cabin</label>
-              <Select value={cabinClass} onValueChange={setCabinClass}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="economy">Economy</SelectItem>
-                  <SelectItem value="premium_economy">Premium Economy</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                  <SelectItem value="first">First</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Origin and Destination */}
-          {!isMultiCity ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">From</label>
-                <DestinationAutocomplete
-                  value={originInput}
-                  onChange={setOriginInput}
-                  onDestinationSelect={handleOriginSelect}
-                  placeholder="From where?"
-                  searchType="airport"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">To</label>
-                <DestinationAutocomplete
-                  value={destinationInput}
-                  onChange={setDestinationInput}
-                  onDestinationSelect={handleDestinationSelect}
-                  placeholder="Where to?"
-                  searchType="airport"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Departure</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {departureDate ? formatDate(departureDate, "MMM dd") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={departureDate}
-                      onSelect={setDepartureDate}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {isRoundtrip && (
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Return</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {returnDate ? formatDate(returnDate, "MMM dd") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={returnDate}
-                        onSelect={setReturnDate}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {multiCitySegments.map((segment, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border rounded">
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">From</label>
-                    <Input value={segment.origin} readOnly />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">To</label>
-                    <Input value={segment.destination} readOnly />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Date</label>
-                    <Input type="date" value={segment.date} readOnly />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <Button onClick={handleSearch} className="w-full md:w-auto">
-            <Search className="h-4 w-4 mr-2" />
-            Search flights
-          </Button>
-        </div>
-
+        <IntelligentSearchForm 
+          onSearch={(searchData) => {
+            console.log('Search initiated:', searchData);
+            // Handle search logic here
+          }}
+          className="mb-6"
+        />
+        
         {!hasSearched ? (
           <div className="space-y-8">
             <PopularRoutesSection 
