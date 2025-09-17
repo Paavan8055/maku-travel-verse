@@ -363,52 +363,91 @@ export const EnhancedFlightCard = ({
           {/* Right Section - Fare Options */}
           <div className="ml-8 min-w-[320px]">
             {showFareOptions && availableFareOptions.length > 0 && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {availableFareOptions.map((fare, index) => (
                   <div
                     key={index}
-                    className="border border-border rounded-lg p-4 hover:border-primary/50 transition-all cursor-pointer min-h-[180px] flex flex-col"
+                    className={`relative border-2 rounded-xl p-5 transition-all duration-300 cursor-pointer group min-h-[160px] 
+                      ${selectedFare === fare.type 
+                        ? 'border-primary bg-primary/5 shadow-lg scale-[1.02]' 
+                        : 'border-border/50 hover:border-primary/40 hover:shadow-md'
+                      }`}
                     onClick={() => setSelectedFare(fare.type)}
                   >
+                    {/* Priority Badge for Value/Popular Options */}
+                    {fare.type.toLowerCase().includes('economy') && index === 0 && (
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                        BEST VALUE
+                      </div>
+                    )}
+                    
                     <div className="flex flex-col h-full">
-                      <div className="text-center mb-3">
-                        <h4 className="font-bold text-sm uppercase tracking-wide">{fare.type}</h4>
+                      {/* Fare Class Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-bold text-sm uppercase tracking-wide text-foreground">{fare.type}</h4>
+                        {selectedFare === fare.type && (
+                          <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
+                        )}
                       </div>
                       
-                      {/* Seat Availability Warning */}
+                      {/* Critical: Seat Availability Alert */}
                       {fare.seatsAvailable !== undefined && fare.seatsAvailable <= 9 && (
-                        <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold text-center mb-3">
+                        <div className="bg-gradient-to-r from-destructive to-destructive/80 text-white px-3 py-1.5 rounded-lg text-xs font-bold text-center mb-3 animate-pulse">
+                          <Clock className="h-3 w-3 inline mr-1" />
                           {getSeatAvailabilityText(fare.seatsAvailable)}
                         </div>
                       )}
                       
-                      <div className="text-center mb-3 flex-1">
-                        <div className="text-xl font-bold text-foreground">
+                      {/* Price Display - Prominent */}
+                      <div className="text-center mb-4 flex-1 flex flex-col justify-center">
+                        <div className="text-2xl font-bold text-foreground mb-1">
                           {formatCurrency(fare.price, fare.currency || flight.currency || 'USD')}
                         </div>
-                        <div className="text-xs text-muted-foreground">per person</div>
+                        <div className="text-xs text-muted-foreground">per traveler</div>
+                        
+                        {/* Price Context - Show savings if multiple fares */}
+                        {availableFareOptions.length > 1 && index > 0 && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {fare.price > availableFareOptions[0].price && (
+                              <span className="text-primary font-medium">
+                                +{formatCurrency(fare.price - availableFareOptions[0].price, fare.currency || 'USD')} vs Basic
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
+                      {/* Key Features - Max 3 for clarity */}
                       {fare.features && fare.features.length > 0 && (
-                        <ul className="text-xs text-muted-foreground space-y-1 mb-4">
-                          {fare.features.slice(0, 2).map((feature, i) => (
-                            <li key={i} className="flex items-start space-x-1">
-                              <span className="w-1 h-1 bg-primary rounded-full mt-1.5 flex-shrink-0"></span>
-                              <span>{feature}</span>
-                            </li>
+                        <div className="space-y-2 mb-4">
+                          {fare.features.slice(0, 3).map((feature, i) => (
+                            <div key={i} className="flex items-center space-x-2 text-xs">
+                              <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></div>
+                              <span className="text-muted-foreground">{feature}</span>
+                            </div>
                           ))}
-                        </ul>
+                          {fare.features.length > 3 && (
+                            <div className="text-xs text-primary font-medium">
+                              +{fare.features.length - 3} more benefits
+                            </div>
+                          )}
+                        </div>
                       )}
                       
+                      {/* Action Button - Contextual */}
                       {onSelectFare && (
                         <Button
-                          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 mt-auto"
+                          className={`w-full font-bold text-sm py-3 mt-auto transition-all duration-200 ${
+                            selectedFare === fare.type
+                              ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg'
+                              : 'bg-secondary/20 hover:bg-secondary/30 text-foreground border border-border'
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             onSelectFare(flight, fare);
                           }}
                         >
-                          SELECT
+                          {selectedFare === fare.type ? 'BOOK THIS FARE' : 'SELECT FARE'}
                         </Button>
                       )}
                     </div>
