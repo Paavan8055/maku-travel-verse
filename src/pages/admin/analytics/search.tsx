@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Search, TrendingUp, Users, MapPin, Calendar, RefreshCw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { AdminTravelIntelligence } from '@/features/admin/components/AdminTravelIntelligence';
 
 const AdminSearchAnalyticsPage = () => {
   const { data: searchStats, isLoading, refetch } = useQuery({
@@ -38,7 +39,8 @@ const AdminSearchAnalyticsPage = () => {
         activitySearches,
         popularDestinations: Object.entries(popularDestinations || {})
           .sort(([,a], [,b]) => (b as number) - (a as number))
-          .slice(0, 10)
+          .slice(0, 10),
+        rawSearchData: searches || []
       };
     },
     refetchInterval: 30000
@@ -117,6 +119,7 @@ const AdminSearchAnalyticsPage = () => {
       <Tabs defaultValue="destinations" className="space-y-6">
         <TabsList>
           <TabsTrigger value="destinations">Popular Destinations</TabsTrigger>
+          <TabsTrigger value="intelligence">AI Intelligence</TabsTrigger>
           <TabsTrigger value="patterns">Search Patterns</TabsTrigger>
           <TabsTrigger value="conversion">Conversion Rates</TabsTrigger>
         </TabsList>
@@ -140,6 +143,13 @@ const AdminSearchAnalyticsPage = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="intelligence">
+          <AdminTravelIntelligence 
+            searchData={searchStats?.rawSearchData || []}
+            className="w-full"
+          />
         </TabsContent>
 
         <TabsContent value="patterns">

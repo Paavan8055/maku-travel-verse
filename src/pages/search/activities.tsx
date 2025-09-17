@@ -144,14 +144,6 @@ const ActivitySearchPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Column - Filters & Navigation */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Enhanced Search Intelligence */}
-            <EnhancedSearchIntelligence
-              module="activities"
-              destination={destination}
-              dates={checkIn && checkOut ? { checkIn, checkOut } : undefined}
-              searchResults={filteredAndSortedActivities}
-            />
-            
             {/* Cross-Module Navigator */}
             <CrossModuleNavigator currentModule="activities" />
             
