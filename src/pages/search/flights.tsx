@@ -8,7 +8,7 @@ import { PopularRoutesSection } from "@/components/search/PopularRoutesSection";
 import { FeaturedDealsCarousel } from "@/components/search/FeaturedDealsCarousel";
 import { DestinationAutocomplete } from "@/components/search/DestinationAutocomplete";
 import { FlightBookingProgress } from "@/components/flight/FlightBookingProgress";
-import { FlightRouteHeader } from "@/components/flight/FlightRouteHeader";
+import { IntelligentTravelInfo } from "@/components/flight/IntelligentTravelInfo";
 import { EnhancedFlightCard } from "@/components/flight/EnhancedFlightCard";
 import { FlightSortingToolbar } from "@/components/flight/FlightSortingToolbar";
 import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
@@ -579,7 +579,7 @@ const FlightSearchPage = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            <FlightRouteHeader 
+            <IntelligentTravelInfo 
               origin={origin}
               destination={destination}
               departureDate={departureDate}
@@ -587,6 +587,12 @@ const FlightSearchPage = () => {
               passengers={adults + children + infants}
               tripType={tripType}
               onModify={handleModifySearch}
+              resultsCount={flights.length}
+              searchContext={{
+                isBusinessTravel: cabinClass === 'business',
+                budgetRange: [0, 1000],
+                flexibility: 'flexible'
+              }}
             />
             
             {!showModifySearch && (
