@@ -15,6 +15,11 @@ import ReturnFlightSearch from "@/components/flight/ReturnFlightSearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import MultiCityFlightManager from "@/components/flight/MultiCityFlightManager";
+import { IntelligentSearchControls } from "@/components/search/IntelligentSearchControls";
+import { SmartCachingProvider } from "@/components/flight/SmartCachingProvider";
+import { RealTimePerformanceMonitor } from "@/components/flight/RealTimePerformanceMonitor";
+import { useIntelligentFlightSorting } from "@/hooks/useIntelligentFlightSorting";
+import { useContextAwareFilters } from "@/hooks/useContextAwareFilters";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,8 +79,13 @@ const FlightSearchPage = () => {
 
   // Enhanced UI state
   const [showModifySearch, setShowModifySearch] = useState(false);
-  const [sortBy, setSortBy] = useState("price_asc");
+  const [sortBy, setSortBy] = useState("intelligent");
   const [activeFilters, setActiveFilters] = useState<Array<{key: string, label: string}>>([]);
+  const [isIntelligentMode, setIsIntelligentMode] = useState(true);
+  const [userContext, setUserContext] = useState({
+    tripPurpose: 'leisure' as 'business' | 'leisure' | 'family',
+    priceFlexibility: 'moderate' as 'budget' | 'moderate' | 'premium'
+  });
 
   // Filter states - Set wide default range to not block results
   const [priceRange, setPriceRange] = useState([0, 5000]);
@@ -316,8 +326,37 @@ const FlightSearchPage = () => {
 
   const enhancedFlights = flights.map(transformFlightForEnhanced);
 
+  // Enhanced flight sorting with intelligence
+  const {
+    sortedFlights,
+    sortingMode,
+    setSortingMode,
+    getRecommendations,
+    updateBehaviorPattern
+  } = useIntelligentFlightSorting(enhancedFlights, userContext);
+
+  // Context-aware filtering
+  const {
+    activeFilters: smartFilters,
+    suggestedFilters,
+    getContextualFilterOptions
+  } = useContextAwareFilters({
+    searchContext: {
+      origin,
+      destination,
+      tripType,
+      passengers: adults + children + infants
+    },
+    preferences: {
+      budgetRange: priceRange as [number, number]
+    }
+  });
+
+  // Use intelligent sorting results if enabled, otherwise use enhanced flights
+  const displayFlights = isIntelligentMode ? sortedFlights : enhancedFlights;
+  
   // Filter flights based on user preferences - Fixed price parsing
-  const filteredFlights = enhancedFlights.filter(flight => {
+  const filteredFlights = displayFlights.filter(flight => {
     // Fix price parsing - handle both numbers and strings correctly
     let price = 0;
     if (typeof flight.price === 'number') {
@@ -347,9 +386,10 @@ const FlightSearchPage = () => {
   const isMultiCity = tripType === "multicity";
 
   return (
-    <PerformanceWrapper componentName="FlightSearchPage">
-      <div className="min-h-screen bg-background">
-      <Navbar />
+    <SmartCachingProvider>
+      <PerformanceWrapper componentName="FlightSearchPage">
+        <div className="min-h-screen bg-background">
+          <Navbar />
       
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Search Controls */}
@@ -745,8 +785,18 @@ const FlightSearchPage = () => {
         tripType={tripType}
         multiCitySelections={multiCitySelections}
       />
-    </div>
-    </PerformanceWrapper>
+
+      {/* Real-time Performance Monitor */}
+      <RealTimePerformanceMonitor 
+        isVisible={process.env.NODE_ENV === 'development'}
+        onPerformanceUpdate={(metrics) => {
+          // Track performance metrics for optimization
+          console.log('Performance metrics:', metrics);
+        }}
+      />
+        </div>
+      </PerformanceWrapper>
+    </SmartCachingProvider>
   );
 };
 
