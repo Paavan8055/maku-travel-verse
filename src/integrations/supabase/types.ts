@@ -5065,6 +5065,45 @@ export type Database = {
         }
         Relationships: []
       }
+      global_search_cache: {
+        Row: {
+          created_at: string | null
+          destination_data: Json | null
+          expires_at: string | null
+          id: string
+          metadata: Json | null
+          search_query: string
+          search_type: string
+          session_id: string | null
+          unified_results: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          destination_data?: Json | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          search_query: string
+          search_type: string
+          session_id?: string | null
+          unified_results?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          destination_data?: Json | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          search_query?: string
+          search_type?: string
+          session_id?: string | null
+          unified_results?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       gpt_bot_registry: {
         Row: {
           bot_name: string
@@ -8382,6 +8421,42 @@ export type Database = {
         }
         Relationships: []
       }
+      search_performance_metrics: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          provider_id: string
+          response_time_ms: number | null
+          result_count: number | null
+          search_params: Json | null
+          search_type: string
+          success: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          provider_id: string
+          response_time_ms?: number | null
+          result_count?: number | null
+          search_params?: Json | null
+          search_type: string
+          success?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          provider_id?: string
+          response_time_ms?: number | null
+          result_count?: number | null
+          search_params?: Json | null
+          search_type?: string
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       seat_assignments: {
         Row: {
           cabin_class: string | null
@@ -10130,6 +10205,42 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_search_preferences: {
+        Row: {
+          activity_preferences: Json | null
+          created_at: string | null
+          id: string
+          personalization_data: Json | null
+          preferred_destinations: Json | null
+          search_patterns: Json | null
+          travel_style: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_preferences?: Json | null
+          created_at?: string | null
+          id?: string
+          personalization_data?: Json | null
+          preferred_destinations?: Json | null
+          search_patterns?: Json | null
+          travel_style?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_preferences?: Json | null
+          created_at?: string | null
+          id?: string
+          personalization_data?: Json | null
+          preferred_destinations?: Json | null
+          search_patterns?: Json | null
+          travel_style?: Json | null
           updated_at?: string | null
           user_id?: string
         }

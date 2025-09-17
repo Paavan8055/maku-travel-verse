@@ -5,10 +5,14 @@ import Navbar from "@/components/Navbar";
 import { SearchErrorBoundary } from "@/components/error-boundaries/SearchErrorBoundary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, Users, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Clock, Users, AlertTriangle, Star, Filter, SortAsc, Heart, Share2, Calendar } from "lucide-react";
 import { format as formatDate } from "date-fns";
 import { validateActivitySearch } from "@/utils/inputValidation";
 import { useToast } from "@/hooks/use-toast";
+import { GlobalDestinationSearch } from "@/components/search/GlobalDestinationSearch";
+import { useGlobalSearch } from "@/hooks/useGlobalSearch";
+import { advancedCacheManager } from "@/features/search/lib/AdvancedCacheManager";
 
 const ActivitiesPage = () => {
   const [searchParams] = useSearchParams();
