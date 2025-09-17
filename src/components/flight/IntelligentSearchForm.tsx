@@ -154,6 +154,9 @@ const SmartAirportSearch = ({
               setSelectedIndex(-1);
             }}
             onFocus={() => setIsOpen(true)}
+            onBlur={() => {
+              setTimeout(() => setIsOpen(false), 300);
+            }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className="pr-8"
@@ -176,9 +179,11 @@ const SmartAirportSearch = ({
                 variant={index === selectedIndex ? "secondary" : "ghost"}
                 className="w-full justify-start h-auto p-3 text-left"
                 onClick={() => {
-              onChange(airport);
-              setSearchTerm(`${airport.city} (${airport.iata})`);
-              setIsOpen(false);
+                  onChange(airport);
+                  setSearchTerm(`${airport.city} (${airport.iata})`);
+                  setIsOpen(false);
+                  // Prevent immediate reopening
+                  setTimeout(() => setIsOpen(false), 100);
                 }}
               >
                 <div className="flex items-center space-x-3">

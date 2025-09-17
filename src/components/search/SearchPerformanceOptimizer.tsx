@@ -57,6 +57,10 @@ export const SearchPerformanceOptimizer: React.FC<SearchPerformanceOptimizerProp
     setQuery(suggestion);
     setShowSuggestions(false);
     onSearch(suggestion);
+    // Add small delay to prevent double-clicks
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 100);
   }, [onSearch]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,8 +76,8 @@ export const SearchPerformanceOptimizer: React.FC<SearchPerformanceOptimizerProp
   }, [query]);
 
   const handleInputBlur = useCallback(() => {
-    // Delay hiding suggestions to allow clicks
-    setTimeout(() => setShowSuggestions(false), 200);
+    // Increased delay to prevent suggestions from disappearing before click
+    setTimeout(() => setShowSuggestions(false), 300);
   }, []);
 
   return (
@@ -88,6 +92,8 @@ export const SearchPerformanceOptimizer: React.FC<SearchPerformanceOptimizerProp
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           className="pl-10 pr-4"
+          autoComplete="off"
+          spellCheck={false}
         />
       </div>
 
