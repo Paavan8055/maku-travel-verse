@@ -18,6 +18,7 @@ import { EnhancedActivitySearchInterface } from "@/components/search/EnhancedAct
 import { ProgressiveResultsLayout } from "@/components/search/ProgressiveResultsLayout";
 import { EnhancedActivityCard } from "@/features/search/components/EnhancedActivityCard";
 import { useAdvancedPerformance } from "@/hooks/useAdvancedPerformance";
+import SmartTravelInsights from "@/components/travel/SmartTravelInsights";
 
 const ActivitySearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -123,11 +124,22 @@ const ActivitySearchPage = () => {
 
         {/* Show intelligent insights when search has been performed */}
         {destination && checkIn && (
-          <div className="mb-6">
+          <div className="mb-6 space-y-4">
             <IntelligentActivityInfo
               destination={destination}
               date={checkIn.toISOString().split('T')[0]}
               participants={adults + children}
+            />
+            <SmartTravelInsights
+              currentModule="activity"
+              destination={destination}
+              searchParams={{
+                destination,
+                date: checkIn.toISOString().split('T')[0],
+                participants: adults + children,
+                adults,
+                children
+              }}
             />
           </div>
         )}

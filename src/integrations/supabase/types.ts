@@ -2617,6 +2617,42 @@ export type Database = {
         }
         Relationships: []
       }
+      cache_warming_schedule: {
+        Row: {
+          created_at: string | null
+          destination: string
+          id: string
+          last_warmed_at: string | null
+          next_warm_at: string
+          priority_level: number | null
+          search_type: string
+          success_rate: number | null
+          warm_parameters: Json
+        }
+        Insert: {
+          created_at?: string | null
+          destination: string
+          id?: string
+          last_warmed_at?: string | null
+          next_warm_at: string
+          priority_level?: number | null
+          search_type: string
+          success_rate?: number | null
+          warm_parameters: Json
+        }
+        Update: {
+          created_at?: string | null
+          destination?: string
+          id?: string
+          last_warmed_at?: string | null
+          next_warm_at?: string
+          priority_level?: number | null
+          search_type?: string
+          success_rate?: number | null
+          warm_parameters?: Json
+        }
+        Relationships: []
+      }
       calendar_integrations: {
         Row: {
           access_token_encrypted: string
@@ -3332,6 +3368,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cross_module_context: {
+        Row: {
+          context_data: Json
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          module_type: string
+          shared_parameters: Json | null
+          user_session_id: string
+        }
+        Insert: {
+          context_data: Json
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          module_type: string
+          shared_parameters?: Json | null
+          user_session_id: string
+        }
+        Update: {
+          context_data?: Json
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          module_type?: string
+          shared_parameters?: Json | null
+          user_session_id?: string
+        }
+        Relationships: []
+      }
       custom_activities: {
         Row: {
           activity_code: string
@@ -3719,6 +3785,45 @@ export type Database = {
           total_records?: number | null
           updated_at?: string
           validation_errors?: Json | null
+        }
+        Relationships: []
+      }
+      data_quality_metrics: {
+        Row: {
+          accuracy_score: number
+          completeness_score: number
+          data_type: string
+          freshness_score: number
+          id: string
+          measurement_date: string | null
+          metadata: Json | null
+          provider_id: string
+          quality_score: number
+          sample_size: number | null
+        }
+        Insert: {
+          accuracy_score: number
+          completeness_score: number
+          data_type: string
+          freshness_score: number
+          id?: string
+          measurement_date?: string | null
+          metadata?: Json | null
+          provider_id: string
+          quality_score: number
+          sample_size?: number | null
+        }
+        Update: {
+          accuracy_score?: number
+          completeness_score?: number
+          data_type?: string
+          freshness_score?: number
+          id?: string
+          measurement_date?: string | null
+          metadata?: Json | null
+          provider_id?: string
+          quality_score?: number
+          sample_size?: number | null
         }
         Relationships: []
       }
@@ -7917,6 +8022,7 @@ export type Database = {
       }
       provider_health: {
         Row: {
+          avg_quality_score: number | null
           circuit_breaker_opened_at: string | null
           created_at: string
           error_count: number | null
@@ -7926,11 +8032,14 @@ export type Database = {
           last_checked: string
           last_reset_at: string | null
           metadata: Json | null
+          predictive_health_score: number | null
           provider: string
           response_time_ms: number | null
           status: string
+          user_satisfaction_rating: number | null
         }
         Insert: {
+          avg_quality_score?: number | null
           circuit_breaker_opened_at?: string | null
           created_at?: string
           error_count?: number | null
@@ -7940,11 +8049,14 @@ export type Database = {
           last_checked?: string
           last_reset_at?: string | null
           metadata?: Json | null
+          predictive_health_score?: number | null
           provider: string
           response_time_ms?: number | null
           status: string
+          user_satisfaction_rating?: number | null
         }
         Update: {
+          avg_quality_score?: number | null
           circuit_breaker_opened_at?: string | null
           created_at?: string
           error_count?: number | null
@@ -7954,9 +8066,11 @@ export type Database = {
           last_checked?: string
           last_reset_at?: string | null
           metadata?: Json | null
+          predictive_health_score?: number | null
           provider?: string
           response_time_ms?: number | null
           status?: string
+          user_satisfaction_rating?: number | null
         }
         Relationships: []
       }
@@ -8121,6 +8235,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      provider_response_cache: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          geographic_relevance: Json | null
+          hit_count: number | null
+          id: string
+          last_validated: string | null
+          price_competitiveness: number | null
+          provider_id: string
+          query_hash: string
+          response_data: Json
+          response_quality_score: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          geographic_relevance?: Json | null
+          hit_count?: number | null
+          id?: string
+          last_validated?: string | null
+          price_competitiveness?: number | null
+          provider_id: string
+          query_hash: string
+          response_data: Json
+          response_quality_score?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          geographic_relevance?: Json | null
+          hit_count?: number | null
+          id?: string
+          last_validated?: string | null
+          price_competitiveness?: number | null
+          provider_id?: string
+          query_hash?: string
+          response_data?: Json
+          response_quality_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_response_cache_query_hash_fkey"
+            columns: ["query_hash"]
+            isOneToOne: false
+            referencedRelation: "unified_search_queries"
+            referencedColumns: ["query_hash"]
+          },
+        ]
       }
       reservation_orchestrations: {
         Row: {
@@ -8387,37 +8551,88 @@ export type Database = {
       }
       search_audit: {
         Row: {
+          cache_hit: boolean | null
           created_at: string | null
+          geographic_context: Json | null
           id: string
           ip_address: unknown | null
           params: Json
           product: string
+          provider_used: string | null
+          quality_score: number | null
+          response_time_ms: number | null
           result_count: number | null
           session_id: string | null
           user_agent: string | null
           user_id: string | null
         }
         Insert: {
+          cache_hit?: boolean | null
           created_at?: string | null
+          geographic_context?: Json | null
           id?: string
           ip_address?: unknown | null
           params: Json
           product: string
+          provider_used?: string | null
+          quality_score?: number | null
+          response_time_ms?: number | null
           result_count?: number | null
           session_id?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
         Update: {
+          cache_hit?: boolean | null
           created_at?: string | null
+          geographic_context?: Json | null
           id?: string
           ip_address?: unknown | null
           params?: Json
           product?: string
+          provider_used?: string | null
+          quality_score?: number | null
+          response_time_ms?: number | null
           result_count?: number | null
           session_id?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      search_pattern_intelligence: {
+        Row: {
+          confidence_score: number
+          created_at: string | null
+          geographic_scope: string[] | null
+          id: string
+          pattern_data: Json
+          pattern_type: string
+          seasonal_relevance: Json | null
+          updated_at: string | null
+          usage_frequency: number | null
+        }
+        Insert: {
+          confidence_score: number
+          created_at?: string | null
+          geographic_scope?: string[] | null
+          id?: string
+          pattern_data: Json
+          pattern_type: string
+          seasonal_relevance?: Json | null
+          updated_at?: string | null
+          usage_frequency?: number | null
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string | null
+          geographic_scope?: string[] | null
+          id?: string
+          pattern_data?: Json
+          pattern_type?: string
+          seasonal_relevance?: Json | null
+          updated_at?: string | null
+          usage_frequency?: number | null
         }
         Relationships: []
       }
@@ -9957,6 +10172,42 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_search_queries: {
+        Row: {
+          created_at: string | null
+          geographic_region: string | null
+          id: string
+          normalized_params: Json
+          query_hash: string
+          search_type: string
+          seasonal_context: Json | null
+          updated_at: string | null
+          user_segment: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          geographic_region?: string | null
+          id?: string
+          normalized_params: Json
+          query_hash: string
+          search_type: string
+          seasonal_context?: Json | null
+          updated_at?: string | null
+          user_segment?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          geographic_region?: string | null
+          id?: string
+          normalized_params?: Json
+          query_hash?: string
+          search_type?: string
+          seasonal_context?: Json | null
+          updated_at?: string | null
+          user_segment?: string | null
+        }
+        Relationships: []
+      }
       universal_ai_interactions: {
         Row: {
           ai_type: string
@@ -10856,6 +11107,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_intelligent_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_audit_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -10966,6 +11221,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_search_query_hash: {
+        Args: { params: Json; search_type: string }
+        Returns: string
+      }
       get_admin_status: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -10985,6 +11244,15 @@ export type Database = {
       get_database_performance_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_intelligent_cache_data: {
+        Args: { p_max_age_hours?: number; p_query_hash: string }
+        Returns: {
+          age_hours: number
+          provider_id: string
+          quality_score: number
+          response_data: Json
+        }[]
       }
       get_partner_dashboard_data: {
         Args: { p_partner_id: string }
@@ -11203,6 +11471,10 @@ export type Database = {
           p_ttl: string
         }
         Returns: string
+      }
+      update_cache_hit_count: {
+        Args: { p_cache_id: string }
+        Returns: undefined
       }
       update_session_funnel_progress: {
         Args: {
