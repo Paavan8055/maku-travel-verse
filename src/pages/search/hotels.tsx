@@ -45,12 +45,16 @@ import { MultiPropertyBooking } from "@/components/enterprise/MultiPropertyBooki
 import { LoyaltyProgramIntegration } from "@/components/loyalty/LoyaltyProgramIntegration";
 import { CurrencyProvider } from "@/components/localization/MultiCurrencySupport";
 import HotelSearchBar from "@/components/search/HotelSearchBar";
+import { IntelligentHotelInfo } from "@/components/travel/IntelligentHotelInfo";
+import { IntelligentHotelSearchForm } from "@/components/search/IntelligentHotelSearchForm";
+import { useBackgroundPerformanceTracking } from "@/hooks/useBackgroundPerformanceTracking";
 
 
 
 // Mock data removed - now using only real Amadeus data
 const HotelSearchPage = () => {
   const [searchParams] = useSearchParams();
+  const { measureInteraction } = useBackgroundPerformanceTracking('HotelSearchPage');
   const [sortBy, setSortBy] = useState("price");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [fundApplied, setFundApplied] = useState(false);
@@ -155,9 +159,15 @@ const HotelSearchPage = () => {
                 <SessionRecoveryBanner />
         
         <div className="container mx-auto px-4 py-8">
-          {/* Hotel Search Bar - Always visible at top */}
+          {/* Intelligent Hotel Search Form */}
           <div className="mb-6">
-            <HotelSearchBar />
+            <IntelligentHotelSearchForm 
+              onSearch={(params) => {
+                const newParams = new URLSearchParams(params);
+                newParams.set('searched', 'true');
+                window.location.href = `/search/hotels?${newParams.toString()}`;
+              }}
+            />
           </div>
 
         

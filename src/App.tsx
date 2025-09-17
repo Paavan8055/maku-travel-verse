@@ -45,6 +45,7 @@ const ActivitiesPage = createLazyRoute(() => import("./pages/activities"));
 const HotelSearchPage = createLazyRoute(() => import("./pages/search/hotels"));
 const FlightSearchPage = createLazyRoute(() => import("./pages/search/flights"));
 const ActivitySearchPage = createLazyRoute(() => import("./pages/search/activities"));
+const TransferSearchPage = createLazyRoute(() => import("./pages/search/transfers"));
 const UnifiedSearchPage = createLazyRoute(() => import("./pages/search/index"));
 const HotelBookingReviewPage = createLazyRoute(() => import("./pages/hotel-booking-review"));
 const FlightBookingReviewPage = createLazyRoute(() => import("./pages/flight-booking-review"));

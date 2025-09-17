@@ -13,9 +13,13 @@ import { useActivitySearch } from "@/features/search/hooks/useActivitySearch";
 import { SearchResultsLayout } from "@/components/search/SearchResultsLayout";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
+import { IntelligentActivityInfo } from "@/components/travel/IntelligentActivityInfo";
+import { IntelligentActivitySearchForm } from "@/components/search/IntelligentActivitySearchForm";
+import { useBackgroundPerformanceTracking } from "@/hooks/useBackgroundPerformanceTracking";
 
 const ActivitySearchPage = () => {
   const [searchParams] = useSearchParams();
+  const { measureInteraction } = useBackgroundPerformanceTracking('ActivitySearchPage');
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("price");
   const [priceRange, setPriceRange] = useState([0, 300]);
