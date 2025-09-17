@@ -4,19 +4,26 @@ import Navbar from "@/components/Navbar";
 import { SearchErrorBoundary } from "@/components/error-boundaries/SearchErrorBoundary";
 import { FlightSearchForm } from "@/components/search/FlightSearchForm";
 import { FlightResults } from "@/components/search/FlightResults";
-import { useProviderRotation } from "@/hooks/useProviderRotation";
+import { RealTimeSearchProgress } from "@/components/search/RealTimeSearchProgress";
+import { PersonalizedSearchExperience } from "@/components/search/PersonalizedSearchExperience";
+import { AdaptiveResultsRanking } from "@/components/search/AdaptiveResultsRanking";
+import { ContextAwareRecommendations } from "@/components/search/ContextAwareRecommendations";
+import { unifiedSearchOrchestrator } from "@/services/core/UnifiedSearchOrchestrator";
+import { useAdvancedProviderRotation } from "@/hooks/useAdvancedProviderRotation";
 import { useToast } from "@/hooks/use-toast";
 
 const FlightsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { searchWithRotation, isLoading } = useProviderRotation();
+  const { searchWithAdvancedRotation, isLoading, searchProgress } = useAdvancedProviderRotation();
   
-  // State management
+  // Enhanced state management
   const [flights, setFlights] = useState<any[]>([]);
+  const [rankedFlights, setRankedFlights] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchId, setSearchId] = useState<string | null>(null);
 
   // Get initial search criteria from URL
   const getInitialSearchCriteria = () => ({
@@ -44,42 +51,63 @@ const FlightsPage = () => {
       });
       setSearchParams(newSearchParams);
 
-      console.log('FlightsPage: Starting flight search with:', searchCriteria);
+      console.log('FlightsPage: Starting enhanced flight search with:', searchCriteria);
 
-      // Call provider rotation for flight search
-      const result = await searchWithRotation({
-        searchType: 'flight',
+      // Generate unique search ID
+      const currentSearchId = `flight-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      setSearchId(currentSearchId);
+
+      // Use unified search orchestrator for enhanced search
+      const searchRequest = {
+        type: 'flight' as const,
         params: {
-          originLocationCode: searchCriteria.origin,
-          destinationLocationCode: searchCriteria.destination,
+          origin: searchCriteria.origin,
+          destination: searchCriteria.destination,
           departureDate: searchCriteria.departureDate,
           returnDate: searchCriteria.tripType === 'roundtrip' ? searchCriteria.returnDate : undefined,
-          passengers: searchCriteria.passengers,
-          travelClass: searchCriteria.travelClass
+          adults: searchCriteria.passengers,
+          travelClass: searchCriteria.travelClass,
+          searchId: currentSearchId
+        },
+        options: {
+          enableML: true,
+          cacheResults: true,
+          qualityThreshold: 0.7,
+          maxResults: 25
         }
-      });
+      };
 
-      console.log('FlightsPage: Provider rotation result:', result);
+      const result = await unifiedSearchOrchestrator.executeSearch([searchRequest]);
 
-      if (result.success && result.data) {
-        // Handle different response structures
-        let flightData = [];
-        if (result.data.flights) {
-          flightData = result.data.flights;
-        } else if (Array.isArray(result.data)) {
-          flightData = result.data;
-        } else if (result.data.data && Array.isArray(result.data.data)) {
-          flightData = result.data.data;
-        }
+      console.log('FlightsPage: Unified search result:', result);
+
+      if (result.success && result.results.length > 0) {
+        const flightResult = result.results[0];
         
-        console.log('FlightsPage: Setting flights data:', flightData);
-        setFlights(flightData);
-        
-        if (flightData.length === 0) {
-          setError('No flights found for your search criteria. Please try different dates or destinations.');
+        if (flightResult.success && flightResult.data) {
+          // Handle enhanced response structure
+          let flightData = [];
+          if (flightResult.data.flights) {
+            flightData = flightResult.data.flights;
+          } else if (Array.isArray(flightResult.data)) {
+            flightData = flightResult.data;
+          } else if (flightResult.data.data && Array.isArray(flightResult.data.data)) {
+            flightData = flightResult.data.data;
+          }
+          
+          console.log('FlightsPage: Setting flights data:', flightData);
+          setFlights(flightData);
+          
+          if (flightData.length === 0) {
+            setError('No flights found for your search criteria. Please try different dates or destinations.');
+          }
+        } else {
+          console.error('FlightsPage: Flight search failed:', flightResult.error);
+          setError(flightResult.error || 'Unable to search flights at this time');
+          setFlights([]);
         }
       } else {
-        console.error('FlightsPage: Search failed:', result.error);
+        console.error('FlightsPage: Unified search failed:', result.error);
         setError(result.error || 'Unable to search flights at this time');
         setFlights([]);
       }
@@ -133,45 +161,101 @@ const FlightsPage = () => {
         <Navbar />
         
         <div className="container mx-auto px-4 py-8 space-y-8">
-          {/* Search Form */}
+          {/* Enhanced Search Form */}
           <FlightSearchForm
             onSearch={handleFlightSearch}
             loading={isLoading}
             initialValues={getInitialSearchCriteria()}
           />
 
-          {/* Search Results */}
-          {hasSearched && (
-            <div className="space-y-6">
-              {/* Search Summary */}
-              {(flights.length > 0 || error) && (
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold">Flight Search Results</h2>
-                  {flights.length > 0 && (
-                    <p className="text-muted-foreground">
-                      {getInitialSearchCriteria().origin} → {getInitialSearchCriteria().destination}
-                      {getInitialSearchCriteria().departureDate && (
-                        <> • {new Date(getInitialSearchCriteria().departureDate).toLocaleDateString()}</>
+          {/* Real-time Search Progress */}
+          {isLoading && searchProgress && (
+            <RealTimeSearchProgress
+              searchId={searchId || ''}
+              searchType="flight"
+              progress={searchProgress}
+              className="mb-6"
+            />
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Main Search Results */}
+            <div className="lg:col-span-3">
+              {/* Adaptive Results Ranking */}
+              <AdaptiveResultsRanking
+                results={flights}
+                searchParams={getInitialSearchCriteria()}
+                searchType="flight"
+                onRankingComplete={setRankedFlights}
+              />
+
+              {/* Search Results */}
+              {hasSearched && (
+                <div className="space-y-6">
+                  {/* Search Summary */}
+                  {(flights.length > 0 || error) && (
+                    <div className="text-center space-y-2">
+                      <h2 className="text-2xl font-bold">Flight Search Results</h2>
+                      {flights.length > 0 && (
+                        <p className="text-muted-foreground">
+                          {getInitialSearchCriteria().origin} → {getInitialSearchCriteria().destination}
+                          {getInitialSearchCriteria().departureDate && (
+                            <> • {new Date(getInitialSearchCriteria().departureDate).toLocaleDateString()}</>
+                          )}
+                          {getInitialSearchCriteria().returnDate && getInitialSearchCriteria().tripType === 'roundtrip' && (
+                            <> • {new Date(getInitialSearchCriteria().returnDate).toLocaleDateString()}</>
+                          )}
+                          • {getInitialSearchCriteria().passengers} passenger{getInitialSearchCriteria().passengers > 1 ? 's' : ''}
+                        </p>
                       )}
-                      {getInitialSearchCriteria().returnDate && getInitialSearchCriteria().tripType === 'roundtrip' && (
-                        <> • {new Date(getInitialSearchCriteria().returnDate).toLocaleDateString()}</>
-                      )}
-                      • {getInitialSearchCriteria().passengers} passenger{getInitialSearchCriteria().passengers > 1 ? 's' : ''}
-                    </p>
+                    </div>
                   )}
+
+                  {/* Enhanced Results Component */}
+                  <FlightResults
+                    flights={rankedFlights.length > 0 ? rankedFlights : flights}
+                    loading={isLoading}
+                    error={error}
+                    onFlightSelect={handleFlightSelect}
+                    onRetry={() => handleFlightSearch(getInitialSearchCriteria())}
+                  />
                 </div>
               )}
 
-              {/* Results Component */}
-              <FlightResults
-                flights={flights}
-                loading={isLoading}
-                error={error}
-                onFlightSelect={handleFlightSelect}
-                onRetry={() => handleFlightSearch(getInitialSearchCriteria())}
+            {/* Sidebar with Personalization and Recommendations */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Personalized Search Experience */}
+              <PersonalizedSearchExperience
+                searchType="flight"
+                currentSearch={getInitialSearchCriteria()}
+                onRecommendationSelect={(rec) => {
+                  console.log('Flight recommendation selected:', rec);
+                  // Handle recommendation selection
+                }}
+              />
+
+              {/* Context-Aware Recommendations */}
+              <ContextAwareRecommendations
+                currentContext={{
+                  destination: getInitialSearchCriteria().destination,
+                  dates: getInitialSearchCriteria().departureDate ? {
+                    start: new Date(getInitialSearchCriteria().departureDate),
+                    end: getInitialSearchCriteria().returnDate ? new Date(getInitialSearchCriteria().returnDate) : new Date()
+                  } : undefined,
+                  travelers: {
+                    adults: getInitialSearchCriteria().passengers || 1,
+                    children: 0
+                  },
+                  tripPurpose: 'leisure'
+                }}
+                searchType="flight"
+                onRecommendationSelect={(rec) => {
+                  console.log('Context recommendation selected:', rec);
+                  // Handle context recommendation
+                }}
               />
             </div>
-          )}
+          </div>
 
           {/* No Search Performed Yet */}
           {!hasSearched && !isLoading && (
