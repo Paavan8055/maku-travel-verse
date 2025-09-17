@@ -76,3 +76,10 @@ verify_jwt = false
 
 [functions.admin-fix-providers]
 verify_jwt = false
+
+# Activity provider functions
+[functions.foursquare-activity-search]
+verify_jwt = false
+
+[functions.viator-activity-search]
+verify_jwt = false
