@@ -22,27 +22,10 @@ import {
 import { format, addDays, startOfWeek, endOfWeek, isWeekend } from "date-fns";
 import { cn } from "@/lib/utils";
 
-// Mock airport data with fuzzy search capabilities
-const AIRPORT_DATA = [
-  { code: 'SYD', city: 'Sydney', name: 'Kingsford Smith Airport', country: 'Australia', timezone: 'AEST' },
-  { code: 'MEL', city: 'Melbourne', name: 'Melbourne Airport', country: 'Australia', timezone: 'AEST' },
-  { code: 'BNE', city: 'Brisbane', name: 'Brisbane Airport', country: 'Australia', timezone: 'AEST' },
-  { code: 'PER', city: 'Perth', name: 'Perth Airport', country: 'Australia', timezone: 'AWST' },
-  { code: 'LAX', city: 'Los Angeles', name: 'Los Angeles International', country: 'USA', timezone: 'PST' },
-  { code: 'JFK', city: 'New York', name: 'John F. Kennedy International', country: 'USA', timezone: 'EST' },
-  { code: 'LHR', city: 'London', name: 'Heathrow Airport', country: 'UK', timezone: 'GMT' },
-  { code: 'NRT', city: 'Tokyo', name: 'Narita International', country: 'Japan', timezone: 'JST' },
-  { code: 'SIN', city: 'Singapore', name: 'Singapore Changi', country: 'Singapore', timezone: 'SGT' },
-  { code: 'DXB', city: 'Dubai', name: 'Dubai International', country: 'UAE', timezone: 'GST' }
-];
+import { AIRPORTS, type Airport } from '@/data/airports';
 
-interface Airport {
-  code: string;
-  city: string;
-  name: string;
-  country: string;
-  timezone: string;
-}
+// Use the comprehensive airport database
+const AIRPORT_DATA = AIRPORTS;
 
 interface PriceCalendarDay {
   date: Date;
@@ -73,32 +56,72 @@ const SmartAirportSearch = ({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fuzzy search implementation
+  // Enhanced fuzzy search with comprehensive matching
   const filteredAirports = useMemo(() => {
-    if (!searchTerm.trim()) return AIRPORT_DATA.slice(0, 8);
+    if (!searchTerm.trim()) {
+      // Show popular airports when no search term
+      return AIRPORT_DATA.filter(airport => 
+        airport.iata !== excludeAirport && 
+        ['SYD', 'MEL', 'BNE', 'PER', 'LAX', 'JFK', 'LHR', 'NRT'].includes(airport.iata)
+      ).slice(0, 8);
+    }
     
-    const term = searchTerm.toLowerCase();
-    return AIRPORT_DATA
-      .filter(airport => 
-        airport.code !== excludeAirport &&
-        (airport.code.toLowerCase().includes(term) ||
-         airport.city.toLowerCase().includes(term) ||
-         airport.name.toLowerCase().includes(term) ||
-         airport.country.toLowerCase().includes(term))
-      )
-      .sort((a, b) => {
-        // Prioritize exact code matches
-        if (a.code.toLowerCase() === term) return -1;
-        if (b.code.toLowerCase() === term) return 1;
+    const term = searchTerm.toLowerCase().trim();
+    const results = AIRPORT_DATA
+      .filter(airport => airport.iata !== excludeAirport)
+      .map(airport => {
+        let score = 0;
+        const code = airport.iata.toLowerCase();
+        const city = airport.city.toLowerCase();
+        const name = airport.name.toLowerCase();
+        const country = airport.country.toLowerCase();
         
-        // Then city matches
-        if (a.city.toLowerCase().startsWith(term)) return -1;
-        if (b.city.toLowerCase().startsWith(term)) return 1;
+        // Exact matches get highest priority
+        if (code === term) score += 1000;
+        else if (city === term) score += 900;
+        else if (code.startsWith(term)) score += 800;
+        else if (city.startsWith(term)) score += 700;
         
-        return 0;
+        // Partial matches
+        if (code.includes(term)) score += 600;
+        if (city.includes(term)) score += 500;
+        if (name.includes(term)) score += 300;
+        if (country.includes(term)) score += 200;
+        
+        // Fuzzy matching for typos (simple algorithm)
+        const distance = getLevenshteinDistance(term, code) + getLevenshteinDistance(term, city);
+        if (distance <= 2 && term.length > 2) score += 100;
+        
+        return { airport, score };
       })
-      .slice(0, 6);
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map(({ airport }) => airport);
+    
+    return results;
   }, [searchTerm, excludeAirport]);
+
+  // Simple Levenshtein distance for fuzzy matching
+  const getLevenshteinDistance = (str1: string, str2: string): number => {
+    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+    
+    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+    
+    for (let j = 1; j <= str2.length; j++) {
+      for (let i = 1; i <= str1.length; i++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j][i - 1] + 1,
+          matrix[j - 1][i] + 1,
+          matrix[j - 1][i - 1] + cost
+        );
+      }
+    }
+    
+    return matrix[str2.length][str1.length];
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
@@ -110,9 +133,9 @@ const SmartAirportSearch = ({
     } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
       const airport = filteredAirports[selectedIndex];
-      onChange(airport);
-      setSearchTerm(`${airport.city} (${airport.code})`);
-      setIsOpen(false);
+                  onChange(airport);
+      setSearchTerm(`${airport.city} (${airport.iata})`);
+                  setIsOpen(false);
     } else if (e.key === 'Escape') {
       setIsOpen(false);
     }
@@ -134,26 +157,28 @@ const SmartAirportSearch = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className="pr-8"
+            autoComplete="off"
+            spellCheck={false}
           />
           <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-2" align="start">
+      <PopoverContent className="w-[450px] p-2" align="start">
         <div className="space-y-1">
           {filteredAirports.length === 0 ? (
             <div className="p-3 text-sm text-muted-foreground text-center">
-              No airports found
+              No airports found. Try searching by city name, airport code, or country.
             </div>
           ) : (
             filteredAirports.map((airport, index) => (
               <Button
-                key={airport.code}
+                key={airport.iata}
                 variant={index === selectedIndex ? "secondary" : "ghost"}
                 className="w-full justify-start h-auto p-3 text-left"
                 onClick={() => {
-                  onChange(airport);
-                  setSearchTerm(`${airport.city} (${airport.code})`);
-                  setIsOpen(false);
+              onChange(airport);
+              setSearchTerm(`${airport.city} (${airport.iata})`);
+              setIsOpen(false);
                 }}
               >
                 <div className="flex items-center space-x-3">
@@ -162,7 +187,7 @@ const SmartAirportSearch = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium">{airport.code}</span>
+                      <span className="font-medium">{airport.iata}</span>
                       <span className="text-muted-foreground">•</span>
                       <span>{airport.city}</span>
                     </div>
@@ -170,9 +195,11 @@ const SmartAirportSearch = ({
                       {airport.name}, {airport.country}
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {airport.timezone}
-                  </Badge>
+                  {airport.timezone && (
+                    <Badge variant="outline" className="text-xs">
+                      {airport.timezone}
+                    </Badge>
+                  )}
                 </div>
               </Button>
             ))
@@ -353,8 +380,8 @@ export const IntelligentSearchForm = ({ onSearch, className }: IntelligentSearch
   const handleSearch = () => {
     const searchData = {
       tripType,
-      origin: origin.code,
-      destination: destination.code,
+      origin: origin.iata,
+      destination: destination.iata,
       departureDate,
       returnDate: tripType === 'roundtrip' ? returnDate : undefined,
       passengers,
@@ -396,10 +423,10 @@ export const IntelligentSearchForm = ({ onSearch, className }: IntelligentSearch
         <div className="md:col-span-2 space-y-2">
           <label className="text-xs font-medium text-muted-foreground">From</label>
           <SmartAirportSearch
-            value={`${origin.city} (${origin.code})`}
+            value={`${origin.city} (${origin.iata})`}
             onChange={setOrigin}
             placeholder="Search departure city..."
-            excludeAirport={destination.code}
+            excludeAirport={destination.iata}
           />
         </div>
         
@@ -417,10 +444,10 @@ export const IntelligentSearchForm = ({ onSearch, className }: IntelligentSearch
         <div className="md:col-span-2 space-y-2">
           <label className="text-xs font-medium text-muted-foreground">To</label>
           <SmartAirportSearch
-            value={`${destination.city} (${destination.code})`}
+            value={`${destination.city} (${destination.iata})`}
             onChange={setDestination}
             placeholder="Search destination city..."
-            excludeAirport={origin.code}
+            excludeAirport={origin.iata}
           />
         </div>
       </div>
