@@ -86,9 +86,9 @@ export function ProgressiveResultsLayout<T>({
     });
   }, [data, sortBy]);
 
-  // Virtual list item renderer
-  const VirtualItem = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => (
-    <div style={style} className="p-2">
+  // Virtual list item renderer (simplified for now)
+  const VirtualItem = useCallback(({ index }: { index: number }) => (
+    <div className="p-2">
       {renderItem(sortedData[index], activeTier)}
     </div>
   ), [sortedData, renderItem, activeTier]);
@@ -260,27 +260,15 @@ export function ProgressiveResultsLayout<T>({
       {/* Results Display */}
       <div className="space-y-4">
         {useVirtualScrolling && sortedData.length > 50 ? (
-          // Virtual scrolling for large datasets
-          <div className="h-96 border rounded-lg">
-            {estimateItemSize ? (
-              <VariableSizeList
-                height={384}
-                itemCount={sortedData.length}
-                itemSize={estimateItemSize}
-                className="scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
-              >
-                {VirtualItem}
-              </VariableSizeList>
-            ) : (
-              <List
-                height={384}
-                itemCount={sortedData.length}
-                itemSize={itemHeight}
-                className="scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
-              >
-                {VirtualItem}
-              </List>
-            )}
+          // Virtual scrolling placeholder - will be implemented when react-window is properly configured
+          <div className="h-96 border rounded-lg overflow-y-auto">
+            <div className="space-y-4 p-4">
+              {sortedData.map((item, index) => (
+                <div key={index}>
+                  {renderItem(item, activeTier)}
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           // Standard rendering for smaller datasets

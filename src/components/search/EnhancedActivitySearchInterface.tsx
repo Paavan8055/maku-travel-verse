@@ -50,7 +50,7 @@ export const EnhancedActivitySearchInterface: React.FC<EnhancedActivitySearchInt
   enableVoiceSearch = false,
   showAdvancedFilters = true
 }) => {
-  const { state, dispatch, preloadModuleData } = useUnifiedTravel();
+  const { state, dispatch } = useUnifiedTravel();
   const [destination, setDestination] = useState(state.destination || '');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(state.checkInDate || undefined);
   const [adults, setAdults] = useState(state.adults);
@@ -213,14 +213,8 @@ export const EnhancedActivitySearchInterface: React.FC<EnhancedActivitySearchInt
     setShowIntelligence(true);
 
     // Preload related module data for cross-module synergy
-    if (preloadModuleData) {
-      preloadModuleData(['hotels', 'transfers'], {
-        destination,
-        date: selectedDate,
-        participants: totalParticipants
-      });
-    }
-  }, [destination, selectedDate, totalParticipants, preloadModuleData]);
+    // Future enhancement: implement smart preloading
+  }, [destination, selectedDate, totalParticipants]);
 
   // Debounced intelligence generation
   useEffect(() => {
@@ -230,7 +224,7 @@ export const EnhancedActivitySearchInterface: React.FC<EnhancedActivitySearchInt
     } else {
       setShowIntelligence(false);
     }
-  }, [destination, selectedDate, generateSmartPredictions]);
+  }, [destination, selectedDate, totalParticipants]);
 
   // Voice search preparation
   const handleVoiceSearch = useCallback(() => {
@@ -279,7 +273,7 @@ export const EnhancedActivitySearchInterface: React.FC<EnhancedActivitySearchInt
         expandedTier
       }
     });
-  }, [canSearch, selectedDate, destination, adults, children, totalParticipants, smartPredictions, showIntelligence, expandedTier, updateState, onSearch]);
+  }, [canSearch, selectedDate, destination, adults, children, totalParticipants, smartPredictions, showIntelligence, expandedTier, dispatch, onSearch]);
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 90) return 'text-green-600 bg-green-50 border-green-200';
