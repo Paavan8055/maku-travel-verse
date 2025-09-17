@@ -17,9 +17,10 @@ import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import MultiCityFlightManager from "@/components/flight/MultiCityFlightManager";
 import { IntelligentSearchControls } from "@/components/search/IntelligentSearchControls";
 import { SmartCachingProvider } from "@/components/flight/SmartCachingProvider";
-import { RealTimePerformanceMonitor } from "@/components/flight/RealTimePerformanceMonitor";
+
 import { useIntelligentFlightSorting } from "@/hooks/useIntelligentFlightSorting";
 import { useContextAwareFilters } from "@/hooks/useContextAwareFilters";
+import { useBackgroundPerformanceTracking } from "@/hooks/useBackgroundPerformanceTracking";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -351,6 +352,9 @@ const FlightSearchPage = () => {
       budgetRange: priceRange as [number, number]
     }
   });
+
+  // Background performance tracking (silent - admin analytics only)
+  useBackgroundPerformanceTracking('FlightSearchPage');
 
   // Use intelligent sorting results if enabled, otherwise use enhanced flights
   const displayFlights = isIntelligentMode ? sortedFlights : enhancedFlights;
@@ -786,14 +790,6 @@ const FlightSearchPage = () => {
         multiCitySelections={multiCitySelections}
       />
 
-      {/* Real-time Performance Monitor */}
-      <RealTimePerformanceMonitor 
-        isVisible={process.env.NODE_ENV === 'development'}
-        onPerformanceUpdate={(metrics) => {
-          // Track performance metrics for optimization
-          console.log('Performance metrics:', metrics);
-        }}
-      />
         </div>
       </PerformanceWrapper>
     </SmartCachingProvider>

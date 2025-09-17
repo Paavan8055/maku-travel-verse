@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { RealTimePerformanceMonitor } from '@/components/flight/RealTimePerformanceMonitor';
 
 interface PerformanceMetric {
   name: string;
@@ -463,19 +464,7 @@ export function PerformanceOptimizationDashboard() {
         </TabsContent>
 
         <TabsContent value="monitoring" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Real-time Performance Monitoring</CardTitle>
-              <CardDescription>
-                Live performance metrics and alerts
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Real-time monitoring dashboard will be implemented in the next phase
-              </div>
-            </CardContent>
-          </Card>
+          <RealTimePerformanceMonitor />
         </TabsContent>
       </Tabs>
     </div>
