@@ -67,10 +67,27 @@ export const EnhancedFlightCard = ({
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
   const formatDuration = (duration: number | string) => {
-    if (typeof duration === 'string') return duration;
-    const hours = Math.floor(duration / 60);
-    const mins = duration % 60;
-    return `${hours}H ${mins}Min`;
+    if (!duration) return "Duration unknown";
+    if (typeof duration === 'string') {
+      // Handle string durations like "2h 30m" or "PT2H30M" (ISO format)
+      if (duration.includes('H') && duration.includes('M')) {
+        return duration;
+      }
+      // Try to parse if it's a number string
+      const parsed = parseFloat(duration);
+      if (!isNaN(parsed)) {
+        const hours = Math.floor(parsed / 60);
+        const mins = Math.round(parsed % 60);
+        return `${hours}h ${mins}m`;
+      }
+      return duration;
+    }
+    if (typeof duration === 'number') {
+      const hours = Math.floor(duration / 60);
+      const mins = Math.round(duration % 60);
+      return `${hours}h ${mins}m`;
+    }
+    return "Duration unknown";
   };
 
   const getStopsText = (stops: number, stopoverInfo?: string) => {
