@@ -143,7 +143,7 @@ export const GlobalDestinationSearch: React.FC<GlobalDestinationSearchProps> = (
           code: 'SYD',
           country: 'Australia',
           type: 'city' as const,
-          coordinates: [-33.8688, 151.2093],
+          coordinates: [-33.8688, 151.2093] as [number, number],
           popularity: 95,
           description: 'Harbor city with iconic Opera House'
         },
@@ -153,7 +153,7 @@ export const GlobalDestinationSearch: React.FC<GlobalDestinationSearchProps> = (
           code: 'MEL',
           country: 'Australia',
           type: 'city' as const,
-          coordinates: [-37.8136, 144.9631],
+          coordinates: [-37.8136, 144.9631] as [number, number],
           popularity: 88,
           description: 'Cultural capital with great coffee'
         },
@@ -163,7 +163,7 @@ export const GlobalDestinationSearch: React.FC<GlobalDestinationSearchProps> = (
           code: 'BNE',
           country: 'Australia',
           type: 'city' as const,
-          coordinates: [-27.4705, 153.0260],
+          coordinates: [-27.4705, 153.0260] as [number, number],
           popularity: 75,
           description: 'Subtropical capital of Queensland'
         }
