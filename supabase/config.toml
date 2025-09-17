@@ -83,3 +83,6 @@ verify_jwt = false
 
 [functions.viator-activity-search]
 verify_jwt = false
+
+[functions.viator-product-sync]
+verify_jwt = false

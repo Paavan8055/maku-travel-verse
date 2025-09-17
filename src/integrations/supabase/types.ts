@@ -10182,6 +10182,178 @@ export type Database = {
           },
         ]
       }
+      viator_activities: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          duration_info: Json | null
+          id: string
+          images: Json | null
+          last_updated: string | null
+          location: Json | null
+          pricing: Json | null
+          product_code: string
+          raw_data: Json | null
+          reviews: Json | null
+          search_vector: unknown | null
+          short_description: string | null
+          subcategory_id: string | null
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_info?: Json | null
+          id?: string
+          images?: Json | null
+          last_updated?: string | null
+          location?: Json | null
+          pricing?: Json | null
+          product_code: string
+          raw_data?: Json | null
+          reviews?: Json | null
+          search_vector?: unknown | null
+          short_description?: string | null
+          subcategory_id?: string | null
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_info?: Json | null
+          id?: string
+          images?: Json | null
+          last_updated?: string | null
+          location?: Json | null
+          pricing?: Json | null
+          product_code?: string
+          raw_data?: Json | null
+          reviews?: Json | null
+          search_vector?: unknown | null
+          short_description?: string | null
+          subcategory_id?: string | null
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
+      viator_availability: {
+        Row: {
+          available: boolean | null
+          cached_at: string | null
+          currency: string | null
+          date: string
+          expires_at: string | null
+          id: string
+          price: number | null
+          product_code: string
+        }
+        Insert: {
+          available?: boolean | null
+          cached_at?: string | null
+          currency?: string | null
+          date: string
+          expires_at?: string | null
+          id?: string
+          price?: number | null
+          product_code: string
+        }
+        Update: {
+          available?: boolean | null
+          cached_at?: string | null
+          currency?: string | null
+          date?: string
+          expires_at?: string | null
+          id?: string
+          price?: number | null
+          product_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viator_availability_product_code_fkey"
+            columns: ["product_code"]
+            isOneToOne: false
+            referencedRelation: "viator_activities"
+            referencedColumns: ["product_code"]
+          },
+        ]
+      }
+      viator_pricing_history: {
+        Row: {
+          currency: string | null
+          from_price: number | null
+          id: string
+          product_code: string
+          recorded_at: string | null
+        }
+        Insert: {
+          currency?: string | null
+          from_price?: number | null
+          id?: string
+          product_code: string
+          recorded_at?: string | null
+        }
+        Update: {
+          currency?: string | null
+          from_price?: number | null
+          id?: string
+          product_code?: string
+          recorded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viator_pricing_history_product_code_fkey"
+            columns: ["product_code"]
+            isOneToOne: false
+            referencedRelation: "viator_activities"
+            referencedColumns: ["product_code"]
+          },
+        ]
+      }
+      viator_search_cache: {
+        Row: {
+          cached_at: string | null
+          category_id: string | null
+          destination: string
+          end_date: string | null
+          expires_at: string | null
+          id: string
+          results: Json
+          search_key: string
+          start_date: string | null
+          total_count: number | null
+        }
+        Insert: {
+          cached_at?: string | null
+          category_id?: string | null
+          destination: string
+          end_date?: string | null
+          expires_at?: string | null
+          id?: string
+          results: Json
+          search_key: string
+          start_date?: string | null
+          total_count?: number | null
+        }
+        Update: {
+          cached_at?: string | null
+          category_id?: string | null
+          destination?: string
+          end_date?: string | null
+          expires_at?: string | null
+          id?: string
+          results?: Json
+          search_key?: string
+          start_date?: string | null
+          total_count?: number | null
+        }
+        Relationships: []
+      }
       visa_documents: {
         Row: {
           country: string
@@ -10453,6 +10625,10 @@ export type Database = {
       cleanup_old_tasks: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      cleanup_viator_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       create_activity_order: {
         Args: {

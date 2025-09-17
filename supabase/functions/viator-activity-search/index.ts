@@ -2,12 +2,11 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import logger from "../_shared/logger.ts";
 import { 
-  searchViatorProducts, 
+  enhancedViatorClient,
   transformViatorToActivity, 
-  validateViatorCredentials,
   VIATOR_CATEGORIES,
   type ViatorSearchParams 
-} from "../_shared/viator.ts";
+} from "../_shared/enhanced-viator.ts";
 
 interface ActivitySearchRequest {
   destination: string;
@@ -34,13 +33,14 @@ serve(async (req) => {
     });
 
     // Validate credentials
-    if (!validateViatorCredentials()) {
+    if (!enhancedViatorClient.validateCredentials()) {
       logger.warn('[VIATOR-ACTIVITIES] API key not configured, returning empty results');
       return new Response(JSON.stringify({
         success: false,
         activities: [],
         error: 'Viator API not configured',
-        searchParams: { destination, date, participants }
+        searchParams: { destination, date, participants },
+        status: enhancedViatorClient.getStatus()
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -60,8 +60,8 @@ serve(async (req) => {
       count: 50
     };
 
-    // Search for products
-    const viatorResult = await searchViatorProducts(searchParams);
+    // Search for products using enhanced client
+    const viatorResult = await enhancedViatorClient.searchViatorProducts(searchParams);
     
     if (!viatorResult.products || viatorResult.products.length === 0) {
       logger.info('[VIATOR-ACTIVITIES] No products found');
@@ -100,7 +100,8 @@ serve(async (req) => {
         originalResultCount: viatorResult.products.length,
         filteredResultCount: filteredActivities.length,
         totalAvailable: viatorResult.totalCount
-      }
+      },
+      systemStatus: enhancedViatorClient.getStatus()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
