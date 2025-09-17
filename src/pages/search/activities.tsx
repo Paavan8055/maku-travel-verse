@@ -16,6 +16,9 @@ import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 import { IntelligentActivityInfo } from "@/components/travel/IntelligentActivityInfo";
 import { IntelligentActivitySearchForm } from "@/components/search/IntelligentActivitySearchForm";
 import { useBackgroundPerformanceTracking } from "@/hooks/useBackgroundPerformanceTracking";
+import { UnifiedTravelProvider } from "@/contexts/UnifiedTravelContext";
+import { EnhancedSearchIntelligence } from "@/components/travel/EnhancedSearchIntelligence";
+import { CrossModuleNavigator } from "@/components/travel/CrossModuleNavigator";
 
 const ActivitySearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -96,11 +99,12 @@ const ActivitySearchPage = () => {
   };
 
   return (
-    <PerformanceWrapper componentName="ActivitySearchPage">
-      <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <div className="container mx-auto px-4 py-8">
+    <UnifiedTravelProvider>
+      <PerformanceWrapper componentName="ActivitySearchPage">
+        <div className="min-h-screen bg-background">
+        <Navbar />
+        
+        <div className="container mx-auto px-4 py-8">
         {/* Intelligent Activity Search Form */}
         <div className="mb-8">
           <IntelligentActivitySearchForm
@@ -138,8 +142,20 @@ const ActivitySearchPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Left Column - Filters & Navigation */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Enhanced Search Intelligence */}
+            <EnhancedSearchIntelligence
+              module="activities"
+              destination={destination}
+              dates={checkIn && checkOut ? { checkIn, checkOut } : undefined}
+              searchResults={filteredAndSortedActivities}
+            />
+            
+            {/* Cross-Module Navigator */}
+            <CrossModuleNavigator currentModule="activities" />
+            
+            {/* Filters */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -309,9 +325,10 @@ const ActivitySearchPage = () => {
             )}
           </div>
         </div>
+        </div>
       </div>
-    </div>
-    </PerformanceWrapper>
+      </PerformanceWrapper>
+    </UnifiedTravelProvider>
   );
 };
 
