@@ -39,15 +39,10 @@ export const ActivityWishlist: React.FC<ActivityWishlistProps> = ({
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('user_activity_wishlist')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('added_at', { ascending: false });
-
-      if (error) throw error;
-
-      setWishlist(data || []);
+      // For now, use localStorage as fallback until database types are updated
+      const savedWishlist = localStorage.getItem(`wishlist_${user.id}`);
+      const wishlistData = savedWishlist ? JSON.parse(savedWishlist) : [];
+      setWishlist(wishlistData);
     } catch (error) {
       console.error('Error loading wishlist:', error);
       toast({
@@ -65,15 +60,10 @@ export const ActivityWishlist: React.FC<ActivityWishlistProps> = ({
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('user_activity_wishlist')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('activity_id', activityId);
-
-      if (error) throw error;
-
-      setWishlist(prev => prev.filter(item => item.id !== activityId));
+      // Use localStorage for now
+      const updatedWishlist = wishlist.filter(item => item.id !== activityId);
+      setWishlist(updatedWishlist);
+      localStorage.setItem(`wishlist_${user.id}`, JSON.stringify(updatedWishlist));
       
       toast({
         title: "Removed",
@@ -82,7 +72,7 @@ export const ActivityWishlist: React.FC<ActivityWishlistProps> = ({
     } catch (error) {
       console.error('Error removing from wishlist:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to remove activity from wishlist",
         variant: "destructive"
       });

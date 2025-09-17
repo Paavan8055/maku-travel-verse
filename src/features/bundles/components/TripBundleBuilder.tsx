@@ -188,7 +188,15 @@ export const TripBundleBuilder: React.FC<TripBundleBuilderProps> = ({
   // Calculate total bundle price
   const calculateTotal = () => {
     return selectedItems.reduce((total, item) => {
-      let itemPrice = item.item.price?.total || (item.item as any).pricePerNight?.total || 0;
+      let itemPrice = 0;
+      
+      if (item.type === 'flight') {
+        itemPrice = (item.item as FlightOption).price?.total || 0;
+      } else if (item.type === 'hotel') {
+        itemPrice = (item.item as HotelOption).pricePerNight?.total || 0;
+      } else if (item.type === 'activity') {
+        itemPrice = (item.item as ActivityOption).price?.total || 0;
+      }
       
       if (item.type === 'hotel' && item.nights) {
         itemPrice *= item.nights;
@@ -440,8 +448,9 @@ export const TripBundleBuilder: React.FC<TripBundleBuilderProps> = ({
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="font-medium text-sm">
-                              {bundleItem.item.name || 
-                               `${(bundleItem.item as FlightOption).airline} Flight`}
+                              {(bundleItem.type === 'flight' 
+                                ? `${(bundleItem.item as FlightOption).airline} Flight`
+                                : (bundleItem.item as HotelOption | ActivityOption).name)}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {bundleItem.type === 'hotel' && `${bundleItem.nights} nights`}

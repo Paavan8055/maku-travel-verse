@@ -48,12 +48,9 @@ export const usePersonalizedRecommendations = (): UsePersonalizedRecommendations
     if (!user) return null;
 
     try {
-      // Get explicit user preferences
-      const { data: prefsData } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      // For now, use localStorage until database types are updated
+      const savedPrefs = localStorage.getItem(`preferences_${user.id}`);
+      const prefsData = savedPrefs ? JSON.parse(savedPrefs) : null;
 
       // Get booking history for implicit preferences
       const { data: bookingsData } = await supabase
@@ -63,11 +60,9 @@ export const usePersonalizedRecommendations = (): UsePersonalizedRecommendations
         .order('created_at', { ascending: false })
         .limit(20);
 
-      // Get wishlist for preference insights
-      const { data: wishlistData } = await supabase
-        .from('user_activity_wishlist')
-        .select('*')
-        .eq('user_id', user.id);
+      // Get wishlist for preference insights  
+      const savedWishlist = localStorage.getItem(`wishlist_${user.id}`);
+      const wishlistData = savedWishlist ? JSON.parse(savedWishlist) : [];
 
       // Analyze booking history to extract preferences
       const bookingHistory = bookingsData || [];
@@ -77,11 +72,11 @@ export const usePersonalizedRecommendations = (): UsePersonalizedRecommendations
 
       bookingHistory.forEach(booking => {
         if (booking.booking_type === 'activity') {
-          const activityData = booking.booking_data;
-          if (activityData.category) {
+          const activityData = booking.booking_data as any;
+          if (activityData?.category) {
             categoryCounts[activityData.category] = (categoryCounts[activityData.category] || 0) + 1;
           }
-          if (activityData.destination) {
+          if (activityData?.destination) {
             destinations.add(activityData.destination);
           }
           if (booking.total_amount) {
@@ -91,7 +86,7 @@ export const usePersonalizedRecommendations = (): UsePersonalizedRecommendations
       });
 
       // Include wishlist preferences
-      if (wishlistData) {
+      if (Array.isArray(wishlistData)) {
         wishlistData.forEach((item: any) => {
           if (item.category) {
             categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 0.5; // Lower weight
@@ -115,9 +110,9 @@ export const usePersonalizedRecommendations = (): UsePersonalizedRecommendations
       ];
 
       return {
-        preferredCategories: prefsData?.preferences?.categories || preferredCategories,
-        priceRange: prefsData?.preferences?.priceRange || priceRange,
-        preferredDuration: prefsData?.preferences?.duration || [],
+        preferredCategories: prefsData?.categories || preferredCategories,
+        priceRange: prefsData?.priceRange || priceRange,
+        preferredDuration: prefsData?.duration || [],
         previousDestinations: Array.from(destinations),
         bookingHistory
       };
@@ -227,20 +222,13 @@ export const usePersonalizedRecommendations = (): UsePersonalizedRecommendations
     }
   }, []);
 
-  // Update user preferences
+  // Update user preferences  
   const updatePreferences = useCallback(async (preferences: Partial<UserPreferences>) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          preferences,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
+      // Use localStorage for now
+      localStorage.setItem(`preferences_${user.id}`, JSON.stringify(preferences));
 
       toast({
         title: "Preferences updated",
@@ -253,7 +241,7 @@ export const usePersonalizedRecommendations = (): UsePersonalizedRecommendations
       console.error('Error updating preferences:', error);
       toast({
         title: "Error",
-        description: "Failed to update preferences",
+        description: "Failed to update preferences", 
         variant: "destructive"
       });
     }

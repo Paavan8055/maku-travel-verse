@@ -300,17 +300,19 @@ const ActivityMap: React.FC<ActivityMapProps> = ({
         ))}
       </MapContainer>
 
-      <style jsx>{`
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.2); opacity: 0.7; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .user-location-icon div {
-          animation: pulse 2s infinite;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          
+          .user-location-icon div {
+            animation: pulse 2s infinite;
+          }
+        `
+      }} />
     </div>
   );
 };
