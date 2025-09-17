@@ -16,7 +16,7 @@ const FlightsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { searchWithAdvancedRotation, isLoading, searchProgress } = useAdvancedProviderRotation();
+  const { searchWithAdvancedRotation, searchState } = useAdvancedProviderRotation();
   
   // Enhanced state management
   const [flights, setFlights] = useState<any[]>([]);
@@ -69,6 +69,7 @@ const FlightsPage = () => {
           travelClass: searchCriteria.travelClass,
           searchId: currentSearchId
         },
+        priority: 'high' as const,
         options: {
           enableML: true,
           cacheResults: true,
@@ -77,12 +78,12 @@ const FlightsPage = () => {
         }
       };
 
-      const result = await unifiedSearchOrchestrator.executeSearch([searchRequest]);
+      const results = await unifiedSearchOrchestrator.orchestrateMultiServiceSearch([searchRequest]);
 
-      console.log('FlightsPage: Unified search result:', result);
+      console.log('FlightsPage: Unified search results:', results);
 
-      if (result.success && result.results.length > 0) {
-        const flightResult = result.results[0];
+      if (results.length > 0) {
+        const flightResult = results[0];
         
         if (flightResult.success && flightResult.data) {
           // Handle enhanced response structure
@@ -107,8 +108,8 @@ const FlightsPage = () => {
           setFlights([]);
         }
       } else {
-        console.error('FlightsPage: Unified search failed:', result.error);
-        setError(result.error || 'Unable to search flights at this time');
+        console.error('FlightsPage: Unified search failed: No results');
+        setError('Unable to search flights at this time');
         setFlights([]);
       }
 
@@ -164,12 +165,12 @@ const FlightsPage = () => {
           {/* Enhanced Search Form */}
           <FlightSearchForm
             onSearch={handleFlightSearch}
-            loading={isLoading}
+            loading={searchState.isLoading}
             initialValues={getInitialSearchCriteria()}
           />
 
           {/* Real-time Search Progress */}
-          {isLoading && (
+          {searchState.isLoading && (
             <div className="mb-6 text-center">
               <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">Searching for flights...</p>
@@ -212,7 +213,7 @@ const FlightsPage = () => {
                   {/* Enhanced Results Component */}
                   <FlightResults
                     flights={rankedFlights.length > 0 ? rankedFlights : flights}
-                    loading={isLoading}
+                    loading={searchState.isLoading}
                     error={error}
                     onFlightSelect={handleFlightSelect}
                     onRetry={() => handleFlightSearch(getInitialSearchCriteria())}
@@ -257,7 +258,7 @@ const FlightsPage = () => {
           </div>
 
           {/* No Search Performed Yet */}
-          {!hasSearched && !isLoading && (
+          {!hasSearched && !searchState.isLoading && (
             <div className="text-center py-12">
               <div className="space-y-4">
                 <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
