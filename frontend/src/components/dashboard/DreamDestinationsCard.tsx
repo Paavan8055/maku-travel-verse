@@ -67,7 +67,9 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
           ) : (
             <ScrollArea className="h-full">
               <div className="space-y-3 pr-4">
-                {destinations.map((destination) => (
+                {legacyDestinations.map((destination, index) => {
+                  const enhancedDest = destinations[index];
+                  return (
                   <Card key={destination.id} className="group border border-border/50 hover:border-border transition-colors">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
