@@ -128,6 +128,12 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
+            {/* Smart Dream Hub */}
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/smart-dreams')} role="menuitem">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <span>Smart Dreams</span>
+            </Button>
+
             {/* Environment Manager - Development Tool */}
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/environment-manager')} role="menuitem">
               <Settings className="h-4 w-4" aria-hidden="true" />
