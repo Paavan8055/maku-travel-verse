@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield, Coins, Heart, Settings } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield, Coins, Heart, Settings, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
