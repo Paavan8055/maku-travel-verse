@@ -161,6 +161,273 @@ async def get_environment_status():
         logger.error(f"Failed to get environment status: {e}")
         return {"error": f"Failed to get environment status: {str(e)}"}
 
+# Enhanced Dream Destinations API Endpoints
+
+@api_router.get("/enhanced-dreams/destinations")
+async def get_enhanced_destinations(
+    user_id: Optional[str] = None,
+    category: Optional[str] = None,
+    continent: Optional[str] = None,
+    limit: Optional[int] = 50,
+    include_ai_context: bool = False
+):
+    """Get enhanced destinations with AI-ready data"""
+    try:
+        # Simulate enhanced destination data (Phase 1 foundation)
+        # In Phase 3, this will integrate with real AI models
+        
+        mock_destinations = [
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Santorini",
+                "country": "Greece",
+                "continent": "Europe",
+                "category": "beaches",
+                "description": "Beautiful Greek island with stunning sunsets",
+                "rarity_score": 75,
+                "social_popularity": 120,
+                "personality_match_factors": [
+                    {"factor": "photography", "weight": 0.9, "confidence": 0.8},
+                    {"factor": "relaxation", "weight": 0.8, "confidence": 0.9}
+                ],
+                "community_rating": {
+                    "overall_score": 4.6,
+                    "total_ratings": 234,
+                    "aspects": {
+                        "photography": 4.8,
+                        "accessibility": 3.9,
+                        "value_for_money": 3.8,
+                        "uniqueness": 4.9,
+                        "local_culture": 4.4
+                    }
+                }
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Socotra Island",
+                "country": "Yemen",
+                "continent": "Asia",
+                "category": "adventure",
+                "description": "One of the most isolated and unique islands on Earth",
+                "rarity_score": 98,
+                "social_popularity": 5,
+                "personality_match_factors": [
+                    {"factor": "adventure", "weight": 0.95, "confidence": 0.9},
+                    {"factor": "nature", "weight": 0.9, "confidence": 0.95}
+                ],
+                "community_rating": {
+                    "overall_score": 4.9,
+                    "total_ratings": 12,
+                    "aspects": {
+                        "photography": 5.0,
+                        "accessibility": 2.1,
+                        "value_for_money": 4.2,
+                        "uniqueness": 5.0,
+                        "local_culture": 4.8
+                    }
+                }
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Kyoto",
+                "country": "Japan",
+                "continent": "Asia",
+                "category": "cultural",
+                "description": "Ancient capital of Japan with thousands of temples",
+                "rarity_score": 45,
+                "social_popularity": 89,
+                "personality_match_factors": [
+                    {"factor": "culture", "weight": 0.9, "confidence": 0.95},
+                    {"factor": "spiritual", "weight": 0.7, "confidence": 0.8}
+                ],
+                "community_rating": {
+                    "overall_score": 4.7,
+                    "total_ratings": 456,
+                    "aspects": {
+                        "photography": 4.8,
+                        "accessibility": 4.5,
+                        "value_for_money": 4.0,
+                        "uniqueness": 4.6,
+                        "local_culture": 5.0
+                    }
+                }
+            }
+        ]
+        
+        # Apply filters
+        filtered_destinations = mock_destinations
+        if category:
+            filtered_destinations = [d for d in filtered_destinations if d["category"] == category]
+        if continent:
+            filtered_destinations = [d for d in filtered_destinations if d["continent"] == continent]
+        if limit:
+            filtered_destinations = filtered_destinations[:limit]
+        
+        response = {
+            "destinations": filtered_destinations,
+            "metadata": {
+                "total_count": len(filtered_destinations),
+                "ai_processing_time": 45,
+                "personalization_enabled": include_ai_context and user_id is not None
+            }
+        }
+        
+        # Add user context if requested
+        if include_ai_context and user_id:
+            response["user_context"] = {
+                "personality_match_scores": {d["id"]: 85.5 for d in filtered_destinations},
+                "recommended_destinations": [d["id"] for d in filtered_destinations[:3]],
+                "social_proof": {}
+            }
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Failed to get enhanced destinations: {e}")
+        return {"error": f"Failed to get enhanced destinations: {str(e)}"}
+
+@api_router.post("/enhanced-dreams/behavior")
+async def track_behavior(behavior: BehaviorSignal, user_id: str):
+    """Track user behavior for AI learning"""
+    try:
+        # Store behavior signal (Phase 1 foundation)
+        # In Phase 3, this will feed into ML models
+        
+        behavior_record = {
+            "user_id": user_id,
+            "signal_type": behavior.signal_type,
+            "value": behavior.value,
+            "context": behavior.context,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # For now, just log the behavior (will be stored in database in full implementation)
+        logger.info(f"Behavior tracked: {behavior_record}")
+        
+        return {"success": True, "message": "Behavior tracked successfully"}
+        
+    except Exception as e:
+        logger.error(f"Failed to track behavior: {e}")
+        return {"error": f"Failed to track behavior: {str(e)}"}
+
+@api_router.post("/enhanced-dreams/interaction")
+async def track_interaction(interaction: InteractionData, user_id: str):
+    """Track detailed user interactions"""
+    try:
+        interaction_record = {
+            "user_id": user_id,
+            "destination_id": interaction.destination_id,
+            "interaction_type": interaction.interaction_type,
+            "duration_seconds": interaction.duration_seconds,
+            "device_type": interaction.device_type,
+            "referrer": interaction.referrer,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        logger.info(f"Interaction tracked: {interaction_record}")
+        
+        return {"success": True, "message": "Interaction tracked successfully"}
+        
+    except Exception as e:
+        logger.error(f"Failed to track interaction: {e}")
+        return {"error": f"Failed to track interaction: {str(e)}"}
+
+@api_router.get("/enhanced-dreams/profile/{user_id}")
+async def get_user_profile(user_id: str):
+    """Get user's enhanced profile with AI insights"""
+    try:
+        # Mock user profile (Phase 1 foundation)
+        mock_profile = {
+            "user_id": user_id,
+            "travel_personality": {
+                "primary_type": "cultural_explorer",
+                "confidence_score": 0.78,
+                "personality_factors": [
+                    {"factor": "culture", "weight": 0.85, "confidence": 0.9},
+                    {"factor": "photography", "weight": 0.72, "confidence": 0.8},
+                    {"factor": "food", "weight": 0.68, "confidence": 0.7}
+                ]
+            },
+            "gamification_metrics": {
+                "total_points": 1247,
+                "level": 3,
+                "destinations_collected": 23,
+                "continents_unlocked": 4,
+                "achievements_unlocked": 8,
+                "streak_days": 5,
+                "rarity_score": 67
+            },
+            "data_quality_score": 0.65,
+            "created_at": "2024-01-01T00:00:00Z",
+            "last_updated": datetime.utcnow().isoformat()
+        }
+        
+        return mock_profile
+        
+    except Exception as e:
+        logger.error(f"Failed to get user profile: {e}")
+        return {"error": f"Failed to get user profile: {str(e)}"}
+
+@api_router.get("/enhanced-dreams/insights/{user_id}")
+async def get_user_insights(user_id: str):
+    """Get AI-powered user insights"""
+    try:
+        # Mock insights (Phase 1 foundation)
+        mock_insights = {
+            "travel_dna": {
+                "primary_type": "cultural_explorer",
+                "confidence_score": 0.78,
+                "personality_factors": [
+                    {"factor": "culture", "weight": 0.85, "confidence": 0.9},
+                    {"factor": "photography", "weight": 0.72, "confidence": 0.8}
+                ]
+            },
+            "next_recommended_destinations": [],
+            "optimal_travel_windows": [],
+            "social_insights": {
+                "friends_overlap": [],
+                "trending_in_network": []
+            }
+        }
+        
+        return mock_insights
+        
+    except Exception as e:
+        logger.error(f"Failed to get user insights: {e}")
+        return {"error": f"Failed to get user insights: {str(e)}"}
+
+@api_router.post("/enhanced-dreams/collection")
+async def update_dream_collection(update: DreamCollectionUpdate):
+    """Update user's dream destination collection"""
+    try:
+        # Mock collection update (Phase 1 foundation)
+        logger.info(f"Collection update: {update.dict()}")
+        
+        # Check for achievement unlocks (placeholder)
+        achievements_unlocked = []
+        if update.action == "add":
+            # Simulate achievement unlock
+            achievements_unlocked = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": "Explorer",
+                    "description": "Added your first dream destination!",
+                    "category": "explorer",
+                    "rarity": "common",
+                    "points_value": 50
+                }
+            ]
+        
+        return {
+            "success": True,
+            "message": f"Dream destination {update.action}ed successfully",
+            "achievements_unlocked": achievements_unlocked
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to update collection: {e}")
+        return {"error": f"Failed to update collection: {str(e)}"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
