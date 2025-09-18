@@ -46,6 +46,27 @@ class EnvironmentConfig(BaseModel):
     switch_mode: str
     last_updated: str
 
+# Enhanced Dream System Models
+class BehaviorSignal(BaseModel):
+    signal_type: str
+    value: float
+    context: dict = {}
+
+class InteractionData(BaseModel):
+    destination_id: str
+    interaction_type: str
+    duration_seconds: Optional[int] = None
+    device_type: str
+    referrer: str
+
+class UserProfileRequest(BaseModel):
+    user_id: str
+
+class DreamCollectionUpdate(BaseModel):
+    user_id: str
+    destination_id: str
+    action: str  # 'add' or 'remove'
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
