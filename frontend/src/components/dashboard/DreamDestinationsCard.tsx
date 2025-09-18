@@ -22,31 +22,21 @@ interface DreamDestinationsCardProps {
 }
 
 export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ onExplore }) => {
-  const [destinations, setDestinations] = useState<DreamDestination[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { destinations, loading, error, viewDestination } = useEnhancedDreams({ 
+    limit: 10,
+    includeAIContext: true 
+  });
 
-  useEffect(() => {
-    const fetchDreamDestinations = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('dream_destinations')
-          .select('id, name, country, category, avg_daily_cost, highlights, continent')
-          .order('name');
-
-        if (error) throw error;
-        setDestinations(data || []);
-      } catch (err) {
-        setError('Failed to load dream destinations');
-        console.error('Error fetching dream destinations:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDreamDestinations();
-  }, []);
+  // Convert enhanced destinations to legacy format for compatibility
+  const legacyDestinations: DreamDestination[] = destinations.map(dest => ({
+    id: dest.id,
+    name: dest.name,
+    country: dest.country,
+    category: dest.category,
+    avg_daily_cost: dest.avg_daily_cost,
+    highlights: dest.highlights,
+    continent: dest.continent,
+  }));
 
   return (
     <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
