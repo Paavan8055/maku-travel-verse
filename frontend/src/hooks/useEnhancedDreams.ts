@@ -34,6 +34,28 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
       setLoading(true);
       setError(null);
 
+      // First try to get enhanced destinations from backend API
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-tech-audit.preview.emergentagent.com';
+      
+      try {
+        const apiResponse = await fetch(`${backendUrl}/api/enhanced-dreams/destinations?${new URLSearchParams({
+          ...(user?.id && { user_id: user.id }),
+          ...(options.limit && { limit: options.limit.toString() }),
+          ...(options.category && { category: options.category }),
+          ...(options.continent && { continent: options.continent }),
+          include_ai_context: (options.includeAIContext || false).toString(),
+        })}`);
+        
+        if (apiResponse.ok) {
+          const response = await apiResponse.json();
+          setDestinations(response.destinations || []);
+          return;
+        }
+      } catch (apiError) {
+        console.warn('Backend API not available, falling back to service:', apiError);
+      }
+
+      // Fallback to local service
       const response = await enhancedDreamService.getEnhancedDestinations({
         user_id: user?.id,
         limit: options.limit,
