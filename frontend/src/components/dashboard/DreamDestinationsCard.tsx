@@ -42,9 +42,12 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
     <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
       <CardContent className="p-6 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">Dream Destinations</h3>
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Smart Dream Destinations
+          </h3>
           <Badge variant="outline" className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-none text-xs">
-            {destinations.length} Places
+            {legacyDestinations.length} Places
           </Badge>
         </div>
         
