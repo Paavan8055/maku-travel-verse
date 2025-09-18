@@ -104,7 +104,13 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onExplore(destination)}
+                          onClick={async () => {
+                            // Track the view in enhanced system
+                            if (enhancedDest) {
+                              await viewDestination(enhancedDest);
+                            }
+                            onExplore(destination);
+                          }}
                           className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
                         >
                           <ArrowRight className="h-4 w-4" />
