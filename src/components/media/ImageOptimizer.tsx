@@ -258,7 +258,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
             height={height}
             sizes={sizes}
             loading="eager"
-            fetchPriority={fetchPriority}
+            {...({ fetchpriority: fetchPriority } as any)}
             decoding="sync"
             className={cn(
               'w-full h-full object-cover transition-opacity duration-300',
@@ -304,7 +304,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
             height={height}
             sizes={sizes}
             loading="lazy"
-            fetchPriority={fetchPriority}
+            {...({ fetchpriority: fetchPriority } as any)}
             decoding="async"
             className={cn(
               'w-full h-full object-cover transition-all duration-500',

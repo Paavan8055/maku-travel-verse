@@ -43,8 +43,8 @@ export const useHealthStatus = () => {
 
   useEffect(() => {
     checkHealth()
-    // Check health every 30 seconds
-    const interval = setInterval(checkHealth, 30000)
+    // Check health every 2 minutes to avoid rate limiting
+    const interval = setInterval(checkHealth, 120000)
     return () => clearInterval(interval)
   }, [])
 
