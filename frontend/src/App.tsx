@@ -196,6 +196,7 @@ const App = () => (
                                          <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
                                         <Route path="/invite-friends" element={<InviteFriendsPage />} />
                                         <Route path="/environment-manager" element={<EnvironmentManager />} />
+                                        <Route path="/smart-dreams" element={<SmartDreamHub />} />
                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
                                         <Route path="/admin" element={<AdminAuth />} />
                                        <Route path="/admin/*" element={
