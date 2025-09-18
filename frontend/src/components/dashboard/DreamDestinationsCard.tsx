@@ -118,7 +118,8 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                );
+                })}
               </div>
             </ScrollArea>
           )}
