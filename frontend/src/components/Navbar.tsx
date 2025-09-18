@@ -280,6 +280,15 @@ const Navbar = () => {
                 Airdrop
               </Button>
               
+              {/* Smart Dream Hub */}
+              <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                navigate('/smart-dreams');
+                setIsMenuOpen(false);
+              }}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Smart Dreams
+              </Button>
+
               {/* Environment Manager - Development Tool */}
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
                 navigate('/environment-manager');
