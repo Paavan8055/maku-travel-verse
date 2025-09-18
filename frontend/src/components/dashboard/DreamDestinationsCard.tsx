@@ -60,7 +60,7 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
               {error}
             </div>
-          ) : destinations.length === 0 ? (
+          ) : legacyDestinations.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
               No dream destinations found
             </div>
