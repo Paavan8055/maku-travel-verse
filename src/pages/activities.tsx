@@ -29,6 +29,12 @@ import { useToast } from "@/hooks/use-toast";
 import { GlobalDestinationSearch } from "@/components/search/GlobalDestinationSearch";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import { advancedCacheManager } from "@/features/search/lib/AdvancedCacheManager";
+import { useAdvancedProviderRotation } from "@/hooks/useAdvancedProviderRotation";
+import { unifiedSearchOrchestrator } from "@/services/core";
+import { AdaptiveResultsRanking } from "@/components/search/AdaptiveResultsRanking";
+import { PersonalizedSearchExperience } from "@/components/search/PersonalizedSearchExperience";
+import { PredictiveSearchSuggestions } from "@/components/search/PredictiveSearchSuggestions";
+import { ContextAwareRecommendations } from "@/components/search/ContextAwareRecommendations";
 import { useEnhancedActivitySearch } from "@/features/search/hooks/useEnhancedActivitySearch";
 import { ActivityFiltersComponent, ActivityFilters } from "@/features/search/components/ActivityFilters";
 import { ActivityDetailModal } from "@/features/search/components/ActivityDetailModal";
@@ -46,6 +52,9 @@ const ActivitiesPage = () => {
   const date = searchParams.get('date') || '2025-08-24';
   const participants = parseInt(searchParams.get('participants') || '2');
 
+  // Enhanced unified search
+  const { searchWithAdvancedRotation, searchState } = useAdvancedProviderRotation();
+  
   // Enhanced activity search hook
   const {
     activities,
@@ -60,6 +69,10 @@ const ActivitiesPage = () => {
     resetSearch
   } = useEnhancedActivitySearch();
 
+  // Enhanced state management
+  const [rankedActivities, setRankedActivities] = useState<any[]>([]);
+  const [currentSearchId, setCurrentSearchId] = useState<string | null>(null);
+
   // UI state
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -69,19 +82,90 @@ const ActivitiesPage = () => {
 
   console.log('ActivitiesPage: Search criteria:', { destination, date, participants });
 
-  // Initialize search on component mount or parameter change
-  useEffect(() => {
+  // Enhanced unified search function
+  const handleUnifiedActivitySearch = async () => {
     const validation = validateActivitySearch({ destination, date, participants });
-    if (validation.isValid) {
-      searchActivities({ destination, date, participants });
-    } else {
+    if (!validation.isValid) {
       toast({
         title: "Invalid Search",
         description: validation.error,
         variant: "destructive"
       });
+      return;
     }
-  }, [destination, date, participants, searchActivities]);
+
+    try {
+      console.log('ActivitiesPage: Starting unified activity search');
+      
+      // Generate unique search ID
+      const searchId = `activity-search-${Date.now()}`;
+      setCurrentSearchId(searchId);
+
+      // Create search request for unified orchestrator
+      const searchRequest = {
+        type: 'activity' as const,
+        searchType: 'activity' as const,
+        params: {
+          destination,
+          date,
+          participants,
+          searchId
+        },
+        priority: 'high' as const,
+        options: {
+          enableML: true,
+          cacheResults: true,
+          timeoutMs: 30000,
+          maxProviders: 3
+        }
+      };
+
+      const results = await unifiedSearchOrchestrator.orchestrateMultiServiceSearch([searchRequest]);
+
+      console.log('ActivitiesPage: Unified search results:', results);
+
+      if (results.length > 0) {
+        const activityResult = results[0];
+        
+        if (activityResult.success && activityResult.data) {
+          // Handle enhanced response structure
+          let activityData = activityResult.data.activities || activityResult.data.data || activityResult.data || [];
+          
+          // Enhance activity data
+          activityData = activityData.map((activity: any) => ({
+            ...activity,
+            id: activity.id || activity.activityId || Math.random().toString(),
+            name: activity.name || activity.title || 'Unknown Activity',
+            description: activity.description || activity.shortDescription || '',
+            source: activity.source || 'unified' || 'unknown',
+            searchId
+          }));
+          
+          // Use both unified results and enhanced search
+          searchActivities({ destination, date, participants });
+          
+        } else {
+          console.error('ActivitiesPage: Activity result failed:', activityResult.error);
+          // Fallback to enhanced search
+          searchActivities({ destination, date, participants });
+        }
+      } else {
+        console.error('ActivitiesPage: Unified search failed: No results');
+        // Fallback to enhanced search
+        searchActivities({ destination, date, participants });
+      }
+
+    } catch (error) {
+      console.error('ActivitiesPage: Unified search error:', error);
+      // Fallback to enhanced search
+      searchActivities({ destination, date, participants });
+    }
+  };
+
+  // Initialize search on component mount or parameter change
+  useEffect(() => {
+    handleUnifiedActivitySearch();
+  }, [destination, date, participants]);
 
   // Handle activity selection for detail view
   const handleActivitySelect = (activity: any) => {
@@ -145,8 +229,63 @@ const ActivitiesPage = () => {
               </div>
             </div>
 
+            {/* Enhanced Search Components */}
+            {!loading && !error && !searchState.isLoading && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <PersonalizedSearchExperience
+                  searchType="activity"
+                  currentSearch={{
+                    destination,
+                    date,
+                    participants
+                  }}
+                  onRecommendationSelect={(rec) => {
+                    console.log('Activity recommendation selected:', rec);
+                    toast({
+                      title: "Recommendation Applied",
+                      description: `Applied ${rec.action} filter to your search`
+                    });
+                  }}
+                />
+                <PredictiveSearchSuggestions
+                  searchType="activity"
+                  currentLocation={destination}
+                  onSuggestionSelect={(suggestion) => {
+                    console.log('Activity suggestion selected:', suggestion);
+                    handleNewSearch(suggestion.destination || suggestion.name, date, participants);
+                  }}
+                />
+                <ContextAwareRecommendations
+                  searchType="activity"
+                  currentContext={{
+                    destination,
+                    dates: { start: new Date(date), end: new Date(date) },
+                    travelers: { adults: participants, children: 0 },
+                    tripPurpose: 'leisure'
+                  }}
+                  onRecommendationSelect={(rec) => {
+                    console.log('Context recommendation selected:', rec);
+                    toast({
+                      title: "Recommendation Applied",
+                      description: rec.title
+                    });
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Adaptive Results Ranking */}
+            {filteredActivities.length > 0 && !loading && !searchState.isLoading && (
+              <AdaptiveResultsRanking
+                results={filteredActivities}
+                searchParams={{ destination, date, participants }}
+                searchType="activity"
+                onRankingComplete={setRankedActivities}
+              />
+            )}
+
             {/* Results Bar */}
-            {!loading && !error && (
+            {!loading && !error && !searchState.isLoading && (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-muted/50 rounded-lg p-4 mb-6">
                 <div className="flex items-center space-x-4 mb-4 sm:mb-0">
                   <Badge variant="secondary">
@@ -178,7 +317,15 @@ const ActivitiesPage = () => {
             )}
           </div>
 
-          <div className="flex gap-8">
+            {/* Real-time Search Progress */}
+            {(loading || searchState.isLoading) && (
+              <div className="mb-6 text-center">
+                <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Searching for activities...</p>
+              </div>
+            )}
+
+            <div className="flex gap-8">
             {/* Filters Sidebar */}
             {showFilters && (
               <div className="hidden lg:block w-80 flex-shrink-0">
@@ -204,7 +351,7 @@ const ActivitiesPage = () => {
 
             {/* Main Content */}
             <div className="flex-1">
-              {loading && (
+              {(loading || searchState.isLoading) && (
                 <SearchResultsSkeleton count={6} type="activity" />
               )}
 
@@ -214,7 +361,7 @@ const ActivitiesPage = () => {
                   <h3 className="text-xl font-semibold mb-2">Search Error</h3>
                   <p className="text-muted-foreground mb-4">{error}</p>
                   <div className="flex gap-3 justify-center">
-                    <Button onClick={() => searchActivities({ destination, date, participants })} variant="outline">
+                    <Button onClick={() => handleUnifiedActivitySearch()} variant="outline">
                       Try Again
                     </Button>
                     <Button onClick={() => navigate('/')} variant="default">
@@ -248,11 +395,11 @@ const ActivitiesPage = () => {
               )}
 
               {/* Activity Results */}
-              {!loading && !error && searchFilteredActivities.length > 0 && (
+              {!loading && !error && !searchState.isLoading && searchFilteredActivities.length > 0 && (
                 <div className="space-y-6">
                   {viewMode === 'grid' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                      {searchFilteredActivities.map((activity, index) => (
+                      {(rankedActivities.length > 0 ? rankedActivities : searchFilteredActivities).map((activity, index) => (
                         <Card key={`${activity.id}-${index}`} className="hover:shadow-lg transition-shadow cursor-pointer group">
                           <div className="relative" onClick={() => handleActivitySelect(activity)}>
                             {(activity.images?.[0] || activity.photos?.[0] || activity.pictures?.[0]) && (
@@ -322,8 +469,8 @@ const ActivitiesPage = () => {
                   ) : (
                     <ActivityResults
                       searchParams={{ destination, date, participants }}
-                      activities={searchFilteredActivities}
-                      loading={loading}
+                      activities={rankedActivities.length > 0 ? rankedActivities : searchFilteredActivities}
+                      loading={loading || searchState.isLoading}
                       error={error}
                     />
                   )}

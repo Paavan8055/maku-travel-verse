@@ -10,7 +10,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, MapPin, Star, Wifi, Car, Utensils, Dumbbell, Users, AlertTriangle } from "lucide-react";
-import { useProviderRotation } from "@/hooks/useProviderRotation";
+import { useAdvancedProviderRotation } from "@/hooks/useAdvancedProviderRotation";
+import { unifiedSearchOrchestrator } from "@/services/core";
+import { AdaptiveResultsRanking } from "@/components/search/AdaptiveResultsRanking";
+import { PersonalizedSearchExperience } from "@/components/search/PersonalizedSearchExperience";
+import { PredictiveSearchSuggestions } from "@/components/search/PredictiveSearchSuggestions";
+import { ContextAwareRecommendations } from "@/components/search/ContextAwareRecommendations";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoRetriever } from "@/services/core/PhotoRetriever";
 
@@ -18,7 +23,7 @@ const HotelsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { searchWithRotation, isLoading } = useProviderRotation();
+  const { searchWithAdvancedRotation, searchState } = useAdvancedProviderRotation();
   
   // Search state
   const [destination, setDestination] = useState(searchParams.get('destination') || '');
@@ -31,10 +36,12 @@ const HotelsPage = () => {
   const [guests, setGuests] = useState(parseInt(searchParams.get('guests') || '2'));
   const [rooms, setRooms] = useState(parseInt(searchParams.get('rooms') || '1'));
   
-  // Results state
+  // Enhanced results state
   const [hotels, setHotels] = useState<any[]>([]);
+  const [rankedHotels, setRankedHotels] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [currentSearchId, setCurrentSearchId] = useState<string | null>(null);
 
   const photoRetriever = new PhotoRetriever();
 
@@ -62,58 +69,83 @@ const HotelsPage = () => {
       newSearchParams.set('rooms', rooms.toString());
       setSearchParams(newSearchParams);
 
-      console.log('HotelsPage: Starting hotel search with provider rotation');
+      console.log('HotelsPage: Starting unified hotel search');
+      
+      // Generate unique search ID
+      const searchId = `hotel-search-${Date.now()}`;
+      setCurrentSearchId(searchId);
 
-      // Use provider rotation for hotel search with fallback
-      const result = await searchWithRotation({
-        searchType: 'hotel',
+      // Create search request for unified orchestrator
+      const searchRequest = {
+        type: 'hotel' as const,
+        searchType: 'hotel' as const,
         params: {
           cityCode: destination.toUpperCase(),
           checkInDate: format(checkInDate, 'yyyy-MM-dd'),
           checkOutDate: format(checkOutDate, 'yyyy-MM-dd'),
           adults: guests,
-          roomQuantity: rooms
+          roomQuantity: rooms,
+          searchId
+        },
+        priority: 'high' as const,
+        options: {
+          enableML: true,
+          cacheResults: true,
+          timeoutMs: 30000,
+          maxProviders: 3
         }
-      });
+      };
 
-      console.log('HotelsPage: Provider rotation result:', result);
+      const results = await unifiedSearchOrchestrator.orchestrateMultiServiceSearch([searchRequest]);
 
-      if (result.success && result.data) {
-        let hotelData = result.data.hotels || result.data.data || [];
-        
-        // Normalize hotel data from different providers
-        hotelData = await Promise.all(hotelData.map(async (hotel: any) => {
-        // Get enhanced photos using PhotoRetriever
-        const photoResult = await PhotoRetriever.getHotelPhotos(
-          hotel.id || hotel.hotelId || hotel.code,
-          'auto',
-          true
-        );
-        const photos = photoResult.success ? photoResult.photos : [];
+      console.log('HotelsPage: Unified search results:', results);
 
-          return {
-            ...hotel,
-            id: hotel.id || hotel.hotelId || hotel.code || Math.random().toString(),
-            name: hotel.name || 'Unknown Hotel',
-            location: hotel.location || hotel.address?.city || destination,
-            rating: hotel.rating || hotel.starRating || 0,
-            price: hotel.price || hotel.pricing?.netAmount || hotel.minRate || 0,
-            currency: hotel.currency || hotel.price?.currency || 'AUD',
-            images: photos.length > 0 ? photos : (hotel.images || []),
-            amenities: hotel.amenities || [],
-            distance: hotel.distance || null,
-            source: hotel.source || 'unknown'
-          };
-        }));
+      if (results.length > 0) {
+        const hotelResult = results[0];
         
-        setHotels(hotelData);
-        
-        if (hotelData.length === 0) {
-          setError('No hotels found for your search criteria. Please try different dates or destinations.');
+        if (hotelResult.success && hotelResult.data) {
+          // Handle enhanced response structure
+          let hotelData = hotelResult.data.hotels || hotelResult.data.data || hotelResult.data || [];
+          
+          // Normalize hotel data from different providers
+          hotelData = await Promise.all(hotelData.map(async (hotel: any) => {
+            // Get enhanced photos using PhotoRetriever
+            const photoResult = await PhotoRetriever.getHotelPhotos(
+              hotel.id || hotel.hotelId || hotel.code,
+              'auto',
+              true
+            );
+            const photos = photoResult.success ? photoResult.photos : [];
+
+            return {
+              ...hotel,
+              id: hotel.id || hotel.hotelId || hotel.code || Math.random().toString(),
+              name: hotel.name || 'Unknown Hotel',
+              location: hotel.location || hotel.address?.city || destination,
+              rating: hotel.rating || hotel.starRating || 0,
+              price: hotel.price || hotel.pricing?.netAmount || hotel.minRate || 0,
+              currency: hotel.currency || hotel.price?.currency || 'AUD',
+              images: photos.length > 0 ? photos : (hotel.images || []),
+              amenities: hotel.amenities || [],
+              distance: hotel.distance || null,
+              source: hotel.source || 'unified' || 'unknown',
+              searchId
+            };
+          }));
+          
+          setHotels(hotelData);
+          
+          if (hotelData.length === 0) {
+            setError('No hotels found for your search criteria. Please try different dates or destinations.');
+          }
+        } else {
+          console.error('HotelsPage: Hotel result failed:', hotelResult.error);
+          setError(hotelResult.error || 'Unable to search hotels at this time');
+          setHotels([]);
         }
       } else {
-        console.error('HotelsPage: Search failed:', result.error);
-        setError(result.error || 'Unable to search hotels at this time');
+        console.error('HotelsPage: Unified search failed: No results');
+        setError('Unable to search hotels at this time');
         setHotels([]);
       }
 
@@ -277,9 +309,9 @@ const HotelsPage = () => {
               <Button 
                 onClick={handleHotelSearch} 
                 className="w-full mt-4"
-                disabled={isLoading}
+                disabled={searchState.isLoading}
               >
-                {isLoading ? "Searching..." : "Search Hotels"}
+                {searchState.isLoading ? "Searching..." : "Search Hotels"}
               </Button>
             </CardContent>
           </Card>
@@ -300,8 +332,79 @@ const HotelsPage = () => {
                 </div>
               )}
 
+              {/* Enhanced Search Components */}
+              {!searchState.isLoading && !error && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                  <PersonalizedSearchExperience
+                    searchType="hotel"
+                    currentSearch={{
+                      destination,
+                      checkInDate,
+                      checkOutDate,
+                      guests,
+                      rooms
+                    }}
+                    onRecommendationSelect={(rec) => {
+                      console.log('Hotel recommendation selected:', rec);
+                      toast({
+                        title: "Recommendation Applied",
+                        description: `Applied ${rec.action} filter to your search`
+                      });
+                    }}
+                  />
+                  <PredictiveSearchSuggestions
+                    searchType="hotel"
+                    currentLocation={destination}
+                    onSuggestionSelect={(suggestion) => {
+                      console.log('Hotel suggestion selected:', suggestion);
+                      setDestination(suggestion.destination || suggestion.name);
+                    }}
+                  />
+                  <ContextAwareRecommendations
+                    searchType="hotel"
+                  currentContext={{
+                    destination,
+                    dates: { start: checkInDate || new Date(), end: checkOutDate || new Date() },
+                    travelers: { adults: guests, children: 0 },
+                    tripPurpose: 'leisure'
+                  }}
+                    onRecommendationSelect={(rec) => {
+                      console.log('Context recommendation selected:', rec);
+                      toast({
+                        title: "Recommendation Applied",
+                        description: rec.title
+                      });
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Real-time Search Progress */}
+              {searchState.isLoading && (
+                <div className="mb-6 text-center">
+                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Searching for hotels...</p>
+                </div>
+              )}
+
+              {/* Adaptive Results Ranking */}
+              {hotels.length > 0 && !searchState.isLoading && (
+                <AdaptiveResultsRanking
+                  results={hotels}
+                  searchParams={{
+                    destination,
+                    checkInDate: checkInDate ? format(checkInDate, 'yyyy-MM-dd') : '',
+                    checkOutDate: checkOutDate ? format(checkOutDate, 'yyyy-MM-dd') : '',
+                    guests,
+                    rooms
+                  }}
+                  searchType="hotel"
+                  onRankingComplete={setRankedHotels}
+                />
+              )}
+
               {/* Loading State */}
-              {isLoading && (
+              {searchState.isLoading && (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
                   <h3 className="text-xl font-semibold mb-2">Finding hotels...</h3>
@@ -310,7 +413,7 @@ const HotelsPage = () => {
               )}
 
               {/* Error State */}
-              {error && !isLoading && (
+              {error && !searchState.isLoading && (
                 <Card className="p-12 text-center">
                   <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">Search Error</h3>
@@ -322,9 +425,9 @@ const HotelsPage = () => {
               )}
 
               {/* Hotels Grid */}
-              {!isLoading && !error && hotels.length > 0 && (
+              {!searchState.isLoading && !error && hotels.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {hotels.map((hotel) => (
+                  {(rankedHotels.length > 0 ? rankedHotels : hotels).map((hotel) => (
                     <Card key={hotel.id} className="hover:shadow-lg transition-shadow">
                       {/* Hotel Image */}
                       {hotel.images && hotel.images[0] && (
@@ -407,7 +510,7 @@ const HotelsPage = () => {
           )}
 
           {/* No Search Performed Yet */}
-          {!hasSearched && !isLoading && (
+          {!hasSearched && !searchState.isLoading && (
             <div className="text-center py-12">
               <div className="space-y-4">
                 <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
