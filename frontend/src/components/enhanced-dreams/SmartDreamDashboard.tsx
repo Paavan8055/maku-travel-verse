@@ -586,7 +586,7 @@ export const SmartDreamDashboard: React.FC = () => {
                 {/* AI Recommendations */}
                 <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                   <IntelligentRecommendationsGrid
-                    recommendations={recommendations}
+                    recommendations={intelligentRecommendations}
                     loading={aiLoading}
                     onRefresh={refreshRecommendations}
                   />
