@@ -60,6 +60,7 @@ export const SmartDreamDashboard: React.FC = () => {
   const [currentJourney, setCurrentJourney] = useState<PersonalJourney | null>(null);
   const [excitementLevel, setExcitementLevel] = useState(85);
   const [journeyName, setJourneyName] = useState('');
+  const [aiEnabled, setAiEnabled] = useState(true);
 
   const {
     destinations,
@@ -70,6 +71,17 @@ export const SmartDreamDashboard: React.FC = () => {
   } = useEnhancedDreams({
     includeAIContext: true
   });
+
+  const {
+    travelDNA,
+    recommendations,
+    predictiveInsights,
+    loading: aiLoading,
+    error: aiError,
+    refreshTravelDNA,
+    refreshRecommendations,
+    refreshPredictiveInsights
+  } = useAIIntelligence();
 
   const companions: TravelCompanion[] = [
     {
