@@ -38,21 +38,27 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
       const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-tech-audit.preview.emergentagent.com';
       
       try {
-        const apiResponse = await fetch(`${backendUrl}/api/enhanced-dreams/destinations?${new URLSearchParams({
-          ...(user?.id && { user_id: user.id }),
-          ...(options.limit && { limit: options.limit.toString() }),
-          ...(options.category && { category: options.category }),
-          ...(options.continent && { continent: options.continent }),
-          include_ai_context: (options.includeAIContext || false).toString(),
-        })}`);
+        const params = new URLSearchParams();
+        if (user?.id) params.append('user_id', user.id);
+        if (options.limit) params.append('limit', options.limit.toString());
+        if (options.category) params.append('category', options.category);
+        if (options.continent) params.append('continent', options.continent);
+        params.append('include_ai_context', (options.includeAIContext || false).toString());
+        
+        const apiResponse = await fetch(`${backendUrl}/api/enhanced-dreams/destinations?${params}`);
         
         if (apiResponse.ok) {
           const response = await apiResponse.json();
-          setDestinations(response.destinations || []);
-          return;
+          if (response.destinations) {
+            setDestinations(response.destinations);
+            return;
+          }
+        } else {
+          throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
         }
       } catch (apiError) {
-        console.warn('Backend API not available, falling back to service:', apiError);
+        console.warn('Backend API error, falling back to service:', apiError);
+        setError(`API Error: ${apiError.message}`);
       }
 
       // Fallback to local service
