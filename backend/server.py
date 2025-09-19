@@ -182,13 +182,45 @@ async def get_enhanced_destinations(
                 "name": "Santorini",
                 "country": "Greece",
                 "continent": "Europe",
+                "latitude": 36.3932,
+                "longitude": 25.4615,
                 "category": "beaches",
-                "description": "Beautiful Greek island with stunning sunsets",
+                "description": "Beautiful Greek island with stunning sunsets and iconic blue-domed churches",
+                "best_time_to_visit": "April to November",
+                "budget_range": "mid_range",
+                "avg_daily_cost": 120,
+                "highlights": ["Stunning sunsets", "Blue-domed churches", "Volcanic beaches", "Wine tasting"],
                 "rarity_score": 75,
                 "social_popularity": 120,
+                "user_generated_tags": ["romantic", "photography", "sunset", "wine"],
                 "personality_match_factors": [
                     {"factor": "photography", "weight": 0.9, "confidence": 0.8},
                     {"factor": "relaxation", "weight": 0.8, "confidence": 0.9}
+                ],
+                "optimal_seasons": [
+                    {
+                        "season": "summer",
+                        "suitability_score": 95,
+                        "weather_description": "Perfect warm weather",
+                        "crowd_level": "high",
+                        "price_level": "high"
+                    }
+                ],
+                "crowd_patterns": [
+                    {
+                        "month": 7,
+                        "crowd_level": 90,
+                        "local_events": ["Santorini Arts Festival"],
+                        "tourist_density": "extreme"
+                    }
+                ],
+                "price_volatility": [
+                    {
+                        "month": 7,
+                        "price_index": 1.4,
+                        "volatility": 0.2,
+                        "booking_window_optimal": 60
+                    }
                 ],
                 "community_rating": {
                     "overall_score": 4.6,
@@ -200,7 +232,10 @@ async def get_enhanced_destinations(
                         "uniqueness": 4.9,
                         "local_culture": 4.4
                     }
-                }
+                },
+                "conversion_rate": 0.18,
+                "engagement_score": 0.82,
+                "seasonal_interest": [0.3, 0.4, 0.6, 0.8, 0.9, 1.0, 1.0, 0.95, 0.8, 0.5, 0.3, 0.2]
             },
             {
                 "id": str(uuid.uuid4()),
