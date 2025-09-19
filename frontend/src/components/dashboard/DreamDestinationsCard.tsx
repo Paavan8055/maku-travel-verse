@@ -123,7 +123,7 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate('/ai-intelligence')}
+              onClick={() => navigate('/smart-dreams')}
               className="text-xs px-2 py-1 h-6"
             >
               <Brain className="h-3 w-3 mr-1" />
