@@ -26,13 +26,13 @@ class EnhancedDreamService {
     try {
       const startTime = Date.now();
       
-      // Base query for destinations
+      // Base query for destinations (only select existing columns)
       let query = supabase
         .from('dream_destinations')
         .select(`
-          id, name, country, continent, latitude, longitude, category,
+          id, name, country, continent, category,
           description, best_time_to_visit, budget_range, avg_daily_cost,
-          highlights, rarity_score, social_popularity, user_generated_tags
+          highlights
         `);
 
       // Apply filters
