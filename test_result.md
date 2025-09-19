@@ -229,9 +229,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CTO Analysis Report Completion"
-    - "Environment Management System"
-  stuck_tasks: []
+    - "Smart Dreams Hub with Integrated AI Intelligence"
+  stuck_tasks:
+    - "Smart Dreams Hub with Integrated AI Intelligence"
   test_all: false
   test_priority: "high_first"
 
