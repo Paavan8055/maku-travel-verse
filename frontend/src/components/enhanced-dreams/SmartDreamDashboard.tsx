@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
   Filter, 
@@ -15,13 +16,26 @@ import {
   Brain,
   Users,
   Settings,
-  RefreshCw
+  RefreshCw,
+  Target,
+  Lightbulb,
+  Plane,
+  Star,
+  Zap,
+  AlertTriangle,
+  Clock,
+  DollarSign
 } from 'lucide-react';
 
 import { UserInsightsPanel } from './UserInsightsPanel';
 import { EnhancedDreamGrid } from './EnhancedDreamGrid';
 import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
+import { TravelDNACard } from '../ai-intelligence/TravelDNACard';
+import { IntelligentRecommendationsGrid } from '../ai-intelligence/IntelligentRecommendationsGrid';
+import { PredictiveInsightsPanel } from '../ai-intelligence/PredictiveInsightsPanel';
+import { JourneyOptimizerCard } from '../ai-intelligence/JourneyOptimizerCard';
 import { useEnhancedDreams } from '@/hooks/useEnhancedDreams';
+import { useAIIntelligence } from '@/hooks/useAIIntelligence';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { EnhancedDestination } from '@/types/enhanced-dream-types';
 
