@@ -42,7 +42,7 @@ const getTravelTypeDescription = (type: string) => {
     'cultural_explorer': 'You love discovering history, art, and local traditions',
     'adventurer': 'You seek thrilling experiences and outdoor challenges',
     'luxury_seeker': 'You prefer premium experiences and high-end accommodations',
-    'budget_traveler': 'You're skilled at finding great value and authentic experiences',
+    'budget_traveler': 'You are skilled at finding great value and authentic experiences',
     'photographer': 'You travel to capture stunning visuals and unique perspectives',
     'foodie': 'You explore destinations through their culinary landscapes',
     'relaxation_seeker': 'You travel to unwind and rejuvenate',
