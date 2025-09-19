@@ -25,10 +25,22 @@ interface DreamDestinationsCardProps {
 }
 
 export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ onExplore }) => {
+  const navigate = useNavigate();
   const { destinations, loading, error, viewDestination } = useEnhancedDreams({ 
     limit: 10,
     includeAIContext: true 
   });
+
+  // Get AI intelligence data
+  const {
+    travelDNA,
+    intelligentRecommendations,
+    highConfidenceRecommendations,
+    urgentRecommendations,
+    socialRecommendations,
+    loading: aiLoading,
+    confidenceScore
+  } = useAIIntelligence();
 
   // Convert enhanced destinations to legacy format for compatibility
   const legacyDestinations: DreamDestination[] = destinations.map(dest => ({
@@ -40,6 +52,55 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
     highlights: dest.highlights,
     continent: dest.continent,
   }));
+
+  // Get AI-enhanced destination data
+  const getAIEnhancedDestinations = () => {
+    if (!intelligentRecommendations.length) return legacyDestinations.slice(0, 6);
+    
+    // Merge AI recommendations with existing destinations
+    const aiDestinations = intelligentRecommendations.slice(0, 3).map(rec => ({
+      id: rec.destination_id,
+      name: rec.destination_name,
+      country: rec.country,
+      category: 'ai_recommended',
+      avg_daily_cost: null,
+      highlights: rec.recommendation_reasons.map(r => r.reason_text),
+      continent: rec.continent,
+      aiScore: rec.recommendation_score,
+      urgencyScore: rec.urgency_score,
+      socialProof: rec.social_proof.friends_visited_count + rec.social_proof.friends_planning_count,
+      isAIRecommended: true
+    }));
+
+    // Combine with regular destinations
+    const regularDestinations = legacyDestinations.slice(0, 3);
+    return [...aiDestinations, ...regularDestinations];
+  };
+
+  const enhancedDestinations = getAIEnhancedDestinations();
+
+  const getDestinationIcon = (category: string) => {
+    if (category === 'ai_recommended') return <Brain className="h-3 w-3 text-purple-500" />;
+    switch (category) {
+      case 'cultural': return <Target className="h-3 w-3 text-blue-500" />;
+      case 'beaches': return <MapPin className="h-3 w-3 text-cyan-500" />;
+      case 'mountains': return <TrendingUp className="h-3 w-3 text-green-500" />;
+      default: return <MapPin className="h-3 w-3 text-gray-500" />;
+    }
+  };
+
+  const getPriorityBadge = (destination: any) => {
+    if (destination.isAIRecommended) {
+      if (destination.urgencyScore >= 80) {
+        return <Badge variant="destructive" className="text-xs">High Priority</Badge>;
+      } else if (destination.urgencyScore >= 60) {
+        return <Badge variant="outline" className="text-xs border-orange-300 text-orange-600">Trending</Badge>;
+      } else if (destination.aiScore >= 90) {
+        return <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">AI Pick</Badge>;
+      }
+    }
+    return null;
+  };
 
   return (
     <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm border border-border/50">
