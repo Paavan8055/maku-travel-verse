@@ -74,13 +74,13 @@ export const SmartDreamDashboard: React.FC = () => {
 
   const {
     travelDNA,
-    recommendations,
+    intelligentRecommendations,
     predictiveInsights,
     loading: aiLoading,
     error: aiError,
-    refreshTravelDNA,
-    refreshRecommendations,
-    refreshPredictiveInsights
+    analyzeTravelDNA: refreshTravelDNA,
+    getIntelligentRecommendations: refreshRecommendations,
+    getPredictiveInsights: refreshPredictiveInsights
   } = useAIIntelligence();
 
   const companions: TravelCompanion[] = [
