@@ -233,8 +233,7 @@ metadata:
 test_plan:
   current_focus:
     - "Smart Dreams Hub with Integrated AI Intelligence"
-  stuck_tasks:
-    - "Smart Dreams Hub with Integrated AI Intelligence"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
