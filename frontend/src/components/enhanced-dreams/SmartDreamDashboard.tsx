@@ -20,6 +20,7 @@ import {
 
 import { UserInsightsPanel } from './UserInsightsPanel';
 import { EnhancedDreamGrid } from './EnhancedDreamGrid';
+import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
 import { useEnhancedDreams } from '@/hooks/useEnhancedDreams';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { EnhancedDestination } from '@/types/enhanced-dream-types';
