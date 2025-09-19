@@ -48,6 +48,7 @@ export const SmartDreamDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('discover');
   const [showAIInsights, setShowAIInsights] = useState(true);
 
+  // Enhanced Dreams hook
   const {
     destinations,
     userProfile,
@@ -62,6 +63,33 @@ export const SmartDreamDashboard: React.FC = () => {
   } = useEnhancedDreams({
     category: selectedCategory !== 'all' ? selectedCategory : undefined,
     continent: selectedContinent !== 'all' ? selectedContinent : undefined,
+    includeAIContext: true
+  });
+
+  // AI Intelligence hook
+  const {
+    travelDNA,
+    intelligentRecommendations,
+    predictiveInsights,
+    currentJourney,
+    loading: aiLoading,
+    analyzingDNA,
+    optimizingJourney,
+    error: aiError,
+    aiProcessingTime,
+    confidenceScore,
+    lastAnalysisDate,
+    highConfidenceRecommendations,
+    urgentRecommendations,
+    socialRecommendations,
+    actionableInsights,
+    analyzeTravelDNA,
+    getIntelligentRecommendations,
+    optimizeJourney,
+    getPredictiveInsights,
+    submitRecommendationFeedback,
+    getRecommendationExplanation
+  } = useAIIntelligence();
     includeAIContext: showAIInsights,
     limit: 50,
   });
