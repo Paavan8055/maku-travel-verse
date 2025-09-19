@@ -533,6 +533,422 @@ async def update_dream_collection(update: DreamCollectionUpdate):
         logger.error(f"Failed to update collection: {e}")
         return {"error": f"Failed to update collection: {str(e)}"}
 
+# Gamification API Endpoints
+
+@api_router.get("/gamification/stats/{user_id}")
+async def get_user_game_stats(user_id: str):
+    """Get comprehensive user gamification statistics"""
+    try:
+        # Mock comprehensive game stats for Phase 2
+        mock_stats = {
+            "user_id": user_id,
+            "level": 4,
+            "total_points": 2847,
+            "destinations_collected": 23,
+            "continents_unlocked": 5,
+            "achievements_unlocked": 12,
+            "current_streak": 7,
+            "longest_streak": 15,
+            "rarity_score": 342,
+            "social_score": 156,
+            "exploration_rank": 847,
+            "last_activity": datetime.utcnow().isoformat(),
+            "category_stats": {
+                "beaches": {"count": 8, "average_rarity": 65, "completion_percentage": 32},
+                "cultural": {"count": 7, "average_rarity": 45, "completion_percentage": 28},
+                "adventure": {"count": 5, "average_rarity": 78, "completion_percentage": 20},
+                "mountains": {"count": 3, "average_rarity": 82, "completion_percentage": 12}
+            },
+            "continent_progress": {
+                "Europe": {"destinations_count": 9, "completion_percentage": 18, "rare_destinations_count": 2},
+                "Asia": {"destinations_count": 7, "completion_percentage": 14, "rare_destinations_count": 3},
+                "North America": {"destinations_count": 4, "completion_percentage": 8, "rare_destinations_count": 1},
+                "South America": {"destinations_count": 2, "completion_percentage": 4, "rare_destinations_count": 1},
+                "Africa": {"destinations_count": 1, "completion_percentage": 2, "rare_destinations_count": 1}
+            }
+        }
+        
+        return mock_stats
+        
+    except Exception as e:
+        logger.error(f"Failed to get user game stats: {e}")
+        return {"error": f"Failed to get user game stats: {str(e)}"}
+
+@api_router.get("/gamification/achievements/{user_id}")
+async def get_user_achievements(user_id: str):
+    """Get user's achievements with progress"""
+    try:
+        mock_achievements = [
+            {
+                "id": "first_steps",
+                "name": "First Steps",
+                "description": "Add your first dream destination",
+                "category": "explorer",
+                "icon": "🎯",
+                "progress": 100,
+                "max_progress": 1,
+                "unlocked": True,
+                "unlocked_at": "2024-01-15T10:30:00Z",
+                "rarity": "common",
+                "points_value": 50,
+                "requirements": [{"type": "destinations_count", "target_value": 1, "current_value": 23}],
+                "reward_type": "points"
+            },
+            {
+                "id": "continental_explorer",
+                "name": "Continental Explorer",
+                "description": "Collect destinations from 5 different continents",
+                "category": "explorer",
+                "icon": "🌍",
+                "progress": 100,
+                "max_progress": 5,
+                "unlocked": True,
+                "unlocked_at": "2024-02-20T15:45:00Z",
+                "rarity": "rare",
+                "points_value": 200,
+                "requirements": [{"type": "continents_count", "target_value": 5, "current_value": 5}],
+                "reward_type": "badge"
+            },
+            {
+                "id": "hidden_gems",
+                "name": "Hidden Gems Hunter",
+                "description": "Discover 3 legendary rarity destinations",
+                "category": "adventurer",
+                "icon": "💎",
+                "progress": 67,
+                "max_progress": 3,
+                "unlocked": False,
+                "rarity": "epic",
+                "points_value": 500,
+                "requirements": [{"type": "rare_destinations", "target_value": 3, "current_value": 2}],
+                "reward_type": "feature_unlock",
+                "reward_value": "advanced_search"
+            },
+            {
+                "id": "social_butterfly",
+                "name": "Social Butterfly",
+                "description": "Connect with 10 travel buddies",
+                "category": "social",
+                "icon": "👥",
+                "progress": 30,
+                "max_progress": 10,
+                "unlocked": False,
+                "rarity": "common",
+                "points_value": 150,
+                "requirements": [{"type": "social_interactions", "target_value": 10, "current_value": 3}],
+                "reward_type": "points"
+            },
+            {
+                "id": "streak_master",
+                "name": "Streak Master",
+                "description": "Maintain a 30-day discovery streak",
+                "category": "planner",
+                "icon": "🔥",
+                "progress": 23,
+                "max_progress": 30,
+                "unlocked": False,
+                "rarity": "epic",
+                "points_value": 750,
+                "requirements": [{"type": "streak_days", "target_value": 30, "current_value": 7}],
+                "reward_type": "discount",
+                "reward_value": 15
+            }
+        ]
+        
+        return mock_achievements
+        
+    except Exception as e:
+        logger.error(f"Failed to get user achievements: {e}")
+        return {"error": f"Failed to get user achievements: {str(e)}"}
+
+@api_router.post("/gamification/achievements/check")
+async def check_achievement_progress(request_data: dict):
+    """Check for achievement unlocks after user action"""
+    try:
+        user_id = request_data.get("user_id")
+        action_type = request_data.get("action_type")
+        action_data = request_data.get("action_data", {})
+        
+        # Mock achievement checking logic
+        newly_unlocked = []
+        progress_updates = []
+        points_earned = 0
+        
+        if action_type == "destination_bookmarked":
+            total_destinations = action_data.get("total_destinations", 1)
+            
+            # Check for milestone achievements
+            if total_destinations == 10:
+                newly_unlocked.append({
+                    "id": "dream_collector",
+                    "name": "Dream Collector",
+                    "description": "Collect 10 dream destinations",
+                    "category": "explorer",
+                    "icon": "🏆",
+                    "progress": 100,
+                    "max_progress": 10,
+                    "unlocked": True,
+                    "unlocked_at": datetime.utcnow().isoformat(),
+                    "rarity": "common",
+                    "points_value": 100,
+                    "requirements": [{"type": "destinations_count", "target_value": 10, "current_value": 10}],
+                    "reward_type": "points"
+                })
+                points_earned += 100
+            
+            elif total_destinations == 25:
+                newly_unlocked.append({
+                    "id": "quarter_century",
+                    "name": "Quarter Century Explorer",
+                    "description": "Collect 25 dream destinations",
+                    "category": "explorer",
+                    "icon": "🌟",
+                    "progress": 100,
+                    "max_progress": 25,
+                    "unlocked": True,
+                    "unlocked_at": datetime.utcnow().isoformat(),
+                    "rarity": "rare",
+                    "points_value": 250,
+                    "requirements": [{"type": "destinations_count", "target_value": 25, "current_value": 25}],
+                    "reward_type": "points"
+                })
+                points_earned += 250
+                
+                # Level up check
+                if total_destinations >= 25:
+                    return {
+                        "newly_unlocked": newly_unlocked,
+                        "progress_updates": progress_updates,
+                        "points_earned": points_earned,
+                        "level_up": {
+                            "old_level": 3,
+                            "new_level": 4,
+                            "rewards_unlocked": ["Advanced search filters", "Priority support"]
+                        }
+                    }
+        
+        return {
+            "newly_unlocked": newly_unlocked,
+            "progress_updates": progress_updates,
+            "points_earned": points_earned
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to check achievements: {e}")
+        return {"error": f"Failed to check achievements: {str(e)}"}
+
+@api_router.get("/gamification/leaderboards")
+async def get_leaderboards(types: str = "global,weekly"):
+    """Get leaderboards of specified types"""
+    try:
+        leaderboard_types = types.split(",")
+        leaderboards = []
+        
+        if "global" in leaderboard_types:
+            leaderboards.append({
+                "id": "global_explorer",
+                "name": "Global Explorers",
+                "description": "Top dream collectors worldwide",
+                "type": "global",
+                "entries": [
+                    {
+                        "user_id": "user_1",
+                        "username": "WanderlustMike",
+                        "avatar_url": None,
+                        "score": 5420,
+                        "rank": 1,
+                        "change_from_last_week": 2,
+                        "badges": ["🌍", "💎", "🏆"],
+                        "specialization": "Adventure Seeker"
+                    },
+                    {
+                        "user_id": "user_2",
+                        "username": "CulturalExplorer",
+                        "avatar_url": None,
+                        "score": 4890,
+                        "rank": 2,
+                        "change_from_last_week": -1,
+                        "badges": ["🏛️", "🎭", "📚"],
+                        "specialization": "Cultural Explorer"
+                    },
+                    {
+                        "user_id": "user_3",
+                        "username": "BeachHopper",
+                        "avatar_url": None,
+                        "score": 4350,
+                        "rank": 3,
+                        "change_from_last_week": 3,
+                        "badges": ["🏖️", "🌊", "☀️"],
+                        "specialization": "Beach Lover"
+                    }
+                ],
+                "user_rank": 847,
+                "total_participants": 12453,
+                "updated_at": datetime.utcnow().isoformat()
+            })
+        
+        if "weekly" in leaderboard_types:
+            leaderboards.append({
+                "id": "weekly_stars",
+                "name": "Weekly Rising Stars",
+                "description": "Top performers this week",
+                "type": "weekly",
+                "entries": [
+                    {
+                        "user_id": "user_4",
+                        "username": "WeeklyWinner",
+                        "avatar_url": None,
+                        "score": 1250,
+                        "rank": 1,
+                        "change_from_last_week": 15,
+                        "badges": ["⭐", "🚀", "💪"],
+                        "specialization": "Rising Explorer"
+                    }
+                ],
+                "user_rank": 45,
+                "total_participants": 3204,
+                "updated_at": datetime.utcnow().isoformat(),
+                "ends_at": (datetime.utcnow().replace(hour=23, minute=59, second=59) + timedelta(days=7-datetime.utcnow().weekday())).isoformat()
+            })
+        
+        return leaderboards
+        
+    except Exception as e:
+        logger.error(f"Failed to get leaderboards: {e}")
+        return {"error": f"Failed to get leaderboards: {str(e)}"}
+
+@api_router.get("/gamification/challenges/{user_id}")
+async def get_user_challenges(user_id: str):
+    """Get available and active challenges for user"""
+    try:
+        challenges = [
+            {
+                "id": "march_explorer",
+                "title": "March Explorer Challenge",
+                "description": "Discover 5 new dream destinations this month",
+                "type": "individual",
+                "category": "exploration",
+                "difficulty": "medium", 
+                "target_metric": "destinations_count",
+                "target_value": 5,
+                "current_progress": 2,
+                "duration_days": 31,
+                "starts_at": "2024-03-01T00:00:00Z",
+                "ends_at": "2024-03-31T23:59:59Z",
+                "points_reward": 250,
+                "badge_reward": "🌟",
+                "participants_count": 1247,
+                "is_participating": True,
+                "status": "active"
+            },
+            {
+                "id": "social_connector",
+                "title": "Social Connector",
+                "description": "Add 3 travel buddies and share 5 destinations",
+                "type": "individual",
+                "category": "social",
+                "difficulty": "easy",
+                "target_metric": "social_interactions",
+                "target_value": 8,
+                "current_progress": 0,
+                "duration_days": 14,
+                "starts_at": datetime.utcnow().isoformat(),
+                "ends_at": (datetime.utcnow() + timedelta(days=14)).isoformat(),
+                "points_reward": 150,
+                "badge_reward": "👥",
+                "participants_count": 856,
+                "is_participating": False,
+                "status": "active"
+            }
+        ]
+        
+        return challenges
+        
+    except Exception as e:
+        logger.error(f"Failed to get challenges: {e}")
+        return {"error": f"Failed to get challenges: {str(e)}"}
+
+@api_router.get("/social/activity/{user_id}")
+async def get_social_activity(user_id: str, limit: int = 20):
+    """Get social activity feed for user"""
+    try:
+        activities = [
+            {
+                "id": "activity_1",
+                "user_id": "friend_1",
+                "username": "AdventureAnna",
+                "avatar_url": None,
+                "activity_type": "destination_added",
+                "activity_data": {"destination_name": "Mount Kilimanjaro"},
+                "visibility": "public",
+                "likes_count": 12,
+                "comments_count": 3,
+                "created_at": "2024-03-01T10:30:00Z",
+                "is_liked_by_user": False
+            },
+            {
+                "id": "activity_2", 
+                "user_id": "friend_2",
+                "username": "CultureSeeker",
+                "avatar_url": None,
+                "activity_type": "achievement_unlocked",
+                "activity_data": {"achievement_name": "Cultural Master"},
+                "visibility": "friends",
+                "likes_count": 8,
+                "comments_count": 1,
+                "created_at": "2024-02-28T15:45:00Z",
+                "is_liked_by_user": True
+            },
+            {
+                "id": "activity_3",
+                "user_id": "friend_3", 
+                "username": "LevelUpLegend",
+                "avatar_url": None,
+                "activity_type": "level_up",
+                "activity_data": {"level": 5},
+                "visibility": "public",
+                "likes_count": 15,
+                "comments_count": 4,
+                "created_at": "2024-02-27T09:15:00Z",
+                "is_liked_by_user": False
+            }
+        ]
+        
+        return activities[:limit]
+        
+    except Exception as e:
+        logger.error(f"Failed to get social activity: {e}")
+        return {"error": f"Failed to get social activity: {str(e)}"}
+
+@api_router.post("/gamification/challenges/{challenge_id}/join")
+async def join_challenge(challenge_id: str, request_data: dict):
+    """Join a challenge"""
+    try:
+        user_id = request_data.get("user_id")
+        
+        # Mock challenge joining
+        logger.info(f"User {user_id} joined challenge {challenge_id}")
+        
+        return {
+            "success": True,
+            "message": f"Successfully joined the challenge! Good luck reaching your goal."
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to join challenge: {e}")
+        return {"success": False, "message": f"Failed to join challenge: {str(e)}"}
+
+@api_router.post("/gamification/events")
+async def track_game_event(event_data: dict):
+    """Track gamification events"""
+    try:
+        logger.info(f"Game event tracked: {event_data}")
+        return {"success": True}
+        
+    except Exception as e:
+        logger.error(f"Failed to track game event: {e}")
+        return {"success": False}
+
 # Include the router in the main app
 app.include_router(api_router)
 
