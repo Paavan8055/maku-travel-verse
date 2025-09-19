@@ -26,7 +26,12 @@ import {
 } from 'lucide-react';
 
 import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
+import { TravelDNACard } from '../ai-intelligence/TravelDNACard';
+import { IntelligentRecommendationsGrid } from '../ai-intelligence/IntelligentRecommendationsGrid'; 
+import { PredictiveInsightsPanel } from '../ai-intelligence/PredictiveInsightsPanel';
+import { JourneyOptimizerCard } from '../ai-intelligence/JourneyOptimizerCard';
 import { useEnhancedDreams } from '@/hooks/useEnhancedDreams';
+import { useAIIntelligence } from '@/hooks/useAIIntelligence';
 
 interface TravelCompanion {
   type: 'solo' | 'partner' | 'friends' | 'family';
