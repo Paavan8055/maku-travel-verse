@@ -417,4 +417,4 @@ export const SmartDreamDashboardNew: React.FC = () => {
   );
 };
 
-export default SmartDreamDashboard;
+export default SmartDreamDashboardNew;
