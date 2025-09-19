@@ -29,7 +29,7 @@ import { useAIIntelligence } from '@/hooks/useAIIntelligence';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { EnhancedDestination } from '@/types/enhanced-dream-types';
 
-export const SmartDreamDashboard: React.FC = () => {
+export const SmartDreamDashboardNew: React.FC = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
