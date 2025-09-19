@@ -225,6 +225,16 @@ export const SmartDreamDashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-4">
+              {aiEnabled && (
+                <div className="flex items-center space-x-2 text-white">
+                  <Brain className="h-5 w-5 text-blue-400" />
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-blue-300">{travelDNA ? Math.round(travelDNA.confidence_score * 100) : 0}%</div>
+                    <div className="text-xs">AI Match</div>
+                  </div>
+                </div>
+              )}
+              
               {currentJourney && (
                 <div className="flex items-center space-x-4 text-white">
                   <div className="text-center">
@@ -246,6 +256,16 @@ export const SmartDreamDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-yellow-400">{excitementLevel}%</div>
                 <div className="text-xs text-yellow-200">Excitement</div>
               </div>
+              
+              <Button 
+                onClick={() => setAiEnabled(!aiEnabled)}
+                variant={aiEnabled ? "default" : "outline"}
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <Brain className="h-4 w-4" />
+                <span className="hidden sm:inline">AI {aiEnabled ? 'On' : 'Off'}</span>
+              </Button>
             </div>
           </div>
         </div>
