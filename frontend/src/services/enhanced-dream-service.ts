@@ -50,7 +50,7 @@ class EnhancedDreamService {
       
       if (error) throw error;
 
-      // Enhance destinations with AI-ready data
+      // Enhance destinations with AI-ready data (add missing fields with defaults)
       const enhancedDestinations = await this.enhanceDestinationsWithAIData(destinations || []);
       
       // Get user context if requested
