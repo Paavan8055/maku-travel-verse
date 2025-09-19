@@ -443,7 +443,65 @@ export const SmartDreamDashboard: React.FC = () => {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-4">Build Your Dream Collection</h2>
               <p className="text-purple-200">Add destinations that spark joy and excitement in your journey</p>
+              {aiEnabled && recommendations.length > 0 && (
+                <div className="mt-4">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    {recommendations.length} AI-Recommended Destinations Available
+                  </Badge>
+                </div>
+              )}
             </div>
+
+            {/* AI Recommendations Section */}
+            {aiEnabled && recommendations.length > 0 && (
+              <div className="mb-8">
+                <div className="bg-gradient-to-r from-blue-900/50 via-purple-900/50 to-pink-900/50 border border-blue-500/30 backdrop-blur-xl rounded-2xl p-6">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
+                    <Target className="h-5 w-5 text-blue-400" />
+                    <span>AI-Powered Perfect Matches</span>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {recommendations.slice(0, 3).map((rec, index) => (
+                      <Card key={index} className="bg-black/40 backdrop-blur-xl border-white/10 hover:border-blue-400/50 transition-all duration-500">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-bold text-white">{rec.destination_name}</h4>
+                            <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                              {rec.recommendation_score}% Match
+                            </Badge>
+                          </div>
+                          <p className="text-gray-300 text-sm mb-3">{rec.country}, {rec.continent}</p>
+                          {rec.recommendation_reasons.slice(0, 1).map((reason, reasonIndex) => (
+                            <p key={reasonIndex} className="text-blue-300 text-xs mb-3">{reason.reason_text}</p>
+                          ))}
+                          <Button 
+                            onClick={() => {
+                              const aiDestination = {
+                                id: `ai-${rec.destination_name.toLowerCase().replace(' ', '-')}`,
+                                name: rec.destination_name,
+                                country: rec.country,
+                                image: dreamDestinations[index % dreamDestinations.length].image,
+                                price: Math.floor(Math.random() * 150) + 80,
+                                days: Math.floor(Math.random() * 7) + 3,
+                                excitement: rec.recommendation_score,
+                                perfectFor: ['AI Recommended', 'Perfect Match']
+                              };
+                              addDestinationToJourney(aiDestination);
+                            }}
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-sm"
+                            disabled={!currentJourney}
+                          >
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Add AI Match
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {dreamDestinations.map((destination) => (
