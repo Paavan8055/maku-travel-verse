@@ -428,5 +428,6 @@ export const SmartDreamDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
   );
 };
