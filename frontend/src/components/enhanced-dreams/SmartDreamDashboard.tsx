@@ -193,9 +193,66 @@ export const SmartDreamDashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
+        {/* AI Intelligence Stats Banner */}
+        {showAIInsights && (travelDNA || intelligentRecommendations.length > 0) && (
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-purple-800">AI Intelligence Active</h3>
+                  {travelDNA && (
+                    <Badge variant="outline" className="bg-white border-purple-200">
+                      {Math.round(confidenceScore * 100)}% Match Confidence
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center space-x-4 text-sm">
+                  {intelligentRecommendations.length > 0 && (
+                    <div className="text-blue-600">
+                      <Target className="h-4 w-4 inline mr-1" />
+                      {intelligentRecommendations.length} AI Recommendations
+                    </div>
+                  )}
+                  {actionableInsights.length > 0 && (
+                    <div className="text-orange-600">
+                      <Lightbulb className="h-4 w-4 inline mr-1" />
+                      {actionableInsights.length} Actionable Insights
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Quick AI Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-2 bg-white/50 rounded">
+                  <div className="text-lg font-bold text-blue-600">{highConfidenceRecommendations.length}</div>
+                  <div className="text-xs text-blue-500">High Confidence</div>
+                </div>
+                <div className="text-center p-2 bg-white/50 rounded">
+                  <div className="text-lg font-bold text-orange-600">{urgentRecommendations.length}</div>
+                  <div className="text-xs text-orange-500">Urgent</div>
+                </div>
+                <div className="text-center p-2 bg-white/50 rounded">
+                  <div className="text-lg font-bold text-green-600">{socialRecommendations.length}</div>
+                  <div className="text-xs text-green-500">Social Proof</div>
+                </div>
+                <div className="text-center p-2 bg-white/50 rounded">
+                  <div className="text-lg font-bold text-purple-600">
+                    {predictiveInsights.reduce((sum, insight) => sum + (insight.predicted_value || 0), 0)}
+                  </div>
+                  <div className="text-xs text-purple-500">Potential Savings ($)</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-6 lg:w-[600px]">
             <TabsTrigger value="discover">Discover</TabsTrigger>
+            <TabsTrigger value="ai-dna">Travel DNA</TabsTrigger>
+            <TabsTrigger value="ai-recs">AI Picks</TabsTrigger>
             <TabsTrigger value="insights">Insights</TabsTrigger>
             <TabsTrigger value="social">Social</TabsTrigger>
             <TabsTrigger value="planner">Planner</TabsTrigger>
@@ -298,6 +355,82 @@ export const SmartDreamDashboard: React.FC = () => {
                     )}
                     {selectedContinent !== 'all' && (
                       <Badge variant="secondary">
+                        {continents.find(c => c.value === selectedContinent)?.label}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 ml-1"
+                          onClick={() => handleFilterChange('continent', 'all')}
+                        >
+                          ×
+                        </Button>
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Enhanced Dreams Grid */}
+            <EnhancedDreamGrid
+              destinations={destinations}
+              onDestinationClick={handleDestinationClick}
+              viewMode={viewMode}
+              loading={loading}
+              error={error}
+            />
+          </TabsContent>
+
+          {/* Travel DNA Tab */}
+          <TabsContent value="ai-dna" className="space-y-6">
+            <TravelDNACard 
+              travelDNA={travelDNA}
+              loading={analyzingDNA}
+              onRefresh={() => analyzeTravelDNA(true)}
+            />
+          </TabsContent>
+
+          {/* AI Recommendations Tab */}
+          <TabsContent value="ai-recs" className="space-y-6">
+            <IntelligentRecommendationsGrid 
+              recommendations={intelligentRecommendations}
+              loading={aiLoading}
+              onRefresh={() => getIntelligentRecommendations({ max_results: 20 })}
+            />
+          </TabsContent>
+
+          {/* Insights Tab */}
+          <TabsContent value="insights" className="space-y-6">
+            {showAIInsights ? (
+              <PredictiveInsightsPanel 
+                insights={predictiveInsights}
+                loading={aiLoading}
+                onRefresh={getPredictiveInsights}
+              />
+            ) : (
+              <UserInsightsPanel 
+                userProfile={userProfile}
+                userInsights={userInsights}
+                loading={loading}
+              />
+            )}
+          </TabsContent>
+
+          {/* Social Tab */}
+          <TabsContent value="social" className="space-y-6">
+            <SocialGamificationHub />
+          </TabsContent>
+
+          {/* Planner Tab */}
+          <TabsContent value="planner" className="space-y-6">
+            <JourneyOptimizerCard 
+              currentJourney={currentJourney}
+              optimizing={optimizingJourney}
+              onOptimize={optimizeJourney}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
                         {continents.find(c => c.value === selectedContinent)?.label}
                         <Button
                           variant="ghost"
