@@ -104,6 +104,7 @@ const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
 const EnvironmentManager = createLazyRoute(() => import("./pages/EnvironmentManager"));
 const SmartDreamHub = createLazyRoute(() => import("./components/enhanced-dreams/SmartDreamDashboard").then(m => ({ default: m.SmartDreamDashboard })));
 const AIIntelligenceHub = createLazyRoute(() => import("./pages/ai-intelligence-hub"));
+const AIDemoPage = createLazyRoute(() => import("./pages/ai-demo"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
