@@ -238,6 +238,10 @@ class EnhancedDreamService {
   private async enhanceDestinationsWithAIData(destinations: any[]): Promise<EnhancedDestination[]> {
     return destinations.map(dest => ({
       ...dest,
+      // Add missing fields with defaults (since they don't exist in Supabase yet)
+      latitude: dest.latitude || 0,
+      longitude: dest.longitude || 0,
+      
       // Add AI-ready fields with default values
       personality_match_factors: [
         { factor: 'culture', weight: 0.7, confidence: 0.8 },
@@ -268,6 +272,7 @@ class EnhancedDreamService {
           booking_window_optimal: 45,
         },
       ],
+      // Add missing social/gamification fields with defaults
       rarity_score: dest.rarity_score || Math.floor(Math.random() * 100),
       social_popularity: dest.social_popularity || 0,
       user_generated_tags: dest.user_generated_tags || [],
