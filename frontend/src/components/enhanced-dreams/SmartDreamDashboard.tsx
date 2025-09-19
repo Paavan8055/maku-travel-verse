@@ -423,6 +423,7 @@ export const SmartDreamDashboard: React.FC = () => {
             <JourneyOptimizerCard 
               currentJourney={currentJourney}
               optimizing={optimizingJourney}
+              optimizing={optimizingJourney}
               onOptimize={optimizeJourney}
             />
           </TabsContent>
