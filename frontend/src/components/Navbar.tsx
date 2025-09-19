@@ -140,6 +140,12 @@ const Navbar = () => {
               <span>AI Intelligence</span>
             </Button>
 
+            {/* AI Demo */}
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/ai-demo')} role="menuitem">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <span>AI Demo</span>
+            </Button>
+
             {/* Environment Manager - Development Tool */}
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/environment-manager')} role="menuitem">
               <Settings className="h-4 w-4" aria-hidden="true" />
