@@ -302,13 +302,45 @@ async def get_enhanced_destinations(
                 "name": "Kyoto",
                 "country": "Japan",
                 "continent": "Asia",
+                "latitude": 35.0116,
+                "longitude": 135.7681,
                 "category": "cultural",
-                "description": "Ancient capital of Japan with thousands of temples",
+                "description": "Ancient capital of Japan with thousands of temples and preserved traditions",
+                "best_time_to_visit": "March to May and September to November",
+                "budget_range": "mid_range",
+                "avg_daily_cost": 85,
+                "highlights": ["Fushimi Inari Shrine", "Bamboo Grove", "Traditional geishas", "Tea ceremonies"],
                 "rarity_score": 45,
                 "social_popularity": 89,
+                "user_generated_tags": ["temples", "culture", "traditional", "peaceful"],
                 "personality_match_factors": [
                     {"factor": "culture", "weight": 0.9, "confidence": 0.95},
                     {"factor": "spiritual", "weight": 0.7, "confidence": 0.8}
+                ],
+                "optimal_seasons": [
+                    {
+                        "season": "spring",
+                        "suitability_score": 95,
+                        "weather_description": "Cherry blossom season",
+                        "crowd_level": "high",
+                        "price_level": "high"
+                    }
+                ],
+                "crowd_patterns": [
+                    {
+                        "month": 4,
+                        "crowd_level": 85,
+                        "local_events": ["Cherry Blossom Festival"],
+                        "tourist_density": "high"
+                    }
+                ],
+                "price_volatility": [
+                    {
+                        "month": 4,
+                        "price_index": 1.3,
+                        "volatility": 0.15,
+                        "booking_window_optimal": 45
+                    }
                 ],
                 "community_rating": {
                     "overall_score": 4.7,
@@ -320,7 +352,10 @@ async def get_enhanced_destinations(
                         "uniqueness": 4.6,
                         "local_culture": 5.0
                     }
-                }
+                },
+                "conversion_rate": 0.22,
+                "engagement_score": 0.78,
+                "seasonal_interest": [0.4, 0.5, 0.8, 1.0, 0.9, 0.6, 0.5, 0.6, 0.8, 0.9, 0.8, 0.5]
             }
         ]
         
