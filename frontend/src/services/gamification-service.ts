@@ -14,7 +14,7 @@ import {
 import logger from '@/utils/logger';
 
 class GamificationService {
-  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://social-journey-1.preview.emergentagent.com';
+  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://maku-smart-dreams.preview.emergentagent.com';
 
   /**
    * Get user's comprehensive game statistics

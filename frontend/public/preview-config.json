@@ -3,14 +3,14 @@
     "lovable": {
       "name": "Lovable State",
       "description": "Original state with current features and implementations",
-      "backend_url": "https://social-journey-1.preview.emergentagent.com",
+      "backend_url": "https://maku-smart-dreams.preview.emergentagent.com",
       "source": "lovable",
       "active": true
     },
     "emergent": {
       "name": "Emergent State", 
       "description": "Enhanced state with CTO recommendations and improvements",
-      "backend_url": "https://social-journey-1.preview.emergentagent.com",
+      "backend_url": "https://maku-smart-dreams.preview.emergentagent.com",
       "source": "emergent",
       "active": false
     }
