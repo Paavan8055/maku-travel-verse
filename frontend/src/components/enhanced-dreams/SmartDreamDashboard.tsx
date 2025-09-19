@@ -273,7 +273,7 @@ export const SmartDreamDashboard: React.FC = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-2">
+          <TabsList className="grid w-full grid-cols-6 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-2">
             <TabsTrigger value="my-journey" className="flex items-center space-x-2">
               <Map className="h-4 w-4" />
               <span className="hidden sm:inline">Journey</span>
@@ -281,6 +281,10 @@ export const SmartDreamDashboard: React.FC = () => {
             <TabsTrigger value="dream-destinations" className="flex items-center space-x-2">
               <Heart className="h-4 w-4" />
               <span className="hidden sm:inline">Dreams</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-intelligence" className="flex items-center space-x-2">
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">AI DNA</span>
             </TabsTrigger>
             <TabsTrigger value="achievements" className="flex items-center space-x-2">
               <Trophy className="h-4 w-4" />
