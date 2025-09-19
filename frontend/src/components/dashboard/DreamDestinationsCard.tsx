@@ -109,89 +109,187 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
           <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             Smart Dream Destinations
+            {travelDNA && (
+              <Badge variant="outline" className="text-xs bg-gradient-to-r from-purple-100 to-indigo-100 border-purple-200">
+                <Brain className="h-3 w-3 mr-1" />
+                {Math.round(confidenceScore * 100)}% AI Match
+              </Badge>
+            )}
           </h3>
-          <Badge variant="outline" className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-none text-xs">
-            {legacyDestinations.length} Places
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-none text-xs">
+              {enhancedDestinations.length} Places
+            </Badge>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/ai-intelligence')}
+              className="text-xs px-2 py-1 h-6"
+            >
+              <Brain className="h-3 w-3 mr-1" />
+              AI Hub
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex-1 min-h-0">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+
+        {/* AI Intelligence Stats */}
+        {intelligentRecommendations.length > 0 && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <div className="text-lg font-bold text-blue-600">{highConfidenceRecommendations.length}</div>
+                <div className="text-xs text-blue-500">High Confidence</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-orange-600">{urgentRecommendations.length}</div>
+                <div className="text-xs text-orange-500">Urgent</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-green-600">{socialRecommendations.length}</div>
+                <div className="text-xs text-green-500">Social Proof</div>
+              </div>
             </div>
-          ) : error ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              {error}
+          </div>
+        )}
+
+        {/* Travel DNA Summary */}
+        {travelDNA && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-purple-800">Your Travel DNA</span>
+              <Badge variant="outline" className="text-xs bg-white">
+                {travelDNA.primary_type.replace('_', ' ')}
+              </Badge>
             </div>
-          ) : legacyDestinations.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              No dream destinations found
+            <div className="space-y-1">
+              {travelDNA.personality_factors.slice(0, 2).map((factor, index) => (
+                <div key={index} className="flex items-center justify-between text-xs">
+                  <span className="capitalize text-purple-700">{factor.factor}</span>
+                  <div className="flex items-center gap-2">
+                    <Progress value={factor.weight * 100} className="w-12 h-1" />
+                    <span className="text-purple-600 font-medium">{Math.round(factor.weight * 100)}%</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : (
+          </div>
+        )}
+
+        {loading || aiLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+              <p className="text-sm text-foreground">
+                {aiLoading ? 'AI is analyzing destinations...' : 'Loading dream destinations...'}
+              </p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-destructive text-sm">Failed to load destinations</p>
+          </div>
+        ) : (
+          <div className="flex-1">
             <ScrollArea className="h-full">
-              <div className="space-y-3 pr-4">
-                {legacyDestinations.map((destination, index) => {
-                  const enhancedDest = destinations[index];
-                  return (
-                  <Card key={destination.id} className="group border border-border/50 hover:border-border transition-colors">
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                            <span className="font-semibold text-foreground text-sm truncate">{destination.name}</span>
-                            <span className="text-xs text-muted-foreground">{destination.country}</span>
+              <div className="space-y-3">
+                {enhancedDestinations.map((destination, index) => (
+                  <div 
+                    key={destination.id} 
+                    className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md group ${
+                      destination.isAIRecommended ? 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200' : 'bg-muted/50 border-border'
+                    }`}
+                    onClick={() => onExplore(destination)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {getDestinationIcon(destination.category)}
+                        <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                          {destination.name}
+                        </h4>
+                        {destination.isAIRecommended && (
+                          <div className="flex items-center gap-1">
+                            <Zap className="h-3 w-3 text-yellow-500" />
+                            <span className="text-xs text-purple-600 font-medium">{destination.aiScore}/100</span>
                           </div>
-                          
-                          <div className="flex items-center gap-2 mb-2">
-                            <Star className="h-3 w-3 text-accent fill-accent" />
-                            <span className="text-xs text-muted-foreground">{destination.category}</span>
-                            {destination.avg_daily_cost && (
-                              <span className="text-xs font-medium text-primary">
-                                ${destination.avg_daily_cost}/day
-                              </span>
-                            )}
+                        )}
+                      </div>
+                      {getPriorityBadge(destination)}
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground mb-2">{destination.country}</p>
+                    
+                    {/* AI-enhanced features */}
+                    {destination.isAIRecommended && (
+                      <div className="space-y-2 mb-3">
+                        {destination.socialProof > 0 && (
+                          <div className="flex items-center gap-1 text-xs text-green-600">
+                            <Users className="h-3 w-3" />
+                            {destination.socialProof} friends interested
                           </div>
-                          
-                          {destination.highlights && destination.highlights.length > 0 && (
-                            <div className="flex gap-1 flex-wrap">
-                              {destination.highlights.slice(0, 2).map((highlight, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs px-2 py-0">
-                                  {highlight}
-                                </Badge>
-                              ))}
-                            </div>
+                        )}
+                        {destination.urgencyScore >= 60 && (
+                          <div className="flex items-center gap-1 text-xs text-orange-600">
+                            <Clock className="h-3 w-3" />
+                            Time-sensitive opportunity
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {destination.highlights && destination.highlights.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex flex-wrap gap-1">
+                          {destination.highlights.slice(0, 2).map((highlight, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs py-0 px-2 h-5">
+                              {typeof highlight === 'string' ? highlight.slice(0, 20) + (highlight.length > 20 ? '...' : '') : String(highlight)}
+                            </Badge>
+                          ))}
+                          {destination.highlights.length > 2 && (
+                            <Badge variant="outline" className="text-xs py-0 px-2 h-5">
+                              +{destination.highlights.length - 2}
+                            </Badge>
                           )}
                         </div>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            // Track the view in enhanced system
-                            if (enhancedDest) {
-                              await viewDestination(enhancedDest);
-                            }
-                            onExplore(destination);
-                          }}
-                          className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
-                        >
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-                })}
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      {destination.avg_daily_cost && (
+                        <span className="text-sm font-medium text-primary">
+                          ${destination.avg_daily_cost}/day
+                        </span>
+                      )}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  </div>
+                ))}
               </div>
             </ScrollArea>
-          )}
+          </div>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-border/50">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 text-xs"
+              onClick={() => navigate('/smart-dreams')}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              Explore All
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 text-xs"
+              onClick={() => navigate('/ai-intelligence')}
+            >
+              <Brain className="h-3 w-3 mr-1" />
+              AI Insights
+            </Button>
+          </div>
         </div>
-        
-        <Button variant="outline" className="w-full mt-4 text-sm" onClick={() => {}}>
-          Explore More Destinations
-        </Button>
       </CardContent>
     </Card>
   );
