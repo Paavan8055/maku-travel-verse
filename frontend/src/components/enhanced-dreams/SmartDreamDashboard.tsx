@@ -507,6 +507,67 @@ export const SmartDreamDashboard: React.FC = () => {
             </div>
           </TabsContent>
 
+          {/* AI Intelligence Tab */}
+          <TabsContent value="ai-intelligence" className="space-y-8 mt-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">Your Travel DNA & AI Insights</h2>
+              <p className="text-purple-200">Discover your unique travel personality and get personalized recommendations</p>
+            </div>
+
+            {aiEnabled ? (
+              <div className="space-y-8">
+                {/* Travel DNA Section */}
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                  <TravelDNACard 
+                    travelDNA={travelDNA}
+                    loading={aiLoading}
+                    onRefresh={refreshTravelDNA}
+                  />
+                </div>
+
+                {/* AI Recommendations */}
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                  <IntelligentRecommendationsGrid
+                    recommendations={recommendations}
+                    loading={aiLoading}
+                    onRefresh={refreshRecommendations}
+                  />
+                </div>
+
+                {/* Predictive Insights */}
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                  <PredictiveInsightsPanel
+                    insights={predictiveInsights}
+                    loading={aiLoading}
+                    onRefresh={refreshPredictiveInsights}
+                  />
+                </div>
+
+                {/* Journey Optimizer */}
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                  <JourneyOptimizerCard />
+                </div>
+              </div>
+            ) : (
+              <Card className="bg-black/40 backdrop-blur-xl border-white/10">
+                <CardContent className="p-12 text-center">
+                  <Brain className="h-24 w-24 mx-auto mb-6 text-gray-400" />
+                  <h3 className="text-2xl font-bold text-white mb-4">AI Intelligence Disabled</h3>
+                  <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+                    Enable AI Intelligence to unlock personalized travel recommendations, DNA analysis, and predictive insights.
+                  </p>
+                  <Button 
+                    onClick={() => setAiEnabled(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 text-lg"
+                  >
+                    <Brain className="h-5 w-5 mr-2" />
+                    Enable AI Intelligence
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-8 mt-8">
             <div className="text-center mb-8">
