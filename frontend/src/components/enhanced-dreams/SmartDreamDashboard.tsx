@@ -9,7 +9,6 @@ import {
   Heart,
   Users,
   User,
-  UserHeart,
   Baby,
   Map,
   Calendar,
@@ -19,7 +18,11 @@ import {
   Share2,
   Play,
   Crown,
-  Medal
+  Medal,
+  Brain,
+  Target,
+  Sparkles,
+  TrendingUp
 } from 'lucide-react';
 
 import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
