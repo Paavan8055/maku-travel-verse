@@ -35,7 +35,7 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
       setError(null);
 
       // First try to get enhanced destinations from backend API
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-tech-audit.preview.emergentagent.com';
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://social-journey-1.preview.emergentagent.com';
       
       try {
         const params = new URLSearchParams();
