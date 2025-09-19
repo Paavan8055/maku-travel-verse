@@ -3,9 +3,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MapPin, Star, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { MapPin, Star, ArrowRight, Loader2, Sparkles, Brain, TrendingUp, Users, Clock, Target, Zap, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEnhancedDreams } from '@/hooks/useEnhancedDreams';
+import { useAIIntelligence } from '@/hooks/useAIIntelligence';
+import { useNavigate } from 'react-router-dom';
 
 interface DreamDestination {
   id: string;
