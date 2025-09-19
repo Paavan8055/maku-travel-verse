@@ -37,7 +37,7 @@ import {
 
 import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
 import { useEnhancedDreams } from '@/hooks/useEnhancedDreams';
-import { useGamification } from '@/hooks/useGamification';
+// import { useGamification } from '@/hooks/useGamification';
 
 interface TravelCompanion {
   type: 'solo' | 'partner' | 'friends' | 'family';
