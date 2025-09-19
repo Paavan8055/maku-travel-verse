@@ -283,7 +283,7 @@ export const DreamDestinationsCard: React.FC<DreamDestinationsCardProps> = ({ on
               variant="outline" 
               size="sm" 
               className="flex-1 text-xs"
-              onClick={() => navigate('/ai-intelligence')}
+              onClick={() => navigate('/smart-dreams')}
             >
               <Brain className="h-3 w-3 mr-1" />
               AI Insights
