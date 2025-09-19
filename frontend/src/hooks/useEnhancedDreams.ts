@@ -144,7 +144,7 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
     }
   }, [user?.id, behaviorTracking]);
 
-  // Update dream collection (bookmark/unbookmark)
+  // Update dream collection (bookmark/unbookmark) with gamification integration
   const updateDreamCollection = useCallback(async (
     destinationId: string,
     action: 'add' | 'remove'
@@ -159,6 +159,7 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
     }
 
     try {
+      // Call the enhanced service
       const result = await enhancedDreamService.updateDreamCollection(
         user.id,
         destinationId,
@@ -169,6 +170,56 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
         // Track the interaction
         await trackInteraction(destinationId, action === 'add' ? 'bookmark' : 'unbookmark');
 
+        // Track gamification event
+        if (action === 'add') {
+          try {
+            // Import gamification service dynamically to avoid circular deps
+            const { gamificationService } = await import('@/services/gamification-service');
+            
+            // Check for achievement unlocks
+            const achievementResult = await gamificationService.checkAchievements(
+              user.id,
+              'destination_bookmarked',
+              { 
+                destination_id: destinationId,
+                total_destinations: (userProfile?.gamification_metrics.destinations_collected || 0) + 1
+              }
+            );
+
+            // Show achievement notifications
+            if (achievementResult.newly_unlocked.length > 0) {
+              achievementResult.newly_unlocked.forEach((achievement) => {
+                toast({
+                  title: "🏆 Achievement Unlocked!",
+                  description: `${achievement.name}: ${achievement.description}`,
+                  duration: 5000,
+                });
+              });
+            }
+
+            // Show points earned
+            if (achievementResult.points_earned > 0) {
+              toast({
+                title: "✨ Points Earned!",
+                description: `You earned ${achievementResult.points_earned} points!`,
+                duration: 3000,
+              });
+            }
+
+            // Show level up notification
+            if (achievementResult.level_up) {
+              toast({
+                title: "🎉 Level Up!",
+                description: `Welcome to Level ${achievementResult.level_up.new_level}!`,
+                duration: 6000,
+              });
+            }
+
+          } catch (gamificationError) {
+            console.warn('Gamification check failed:', gamificationError);
+          }
+        }
+
         // Show success message
         toast({
           title: action === 'add' ? "Added to Dreams" : "Removed from Dreams",
@@ -176,17 +227,6 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
             ? "Destination added to your dream collection!" 
             : "Destination removed from your collection.",
         });
-
-        // Show achievement notifications
-        if (result.achievementsUnlocked && result.achievementsUnlocked.length > 0) {
-          result.achievementsUnlocked.forEach((achievement: Achievement) => {
-            toast({
-              title: "🏆 Achievement Unlocked!",
-              description: `${achievement.name}: ${achievement.description}`,
-              duration: 5000,
-            });
-          });
-        }
 
         // Refresh user data to reflect changes
         await fetchUserData();
@@ -204,7 +244,7 @@ export const useEnhancedDreams = (options: UseEnhancedDreamsOptions = {}) => {
       });
       return { success: false };
     }
-  }, [user?.id, trackInteraction, fetchUserData, toast]);
+  }, [user?.id, trackInteraction, fetchUserData, toast, userProfile]);
 
   // View destination (tracks behavior)
   const viewDestination = useCallback(async (
