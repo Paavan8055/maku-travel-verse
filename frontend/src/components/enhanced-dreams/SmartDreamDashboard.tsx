@@ -443,11 +443,11 @@ export const SmartDreamDashboard: React.FC = () => {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-4">Build Your Dream Collection</h2>
               <p className="text-purple-200">Add destinations that spark joy and excitement in your journey</p>
-              {aiEnabled && recommendations.length > 0 && (
+              {aiEnabled && intelligentRecommendations.length > 0 && (
                 <div className="mt-4">
                   <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                     <Sparkles className="h-3 w-3 mr-1" />
-                    {recommendations.length} AI-Recommended Destinations Available
+                    {intelligentRecommendations.length} AI-Recommended Destinations Available
                   </Badge>
                 </div>
               )}
