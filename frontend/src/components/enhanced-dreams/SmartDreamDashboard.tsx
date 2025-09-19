@@ -79,7 +79,7 @@ export const SmartDreamDashboard: React.FC = () => {
       type: 'partner',
       name: 'Romantic Journey',
       description: 'Creating magical memories with my special someone',
-      icon: <UserHeart className="h-8 w-8 text-pink-500" />,
+      icon: <Heart className="h-8 w-8 text-pink-500" />,
       perks: ['Romantic moments', 'Shared experiences'],
       journeyType: 'Love Story'
     },
