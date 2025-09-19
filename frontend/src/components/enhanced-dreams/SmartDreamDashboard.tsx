@@ -90,9 +90,6 @@ export const SmartDreamDashboard: React.FC = () => {
     submitRecommendationFeedback,
     getRecommendationExplanation
   } = useAIIntelligence();
-    includeAIContext: showAIInsights,
-    limit: 50,
-  });
 
   // Handle search
   const handleSearch = async (query: string) => {
