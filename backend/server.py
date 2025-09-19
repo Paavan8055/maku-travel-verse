@@ -242,13 +242,45 @@ async def get_enhanced_destinations(
                 "name": "Socotra Island",
                 "country": "Yemen",
                 "continent": "Asia",
+                "latitude": 12.5000,
+                "longitude": 53.8333,
                 "category": "adventure",
-                "description": "One of the most isolated and unique islands on Earth",
+                "description": "One of the most isolated and unique islands on Earth with alien-like landscapes",
+                "best_time_to_visit": "October to April",
+                "budget_range": "budget",
+                "avg_daily_cost": 45,
+                "highlights": ["Dragon's Blood Trees", "Unique wildlife", "Pristine beaches", "Adventure hiking"],
                 "rarity_score": 98,
                 "social_popularity": 5,
+                "user_generated_tags": ["unique", "adventure", "rare", "untouched"],
                 "personality_match_factors": [
                     {"factor": "adventure", "weight": 0.95, "confidence": 0.9},
                     {"factor": "nature", "weight": 0.9, "confidence": 0.95}
+                ],
+                "optimal_seasons": [
+                    {
+                        "season": "winter",
+                        "suitability_score": 90,
+                        "weather_description": "Ideal cool weather",
+                        "crowd_level": "low",
+                        "price_level": "low"
+                    }
+                ],
+                "crowd_patterns": [
+                    {
+                        "month": 2,
+                        "crowd_level": 5,
+                        "local_events": [],
+                        "tourist_density": "low"
+                    }
+                ],
+                "price_volatility": [
+                    {
+                        "month": 2,
+                        "price_index": 0.8,
+                        "volatility": 0.1,
+                        "booking_window_optimal": 90
+                    }
                 ],
                 "community_rating": {
                     "overall_score": 4.9,
@@ -260,7 +292,10 @@ async def get_enhanced_destinations(
                         "uniqueness": 5.0,
                         "local_culture": 4.8
                     }
-                }
+                },
+                "conversion_rate": 0.05,
+                "engagement_score": 0.95,
+                "seasonal_interest": [0.1, 0.2, 0.3, 0.2, 0.1, 0.05, 0.05, 0.05, 0.1, 0.2, 0.3, 0.2]
             },
             {
                 "id": str(uuid.uuid4()),
