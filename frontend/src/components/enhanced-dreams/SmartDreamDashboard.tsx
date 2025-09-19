@@ -431,3 +431,5 @@ export const SmartDreamDashboard: React.FC = () => {
     </div>
   );
 };
+
+export default SmartDreamDashboard;
