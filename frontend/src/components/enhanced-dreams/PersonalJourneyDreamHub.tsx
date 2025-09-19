@@ -92,14 +92,13 @@ export const PersonalJourneyDreamHub: React.FC = () => {
   const [excitementLevel, setExcitementLevel] = useState(85);
   const [journeyName, setJourneyName] = useState('');
 
-  const {
-    achievements,
-    userStats,
-    leaderboard,
-    currentChallenges,
-    socialActivity,
-    loading: gamificationLoading
-  } = useGamification();
+  // Mock gamification data for now
+  const achievements = [];
+  const userStats = null;
+  const leaderboard = [];
+  const currentChallenges = [];
+  const socialActivity = [];
+  const gamificationLoading = false;
 
   const {
     destinations,
