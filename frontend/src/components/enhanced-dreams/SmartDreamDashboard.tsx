@@ -454,7 +454,7 @@ export const SmartDreamDashboard: React.FC = () => {
             </div>
 
             {/* AI Recommendations Section */}
-            {aiEnabled && recommendations.length > 0 && (
+            {aiEnabled && intelligentRecommendations.length > 0 && (
               <div className="mb-8">
                 <div className="bg-gradient-to-r from-blue-900/50 via-purple-900/50 to-pink-900/50 border border-blue-500/30 backdrop-blur-xl rounded-2xl p-6">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
@@ -462,7 +462,7 @@ export const SmartDreamDashboard: React.FC = () => {
                     <span>AI-Powered Perfect Matches</span>
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {recommendations.slice(0, 3).map((rec, index) => (
+                    {intelligentRecommendations.slice(0, 3).map((rec, index) => (
                       <Card key={index} className="bg-black/40 backdrop-blur-xl border-white/10 hover:border-blue-400/50 transition-all duration-500">
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-3">
