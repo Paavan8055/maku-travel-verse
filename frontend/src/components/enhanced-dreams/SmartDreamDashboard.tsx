@@ -316,28 +316,9 @@ export const SmartDreamDashboard: React.FC = () => {
             )}
           </TabsContent>
 
-          {/* Social Tab - Placeholder for Phase 2 */}
+          {/* Social Tab - Phase 2 Implementation */}
           <TabsContent value="social" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Social Features
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Coming Soon!</h3>
-                  <p className="text-muted-foreground">
-                    Connect with friends, share dreams, and plan group trips together.
-                  </p>
-                  <Badge variant="secondary" className="mt-4">
-                    Phase 2 Feature
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+            <SocialGamificationHub />
           </TabsContent>
 
           {/* Planner Tab - Placeholder for Phase 3 */}
