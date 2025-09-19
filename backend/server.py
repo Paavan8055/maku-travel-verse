@@ -77,6 +77,19 @@ async def root():
 async def health():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
+@api_router.get("/placeholder/{width}/{height}")
+async def placeholder_image(width: int, height: int, text: str = "Placeholder"):
+    """Simple placeholder image endpoint - returns SVG"""
+    from fastapi.responses import Response
+    
+    svg_content = f'''<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#e5e7eb"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="16" fill="#6b7280" 
+              text-anchor="middle" dominant-baseline="middle">{text}</text>
+    </svg>'''
+    
+    return Response(content=svg_content, media_type="image/svg+xml")
+
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
     status_dict = input.dict()
