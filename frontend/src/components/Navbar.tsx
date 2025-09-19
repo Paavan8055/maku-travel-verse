@@ -289,24 +289,6 @@ const Navbar = () => {
                 Smart Dreams
               </Button>
 
-              {/* AI Intelligence Hub */}
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/ai-intelligence');
-                setIsMenuOpen(false);
-              }}>
-                <Brain className="mr-2 h-4 w-4" />
-                AI Intelligence
-              </Button>
-
-              {/* AI Demo */}
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/ai-demo');
-                setIsMenuOpen(false);
-              }}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                AI Demo
-              </Button>
-
               {/* Environment Manager - Development Tool */}
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
                 navigate('/environment-manager');
