@@ -14,6 +14,7 @@ import { AdminDataProvider } from '@/components/admin/RealTimeAdminData';
 import AgentMonitorDashboard from '@/features/admin/components/AgentMonitorDashboard';
 import ApiValidationDashboard from '@/components/admin/ApiValidationDashboard';
 import AgentSystemTests from '@/components/admin/AgentSystemTests';
+import SmartDreamManagement from '@/components/admin/SmartDreamManagement';
 
 interface ProviderHealth {
   provider: string;
