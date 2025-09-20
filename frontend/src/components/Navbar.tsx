@@ -18,7 +18,10 @@ import { useAIIntelligence } from "@/hooks/useAIIntelligence";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSmartDreamDropdownOpen, setIsSmartDreamDropdownOpen] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const { t } = useTranslation();
+  const location = useLocation();
   const { apiHealth, isActivitiesAvailable } = useApiHealth();
   const { health, isUnhealthy } = useHealthMonitor({ 
     enableAutoCheck: true,
@@ -39,6 +42,35 @@ const Navbar = () => {
   } = useAuth();
   const navigate = useNavigate();
   const { toast: toastFn } = useToast();
+
+  // AI Intelligence integration for Smart Dreams status
+  const { travelDNA, loading: aiLoading, error: aiError } = useAIIntelligence();
+
+  // Viewport monitoring for responsive behavior  
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
+  // Check if Smart Dreams is active
+  const isSmartDreamActive = location.pathname.includes('/smart-dreams');
+
+  // Get AI status for Smart Dreams indicator
+  const getAIStatus = () => {
+    if (aiError) return { color: '#ff6b6b', text: '0%', description: 'AI Offline' };
+    if (aiLoading) return { color: '#ffd93d', text: '...', description: 'AI Loading' };
+    if (travelDNA) return { 
+      color: '#51cf66', 
+      text: `${Math.round(travelDNA.confidence_score * 100)}%`, 
+      description: `${Math.round(travelDNA.confidence_score * 100)}% AI Match`
+    };
+    return { color: '#868e96', text: '0%', description: 'AI Ready' };
+  };
+
+  const aiStatus = getAIStatus();
 
   const handleSignOut = async () => {
     try {
