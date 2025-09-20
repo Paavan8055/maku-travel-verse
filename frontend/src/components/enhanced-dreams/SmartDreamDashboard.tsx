@@ -339,45 +339,74 @@ export const SmartDreamDashboard: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Journey Tab */}
+          {/* Journey Tab - Maku Branded */}
           <TabsContent value="my-journey" className="space-y-8 mt-8">
             {!currentJourney ? (
               <div className="space-y-8">
-                <Card className="bg-black/40 backdrop-blur-xl border-purple-500/30">
+                {/* Journey Naming Card */}
+                <Card className="bg-white shadow-lg border border-orange-100 rounded-2xl">
                   <CardContent className="p-8 text-center">
-                    <h2 className="text-3xl font-bold text-white mb-4">What's your dream journey called?</h2>
+                    <div className="flex items-center justify-center mb-6">
+                      <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white text-3xl">🐕</span>
+                      </div>
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-4">What's your dream journey called?</h2>
+                    <p className="text-gray-600 mb-6">Give your adventure a memorable name</p>
                     <Input
                       placeholder="My Epic Adventure, Honeymoon Bliss, Squad Goals Trip..."
                       value={journeyName}
                       onChange={(e) => setJourneyName(e.target.value)}
-                      className="text-center text-xl bg-white/10 border-white/20 text-white placeholder:text-white/50 mb-6"
+                      className="text-center text-xl bg-orange-50 border-orange-200 text-gray-800 placeholder:text-gray-500 focus:border-orange-400 focus:ring-orange-400 rounded-full py-4 px-6"
                     />
                   </CardContent>
                 </Card>
 
+                {/* Companion Selection Header */}
                 <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-white mb-4">Who's joining your adventure?</h2>
-                  <p className="text-purple-200 mb-8">Choose your travel style and unlock personalized recommendations</p>
+                  <h2 className="text-3xl font-bold text-gray-800 mb-4">Who's joining your adventure?</h2>
+                  <p className="text-gray-600 mb-8">Choose your travel style and unlock personalized AI recommendations</p>
                 </div>
 
+                {/* Companion Cards - Maku Branded */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {companions.map((companion) => (
                     <Card 
                       key={companion.type}
-                      className="group cursor-pointer bg-black/40 backdrop-blur-xl border-white/10 hover:border-purple-400/50 transition-all duration-500 hover:scale-105"
+                      className="group cursor-pointer bg-white shadow-lg border border-orange-100 hover:border-orange-300 hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-2xl overflow-hidden"
                       onClick={() => initializeJourney(companion)}
                     >
                       <CardContent className="p-8 text-center">
-                        <div className="mb-6">
+                        <div className="mb-6 transform group-hover:scale-110 transition-transform duration-300">
                           {companion.icon}
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">{companion.journeyType}</h3>
-                        <p className="text-gray-300 text-sm mb-6">{companion.description}</p>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">{companion.journeyType}</h3>
+                        <p className="text-gray-600 text-sm mb-6">{companion.description}</p>
                         
                         <div className="space-y-2 mb-6">
                           {companion.perks.map((perk, index) => (
-                            <Badge key={index} variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
+                            <Badge 
+                              key={index} 
+                              className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-3 py-1 rounded-full font-medium"
+                            >
                               {perk}
+                            </Badge>
+                          ))}
+                        </div>
+                        
+                        <Button 
+                          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
+                          <span className="flex items-center justify-center space-x-2">
+                            <span>Start Journey</span>
+                            <MapPin className="h-4 w-4" />
+                          </span>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
                             </Badge>
                           ))}
                         </div>
