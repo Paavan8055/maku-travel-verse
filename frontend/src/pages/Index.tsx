@@ -7,6 +7,7 @@ import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { EnhancedAgenticWidget } from "@/components/agentic/enhanced/EnhancedAgenticWidget";
+import { PartnerShowcase } from "@/components/partners/PartnerShowcase";
 
 // Lazy load below-the-fold components for better performance
 const MarketplaceSection = lazy(() => import("@/components/MarketplaceSection"));
