@@ -552,6 +552,374 @@ export const SmartDreamManagement = () => {
           </div>
         </TabsContent>
 
+        <TabsContent value="providers" className="space-y-6">
+          {/* Provider Management Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Database className="h-5 w-5 text-blue-500" />
+                <h3 className="text-lg font-semibold">Provider Management</h3>
+              </div>
+              <Badge variant="secondary">
+                {providerAnalytics?.summary.total_providers || 0} Total Providers
+              </Badge>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search providers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-64"
+                />
+              </div>
+              <Button 
+                onClick={discoverNewProviders}
+                disabled={discoveryInProgress}
+                className="flex items-center space-x-2"
+              >
+                {discoveryInProgress ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                <span>Discover Providers</span>
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  fetchProviders();
+                  fetchProviderAnalytics();
+                }}
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Refresh</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Provider Analytics Overview */}
+          {providerAnalytics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Providers</CardTitle>
+                  <Server className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {providerAnalytics.summary.active_providers}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    of {providerAnalytics.summary.total_providers} total
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Health Status</CardTitle>
+                  <Activity className="h-4 w-4 text-blue-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {providerAnalytics.summary.healthy_providers}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    healthy providers
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Auto-Discovered</CardTitle>
+                  <Zap className="h-4 w-4 text-yellow-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {providerAnalytics.summary.auto_discovered_providers}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    discovered automatically
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                  <Target className="h-4 w-4 text-purple-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {providerAnalytics.summary.success_rate_24h.toFixed(1)}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    last 24 hours
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Provider List */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Database className="h-5 w-5 text-blue-500" />
+                <span>All Providers</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {providersLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <LoadingSpinner />
+                  <span className="ml-2">Loading providers...</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {providers
+                    .filter(provider => 
+                      searchTerm === '' || 
+                      provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      provider.type.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((provider) => (
+                    <div key={provider.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex flex-col">
+                            <div className="flex items-center space-x-3">
+                              <h4 className="font-semibold text-lg">{provider.name}</h4>
+                              <Badge 
+                                variant={provider.status === 'active' ? 'default' : provider.status === 'testing' ? 'secondary' : 'outline'}
+                              >
+                                {provider.status}
+                              </Badge>
+                              <Badge 
+                                variant={provider.health_status === 'healthy' ? 'default' : provider.health_status === 'degraded' ? 'secondary' : 'destructive'}
+                                className="flex items-center space-x-1"
+                              >
+                                {provider.health_status === 'healthy' ? (
+                                  <Wifi className="h-3 w-3" />
+                                ) : provider.health_status === 'degraded' ? (
+                                  <Activity className="h-3 w-3" />
+                                ) : (
+                                  <WifiOff className="h-3 w-3" />
+                                )}
+                                <span>{provider.health_status}</span>
+                              </Badge>
+                              {provider.auto_discovered && (
+                                <Badge variant="outline" className="flex items-center space-x-1">
+                                  <Zap className="h-3 w-3 text-yellow-500" />
+                                  <span>Auto-discovered</span>
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-6 mt-2 text-sm text-gray-600">
+                              <span className="flex items-center space-x-1">
+                                <Database className="h-3 w-3" />
+                                <span className="capitalize">{provider.type}</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <Target className="h-3 w-3" />
+                                <span>{provider.performance_score.toFixed(1)}% performance</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <DollarSign className="h-3 w-3" />
+                                <span>${provider.cost_per_request.toFixed(3)}/req</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <Timer className="h-3 w-3" />
+                                <span>{provider.rate_limit}/hr</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <MapPin className="h-3 w-3" />
+                                <span className="capitalize">{provider.metadata.region.replace('_', ' ')}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => performHealthCheck(provider.id)}
+                            className="flex items-center space-x-1"
+                          >
+                            <Activity className="h-3 w-3" />
+                            <span>Health Check</span>
+                          </Button>
+                          
+                          {provider.status !== 'active' && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => activateProvider(provider.id)}
+                              className="flex items-center space-x-1"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              <span>Activate</span>
+                            </Button>
+                          )}
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedProvider(provider)}
+                            className="flex items-center space-x-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            <span>Details</span>
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Provider Specialties */}
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {provider.metadata.specialties.map((specialty, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {specialty.replace('_', ' ')}
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      {/* Issues if any */}
+                      {provider.metadata.issues && provider.metadata.issues.length > 0 && (
+                        <div className="mt-2">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                            <span className="text-sm font-medium text-orange-600">Issues:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {provider.metadata.issues.map((issue, index) => (
+                              <Badge key={index} variant="destructive" className="text-xs">
+                                {issue.replace('_', ' ')}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Provider Performance by Type */}
+          {providerAnalytics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <BarChart3 className="h-5 w-5 text-green-500" />
+                    <span>Performance by Type</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {Object.entries(providerAnalytics.performance_by_type).map(([type, stats]) => (
+                      <div key={type} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="capitalize font-medium">{type}</span>
+                          <Badge variant="outline">{stats.count} providers</Badge>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="text-right">
+                            <div className="text-sm font-semibold">{stats.avg_score.toFixed(1)}%</div>
+                            <div className="text-xs text-gray-500">{stats.success_rate.toFixed(1)}% success</div>
+                          </div>
+                          <div className="w-20 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-green-500 h-2 rounded-full" 
+                              style={{ width: `${stats.avg_score}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="h-5 w-5 text-blue-500" />
+                    <span>Top Performers</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {providerAnalytics.top_performers.map((provider, index) => (
+                      <div key={provider.name} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="font-medium">{provider.name}</div>
+                            <div className="text-xs text-gray-500 capitalize">{provider.type}</div>
+                          </div>
+                        </div>
+                        <Badge variant="default">
+                          {provider.score.toFixed(1)}%
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Cost Analytics */}
+          {providerAnalytics && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <DollarSign className="h-5 w-5 text-green-500" />
+                  <span>Cost Analytics (24h)</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      ${providerAnalytics.cost_analytics.total_cost_24h.toFixed(2)}
+                    </div>
+                    <div className="text-sm text-green-600">Total Cost</div>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      ${providerAnalytics.cost_analytics.avg_cost_per_request.toFixed(3)}
+                    </div>
+                    <div className="text-sm text-blue-600">Avg Cost/Request</div>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-lg font-bold text-red-600">
+                      {providerAnalytics.cost_analytics.most_expensive_provider}
+                    </div>
+                    <div className="text-sm text-red-600">Most Expensive</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-lg font-bold text-purple-600">
+                      {providerAnalytics.cost_analytics.most_efficient_provider}
+                    </div>
+                    <div className="text-sm text-purple-600">Most Efficient</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="ai-performance" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* AI System Performance */}
