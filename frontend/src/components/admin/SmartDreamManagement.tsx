@@ -67,6 +67,66 @@ interface UserJourneyAnalytics {
   };
 }
 
+interface Provider {
+  id: string;
+  name: string;
+  type: string;
+  api_endpoint: string;
+  status: string;
+  health_status: string;
+  performance_score: number;
+  auto_discovered: boolean;
+  discovery_date?: string;
+  integration_priority: number;
+  supported_companions: string[];
+  rate_limit: number;
+  cost_per_request: number;
+  last_health_check: string;
+  metadata: {
+    region: string;
+    specialties: string[];
+    established: string;
+    auto_discovery_score?: number;
+    issues?: string[];
+  };
+}
+
+interface ProviderAnalytics {
+  summary: {
+    total_providers: number;
+    active_providers: number;
+    healthy_providers: number;
+    auto_discovered_providers: number;
+    avg_performance_score: number;
+    total_requests_24h: number;
+    success_rate_24h: number;
+  };
+  performance_by_type: {
+    [key: string]: {
+      count: number;
+      avg_score: number;
+      success_rate: number;
+    };
+  };
+  top_performers: Array<{
+    name: string;
+    score: number;
+    type: string;
+  }>;
+  integration_pipeline: {
+    in_testing: number;
+    pending_activation: number;
+    scheduled_discovery: number;
+    next_discovery_scan: string;
+  };
+  cost_analytics: {
+    total_cost_24h: number;
+    avg_cost_per_request: number;
+    most_expensive_provider: string;
+    most_efficient_provider: string;
+  };
+}
+
 export const SmartDreamManagement = () => {
   const [metrics, setMetrics] = useState<SmartDreamMetrics | null>(null);
   const [userAnalytics, setUserAnalytics] = useState<UserJourneyAnalytics | null>(null);
