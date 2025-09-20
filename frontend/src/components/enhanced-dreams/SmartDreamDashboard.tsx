@@ -281,32 +281,61 @@ export const SmartDreamDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      {/* Main Content Area with Maku Branding */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-2">
-            <TabsTrigger value="my-journey" className="flex items-center space-x-2">
-              <Map className="h-4 w-4" />
-              <span className="hidden sm:inline">Journey</span>
+          <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm border border-orange-100 rounded-xl p-1">
+            <TabsTrigger 
+              value="my-journey" 
+              className="flex items-center space-x-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-600 hover:text-orange-500 transition-all duration-200 rounded-lg py-3"
+            >
+              <MapPin className="h-4 w-4" />
+              <span className="hidden sm:inline font-medium">Journey</span>
             </TabsTrigger>
-            <TabsTrigger value="dream-destinations" className="flex items-center space-x-2">
+            <TabsTrigger 
+              value="dream-destinations" 
+              className="flex items-center space-x-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-600 hover:text-orange-500 transition-all duration-200 rounded-lg py-3"
+            >
               <Heart className="h-4 w-4" />
-              <span className="hidden sm:inline">Dreams</span>
+              <span className="hidden sm:inline font-medium">Dreams</span>
+              {providerResults && (
+                <div className="ml-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                  {providerResults.hotels.length + providerResults.flights.length + providerResults.activities.length}
+                </div>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="ai-intelligence" className="flex items-center space-x-2">
+            <TabsTrigger 
+              value="ai-intelligence" 
+              className="flex items-center space-x-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-600 hover:text-orange-500 transition-all duration-200 rounded-lg py-3"
+            >
               <Brain className="h-4 w-4" />
-              <span className="hidden sm:inline">AI DNA</span>
+              <span className="hidden sm:inline font-medium">AI DNA</span>
+              {travelDNA && (
+                <div className="ml-1 bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                  {Math.round(travelDNA.confidence_score * 100)}%
+                </div>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center space-x-2">
+            <TabsTrigger 
+              value="achievements" 
+              className="flex items-center space-x-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-600 hover:text-orange-500 transition-all duration-200 rounded-lg py-3"
+            >
               <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Achievements</span>
+              <span className="hidden sm:inline font-medium">Achievements</span>
             </TabsTrigger>
-            <TabsTrigger value="social-hub" className="flex items-center space-x-2">
+            <TabsTrigger 
+              value="social-hub" 
+              className="flex items-center space-x-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-600 hover:text-orange-500 transition-all duration-200 rounded-lg py-3"
+            >
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Social</span>
+              <span className="hidden sm:inline font-medium">Social</span>
             </TabsTrigger>
-            <TabsTrigger value="planner" className="flex items-center space-x-2">
+            <TabsTrigger 
+              value="planner" 
+              className="flex items-center space-x-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-600 hover:text-orange-500 transition-all duration-200 rounded-lg py-3"
+            >
               <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Plan</span>
+              <span className="hidden sm:inline font-medium">Plan</span>
             </TabsTrigger>
           </TabsList>
 
