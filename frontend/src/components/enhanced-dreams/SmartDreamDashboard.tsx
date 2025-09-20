@@ -422,41 +422,46 @@ export const SmartDreamDashboard: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-8">
-                <Card className="bg-gradient-to-r from-purple-900/50 via-pink-900/50 to-blue-900/50 border-purple-500/30 backdrop-blur-xl">
+                {/* Journey Progress Card - Maku Branded */}
+                <Card className="bg-white shadow-lg border border-green-200 rounded-2xl overflow-hidden">
                   <CardContent className="p-8">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-4">
-                        {selectedCompanion?.icon}
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+                          <span className="text-white text-2xl">🐕</span>
+                        </div>
                         <div>
-                          <h2 className="text-3xl font-bold text-white">{currentJourney.title}</h2>
-                          <p className="text-purple-200">{selectedCompanion?.description}</p>
+                          <h2 className="text-3xl font-bold text-gray-800">{currentJourney.title}</h2>
+                          <p className="text-gray-600">{selectedCompanion?.description}</p>
                         </div>
                       </div>
                       <Button 
                         onClick={shareJourney}
-                        className="bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600"
+                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-full px-6 py-3 shadow-lg"
                       >
                         <Share2 className="h-4 w-4 mr-2" />
                         Share Journey
                       </Button>
                     </div>
 
-                    <div className="mb-6">
+                    {/* Progress Section */}
+                    <div className="mb-6 bg-orange-50 p-4 rounded-xl">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-semibold">Journey Progress</span>
-                        <span className="text-purple-300">{currentJourney.progress}% Complete</span>
+                        <span className="text-gray-800 font-semibold">Journey Progress</span>
+                        <span className="text-orange-600 font-medium">{currentJourney.progress}% Complete</span>
                       </div>
-                      <Progress value={currentJourney.progress} className="h-3" />
+                      <Progress value={currentJourney.progress} className="h-3 bg-orange-100" />
                     </div>
 
+                    {/* Journey Stats - Maku Branded */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 bg-white/10 rounded-xl">
-                        <div className="text-2xl font-bold text-purple-400">{currentJourney.destinations.length}</div>
-                        <div className="text-xs text-white">Dreams Added</div>
+                      <div className="text-center p-4 bg-orange-50 rounded-xl border border-orange-100">
+                        <div className="text-2xl font-bold text-orange-600">{currentJourney.destinations.length}</div>
+                        <div className="text-sm text-orange-700 font-medium">Dreams Added</div>
                       </div>
-                      <div className="text-center p-4 bg-white/10 rounded-xl">
-                        <div className="text-2xl font-bold text-pink-400">{currentJourney.totalDays}</div>
-                        <div className="text-xs text-white">Total Days</div>
+                      <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
+                        <div className="text-2xl font-bold text-green-600">{currentJourney.totalDays}</div>
+                        <div className="text-sm text-green-700 font-medium">Total Days</div>
                       </div>
                       <div className="text-center p-4 bg-white/10 rounded-xl">
                         <div className="text-2xl font-bold text-blue-400">${currentJourney.totalBudget}</div>
