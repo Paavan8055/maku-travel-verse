@@ -272,6 +272,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="smart-dreams" className="space-y-4">
+          <SmartDreamManagement />
+        </TabsContent>
+
         <TabsContent value="ai-assistant" className="space-y-4">
           <AdminDataProvider>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
