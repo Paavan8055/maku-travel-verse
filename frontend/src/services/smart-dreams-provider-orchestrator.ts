@@ -63,7 +63,24 @@ export interface SmartDreamProviderResponse {
     topRecommendationProvider: string;
     aiProcessingTime: number;
     cacheHitRate: number;
+    dynamicProvidersUsed: number;
+    autoDiscoveredResults: number;
   };
+}
+
+export interface DynamicProvider {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  health_status: string;
+  performance_score: number;
+  auto_discovered: boolean;
+  integration_priority: number;
+  supported_companions: string[];
+  api_endpoint: string;
+  rate_limit: number;
+  cost_per_request: number;
 }
 
 /**
