@@ -1082,7 +1082,7 @@ class MakuTravelBackendTester:
                                 self.log_test("Enhanced Provider Analytics", False, f"Partner {partner_name} missing demo label", response_time)
                                 return False
                 
-                missing_partners = set(key_partners) - set(found_partners)
+                missing_partners = set(key_partner_names) - set(found_partners)
                 if missing_partners:
                     self.log_test("Enhanced Provider Analytics", False, f"Missing key partners in spotlight: {missing_partners}", response_time)
                     return False
