@@ -247,10 +247,10 @@ export const SmartDreamDashboard: React.FC = () => {
                 context="header" 
               />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-green-500 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 via-orange-400 to-green-500 bg-clip-text text-transparent">
                   My Dream Journey
                 </h1>
-                <p className="text-sm text-gray-600">We Make "U" Travel</p>
+                <p className="text-sm text-gray-600 font-medium">(We Make "U" Travel)</p>
               </div>
             </div>
             
