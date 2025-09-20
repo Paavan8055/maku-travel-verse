@@ -1,4 +1,5 @@
 import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug, HelpCircle, MessageCircle, Shield, FileText, Mail, Play, Sparkles, Brain, Calendar, MapPin, Heart } from "lucide-react";
+import { MakuLogo, MakuButton, MakuCard } from '@/components/branding/MakuBrandSystem';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
