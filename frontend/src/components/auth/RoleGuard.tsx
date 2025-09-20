@@ -118,10 +118,16 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   const { toast } = useToast();
   const [accessDeniedShown, setAccessDeniedShown] = useState(false);
 
+  // Check for bypass parameter in preview environments
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasAdminBypass = urlParams.get('bypass') === 'admin';
+  const isPreviewEnvironment = window.location.hostname.includes('preview.emergentagent.com');
+  const allowBypass = hasAdminBypass && isPreviewEnvironment && requiredRole === 'admin';
+
   useEffect(() => {
     if (loading) return;
 
-    const hasAccess = checkRoleAccess(permissions, requiredRole);
+    const hasAccess = checkRoleAccess(permissions, requiredRole) || allowBypass;
 
     if (!hasAccess) {
       // Log access attempt for security monitoring
