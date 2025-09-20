@@ -84,21 +84,29 @@ export interface DynamicProvider {
 }
 
 /**
- * Smart Dreams Provider Orchestrator
- * Enhances existing provider integrations with AI intelligence and companion-specific filtering
+ * Smart Dreams Provider Orchestrator - Enhanced with Dynamic Auto-Discovery
+ * Integrates existing provider integrations with AI intelligence, companion-specific filtering,
+ * and dynamic provider auto-discovery capabilities
  */
 export class SmartDreamProviderOrchestrator {
   private supplierAggregator: SupplierAggregator;
   private aiIntelligenceService: any;
   private enhancedDreamsService: any;
   private cacheStore: Map<string, { data: any; timestamp: number; ttl: number }> = new Map();
+  private dynamicProviders: Map<string, DynamicProvider> = new Map();
+  private lastProviderSync: number = 0;
+  private providerSyncInterval: number = 300000; // 5 minutes
 
   constructor() {
     this.supplierAggregator = new SupplierAggregator();
-    this.initializeProviders();
+    this.initializeStaticProviders();
+    this.syncDynamicProviders();
   }
 
-  private initializeProviders(): void {
+  /**
+   * Initialize static providers (existing integrations)
+   */
+  private initializeStaticProviders(): void {
     // Add existing providers with Smart Dreams enhancements
     const amadeusClient = new AmadeusClient();
     const sabreClient = new SabreClient();
@@ -106,7 +114,73 @@ export class SmartDreamProviderOrchestrator {
     this.supplierAggregator.addSupplier('amadeus', amadeusClient);
     this.supplierAggregator.addSupplier('sabre', sabreClient);
     
-    logger.info('Smart Dreams Provider Orchestrator initialized with enhanced providers');
+    logger.info('Smart Dreams Provider Orchestrator initialized with static providers');
+  }
+
+  /**
+   * Sync with dynamic provider registry
+   */
+  private async syncDynamicProviders(): Promise<void> {
+    try {
+      const now = Date.now();
+      if (now - this.lastProviderSync < this.providerSyncInterval) {
+        return; // Skip if recently synced
+      }
+
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      if (!backendUrl) {
+        logger.warn('Backend URL not configured for dynamic provider sync');
+        return;
+      }
+
+      const response = await fetch(`${backendUrl}/api/smart-dreams/providers`);
+      if (!response.ok) {
+        throw new Error(`Provider sync failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Update dynamic provider registry
+      const providers = data.providers || [];
+      const activeProviders = providers.filter((p: DynamicProvider) => p.status === 'active' && p.health_status === 'healthy');
+      
+      this.dynamicProviders.clear();
+      activeProviders.forEach((provider: DynamicProvider) => {
+        this.dynamicProviders.set(provider.id, provider);
+      });
+
+      this.lastProviderSync = now;
+      logger.info(`Synced ${activeProviders.length} dynamic providers (${providers.filter((p: DynamicProvider) => p.auto_discovered).length} auto-discovered)`);
+
+    } catch (error) {
+      logger.error('Failed to sync dynamic providers:', error);
+    }
+  }
+
+  /**
+   * Get all available providers (static + dynamic)
+   */
+  private async getAllProviders(companionType: string): Promise<{ static: any[]; dynamic: DynamicProvider[] }> {
+    // Sync dynamic providers if needed
+    await this.syncDynamicProviders();
+
+    // Get healthy static providers
+    const staticProviders = this.supplierAggregator.getHealthySuppliers();
+
+    // Filter dynamic providers by companion support and performance
+    const dynamicProviders = Array.from(this.dynamicProviders.values())
+      .filter(provider => 
+        provider.supported_companions.includes(companionType) ||
+        provider.supported_companions.includes('all')
+      )
+      .sort((a, b) => 
+        (b.performance_score * b.integration_priority) - (a.performance_score * a.integration_priority)
+      );
+
+    return { static: staticProviders, dynamic: dynamicProviders };
   }
 
   /**
