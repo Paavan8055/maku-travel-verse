@@ -15,9 +15,21 @@ const AdminAuth = () => {
   // Get the intended destination after login
   const from = location.state?.from?.pathname || '/admin/dashboard';
 
+  // Development bypass - check for development environment
+  const isDevelopment = import.meta.env.MODE === 'development' || window.location.hostname === 'localhost';
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasDevBypass = urlParams.get('dev') === 'true';
+
   // Check if current user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
+      // Development bypass
+      if (isDevelopment && hasDevBypass) {
+        logger.info('Development admin bypass enabled');
+        setIsAdmin(true);
+        return;
+      }
+
       if (user) {
         const { data: isAdmin, error } = await supabase.rpc('get_admin_status');
         if (error) {
@@ -32,7 +44,7 @@ const AdminAuth = () => {
     };
 
     checkAdminStatus();
-  }, [user]);
+  }, [user, isDevelopment, hasDevBypass]);
 
   // Show loading state
   if (loading) {
