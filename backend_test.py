@@ -905,9 +905,318 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
-    # SMART DREAMS PROVIDER MANAGEMENT TESTS - Phase 5
+    # SMART DREAMS PROVIDER MANAGEMENT TESTS - Phase 7 Enhanced
+    # Testing Enhanced Partner Provider Integration with Duffle & RateHawk
     # =====================================================
     
+    def test_enhanced_provider_registry_duffle_ratehawk(self):
+        """Test Enhanced Provider Registry with Duffle and RateHawk integration"""
+        print("🚀 Testing Enhanced Provider Registry (Duffle & RateHawk)...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Enhanced Provider Registry", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['providers', 'total_count', 'active_count', 'healthy_count']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Enhanced Provider Registry", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                providers = data['providers']
+                if not isinstance(providers, list):
+                    self.log_test("Enhanced Provider Registry", False, "Providers is not a list", response_time)
+                    return False
+                
+                # Check for minimum 7 providers as specified in requirements
+                if len(providers) < 7:
+                    self.log_test("Enhanced Provider Registry", False, f"Expected at least 7 providers, got {len(providers)}", response_time)
+                    return False
+                
+                # Find Duffle and RateHawk providers
+                duffle_provider = None
+                ratehawk_provider = None
+                
+                for provider in providers:
+                    if provider.get('name') == 'Duffle':
+                        duffle_provider = provider
+                    elif provider.get('name') == 'RateHawk':
+                        ratehawk_provider = provider
+                
+                # Validate Duffle provider
+                if not duffle_provider:
+                    self.log_test("Enhanced Provider Registry", False, "Duffle provider not found in registry", response_time)
+                    return False
+                
+                # Check Duffle specifications
+                if duffle_provider.get('performance_score') != 94.8:
+                    self.log_test("Enhanced Provider Registry", False, f"Duffle performance_score should be 94.8, got {duffle_provider.get('performance_score')}", response_time)
+                    return False
+                
+                if duffle_provider.get('type') != 'flight':
+                    self.log_test("Enhanced Provider Registry", False, f"Duffle type should be 'flight', got {duffle_provider.get('type')}", response_time)
+                    return False
+                
+                if duffle_provider.get('demo_label') != '✨ DEMO DATA':
+                    self.log_test("Enhanced Provider Registry", False, f"Duffle demo_label should be '✨ DEMO DATA', got {duffle_provider.get('demo_label')}", response_time)
+                    return False
+                
+                # Validate RateHawk provider
+                if not ratehawk_provider:
+                    self.log_test("Enhanced Provider Registry", False, "RateHawk provider not found in registry", response_time)
+                    return False
+                
+                # Check RateHawk specifications
+                if ratehawk_provider.get('performance_score') != 91.3:
+                    self.log_test("Enhanced Provider Registry", False, f"RateHawk performance_score should be 91.3, got {ratehawk_provider.get('performance_score')}", response_time)
+                    return False
+                
+                if ratehawk_provider.get('type') != 'hotel':
+                    self.log_test("Enhanced Provider Registry", False, f"RateHawk type should be 'hotel', got {ratehawk_provider.get('type')}", response_time)
+                    return False
+                
+                if ratehawk_provider.get('demo_label') != '✨ DEMO DATA':
+                    self.log_test("Enhanced Provider Registry", False, f"RateHawk demo_label should be '✨ DEMO DATA', got {ratehawk_provider.get('demo_label')}", response_time)
+                    return False
+                
+                # Validate provider metadata
+                for provider in [duffle_provider, ratehawk_provider]:
+                    if 'specialties' not in provider:
+                        self.log_test("Enhanced Provider Registry", False, f"Provider {provider['name']} missing specialties metadata", response_time)
+                        return False
+                    
+                    if 'features' not in provider:
+                        self.log_test("Enhanced Provider Registry", False, f"Provider {provider['name']} missing features metadata", response_time)
+                        return False
+                
+                self.log_test("Enhanced Provider Registry", True, f"✅ All 7+ providers found including Duffle (94.8, flight) and RateHawk (91.3, hotel) with demo labels", response_time)
+                return True
+                
+            else:
+                self.log_test("Enhanced Provider Registry", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Enhanced Provider Registry", False, f"Exception: {str(e)}")
+            return False
+
+    def test_enhanced_provider_analytics_with_new_partners(self):
+        """Test Enhanced Provider Analytics with updated counts and partner spotlight"""
+        print("📊 Testing Enhanced Provider Analytics (5 Key Partners)...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers/analytics"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Enhanced Provider Analytics", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['summary', 'partner_spotlight', 'top_performers', 'cost_analytics']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Enhanced Provider Analytics", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check summary counts as specified in requirements
+                summary = data['summary']
+                expected_counts = {
+                    'total_providers': 14,
+                    'active_providers': 10,
+                    'healthy_providers': 9
+                }
+                
+                for field, expected_value in expected_counts.items():
+                    actual_value = summary.get(field)
+                    if actual_value != expected_value:
+                        self.log_test("Enhanced Provider Analytics", False, f"Summary {field} should be {expected_value}, got {actual_value}", response_time)
+                        return False
+                
+                # Validate partner_spotlight section
+                partner_spotlight = data.get('partner_spotlight', [])
+                if not isinstance(partner_spotlight, list):
+                    self.log_test("Enhanced Provider Analytics", False, "partner_spotlight should be a list", response_time)
+                    return False
+                
+                # Check for all 5 key partners with demo labels
+                key_partners = ['Amadeus', 'Sabre', 'Viator', 'Duffle', 'RateHawk']
+                found_partners = []
+                
+                for partner in partner_spotlight:
+                    partner_name = partner.get('name')
+                    if partner_name in key_partners:
+                        found_partners.append(partner_name)
+                        
+                        # Check for demo label
+                        if partner.get('demo_label') != '✨ DEMO DATA':
+                            self.log_test("Enhanced Provider Analytics", False, f"Partner {partner_name} missing demo label", response_time)
+                            return False
+                
+                missing_partners = set(key_partners) - set(found_partners)
+                if missing_partners:
+                    self.log_test("Enhanced Provider Analytics", False, f"Missing key partners in spotlight: {missing_partners}", response_time)
+                    return False
+                
+                # Validate top_performers includes Duffle and RateHawk with demo flags
+                top_performers = data.get('top_performers', [])
+                duffle_in_top = any(p.get('name') == 'Duffle' and p.get('score') == 94.8 and p.get('demo') for p in top_performers)
+                ratehawk_in_top = any(p.get('name') == 'RateHawk' and p.get('score') == 91.3 and p.get('demo') for p in top_performers)
+                
+                if not duffle_in_top:
+                    self.log_test("Enhanced Provider Analytics", False, "Duffle not found in top_performers with correct score (94.8) and demo flag", response_time)
+                    return False
+                
+                if not ratehawk_in_top:
+                    self.log_test("Enhanced Provider Analytics", False, "RateHawk not found in top_performers with correct score (91.3) and demo flag", response_time)
+                    return False
+                
+                # Check cost_analytics includes new providers with efficiency ratings
+                cost_analytics = data.get('cost_analytics', {})
+                provider_costs = cost_analytics.get('provider_breakdown', {})
+                
+                if 'Duffle' not in provider_costs:
+                    self.log_test("Enhanced Provider Analytics", False, "Duffle not found in cost_analytics provider_breakdown", response_time)
+                    return False
+                
+                if 'RateHawk' not in provider_costs:
+                    self.log_test("Enhanced Provider Analytics", False, "RateHawk not found in cost_analytics provider_breakdown", response_time)
+                    return False
+                
+                # Check efficiency ratings
+                duffle_cost = provider_costs.get('Duffle', {})
+                ratehawk_cost = provider_costs.get('RateHawk', {})
+                
+                if duffle_cost.get('efficiency') != 'high':
+                    self.log_test("Enhanced Provider Analytics", False, f"Duffle efficiency should be 'high', got {duffle_cost.get('efficiency')}", response_time)
+                    return False
+                
+                if ratehawk_cost.get('efficiency') != 'very_high':
+                    self.log_test("Enhanced Provider Analytics", False, f"RateHawk efficiency should be 'very_high', got {ratehawk_cost.get('efficiency')}", response_time)
+                    return False
+                
+                self.log_test("Enhanced Provider Analytics", True, f"✅ Analytics validated: 14 total, 10 active, 9 healthy providers. All 5 key partners with demo labels found", response_time)
+                return True
+                
+            else:
+                self.log_test("Enhanced Provider Analytics", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Enhanced Provider Analytics", False, f"Exception: {str(e)}")
+            return False
+
+    def test_duffle_ratehawk_health_checks(self):
+        """Test health checks for duffle-001 and ratehawk-001 provider IDs"""
+        print("🏥 Testing Duffle & RateHawk Health Checks...")
+        
+        provider_ids = ['duffle-001', 'ratehawk-001']
+        results = []
+        
+        for provider_id in provider_ids:
+            url = f"{BASE_URL}/smart-dreams/providers/{provider_id}/health-check"
+            
+            try:
+                start_time = time.time()
+                response = self.session.post(url, json={}, timeout=15)
+                response_time = time.time() - start_time
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if "error" in data:
+                        self.log_test(f"{provider_id.title()} Health Check", False, f"API Error: {data['error']}", response_time)
+                        results.append(False)
+                        continue
+                    
+                    # Validate response structure
+                    required_fields = ['provider_id', 'status', 'response_time_ms', 'success_rate']
+                    missing_fields = [field for field in required_fields if field not in data]
+                    
+                    if missing_fields:
+                        self.log_test(f"{provider_id.title()} Health Check", False, f"Missing fields: {missing_fields}", response_time)
+                        results.append(False)
+                        continue
+                    
+                    # Check provider ID matches
+                    if data.get('provider_id') != provider_id:
+                        self.log_test(f"{provider_id.title()} Health Check", False, f"Provider ID mismatch: expected {provider_id}, got {data.get('provider_id')}", response_time)
+                        results.append(False)
+                        continue
+                    
+                    # Validate metadata includes provider-specific details
+                    if 'metadata' not in data:
+                        self.log_test(f"{provider_id.title()} Health Check", False, "Missing metadata field", response_time)
+                        results.append(False)
+                        continue
+                    
+                    metadata = data['metadata']
+                    if not isinstance(metadata, dict):
+                        self.log_test(f"{provider_id.title()} Health Check", False, "Metadata should be a dict", response_time)
+                        results.append(False)
+                        continue
+                    
+                    # Check status is valid
+                    status = data.get('status')
+                    valid_statuses = ['healthy', 'degraded', 'offline']
+                    if status not in valid_statuses:
+                        self.log_test(f"{provider_id.title()} Health Check", False, f"Invalid status: {status}", response_time)
+                        results.append(False)
+                        continue
+                    
+                    # Check response time and success rate are reasonable
+                    resp_time_ms = data.get('response_time_ms', 0)
+                    success_rate = data.get('success_rate', 0)
+                    
+                    if resp_time_ms <= 0:
+                        self.log_test(f"{provider_id.title()} Health Check", False, f"Invalid response time: {resp_time_ms}ms", response_time)
+                        results.append(False)
+                        continue
+                    
+                    if not (0 <= success_rate <= 100):
+                        self.log_test(f"{provider_id.title()} Health Check", False, f"Invalid success rate: {success_rate}%", response_time)
+                        results.append(False)
+                        continue
+                    
+                    self.log_test(f"{provider_id.title()} Health Check", True, f"Status: {status}, Response: {resp_time_ms}ms, Success: {success_rate}%", response_time)
+                    results.append(True)
+                    
+                else:
+                    self.log_test(f"{provider_id.title()} Health Check", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                    results.append(False)
+                    
+            except Exception as e:
+                self.log_test(f"{provider_id.title()} Health Check", False, f"Exception: {str(e)}")
+                results.append(False)
+        
+        # Overall result
+        all_passed = all(results)
+        if all_passed:
+            self.log_test("Duffle & RateHawk Health Checks", True, "✅ Both providers health checks passed with proper response structure")
+        else:
+            self.log_test("Duffle & RateHawk Health Checks", False, f"Health check failures: {len([r for r in results if not r])}/{len(results)}")
+        
+        return all_passed
+
     def test_smart_dreams_providers_registry(self):
         """Test Smart Dreams Provider Registry endpoint"""
         print("🏢 Testing Smart Dreams Provider Registry...")
