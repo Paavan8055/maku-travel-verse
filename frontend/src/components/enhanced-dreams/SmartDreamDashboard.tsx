@@ -22,7 +22,8 @@ import {
   Brain,
   Target,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  Zap
 } from 'lucide-react';
 
 import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
