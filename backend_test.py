@@ -1102,14 +1102,14 @@ class MakuTravelBackendTester:
                 
                 # Check cost_analytics includes new providers with efficiency ratings
                 cost_analytics = data.get('cost_analytics', {})
-                provider_costs = cost_analytics.get('provider_breakdown', {})
+                provider_costs = cost_analytics.get('cost_by_provider', {})
                 
                 if 'Duffle' not in provider_costs:
-                    self.log_test("Enhanced Provider Analytics", False, "Duffle not found in cost_analytics provider_breakdown", response_time)
+                    self.log_test("Enhanced Provider Analytics", False, "Duffle not found in cost_analytics cost_by_provider", response_time)
                     return False
                 
                 if 'RateHawk' not in provider_costs:
-                    self.log_test("Enhanced Provider Analytics", False, "RateHawk not found in cost_analytics provider_breakdown", response_time)
+                    self.log_test("Enhanced Provider Analytics", False, "RateHawk not found in cost_analytics cost_by_provider", response_time)
                     return False
                 
                 # Check efficiency ratings
