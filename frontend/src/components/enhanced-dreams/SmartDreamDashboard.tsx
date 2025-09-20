@@ -435,13 +435,14 @@ export const SmartDreamDashboard: React.FC = () => {
                           <p className="text-gray-600">{selectedCompanion?.description}</p>
                         </div>
                       </div>
-                      <Button 
+                      <MakuButton 
+                        variant="tricolor"
+                        size="md"
                         onClick={shareJourney}
-                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-full px-6 py-3 shadow-lg"
                       >
                         <Share2 className="h-4 w-4 mr-2" />
                         Share Journey
-                      </Button>
+                      </MakuButton>
                     </div>
 
                     {/* Progress Section */}
