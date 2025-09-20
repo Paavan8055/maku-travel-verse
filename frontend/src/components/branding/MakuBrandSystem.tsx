@@ -1,8 +1,8 @@
 import React from 'react';
-import MakuMascotImage from '@/assets/maku-mascot.png';
+import MakuLogoSVG from '/maku-logo.svg';
 
 // Maku.Travel Brand System Component Library
-// CTO Strategic Implementation for Comprehensive Brand Integration
+// Official Logo Implementation with SVG Asset
 
 export interface MakuBrandConfig {
   size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'hero';
