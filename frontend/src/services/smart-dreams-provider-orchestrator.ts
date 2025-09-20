@@ -184,13 +184,13 @@ export class SmartDreamProviderOrchestrator {
   }
 
   /**
-   * Enhanced search with AI intelligence and companion matching
+   * Enhanced search with AI intelligence, companion matching, and dynamic provider integration
    */
   async searchWithSmartDreams(request: SmartDreamProviderRequest): Promise<SmartDreamProviderResponse> {
     const startTime = Date.now();
     
     try {
-      logger.info('Starting Smart Dreams enhanced provider search', { 
+      logger.info('Starting Smart Dreams enhanced provider search with dynamic discovery', { 
         companionType: request.companionType,
         destination: request.destination 
       });
@@ -203,29 +203,41 @@ export class SmartDreamProviderOrchestrator {
         return cached;
       }
 
-      // Get healthy providers
-      const healthyProviders = this.supplierAggregator.getHealthySuppliers();
+      // Get all available providers (static + dynamic)
+      const { static: staticProviders, dynamic: dynamicProviders } = await this.getAllProviders(request.companionType);
       
-      // Parallel provider requests with AI enhancement
-      const providerPromises = healthyProviders.map(({ name, client }) => 
-        this.executeEnhancedProviderSearch(name, client, request)
+      logger.info(`Found ${staticProviders.length} static + ${dynamicProviders.length} dynamic providers`);
+
+      // Execute searches on static providers
+      const staticProviderPromises = staticProviders.map(({ name, client }) => 
+        this.executeEnhancedProviderSearch(name, client, request, 'static')
       );
 
-      const providerResults = await Promise.allSettled(providerPromises);
+      // Execute searches on dynamic providers  
+      const dynamicProviderPromises = dynamicProviders.slice(0, 3).map(provider => // Limit to top 3 for performance
+        this.executeDynamicProviderSearch(provider, request)
+      );
+
+      // Execute all provider searches in parallel
+      const allProviderPromises = [...staticProviderPromises, ...dynamicProviderPromises];
+      const providerResults = await Promise.allSettled(allProviderPromises);
       
       // Aggregate and enhance results with AI intelligence
       const aggregatedResults = await this.aggregateAndEnhanceResults(
         providerResults,
         request,
-        startTime
+        startTime,
+        dynamicProviders.length
       );
 
       // Cache results
       this.setCache(cacheKey, aggregatedResults, 300000); // 5 minutes cache
 
-      logger.info('Smart Dreams provider search completed', {
+      logger.info('Smart Dreams provider search completed with dynamic integration', {
         processingTime: Date.now() - startTime,
-        totalResults: aggregatedResults.hotels.length + aggregatedResults.flights.length + aggregatedResults.activities.length
+        totalResults: aggregatedResults.hotels.length + aggregatedResults.flights.length + aggregatedResults.activities.length,
+        dynamicProvidersUsed: aggregatedResults.aggregatedInsights.dynamicProvidersUsed,
+        autoDiscoveredResults: aggregatedResults.aggregatedInsights.autoDiscoveredResults
       });
 
       return aggregatedResults;
