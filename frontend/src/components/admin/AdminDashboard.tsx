@@ -262,6 +262,7 @@ export default function AdminDashboard() {
 
       <Tabs defaultValue="ai-assistant" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="smart-dreams">Smart Dreams</TabsTrigger>
           <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
           <TabsTrigger value="agent-monitor">Agent Monitor</TabsTrigger>
           <TabsTrigger value="system-tests">System Tests</TabsTrigger>
