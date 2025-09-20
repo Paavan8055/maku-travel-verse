@@ -1,8 +1,7 @@
 import React from 'react';
-import MakuLogo7Official from '@/assets/maku-logo-7-official.png';
 
 // Maku.Travel Brand System Component Library
-// Using the Official "Maku Logo 7.png" as provided
+// Using the Official SVG logo from public directory
 
 export interface MakuBrandConfig {
   size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'hero';
