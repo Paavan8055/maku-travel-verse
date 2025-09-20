@@ -6,6 +6,24 @@ import { useAIIntelligence } from "@/hooks/useAIIntelligence";
 import { Badge } from "@/components/ui/badge";
 
 const Footer = () => {
+  // AI Intelligence integration for Smart Dreams status
+  const { travelDNA, loading: aiLoading, error: aiError } = useAIIntelligence();
+
+  // Get AI status for footer indicator
+  const getAIStatus = () => {
+    if (aiError) return { color: '#ff6b6b', text: 'AI Offline', icon: '🔴' };
+    if (aiLoading) return { color: '#ffd93d', text: 'AI Processing', icon: '🟡' };
+    if (travelDNA) return { 
+      color: '#51cf66', 
+      text: 'AI Online', 
+      icon: '🟢',
+      confidence: Math.round(travelDNA.confidence_score * 100)
+    };
+    return { color: '#868e96', text: 'AI Ready', icon: '⚪' };
+  };
+
+  const aiStatus = getAIStatus();
+
   const footerLinks = {
     company: [{
       name: "About Maku.travel",
@@ -19,6 +37,44 @@ const Footer = () => {
     }, {
       name: "Credits",
       href: "/acknowledgments"
+    }],
+    products: [{
+      name: "Hotels & Accommodation",
+      href: "/search/hotels"
+    }, {
+      name: "Flight Booking",
+      href: "/search/flights"
+    }, {
+      name: "Tours & Activities",
+      href: "/search/activities"
+    }, {
+      name: "Smart Dreams",
+      href: "/smart-dreams",
+      icon: Sparkles,
+      isNew: true
+    }, {
+      name: "Travel Fund",
+      href: "/travel-fund"
+    }, {
+      name: "Gift Cards",
+      href: "/gift-cards"
+    }],
+    smartTravel: [{
+      name: "Dream Destinations",
+      href: "/smart-dreams?tab=dreams",
+      icon: Heart
+    }, {
+      name: "AI Travel DNA",
+      href: "/smart-dreams?tab=ai-dna",
+      icon: Brain
+    }, {
+      name: "Personal Journey",
+      href: "/smart-dreams?tab=journey",
+      icon: MapPin
+    }, {
+      name: "Journey Planner",
+      href: "/smart-dreams?tab=planner",
+      icon: Calendar
     }],
     technology: [{
       name: "Maku AI Assistant",
@@ -44,22 +100,6 @@ const Footer = () => {
       name: "Live Demo Center",
       href: "/demo",
       icon: Play
-    }],
-    services: [{
-      name: "Hotels & Accommodation",
-      href: "/search/hotels"
-    }, {
-      name: "Flight Booking",
-      href: "/search/flights"
-    }, {
-      name: "Tours & Activities",
-      href: "/search/activities"
-    }, {
-      name: "Gift Cards",
-      href: "/gift-cards"
-    }, {
-      name: "Travel Deals",
-      href: "/deals"
     }],
     developers: [{
       name: "Developer Portal",
