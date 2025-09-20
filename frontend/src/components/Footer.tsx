@@ -305,10 +305,32 @@ return <footer className="bg-primary text-primary-foreground">
                 <span className="text-2xl font-playfair font-bold">Maku</span>
                 <span className="text-sm text-primary-foreground/80">2025 Maku Travel. All rights reserved.</span>
               </div>
+              
               <div className="flex flex-wrap items-center gap-6 text-primary-foreground/90">
-                <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /><span className="text-sm">Secure Booking</span></div>
-                <div className="flex items-center gap-2"><Headphones className="h-4 w-4" /><span className="text-sm">24/7 Support</span></div>
-                <div className="flex items-center gap-2"><BadgeCheck className="h-4 w-4" /><span className="text-sm">Best Price Guarantee</span></div>
+                {/* Trust Indicators */}
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="text-sm">Secure Booking</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Headphones className="h-4 w-4" />
+                  <span className="text-sm">24/7 Support</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <BadgeCheck className="h-4 w-4" />
+                  <span className="text-sm">Best Price Guarantee</span>
+                </div>
+                
+                {/* Smart Dreams AI Status */}
+                <div className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
+                  <span className="text-xs">{aiStatus.icon}</span>
+                  <span className="text-sm font-medium">{aiStatus.text}</span>
+                  {aiStatus.confidence && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs ml-1">
+                      {aiStatus.confidence}%
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           </div>
