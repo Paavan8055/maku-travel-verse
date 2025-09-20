@@ -1057,9 +1057,14 @@ class MakuTravelBackendTester:
                         return False
                 
                 # Validate partner_spotlight section
-                partner_spotlight = data.get('partner_spotlight', [])
-                if not isinstance(partner_spotlight, list):
-                    self.log_test("Enhanced Provider Analytics", False, "partner_spotlight should be a list", response_time)
+                partner_spotlight = data.get('partner_spotlight', {})
+                if not isinstance(partner_spotlight, dict):
+                    self.log_test("Enhanced Provider Analytics", False, "partner_spotlight should be a dict", response_time)
+                    return False
+                
+                key_partners = partner_spotlight.get('key_partners', [])
+                if not isinstance(key_partners, list):
+                    self.log_test("Enhanced Provider Analytics", False, "key_partners should be a list", response_time)
                     return False
                 
                 # Check for all 5 key partners with demo labels
