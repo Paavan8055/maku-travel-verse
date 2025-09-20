@@ -26,9 +26,9 @@ const AdminAuth = () => {
   // Check if current user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
-      // Development bypass
-      if (isDevelopment && hasDevBypass) {
-        logger.info('Development admin bypass enabled');
+      // Development bypass for preview environments
+      if (allowBypass) {
+        logger.info('Admin bypass enabled for preview environment');
         setIsAdmin(true);
         return;
       }
@@ -47,7 +47,7 @@ const AdminAuth = () => {
     };
 
     checkAdminStatus();
-  }, [user, isDevelopment, hasDevBypass]);
+  }, [user, allowBypass]);
 
   // Show loading state
   if (loading) {
