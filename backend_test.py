@@ -1400,7 +1400,7 @@ class MakuTravelBackendTester:
                 self.test_smart_dreams_provider_health_check,
                 self.test_smart_dreams_provider_activate,
                 self.test_smart_dreams_provider_credentials,
-                self.test_existing_enhanced_dreams_integration
+                self.test_existing_enhanced_providers_integration
             ])
         ]
         
