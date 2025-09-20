@@ -1786,6 +1786,54 @@ async def get_all_providers():
                 }
             },
             {
+                "id": "duffle-001",
+                "name": "Duffle",
+                "type": "flight",
+                "api_endpoint": "https://api.duffel.com/v2",
+                "status": "active",
+                "health_status": "healthy",
+                "performance_score": 94.8,
+                "auto_discovered": False,
+                "integration_priority": 9,
+                "supported_companions": ["solo", "romantic", "friends", "family"],
+                "rate_limit": 2000,
+                "cost_per_request": 0.018,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "global",
+                    "specialties": ["flights", "direct_airline_connectivity", "ancillary_services"],
+                    "established": "2023",
+                    "features": ["real_time_search", "instant_booking", "baggage_selection", "seat_selection"],
+                    "demo_label": "✨ DEMO DATA",
+                    "api_version": "v2",
+                    "sandbox_available": True
+                }
+            },
+            {
+                "id": "ratehawk-001",
+                "name": "RateHawk",
+                "type": "hotel",
+                "api_endpoint": "https://api.ratehawk.com/v3",
+                "status": "active",
+                "health_status": "healthy",
+                "performance_score": 91.3,
+                "auto_discovered": False,
+                "integration_priority": 8,
+                "supported_companions": ["solo", "romantic", "friends", "family"],
+                "rate_limit": 1800,
+                "cost_per_request": 0.016,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "global",
+                    "specialties": ["hotels", "accommodations", "real_time_booking"],
+                    "established": "2023",
+                    "features": ["2.9M_accommodations", "280_suppliers", "32_languages", "webhook_integration"],
+                    "demo_label": "✨ DEMO DATA",
+                    "api_version": "v3",
+                    "countries_covered": "220+"
+                }
+            },
+            {
                 "id": "hotelbeds-001",
                 "name": "HotelBeds",
                 "type": "hotel",
