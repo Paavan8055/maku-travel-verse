@@ -68,6 +68,18 @@ const AdminAuth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
       <div className="w-full max-w-md">
+        {/* Development bypass info */}
+        {isDevelopment && (
+          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg text-sm">
+            <p className="text-yellow-800">
+              <strong>Development Mode:</strong> Add <code>?dev=true</code> to URL for admin bypass
+            </p>
+            <p className="text-yellow-600 mt-1">
+              Example: <code>/admin?dev=true</code>
+            </p>
+          </div>
+        )}
+        
         {isAdminLogin ? (
           <AdminLoginForm onSwitchToRegular={() => setIsAdminLogin(false)} />
         ) : (
