@@ -254,10 +254,11 @@ export class SmartDreamProviderOrchestrator {
   private async executeEnhancedProviderSearch(
     providerName: string, 
     client: any, 
-    request: SmartDreamProviderRequest
+    request: SmartDreamProviderRequest,
+    providerType: 'static' | 'dynamic' = 'static'
   ): Promise<any> {
     try {
-      logger.info(`Executing enhanced search for provider: ${providerName}`);
+      logger.info(`Executing enhanced search for ${providerType} provider: ${providerName}`);
       
       // Basic provider search
       const basicResults = await this.executeBasicProviderSearch(client, request);
@@ -267,6 +268,7 @@ export class SmartDreamProviderOrchestrator {
       
       return {
         provider: providerName,
+        providerType,
         success: true,
         data: enhancedResults
       };
@@ -275,10 +277,157 @@ export class SmartDreamProviderOrchestrator {
       logger.error(`Provider ${providerName} search failed`, error);
       return {
         provider: providerName,
+        providerType,
         success: false,
         error: (error as Error).message
       };
     }
+  }
+
+  /**
+   * Execute search on dynamic provider
+   */
+  private async executeDynamicProviderSearch(
+    provider: DynamicProvider,
+    request: SmartDreamProviderRequest
+  ): Promise<any> {
+    try {
+      logger.info(`Executing dynamic provider search: ${provider.name} (${provider.type})`);
+      
+      // Create mock results based on provider specialization
+      const mockResults = this.generateDynamicProviderResults(provider, request);
+      
+      // Enhance with AI and provider-specific scoring
+      const enhancedResults = await this.enhanceWithAI(mockResults, request, provider.name);
+      
+      // Apply dynamic provider specific enhancements
+      this.applyDynamicProviderEnhancements(enhancedResults, provider);
+      
+      return {
+        provider: provider.name,
+        providerId: provider.id,
+        providerType: 'dynamic',
+        autoDiscovered: provider.auto_discovered,
+        success: true,
+        data: enhancedResults,
+        metadata: {
+          performanceScore: provider.performance_score,
+          integrationPriority: provider.integration_priority,
+          costPerRequest: provider.cost_per_request
+        }
+      };
+      
+    } catch (error) {
+      logger.error(`Dynamic provider ${provider.name} search failed`, error);
+      return {
+        provider: provider.name,
+        providerId: provider.id,
+        providerType: 'dynamic',
+        autoDiscovered: provider.auto_discovered,
+        success: false,
+        error: (error as Error).message
+      };
+    }
+  }
+
+  /**
+   * Generate mock results for dynamic provider based on specialization
+   */
+  private generateDynamicProviderResults(provider: DynamicProvider, request: SmartDreamProviderRequest): any {
+    const results: any = { hotels: [], flights: [], activities: [] };
+    
+    // Generate results based on provider type and specialization
+    if (provider.type === 'hotel' || provider.metadata?.specialties?.includes('hotels')) {
+      results.hotels = this.generateDynamicHotels(provider, request);
+    }
+    
+    if (provider.type === 'flight' || provider.metadata?.specialties?.includes('flights')) {
+      results.flights = this.generateDynamicFlights(provider, request);
+    }
+    
+    if (provider.type === 'activity' || provider.metadata?.specialties?.includes('activities')) {
+      results.activities = this.generateDynamicActivities(provider, request);
+    }
+    
+    return results;
+  }
+
+  /**
+   * Generate dynamic hotel results
+   */
+  private generateDynamicHotels(provider: DynamicProvider, request: SmartDreamProviderRequest): any[] {
+    const hotelCount = Math.min(3, Math.ceil(provider.performance_score / 30));
+    const hotels = [];
+    
+    for (let i = 0; i < hotelCount; i++) {
+      hotels.push({
+        id: `${provider.id}_hotel_${i + 1}`,
+        name: `${provider.name} Partner Hotel ${i + 1}`,
+        price: 150 + (i * 50) + Math.floor(provider.performance_score * 2),
+        rating: 4.0 + (provider.performance_score / 100) * 1.0,
+        location: request.destination || 'Dream Destination'
+      });
+    }
+    
+    return hotels;
+  }
+
+  /**
+   * Generate dynamic flight results
+   */
+  private generateDynamicFlights(provider: DynamicProvider, request: SmartDreamProviderRequest): any[] {
+    return [{
+      id: `${provider.id}_flight_1`,
+      price: 400 + Math.floor(provider.performance_score * 3),
+      duration: '6h 45m',
+      airline: `${provider.name} Airlines`
+    }];
+  }
+
+  /**
+   * Generate dynamic activity results
+   */
+  private generateDynamicActivities(provider: DynamicProvider, request: SmartDreamProviderRequest): any[] {
+    const activityCount = Math.min(2, Math.ceil(provider.performance_score / 40));
+    const activities = [];
+    
+    for (let i = 0; i < activityCount; i++) {
+      activities.push({
+        id: `${provider.id}_activity_${i + 1}`,
+        name: `${provider.name} Experience ${i + 1}`,
+        price: 80 + (i * 30) + Math.floor(provider.performance_score),
+        duration: '3 hours',
+        category: request.companionType
+      });
+    }
+    
+    return activities;
+  }
+
+  /**
+   * Apply dynamic provider specific enhancements
+   */
+  private applyDynamicProviderEnhancements(results: any, provider: DynamicProvider): void {
+    // Boost AI confidence for high-performing auto-discovered providers
+    const performanceBoost = provider.auto_discovered ? provider.performance_score / 100 * 0.15 : 0;
+    
+    results.hotels?.forEach((hotel: any) => {
+      hotel.aiConfidenceScore = Math.min(95, (hotel.aiConfidenceScore || 75) + performanceBoost * 100);
+      hotel.isDynamicProvider = true;
+      hotel.autoDiscovered = provider.auto_discovered;
+    });
+    
+    results.flights?.forEach((flight: any) => {
+      flight.aiOptimizationScore = Math.min(95, (flight.aiOptimizationScore || 75) + performanceBoost * 100);
+      flight.isDynamicProvider = true;
+      flight.autoDiscovered = provider.auto_discovered;
+    });
+    
+    results.activities?.forEach((activity: any) => {
+      activity.aiRecommendationRank = Math.min(95, (activity.aiRecommendationRank || 75) + performanceBoost * 100);
+      activity.isDynamicProvider = true;
+      activity.autoDiscovered = provider.auto_discovered;
+    });
   }
 
   /**
