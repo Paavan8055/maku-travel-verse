@@ -69,6 +69,7 @@ const TravelPreferencesPage = createLazyRoute(() => import("./pages/travel-prefe
 const InviteFriendsPage = createLazyRoute(() => import("./pages/invite-friends"));
 const AdminDashboard = createLazyRoute(() => import("./pages/AdminDashboard"));
 const AdminAuth = createLazyRoute(() => import("./pages/AdminAuth"));
+const AdminSmartDreamsPage = createLazyRoute(() => import("./pages/admin/smart-dreams"));
 const DeploymentTestPage = createLazyRoute(() => import("./pages/admin/deployment-test"));
 const AdminLayout = createLazyRoute(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
 const AdminOverviewPage = createLazyRoute(() => import("./pages/admin/dashboard/overview"));
