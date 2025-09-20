@@ -260,7 +260,7 @@ export default function AdminDashboard() {
         </Card>
       )}
 
-      <Tabs defaultValue="ai-assistant" className="space-y-4">
+      <Tabs defaultValue="smart-dreams" className="space-y-4">
         <TabsList>
           <TabsTrigger value="smart-dreams">Smart Dreams</TabsTrigger>
           <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
