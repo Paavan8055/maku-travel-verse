@@ -100,12 +100,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-border w-full" role="navigation" aria-label="Main navigation">
+    <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border w-full transition-all duration-300 ${isSmartDreamActive ? 'smart-dream-active' : ''}`} role="navigation" aria-label="Main navigation">
       <div className="w-full px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className={`flex items-center justify-between transition-all duration-300 ${viewportWidth < 768 ? 'h-14' : viewportWidth < 1024 ? 'h-16' : 'h-18'}`}>
           {/* Logo */}
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>
-            <div className="text-4xl font-black font-cursive text-orange-400" aria-label="Maku Travel - Go to homepage">maku</div>
+          <div className="flex items-center space-x-2 cursor-pointer flex-shrink-0" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>
+            <div className={`font-black font-cursive text-orange-400 transition-all duration-300 ${viewportWidth < 768 ? 'text-3xl' : 'text-4xl'}`} aria-label="Maku Travel - Go to homepage">maku</div>
           </div>
 
           {/* Desktop Navigation */}
