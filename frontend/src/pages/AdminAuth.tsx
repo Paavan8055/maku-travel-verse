@@ -71,14 +71,22 @@ const AdminAuth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
       <div className="w-full max-w-md">
-        {/* Development bypass info */}
-        {isDevelopment && (
-          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg text-sm">
-            <p className="text-yellow-800">
-              <strong>Development Mode:</strong> Add <code>?dev=true</code> to URL for admin bypass
+        {/* Preview environment bypass info */}
+        {isPreviewEnvironment && (
+          <div className="mb-4 p-3 bg-blue-100 border border-blue-300 rounded-lg text-sm">
+            <p className="text-blue-800">
+              <strong>Preview Environment:</strong> Add <code>?bypass=admin</code> to URL for admin access
             </p>
-            <p className="text-yellow-600 mt-1">
-              Example: <code>/admin?dev=true</code>
+            <p className="text-blue-600 mt-1">
+              Example: <code>/admin?bypass=admin</code>
+            </p>
+          </div>
+        )}
+        
+        {isPreviewEnvironment && allowBypass && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg text-sm">
+            <p className="text-green-800">
+              <strong>Admin Bypass Active:</strong> Redirecting to admin dashboard...
             </p>
           </div>
         )}
