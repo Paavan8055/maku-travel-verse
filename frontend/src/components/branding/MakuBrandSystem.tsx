@@ -45,7 +45,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/maku-logo.svg" 
+          src="/maku-logo-7-official.png" 
           alt="Maku Travel - Official Logo with Dog, Suitcase, Sun & Tricolor Arc" 
           className="w-full h-full object-contain"
         />
@@ -62,7 +62,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/maku-logo.svg" 
+          src="/maku-logo-7-official.png" 
           alt="Maku Travel - Official Logo Icon" 
           className="w-full h-full object-contain"
         />
@@ -79,8 +79,8 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src="/maku-logo.svg" 
-          alt="Maku.Travel - Official Complete Logo" 
+          src="/maku-logo-7-official.png" 
+          alt="Maku.Travel - Official Complete Logo (Maku Logo 7)" 
           className="w-full h-full object-contain"
         />
       </div>
