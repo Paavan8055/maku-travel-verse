@@ -14,6 +14,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
 import { useHealthMonitor } from "@/hooks/useHealthMonitor";
 import { useAIIntelligence } from "@/hooks/useAIIntelligence";
+import { MakuLogo, MakuButton } from '@/components/branding/MakuBrandSystem';
 
 
 const Navbar = () => {
