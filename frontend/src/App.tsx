@@ -213,7 +213,7 @@ const App = () => (
                           <Route index element={<AdminOverviewPage />} />
                           <Route path="dashboard" element={<AdminOverviewPage />} />
                           <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
-                          <Route path="smart-dreams" element={<AdminDashboard />} />
+                          <Route path="smart-dreams" element={<AdminSmartDreamsPage />} />
                           
                           {/* Monitoring Routes */}
                           <Route path="monitoring" element={<AdminMonitoring />} />
