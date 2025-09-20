@@ -2374,14 +2374,19 @@ class MakuTravelBackendTester:
                 self.test_ai_feedback,
                 self.test_recommendation_explanation
             ]),
+            ("Enhanced Partner Provider Integration (Duffle & RateHawk)", [
+                self.test_enhanced_provider_registry_duffle_ratehawk,
+                self.test_enhanced_provider_analytics_with_new_partners,
+                self.test_duffle_ratehawk_health_checks,
+                self.test_existing_enhanced_providers_integration
+            ]),
             ("Smart Dreams Provider Management", [
                 self.test_smart_dreams_providers_registry,
                 self.test_smart_dreams_providers_discover,
                 self.test_smart_dreams_providers_analytics,
                 self.test_smart_dreams_provider_health_check,
                 self.test_smart_dreams_provider_activate,
-                self.test_smart_dreams_provider_credentials,
-                self.test_existing_enhanced_providers_integration
+                self.test_smart_dreams_provider_credentials
             ]),
             ("Phase 6: Blockchain Integration", [
                 self.test_blockchain_networks,
