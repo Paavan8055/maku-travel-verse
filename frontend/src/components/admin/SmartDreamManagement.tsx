@@ -130,9 +130,15 @@ interface ProviderAnalytics {
 export const SmartDreamManagement = () => {
   const [metrics, setMetrics] = useState<SmartDreamMetrics | null>(null);
   const [userAnalytics, setUserAnalytics] = useState<UserJourneyAnalytics | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [providerAnalytics, setProviderAnalytics] = useState<ProviderAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [providersLoading, setProvidersLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [discoveryInProgress, setDiscoveryInProgress] = useState(false);
 
   // AI Intelligence integration for system-wide AI status
   const { travelDNA, intelligentRecommendations, loading: aiLoading, error: aiError } = useAIIntelligence();
