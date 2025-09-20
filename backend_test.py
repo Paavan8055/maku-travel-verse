@@ -997,12 +997,13 @@ class MakuTravelBackendTester:
                 
                 # Validate provider metadata
                 for provider in [duffle_provider, ratehawk_provider]:
-                    if 'specialties' not in provider:
-                        self.log_test("Enhanced Provider Registry", False, f"Provider {provider['name']} missing specialties metadata", response_time)
+                    metadata = provider.get('metadata', {})
+                    if 'specialties' not in metadata:
+                        self.log_test("Enhanced Provider Registry", False, f"Provider {provider['name']} missing specialties in metadata", response_time)
                         return False
                     
-                    if 'features' not in provider:
-                        self.log_test("Enhanced Provider Registry", False, f"Provider {provider['name']} missing features metadata", response_time)
+                    if 'features' not in metadata:
+                        self.log_test("Enhanced Provider Registry", False, f"Provider {provider['name']} missing features in metadata", response_time)
                         return False
                 
                 self.log_test("Enhanced Provider Registry", True, f"✅ All 7+ providers found including Duffle (94.8, flight) and RateHawk (91.3, hotel) with demo labels", response_time)
