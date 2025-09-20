@@ -1441,13 +1441,52 @@ class SmartDreamProviderRequest(BaseModel):
     budget: Optional[dict] = None
     preferences: Optional[List[str]] = None
 
-# Provider Management Models
-class ProviderConfig(BaseModel):
+# Enhanced Security & Blockchain-Ready Models
+
+class BlockchainMetadata(BaseModel):
+    transaction_hash: Optional[str] = None
+    block_number: Optional[int] = None
+    network: Optional[str] = None  # 'cronos', 'bsc', 'ethereum'
+    smart_contract_address: Optional[str] = None
+    gas_used: Optional[int] = None
+    gas_price: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class AuditLogEntry(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    user_id: Optional[str] = None
+    action: str  # 'provider_activation', 'credential_update', 'discovery', 'health_check'
+    resource_type: str  # 'provider', 'credential', 'system'
+    resource_id: str
+    previous_state: Optional[dict] = None
+    new_state: Optional[dict] = None
+    metadata: dict = {}
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    blockchain_metadata: Optional[BlockchainMetadata] = None
+    security_level: str = "standard"  # 'low', 'standard', 'high', 'critical'
+
+class SecureProviderCredentials(BaseModel):
+    provider_id: str
+    encrypted_api_key: Optional[str] = None
+    encrypted_secret_key: Optional[str] = None
+    encrypted_access_token: Optional[str] = None
+    encrypted_refresh_token: Optional[str] = None
+    key_rotation_schedule: Optional[str] = None  # 'daily', 'weekly', 'monthly'
+    last_rotation: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    access_level: str = "restricted"  # 'public', 'restricted', 'confidential', 'secret'
+    blockchain_hash: Optional[str] = None  # Hash for blockchain verification
+    additional_config: dict = {}
+
+class EnhancedProviderConfig(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     type: str  # 'hotel', 'flight', 'activity', 'car_rental'
     api_endpoint: str
-    status: str = 'active'  # 'active', 'inactive', 'testing'
+    status: str = 'inactive'  # 'active', 'inactive', 'testing', 'deprecated'
     last_health_check: datetime = Field(default_factory=datetime.utcnow)
     health_status: str = 'unknown'  # 'healthy', 'degraded', 'offline'
     performance_score: float = 0.0
@@ -1459,14 +1498,38 @@ class ProviderConfig(BaseModel):
     rate_limit: Optional[int] = None
     cost_per_request: float = 0.0
     metadata: dict = {}
+    
+    # Blockchain-ready fields
+    blockchain_verified: bool = False
+    smart_contract_integration: bool = False
+    decentralized_credentials: bool = False
+    web3_compatible: bool = False
+    governance_token_required: bool = False
+    
+    # Security fields
+    security_rating: str = "standard"  # 'basic', 'standard', 'enhanced', 'premium'
+    compliance_status: str = "pending"  # 'pending', 'compliant', 'non_compliant'
+    last_security_audit: Optional[datetime] = None
+    
+    # Audit trail
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: Optional[str] = None
+    last_modified: datetime = Field(default_factory=datetime.utcnow)
+    last_modified_by: Optional[str] = None
 
-class ProviderCredentials(BaseModel):
-    provider_id: str
-    api_key: Optional[str] = None
-    secret_key: Optional[str] = None
-    access_token: Optional[str] = None
-    refresh_token: Optional[str] = None
-    additional_config: dict = {}
+class SystemAuditMetrics(BaseModel):
+    total_audit_entries: int
+    security_incidents: int
+    provider_activations_24h: int
+    credential_rotations_24h: int
+    blockchain_transactions_24h: int
+    compliance_violations: int
+    performance_degradations: int
+    auto_discoveries_24h: int
+
+# Backward compatibility alias
+ProviderCredentials = SecureProviderCredentials
+ProviderConfig = EnhancedProviderConfig
 
 class ProviderHealthCheck(BaseModel):
     provider_id: str
