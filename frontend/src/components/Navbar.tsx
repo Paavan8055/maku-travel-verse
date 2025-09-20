@@ -368,100 +368,163 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-border py-4 animate-slideIn">
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/search/hotels');
-                setIsMenuOpen(false);
-              }}>
-                Hotels
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/search/flights');
-                setIsMenuOpen(false);
-              }}>
-                <Plane className="mr-2 h-4 w-4" />
-                Flights
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start" 
-                onClick={() => {
-                  navigate('/search/activities');
-                  setIsMenuOpen(false);
-                }}
-              >
-                <MapPin className="mr-2 h-4 w-4" />
-                Activities
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/travel-fund');
-                setIsMenuOpen(false);
-              }}>
-                <Coins className="mr-2 h-4 w-4" />
-                Travel Fund
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/gift-cards');
-                setIsMenuOpen(false);
-              }}>
-                <Gift className="mr-2 h-4 w-4" />
-                Gift Cards
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/roadmap');
-                setIsMenuOpen(false);
-              }}>
-                <Rocket className="mr-2 h-4 w-4" />
-                Roadmap
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/partners');
-                setIsMenuOpen(false);
-              }}>
-                <UsersIcon className="mr-2 h-4 w-4" />
-                Partners
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/nft');
-                setIsMenuOpen(false);
-              }}>
-                NFT Collection
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/airdrop');
-                setIsMenuOpen(false);
-              }}>
-                Airdrop
-              </Button>
-              
-              {/* Smart Dream Hub */}
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/smart-dreams');
-                setIsMenuOpen(false);
-              }}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Smart Dreams
-              </Button>
-
-              {/* Environment Manager - Development Tool */}
-              <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                navigate('/environment-manager');
-                setIsMenuOpen(false);
-              }}>
-                <Settings className="mr-2 h-4 w-4" />
-                Environment
-              </Button>
-
-              {isAdmin && (
-                <Button variant="ghost" className="w-full justify-start" onClick={() => {
-                  navigate('/admin');
+          <div className="md:hidden border-t border-border py-4 animate-slideIn bg-white/95 backdrop-blur-md">
+            <div className="space-y-1">
+              {/* Main Navigation */}
+              <div className="space-y-1 pb-3 border-b border-gray-100">
+                <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
+                  navigate('/search/hotels');
                   setIsMenuOpen(false);
                 }}>
-                  <Shield className="mr-2 h-4 w-4" />
-                  Admin
+                  Hotels
                 </Button>
-              )}
+                <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
+                  navigate('/search/flights');
+                  setIsMenuOpen(false);
+                }}>
+                  <Plane className="mr-2 h-4 w-4" />
+                  Flights
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start hover:bg-orange-50" 
+                  onClick={() => {
+                    navigate('/search/activities');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Activities
+                </Button>
+                
+                {/* Smart Dreams - Enhanced Mobile */}
+                <div className="space-y-2 py-2">
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start ${isSmartDreamActive ? 'bg-gradient-to-r from-orange-100 to-pink-100 text-orange-600' : 'hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50'}`}
+                    onClick={() => {
+                      navigate('/smart-dreams');
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    <span className="font-medium">Smart Dreams</span>
+                    <Badge variant="secondary" className="ml-auto bg-orange-100 text-orange-600 text-xs">
+                      New
+                    </Badge>
+                  </Button>
+                  
+                  {/* Smart Dreams Sub-menu */}
+                  <div className="ml-4 space-y-1 pl-4 border-l border-orange-200">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="w-full justify-start text-sm hover:bg-orange-50" 
+                      onClick={() => {
+                        navigate('/smart-dreams?tab=journey');
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <MapPin className="mr-2 h-3 w-3" />
+                      Start Journey
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="w-full justify-start text-sm hover:bg-purple-50" 
+                      onClick={() => {
+                        navigate('/smart-dreams?tab=ai-dna');
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <Brain className="mr-2 h-3 w-3" />
+                      Travel DNA
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="w-full justify-start text-sm hover:bg-pink-50" 
+                      onClick={() => {
+                        navigate('/smart-dreams?tab=dreams');
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <Sparkles className="mr-2 h-3 w-3" />
+                      Dream Places
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="w-full justify-start text-sm hover:bg-blue-50" 
+                      onClick={() => {
+                        navigate('/smart-dreams?tab=planner');
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <Calendar className="mr-2 h-3 w-3" />
+                      AI Planner
+                    </Button>
+                  </div>
+                </div>
+                
+                <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
+                  navigate('/travel-fund');
+                  setIsMenuOpen(false);
+                }}>
+                  <Coins className="mr-2 h-4 w-4" />
+                  Travel Fund
+                </Button>
+              </div>
+              
+              {/* Secondary Navigation */}
+              <div className="space-y-1 pt-3">
+                <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                  navigate('/gift-cards');
+                  setIsMenuOpen(false);
+                }}>
+                  <Gift className="mr-2 h-4 w-4" />
+                  Gift Cards
+                </Button>
+                <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                  navigate('/roadmap');
+                  setIsMenuOpen(false);
+                }}>
+                  <Rocket className="mr-2 h-4 w-4" />
+                  Roadmap
+                </Button>
+                <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                  navigate('/partners');
+                  setIsMenuOpen(false);
+                }}>
+                  <UsersIcon className="mr-2 h-4 w-4" />
+                  Partners
+                </Button>
+                <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                  navigate('/help');
+                  setIsMenuOpen(false);
+                }}>
+                  Help
+                </Button>
+                
+                {/* Admin/Dev Tools */}
+                <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                  navigate('/environment-manager');
+                  setIsMenuOpen(false);
+                }}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Environment
+                </Button>
+
+                {isAdmin && (
+                  <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                    navigate('/admin');
+                    setIsMenuOpen(false);
+                  }}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         )}
