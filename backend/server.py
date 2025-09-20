@@ -1400,6 +1400,41 @@ class SmartDreamProviderRequest(BaseModel):
     budget: Optional[dict] = None
     preferences: Optional[List[str]] = None
 
+# Provider Management Models
+class ProviderConfig(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    type: str  # 'hotel', 'flight', 'activity', 'car_rental'
+    api_endpoint: str
+    status: str = 'active'  # 'active', 'inactive', 'testing'
+    last_health_check: datetime = Field(default_factory=datetime.utcnow)
+    health_status: str = 'unknown'  # 'healthy', 'degraded', 'offline'
+    performance_score: float = 0.0
+    auto_discovered: bool = False
+    discovery_date: Optional[datetime] = None
+    integration_priority: int = 5  # 1-10, higher = more priority
+    supported_companions: List[str] = ['solo', 'romantic', 'friends', 'family']
+    supported_destinations: List[str] = []
+    rate_limit: Optional[int] = None
+    cost_per_request: float = 0.0
+    metadata: dict = {}
+
+class ProviderCredentials(BaseModel):
+    provider_id: str
+    api_key: Optional[str] = None
+    secret_key: Optional[str] = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    additional_config: dict = {}
+
+class ProviderHealthCheck(BaseModel):
+    provider_id: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    status: str  # 'healthy', 'degraded', 'offline'
+    response_time_ms: float
+    success_rate: float
+    error_details: Optional[str] = None
+
 class ProviderSearchResponse(BaseModel):
     hotels: List[dict]
     flights: List[dict]
