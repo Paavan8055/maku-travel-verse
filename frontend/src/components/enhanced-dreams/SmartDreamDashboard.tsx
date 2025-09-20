@@ -421,9 +421,12 @@ export const SmartDreamDashboard: React.FC = () => {
                   <CardContent className="p-8">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
-                          <span className="text-white text-2xl">🐕</span>
-                        </div>
+                        <MakuLogo 
+                          size="lg" 
+                          variant="mascot" 
+                          theme="light" 
+                          context="card" 
+                        />
                         <div>
                           <h2 className="text-3xl font-bold text-gray-800">{currentJourney.title}</h2>
                           <p className="text-gray-600">{selectedCompanion?.description}</p>
