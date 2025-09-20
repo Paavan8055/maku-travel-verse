@@ -232,67 +232,50 @@ export const SmartDreamDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      {/* Header */}
-      <div className="relative border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-full">
-                <Heart className="h-8 w-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50">
+      {/* Maku.Travel Brand Header */}
+      <div className="bg-white shadow-sm border-b border-orange-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Maku Brand Integration */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-lg">🐕</span>
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-green-500 bg-clip-text text-transparent">
                   My Dream Journey
                 </h1>
-                <p className="text-purple-200/80 text-sm">
-                  Build your perfect adventure, step by step
-                </p>
+                <p className="text-sm text-gray-600">We Make "U" Travel</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              {aiEnabled && (
-                <div className="flex items-center space-x-2 text-white">
-                  <Brain className="h-5 w-5 text-blue-400" />
-                  <div className="text-center">
-                    <div className="text-sm font-bold text-blue-300">{travelDNA ? Math.round(travelDNA.confidence_score * 100) : 0}%</div>
-                    <div className="text-xs">AI Match</div>
-                  </div>
+            {/* AI Status with Maku Branding */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3 bg-orange-50 px-4 py-2 rounded-full border border-orange-200">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse shadow-sm"></div>
+                  <span className="text-sm font-medium text-orange-700">AI Match: {travelDNA ? Math.round(travelDNA.confidence_score * 100) : 0}%</span>
                 </div>
-              )}
-              
-              {currentJourney && (
-                <div className="flex items-center space-x-4 text-white">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-300">{currentJourney.destinations.length}</div>
-                    <div className="text-xs">Destinations</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-pink-300">{currentJourney.totalDays}</div>
-                    <div className="text-xs">Days</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-300">${currentJourney.totalBudget}</div>
-                    <div className="text-xs">Budget</div>
-                  </div>
+                <div className="w-px h-4 bg-orange-200"></div>
+                <div className="flex items-center space-x-2">
+                  <Heart className="h-4 w-4 text-green-500" />
+                  <span className="text-sm font-medium text-green-700">Excitement: {excitementLevel}%</span>
                 </div>
-              )}
-              
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">{excitementLevel}%</div>
-                <div className="text-xs text-yellow-200">Excitement</div>
+                <div className="w-px h-4 bg-orange-200"></div>
+                <button
+                  onClick={() => setAiEnabled(!aiEnabled)}
+                  className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                    aiEnabled 
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  aria-label={`AI is currently ${aiEnabled ? 'enabled' : 'disabled'}`}
+                >
+                  <Sparkles className={`h-3 w-3 ${aiEnabled ? 'text-green-500' : 'text-gray-400'}`} />
+                  <span>AI {aiEnabled ? 'On' : 'Off'}</span>
+                </button>
               </div>
-              
-              <Button 
-                onClick={() => setAiEnabled(!aiEnabled)}
-                variant={aiEnabled ? "default" : "outline"}
-                size="sm"
-                className="flex items-center space-x-2"
-              >
-                <Brain className="h-4 w-4" />
-                <span className="hidden sm:inline">AI {aiEnabled ? 'On' : 'Off'}</span>
-              </Button>
             </div>
           </div>
         </div>
