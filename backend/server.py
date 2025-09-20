@@ -1591,6 +1591,412 @@ async def smart_dreams_provider_search(request: SmartDreamProviderRequest):
             }
         }
 
+# Provider Management and Auto-Discovery Endpoints
+
+@api_router.get("/smart-dreams/providers")
+async def get_all_providers():
+    """Get all registered providers with their status and configurations"""
+    try:
+        # Mock provider registry - in production this would be stored in database
+        mock_providers = [
+            {
+                "id": "amadeus-001",
+                "name": "Amadeus",
+                "type": "flight",
+                "api_endpoint": "https://api.amadeus.com/v2",
+                "status": "active",
+                "health_status": "healthy",
+                "performance_score": 92.5,
+                "auto_discovered": False,
+                "integration_priority": 9,
+                "supported_companions": ["solo", "romantic", "friends", "family"],
+                "rate_limit": 1000,
+                "cost_per_request": 0.02,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "global",
+                    "specialties": ["flights", "hotels"],
+                    "established": "2018"
+                }
+            },
+            {
+                "id": "sabre-001", 
+                "name": "Sabre",
+                "type": "hotel",
+                "api_endpoint": "https://api.sabre.com/v3",
+                "status": "active",
+                "health_status": "healthy",
+                "performance_score": 88.2,
+                "auto_discovered": False,
+                "integration_priority": 8,
+                "supported_companions": ["solo", "romantic", "friends", "family"],
+                "rate_limit": 500,
+                "cost_per_request": 0.015,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "global",
+                    "specialties": ["hotels", "car_rentals"],
+                    "established": "2019"
+                }
+            },
+            {
+                "id": "viator-001",
+                "name": "Viator",
+                "type": "activity",
+                "api_endpoint": "https://api.viator.com/v1",
+                "status": "active",
+                "health_status": "healthy",
+                "performance_score": 85.7,
+                "auto_discovered": False,
+                "integration_priority": 7,
+                "supported_companions": ["solo", "romantic", "friends", "family"],
+                "rate_limit": 2000,
+                "cost_per_request": 0.01,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "global",
+                    "specialties": ["activities", "tours", "experiences"],
+                    "established": "2020"
+                }
+            },
+            {
+                "id": "expedia-taap-001",
+                "name": "Expedia TAAP",
+                "type": "hotel",
+                "api_endpoint": "https://api.expedia.com/taap/v3",
+                "status": "testing",
+                "health_status": "degraded",
+                "performance_score": 78.3,
+                "auto_discovered": True,
+                "discovery_date": (datetime.utcnow() - timedelta(days=2)).isoformat(),
+                "integration_priority": 6,
+                "supported_companions": ["solo", "romantic", "friends"],
+                "rate_limit": 800,
+                "cost_per_request": 0.025,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "global",
+                    "specialties": ["hotels", "packages"],
+                    "established": "2024",
+                    "auto_discovery_score": 85
+                }
+            },
+            {
+                "id": "hotelbeds-001",
+                "name": "HotelBeds",
+                "type": "hotel",
+                "api_endpoint": "https://api.hotelbeds.com/v1",
+                "status": "inactive",
+                "health_status": "offline",
+                "performance_score": 45.2,
+                "auto_discovered": True,
+                "discovery_date": (datetime.utcnow() - timedelta(days=7)).isoformat(),
+                "integration_priority": 4,
+                "supported_companions": ["solo", "romantic"],
+                "rate_limit": 300,
+                "cost_per_request": 0.03,
+                "last_health_check": (datetime.utcnow() - timedelta(hours=2)).isoformat(),
+                "metadata": {
+                    "region": "europe",
+                    "specialties": ["hotels"],
+                    "established": "2024",
+                    "auto_discovery_score": 65,
+                    "issues": ["rate_limiting", "authentication_errors"]
+                }
+            }
+        ]
+        
+        return {
+            "providers": mock_providers,
+            "total_count": len(mock_providers),
+            "active_count": len([p for p in mock_providers if p["status"] == "active"]),
+            "healthy_count": len([p for p in mock_providers if p["health_status"] == "healthy"]),
+            "auto_discovered_count": len([p for p in mock_providers if p["auto_discovered"] == True]),
+            "last_updated": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get providers: {e}")
+        return {"error": f"Failed to get providers: {str(e)}"}
+
+@api_router.post("/smart-dreams/providers/discover")
+async def discover_new_providers():
+    """Auto-discover new travel providers and assess integration potential"""
+    try:
+        start_time = datetime.utcnow()
+        
+        # Simulate provider discovery process
+        logger.info("Starting provider auto-discovery scan...")
+        
+        # Mock discovered providers
+        discovered_providers = [
+            {
+                "id": f"auto-discovery-{int(datetime.utcnow().timestamp())}",
+                "name": "TravelTech Pro",
+                "type": "hotel",
+                "api_endpoint": "https://api.traveltechpro.com/v2",
+                "status": "testing",
+                "health_status": "unknown",
+                "performance_score": 0.0,
+                "auto_discovered": True,
+                "discovery_date": datetime.utcnow().isoformat(),
+                "integration_priority": 7,
+                "supported_companions": ["solo", "romantic", "friends", "family"],
+                "rate_limit": 1500,
+                "cost_per_request": 0.018,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "asia_pacific",
+                    "specialties": ["luxury_hotels", "boutique_properties"],
+                    "established": "2024",
+                    "auto_discovery_score": 82,
+                    "discovery_method": "api_registry_scan",
+                    "integration_complexity": "medium",
+                    "estimated_setup_time": "3-5 days"
+                }
+            },
+            {
+                "id": f"auto-discovery-{int(datetime.utcnow().timestamp()) + 1}",
+                "name": "AdventureBooking API",
+                "type": "activity",
+                "api_endpoint": "https://api.adventurebooking.com/v1",
+                "status": "testing",
+                "health_status": "unknown",
+                "performance_score": 0.0,
+                "auto_discovered": True,
+                "discovery_date": datetime.utcnow().isoformat(),
+                "integration_priority": 8,
+                "supported_companions": ["solo", "friends", "family"],
+                "rate_limit": 2500,
+                "cost_per_request": 0.012,
+                "last_health_check": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "region": "global",
+                    "specialties": ["adventure_tours", "outdoor_activities", "extreme_sports"],
+                    "established": "2024", 
+                    "auto_discovery_score": 89,
+                    "discovery_method": "marketplace_scan",
+                    "integration_complexity": "low",
+                    "estimated_setup_time": "1-2 days"
+                }
+            }
+        ]
+        
+        processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        
+        logger.info(f"Provider discovery completed in {processing_time}ms. Found {len(discovered_providers)} new providers")
+        
+        return {
+            "discovered_providers": discovered_providers,
+            "discovery_summary": {
+                "total_discovered": len(discovered_providers),
+                "high_priority": len([p for p in discovered_providers if p["integration_priority"] >= 8]),
+                "processing_time_ms": processing_time,
+                "discovery_methods": ["api_registry_scan", "marketplace_scan", "partner_recommendations"],
+                "next_scan_scheduled": (datetime.utcnow() + timedelta(hours=24)).isoformat()
+            },
+            "recommendations": [
+                {
+                    "provider_id": discovered_providers[1]["id"],
+                    "recommendation": "High integration priority - AdventureBooking API has excellent compatibility scores",
+                    "priority": "high",
+                    "estimated_roi": "95%"
+                },
+                {
+                    "provider_id": discovered_providers[0]["id"],
+                    "recommendation": "Medium priority - TravelTech Pro offers unique luxury hotel inventory",
+                    "priority": "medium", 
+                    "estimated_roi": "78%"
+                }
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Provider discovery failed: {e}")
+        return {"error": f"Provider discovery failed: {str(e)}"}
+
+@api_router.post("/smart-dreams/providers/{provider_id}/health-check")
+async def check_provider_health(provider_id: str):
+    """Perform health check on specific provider"""
+    try:
+        start_time = datetime.utcnow()
+        
+        # Simulate health check process
+        logger.info(f"Performing health check for provider: {provider_id}")
+        
+        # Mock health check results
+        response_time = 150 + (hash(provider_id) % 300)  # Deterministic but varied response time
+        success_rate = 85 + (hash(provider_id) % 15)     # 85-100% success rate
+        
+        health_status = "healthy"
+        if response_time > 300:
+            health_status = "degraded"
+        if success_rate < 90:
+            health_status = "degraded" if health_status == "healthy" else "offline"
+            
+        processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        
+        health_check_result = {
+            "provider_id": provider_id,
+            "timestamp": datetime.utcnow().isoformat(),
+            "status": health_status,
+            "response_time_ms": response_time,
+            "success_rate": success_rate,
+            "processing_time_ms": processing_time,
+            "details": {
+                "endpoint_availability": success_rate > 95,
+                "authentication_valid": True,
+                "rate_limit_status": "within_limits" if success_rate > 90 else "approaching_limit",
+                "api_version": "v2.1",
+                "last_successful_request": datetime.utcnow().isoformat(),
+                "error_details": None if success_rate > 90 else "Intermittent timeout issues detected"
+            }
+        }
+        
+        logger.info(f"Health check for {provider_id} completed: {health_status} (response: {response_time}ms, success: {success_rate}%)")
+        
+        return health_check_result
+        
+    except Exception as e:
+        logger.error(f"Health check failed for provider {provider_id}: {e}")
+        return {"error": f"Health check failed: {str(e)}"}
+
+@api_router.post("/smart-dreams/providers/{provider_id}/activate")
+async def activate_provider(provider_id: str):
+    """Activate a discovered or inactive provider"""
+    try:
+        logger.info(f"Activating provider: {provider_id}")
+        
+        # In production, this would update the database and trigger integration setup
+        activation_result = {
+            "provider_id": provider_id,
+            "activation_status": "success",
+            "new_status": "active",
+            "timestamp": datetime.utcnow().isoformat(),
+            "integration_steps_completed": [
+                "credential_validation",
+                "endpoint_configuration",
+                "rate_limit_setup",
+                "initial_health_check"
+            ],
+            "estimated_setup_time": "2-4 hours",
+            "next_health_check": (datetime.utcnow() + timedelta(minutes=30)).isoformat()
+        }
+        
+        logger.info(f"Provider {provider_id} activated successfully")
+        return activation_result
+        
+    except Exception as e:
+        logger.error(f"Provider activation failed for {provider_id}: {e}")
+        return {"error": f"Provider activation failed: {str(e)}"}
+
+@api_router.get("/smart-dreams/providers/{provider_id}/credentials")
+async def get_provider_credentials(provider_id: str):
+    """Get provider credentials configuration (masked for security)"""
+    try:
+        # In production, this would fetch from Supabase with proper access control
+        credentials_info = {
+            "provider_id": provider_id,
+            "has_api_key": True,
+            "has_secret_key": True,
+            "has_access_token": False,
+            "credentials_status": "valid",
+            "last_validated": datetime.utcnow().isoformat(),
+            "expiry_date": (datetime.utcnow() + timedelta(days=365)).isoformat(),
+            "masked_info": {
+                "api_key": "sk-****...***4a2b",
+                "secret_key": "sec-****...***9f1c"
+            }
+        }
+        
+        return credentials_info
+        
+    except Exception as e:
+        logger.error(f"Failed to get credentials for provider {provider_id}: {e}")
+        return {"error": f"Failed to get credentials: {str(e)}"}
+
+@api_router.put("/smart-dreams/providers/{provider_id}/credentials")
+async def update_provider_credentials(provider_id: str, credentials: ProviderCredentials):
+    """Update provider credentials in Supabase (secure storage)"""
+    try:
+        logger.info(f"Updating credentials for provider: {provider_id}")
+        
+        # In production, this would securely store in Supabase
+        update_result = {
+            "provider_id": provider_id,
+            "update_status": "success",
+            "updated_fields": [],
+            "timestamp": datetime.utcnow().isoformat(),
+            "validation_result": {
+                "credentials_valid": True,
+                "api_connectivity": True,
+                "rate_limits_configured": True
+            }
+        }
+        
+        # Determine which fields were updated (mock logic)
+        if credentials.api_key:
+            update_result["updated_fields"].append("api_key")
+        if credentials.secret_key:
+            update_result["updated_fields"].append("secret_key")
+        if credentials.access_token:
+            update_result["updated_fields"].append("access_token")
+            
+        logger.info(f"Credentials updated for provider {provider_id}: {update_result['updated_fields']}")
+        return update_result
+        
+    except Exception as e:
+        logger.error(f"Failed to update credentials for provider {provider_id}: {e}")
+        return {"error": f"Failed to update credentials: {str(e)}"}
+
+@api_router.get("/smart-dreams/providers/analytics")
+async def get_provider_analytics():
+    """Get comprehensive provider performance analytics"""
+    try:
+        # Mock analytics data
+        analytics = {
+            "summary": {
+                "total_providers": 12,
+                "active_providers": 8,
+                "healthy_providers": 7,
+                "auto_discovered_providers": 4,
+                "avg_performance_score": 82.4,
+                "total_requests_24h": 15420,
+                "success_rate_24h": 94.2
+            },
+            "performance_by_type": {
+                "hotel": {"count": 5, "avg_score": 84.2, "success_rate": 95.1},
+                "flight": {"count": 3, "avg_score": 88.7, "success_rate": 96.3},
+                "activity": {"count": 3, "avg_score": 79.1, "success_rate": 91.8},
+                "car_rental": {"count": 1, "avg_score": 76.5, "success_rate": 89.2}
+            },
+            "top_performers": [
+                {"name": "Amadeus", "score": 92.5, "type": "flight"},
+                {"name": "Sabre", "score": 88.2, "type": "hotel"},
+                {"name": "Viator", "score": 85.7, "type": "activity"}
+            ],
+            "integration_pipeline": {
+                "in_testing": 2,
+                "pending_activation": 3,
+                "scheduled_discovery": 1,
+                "next_discovery_scan": (datetime.utcnow() + timedelta(hours=18)).isoformat()
+            },
+            "cost_analytics": {
+                "total_cost_24h": 847.52,
+                "avg_cost_per_request": 0.055,
+                "most_expensive_provider": "Expedia TAAP",
+                "most_efficient_provider": "Viator"
+            }
+        }
+        
+        return analytics
+        
+    except Exception as e:
+        logger.error(f"Failed to get provider analytics: {e}")
+        return {"error": f"Failed to get provider analytics: {str(e)}"}
+
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
