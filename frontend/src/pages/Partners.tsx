@@ -16,6 +16,7 @@ import StartupMetrics from "@/components/startup/StartupMetrics";
 import PartnerAnalytics from "@/components/startup/PartnerAnalytics";
 import InnovationRoadmap from "@/components/startup/InnovationRoadmap";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { PartnerShowcase } from "@/components/partners/PartnerShowcase";
 
 const PartnersPage = () => {
   const { user } = useAuth();
