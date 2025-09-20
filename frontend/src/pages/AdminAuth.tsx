@@ -58,8 +58,8 @@ const AdminAuth = () => {
     );
   }
 
-  // Redirect if already authenticated and is admin OR development bypass
-  if ((user && isAdmin) || (isDevelopment && hasDevBypass)) {
+  // Redirect if already authenticated and is admin OR bypass enabled
+  if ((user && isAdmin) || allowBypass) {
     return <Navigate to={from} replace />;
   }
 
