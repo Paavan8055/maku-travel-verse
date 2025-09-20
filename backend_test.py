@@ -989,8 +989,10 @@ class MakuTravelBackendTester:
                     self.log_test("Enhanced Provider Registry", False, f"RateHawk type should be 'hotel', got {ratehawk_provider.get('type')}", response_time)
                     return False
                 
-                if ratehawk_provider.get('demo_label') != '✨ DEMO DATA':
-                    self.log_test("Enhanced Provider Registry", False, f"RateHawk demo_label should be '✨ DEMO DATA', got {ratehawk_provider.get('demo_label')}", response_time)
+                # Check demo_label in metadata
+                ratehawk_metadata = ratehawk_provider.get('metadata', {})
+                if ratehawk_metadata.get('demo_label') != '✨ DEMO DATA':
+                    self.log_test("Enhanced Provider Registry", False, f"RateHawk demo_label should be '✨ DEMO DATA', got {ratehawk_metadata.get('demo_label')}", response_time)
                     return False
                 
                 # Validate provider metadata
