@@ -1,17 +1,23 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
-import uuid
-from datetime import datetime, timedelta
+import asyncio
 import json
-import subprocess
+from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field
+import uuid
+import hashlib
+import hmac
+import secrets
+from cryptography.fernet import Fernet
+import logging
+import time
+from pathlib import Path
+import subprocess
 
 
 ROOT_DIR = Path(__file__).parent
