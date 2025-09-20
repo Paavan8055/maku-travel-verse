@@ -463,13 +463,13 @@ export const SmartDreamDashboard: React.FC = () => {
                         <div className="text-2xl font-bold text-green-600">{currentJourney.totalDays}</div>
                         <div className="text-sm text-green-700 font-medium">Total Days</div>
                       </div>
-                      <div className="text-center p-4 bg-white/10 rounded-xl">
-                        <div className="text-2xl font-bold text-blue-400">${currentJourney.totalBudget}</div>
-                        <div className="text-xs text-white">Estimated Cost</div>
+                      <div class="text-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                        <div className="text-2xl font-bold text-yellow-600">${currentJourney.totalBudget}</div>
+                        <div className="text-sm text-yellow-700 font-medium">Estimated Cost</div>
                       </div>
-                      <div className="text-center p-4 bg-white/10 rounded-xl">
-                        <div className="text-2xl font-bold text-yellow-400">{excitementLevel}%</div>
-                        <div className="text-xs text-white">Excitement Level</div>
+                      <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
+                        <div className="text-2xl font-bold text-green-600">{excitementLevel}%</div>
+                        <div className="text-sm text-green-700 font-medium">Excitement Level</div>
                       </div>
                     </div>
                   </CardContent>
