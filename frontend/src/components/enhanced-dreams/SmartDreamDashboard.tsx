@@ -346,8 +346,8 @@ export const SmartDreamDashboard: React.FC = () => {
                   <CardContent className="p-8 text-center">
                     <div className="flex items-center justify-center mb-6">
                       <MakuLogo 
-                        size="lg" 
-                        variant="mascot" 
+                        size="xl" 
+                        variant="full" 
                         theme="light" 
                         context="card" 
                       />
