@@ -969,8 +969,10 @@ class MakuTravelBackendTester:
                     self.log_test("Enhanced Provider Registry", False, f"Duffle type should be 'flight', got {duffle_provider.get('type')}", response_time)
                     return False
                 
-                if duffle_provider.get('demo_label') != '✨ DEMO DATA':
-                    self.log_test("Enhanced Provider Registry", False, f"Duffle demo_label should be '✨ DEMO DATA', got {duffle_provider.get('demo_label')}", response_time)
+                # Check demo_label in metadata
+                duffle_metadata = duffle_provider.get('metadata', {})
+                if duffle_metadata.get('demo_label') != '✨ DEMO DATA':
+                    self.log_test("Enhanced Provider Registry", False, f"Duffle demo_label should be '✨ DEMO DATA', got {duffle_metadata.get('demo_label')}", response_time)
                     return False
                 
                 # Validate RateHawk provider
