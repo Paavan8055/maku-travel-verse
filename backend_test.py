@@ -2073,6 +2073,20 @@ class MakuTravelBackendTester:
                 self.test_smart_dreams_provider_activate,
                 self.test_smart_dreams_provider_credentials,
                 self.test_existing_enhanced_providers_integration
+            ]),
+            ("Phase 6: Blockchain Integration", [
+                self.test_blockchain_networks,
+                self.test_smart_contract_deploy
+            ]),
+            ("Phase 6: Enhanced Security", [
+                self.test_security_credentials_encrypt,
+                self.test_security_audit_logs,
+                self.test_security_audit_metrics
+            ]),
+            ("Phase 6: Security Infrastructure", [
+                self.test_security_infrastructure_integration,
+                self.test_blockchain_ready_data_models,
+                self.test_existing_provider_system_compatibility
             ])
         ]
         
