@@ -413,10 +413,16 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Enhanced Partner Provider Integration - Duffle & RateHawk"
+    - "Official Maku.Travel Logo Verification & Implementation"
+    - "Creative Partner Provider Showcase & Equal Highlighting"
+    - "Enhanced Testing Protocol for Multi-Provider Scalability"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+  provider_testing_enabled: true
+  manual_testing_control: true
 
 agent_communication:
     - agent: "main"
