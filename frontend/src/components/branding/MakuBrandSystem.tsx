@@ -42,13 +42,12 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         ${sizeClasses[size]} 
         rounded-full flex items-center justify-center 
         ${contextStyles[context]}
-        ${theme === 'dark' ? 'shadow-lg' : 'shadow-sm'}
-        overflow-hidden bg-gradient-to-br from-orange-50 via-white to-green-50
-        border-2 border-gradient-to-r from-orange-300 to-green-300
+        ${theme === 'dark' ? 'shadow-lg' : 'shadow-md'}
+        overflow-hidden bg-transparent
       `}>
         <img 
-          src={MakuMascotImage} 
-          alt="Maku Travel - Dog with Suitcase Mascot" 
+          src={MakuLogoSVG} 
+          alt="Maku Travel - Official Logo with Dog, Suitcase & Sun" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -61,13 +60,28 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         ${sizeClasses[size]} 
         rounded-xl flex items-center justify-center 
         ${contextStyles[context]}
-        overflow-hidden bg-gradient-to-br from-orange-50 via-white to-green-50
-        border border-orange-200 shadow-md
+        overflow-hidden bg-transparent
       `}>
         <img 
-          src={MakuMascotImage} 
+          src={MakuLogoSVG} 
           alt="Maku Travel Icon" 
-          className="w-full h-full object-contain p-1"
+          className="w-full h-full object-contain"
+        />
+      </div>
+    );
+  }
+
+  if (variant === 'full') {
+    // Full logo already includes text, so just show the complete logo
+    return (
+      <div className={`
+        ${contextStyles[context]}
+        ${size === 'hero' ? 'w-48 h-48' : size === 'xl' ? 'w-36 h-36' : size === 'lg' ? 'w-28 h-28' : size === 'md' ? 'w-20 h-20' : size === 'sm' ? 'w-16 h-16' : 'w-12 h-12'}
+      `}>
+        <img 
+          src={MakuLogoSVG} 
+          alt="Maku Travel - Complete Brand Logo" 
+          className="w-full h-full object-contain"
         />
       </div>
     );
@@ -86,19 +100,14 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
           text-gray-600 font-medium
           ${size === 'hero' ? 'text-base' : size === 'xl' ? 'text-sm' : 'text-xs'}
         `}>
-          (We Make "U" Travel)
+          We Make "U" Travel
         </span>
       </div>
     );
   }
 
-  // Full logo with mascot and text
-  return (
-    <div className={`flex items-center space-x-3 ${contextStyles[context]}`}>
-      <MakuLogo size={size} variant="mascot" theme={theme} context={context} />
-      <MakuLogo size={size} variant="text" theme={theme} context={context} />
-    </div>
-  );
+  // Default to full logo
+  return <MakuLogo size={size} variant="full" theme={theme} context={context} />;
 };
 
 // Brand Color System - Updated to match actual Maku.Travel logo
