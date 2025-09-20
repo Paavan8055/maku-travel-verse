@@ -99,7 +99,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
   );
 };
 
-// Brand Color System
+// Brand Color System - Updated to match actual Maku.Travel logo
 export const MakuColors = {
   primary: {
     orange: {
@@ -108,7 +108,7 @@ export const MakuColors = {
       200: '#fed7aa',
       300: '#fdba74',
       400: '#fb923c',
-      500: '#f97316', // Primary orange
+      500: '#f97316', // Primary orange from logo
       600: '#ea580c',
       700: '#c2410c',
       800: '#9a3412',
@@ -120,7 +120,7 @@ export const MakuColors = {
       200: '#bbf7d0', 
       300: '#86efac',
       400: '#4ade80',
-      500: '#22c55e', // Primary green
+      500: '#22c55e', // Primary green from logo
       600: '#16a34a',
       700: '#15803d',
       800: '#166534',
@@ -128,12 +128,14 @@ export const MakuColors = {
     }
   },
   accent: {
-    yellow: '#fbbf24', // Sun yellow
-    blue: '#3b82f6',   // Sky blue
-    red: '#ef4444'     // Alert red
+    sunYellow: '#fbbf24', // Sun yellow from logo
+    skyBlue: '#3b82f6',   // Airplane blue
+    vintageRed: '#dc2626', // Bandana red
+    vintagebrown: '#92400e' // Suitcase brown
   },
   neutral: {
     white: '#ffffff',
+    cream: '#fefce8', // Warm off-white
     gray: {
       50: '#f9fafb',
       100: '#f3f4f6',
