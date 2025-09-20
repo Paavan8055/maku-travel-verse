@@ -122,7 +122,8 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   const urlParams = new URLSearchParams(window.location.search);
   const hasAdminBypass = urlParams.get('bypass') === 'admin';
   const isPreviewEnvironment = window.location.hostname.includes('preview.emergentagent.com');
-  const allowBypass = hasAdminBypass && isPreviewEnvironment && requiredRole === 'admin';
+  const isDevelopmentEnvironment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const allowBypass = hasAdminBypass && (isPreviewEnvironment || isDevelopmentEnvironment) && requiredRole === 'admin';
 
   useEffect(() => {
     if (loading) return;
