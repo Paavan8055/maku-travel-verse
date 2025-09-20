@@ -301,36 +301,56 @@ const Navbar = () => {
             </Button>
 
             {/* User Authentication */}
-            {user ? <DropdownMenu>
-                 <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" className="relative h-8 w-8 rounded-full" aria-label="Open user menu">
-                     <Avatar className="h-8 w-8">
-                       <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
-                       <AvatarFallback>
-                         {user.email?.charAt(0).toUpperCase() || 'U'}
-                       </AvatarFallback>
-                     </Avatar>
-                   </Button>
-                 </DropdownMenuTrigger>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full" aria-label="Open user menu">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                      <AvatarFallback className="bg-orange-100 text-orange-600">
+                        {user.email?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuItem className="flex-col items-start">
                     <div className="font-medium">{user.user_metadata?.first_name || 'User'}</div>
                     <div className="text-sm text-muted-foreground">{user.email}</div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>{t('navigation.profile')}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>My Bookings</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/travel-fund')}>Travel Funds</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    My Bookings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/travel-fund')}>
+                    <Coins className="mr-2 h-4 w-4" />
+                    Travel Funds
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/smart-dreams')}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Smart Dreams
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
-                    {t('navigation.logout')}
+                    Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu> : <Button onClick={() => navigate('/auth')} className="bg-travel-ocean hover:bg-travel-ocean/90 text-white px-6">
-                {t('navigation.login')}
-              </Button>}
+              </DropdownMenu>
+            ) : (
+              <Button onClick={() => navigate('/auth')} className="bg-orange-500 hover:bg-orange-600 text-white px-6 transition-colors duration-200">
+                Sign In
+              </Button>
+            )}
 
             {/* Mobile Menu Button */}
             <Button 
