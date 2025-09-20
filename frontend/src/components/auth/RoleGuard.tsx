@@ -145,10 +145,13 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
       // Redirect to fallback path
       navigate(fallbackPath, { replace: true });
     } else {
-      // Log successful access
+      // Log successful access (including bypass)
       logAccessAttempt(location.pathname, requiredRole, true);
+      if (allowBypass) {
+        logger.info(`Admin bypass enabled for ${location.pathname}`);
+      }
     }
-  }, [loading, permissions, requiredRole, navigate, fallbackPath, showAccessDenied, location.pathname, toast, accessDeniedShown]);
+  }, [loading, permissions, requiredRole, navigate, fallbackPath, showAccessDenied, location.pathname, toast, accessDeniedShown, allowBypass]);
 
   // Show loading state
   if (loading) {
