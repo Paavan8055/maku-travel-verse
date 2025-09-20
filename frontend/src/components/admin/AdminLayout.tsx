@@ -16,6 +16,10 @@ const adminMenuItems = [{
     url: '/admin/dashboard',
     icon: LayoutDashboard
   }, {
+    title: 'Smart Dreams',
+    url: '/admin/smart-dreams',
+    icon: Sparkles
+  }, {
     title: 'Critical Alerts',
     url: '/admin/dashboard/alerts',
     icon: AlertTriangle
