@@ -486,6 +486,7 @@ export const SmartDreamManagement = () => {
       <Tabs defaultValue="analytics" className="space-y-4">
         <TabsList>
           <TabsTrigger value="analytics">User Analytics</TabsTrigger>
+          <TabsTrigger value="providers">Provider Management</TabsTrigger>
           <TabsTrigger value="ai-performance">AI Performance</TabsTrigger>
           <TabsTrigger value="system-health">System Health</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
