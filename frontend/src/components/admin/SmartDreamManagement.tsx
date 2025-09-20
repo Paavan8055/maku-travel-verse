@@ -196,6 +196,157 @@ export const SmartDreamManagement = () => {
     }
   };
 
+  const fetchProviders = async () => {
+    try {
+      setProvidersLoading(true);
+      
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const response = await fetch(`${backendUrl}/api/smart-dreams/providers`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch providers: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setProviders(data.providers || []);
+      logger.info(`Loaded ${data.providers?.length || 0} providers`);
+      
+    } catch (err) {
+      logger.error('Failed to fetch providers:', err);
+      setError('Failed to load provider data');
+    } finally {
+      setProvidersLoading(false);
+    }
+  };
+
+  const fetchProviderAnalytics = async () => {
+    try {
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const response = await fetch(`${backendUrl}/api/smart-dreams/providers/analytics`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch provider analytics: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setProviderAnalytics(data);
+      
+    } catch (err) {
+      logger.error('Failed to fetch provider analytics:', err);
+    }
+  };
+
+  const discoverNewProviders = async () => {
+    try {
+      setDiscoveryInProgress(true);
+      
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const response = await fetch(`${backendUrl}/api/smart-dreams/providers/discover`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Provider discovery failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      logger.info(`Discovered ${data.discovered_providers?.length || 0} new providers`);
+      
+      // Refresh providers list to include newly discovered ones
+      await fetchProviders();
+      await fetchProviderAnalytics();
+      
+    } catch (err) {
+      logger.error('Provider discovery failed:', err);
+      setError('Provider discovery failed');
+    } finally {
+      setDiscoveryInProgress(false);
+    }
+  };
+
+  const performHealthCheck = async (providerId: string) => {
+    try {
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const response = await fetch(`${backendUrl}/api/smart-dreams/providers/${providerId}/health-check`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Health check failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      logger.info(`Health check completed for ${providerId}: ${data.status}`);
+      
+      // Refresh providers list to update health status
+      await fetchProviders();
+      
+    } catch (err) {
+      logger.error(`Health check failed for ${providerId}:`, err);
+    }
+  };
+
+  const activateProvider = async (providerId: string) => {
+    try {
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const response = await fetch(`${backendUrl}/api/smart-dreams/providers/${providerId}/activate`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Provider activation failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      logger.info(`Provider ${providerId} activated successfully`);
+      
+      // Refresh providers list
+      await fetchProviders();
+      await fetchProviderAnalytics();
+      
+    } catch (err) {
+      logger.error(`Provider activation failed for ${providerId}:`, err);
+    }
+  };
+
   const getAISystemStatus = () => {
     if (aiError) return { status: 'error', color: 'red', text: 'AI System Offline' };
     if (aiLoading) return { status: 'loading', color: 'yellow', text: 'AI Processing' };
