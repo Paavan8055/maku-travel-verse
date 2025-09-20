@@ -84,6 +84,17 @@ export const SmartDreamDashboard: React.FC = () => {
     getPredictiveInsights: refreshPredictiveInsights
   } = useAIIntelligence();
 
+  // Smart Dreams Enhanced Provider Integration
+  const {
+    results: providerResults,
+    loading: providerLoading,
+    error: providerError,
+    searchProviders,
+    getTopRecommendations,
+    hasResults: hasProviderResults,
+    totalResults: totalProviderResults
+  } = useSmartDreamProviders();
+
   const companions: TravelCompanion[] = [
     {
       type: 'solo',
