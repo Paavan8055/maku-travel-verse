@@ -420,7 +420,7 @@ export const SmartDreamDashboard: React.FC = () => {
                       <div className="flex items-center space-x-4">
                         <MakuLogo 
                           size="lg" 
-                          variant="mascot" 
+                          variant="full" 
                           theme="light" 
                           context="card" 
                         />
