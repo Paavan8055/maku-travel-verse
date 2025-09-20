@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { LayoutDashboard, Activity, Users, BookOpen, Shield, Settings, Eye, BarChart3, Database, FileText, UserCheck, AlertTriangle, Lock, TestTube, Search, Bell, User, Briefcase, Gauge, Bot, Workflow, Zap, Brain, Monitor } from 'lucide-react';
+import { LayoutDashboard, Activity, Users, BookOpen, Shield, Settings, Eye, BarChart3, Database, FileText, UserCheck, AlertTriangle, Lock, TestTube, Search, Bell, User, Briefcase, Gauge, Bot, Workflow, Zap, Brain, Monitor, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
