@@ -145,6 +145,8 @@ export const SmartDreamManagement = () => {
 
   useEffect(() => {
     fetchSmartDreamMetrics();
+    fetchProviders();
+    fetchProviderAnalytics();
   }, [selectedTimeframe]);
 
   const fetchSmartDreamMetrics = async () => {
