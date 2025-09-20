@@ -1,4 +1,5 @@
 import React from 'react';
+import MakuMascotImage from '@/assets/maku-mascot.png';
 
 // Maku.Travel Brand System Component Library
 // CTO Strategic Implementation for Comprehensive Brand Integration
@@ -39,12 +40,33 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
     return (
       <div className={`
         ${sizeClasses[size]} 
-        bg-gradient-to-br from-orange-400 to-orange-500 
         rounded-full flex items-center justify-center 
         ${contextStyles[context]}
         ${theme === 'dark' ? 'shadow-lg' : 'shadow-sm'}
+        overflow-hidden bg-white
       `}>
-        <span className="text-white font-bold text-lg">🐕</span>
+        <img 
+          src={MakuMascotImage} 
+          alt="Maku Travel - Dog with Suitcase Mascot" 
+          className="w-full h-full object-contain p-1"
+        />
+      </div>
+    );
+  }
+
+  if (variant === 'icon') {
+    return (
+      <div className={`
+        ${sizeClasses[size]} 
+        rounded-lg flex items-center justify-center 
+        ${contextStyles[context]}
+        overflow-hidden bg-white border border-orange-200
+      `}>
+        <img 
+          src={MakuMascotImage} 
+          alt="Maku Travel Icon" 
+          className="w-full h-full object-contain p-2"
+        />
       </div>
     );
   }
@@ -68,7 +90,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
     );
   }
 
-  // Full logo with all elements
+  // Full logo with mascot and text
   return (
     <div className={`flex items-center space-x-3 ${contextStyles[context]}`}>
       <MakuLogo size={size} variant="mascot" theme={theme} context={context} />
