@@ -28,8 +28,43 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(
+    title="Maku Travel API - Blockchain Ready",
+    description="Enhanced travel booking platform with blockchain integration preparation",
+    version="2.0.0"
+)
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,  
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Security configuration for blockchain readiness
+security = HTTPBearer()
+ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', Fernet.generate_key())
+cipher_suite = Fernet(ENCRYPTION_KEY)
+
+# Blockchain configuration
+CRONOS_NETWORK_CONFIG = {
+    "chain_id": 25,  # Cronos Mainnet
+    "rpc_url": "https://evm.cronos.org",
+    "explorer": "https://cronoscan.com"
+}
+
+BINANCE_SMART_CHAIN_CONFIG = {
+    "chain_id": 56,  # BSC Mainnet  
+    "rpc_url": "https://bsc-dataseed.binance.org",
+    "explorer": "https://bscscan.com"
+}
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
