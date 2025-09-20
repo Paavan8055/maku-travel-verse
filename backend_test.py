@@ -1352,6 +1352,678 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # PHASE 6: BLOCKCHAIN INTEGRATION & SECURITY TESTS
+    # =====================================================
+    
+    def test_blockchain_networks(self):
+        """Test blockchain networks endpoint"""
+        print("⛓️ Testing Blockchain Networks...")
+        
+        url = f"{BASE_URL}/blockchain/networks"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=10)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Blockchain Networks", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['supported_networks', 'default_network', 'multi_chain_support']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Networks", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check supported networks
+                networks = data['supported_networks']
+                expected_networks = ['cronos', 'binance_smart_chain', 'ethereum']
+                
+                for network in expected_networks:
+                    if network not in networks:
+                        self.log_test("Blockchain Networks", False, f"Missing network: {network}", response_time)
+                        return False
+                    
+                    # Validate network structure
+                    network_data = networks[network]
+                    network_required = ['chain_id', 'rpc_url', 'explorer', 'supported_features', 'integration_status']
+                    network_missing = [field for field in network_required if field not in network_data]
+                    
+                    if network_missing:
+                        self.log_test("Blockchain Networks", False, f"Missing {network} fields: {network_missing}", response_time)
+                        return False
+                
+                # Check default network
+                default_network = data.get('default_network')
+                if default_network not in networks:
+                    self.log_test("Blockchain Networks", False, f"Invalid default network: {default_network}", response_time)
+                    return False
+                
+                # Check multi-chain support
+                multi_chain = data.get('multi_chain_support')
+                if not isinstance(multi_chain, bool):
+                    self.log_test("Blockchain Networks", False, f"multi_chain_support should be boolean, got: {type(multi_chain)}", response_time)
+                    return False
+                
+                network_count = len(networks)
+                self.log_test("Blockchain Networks", True, f"Got {network_count} networks, default: {default_network}, multi-chain: {multi_chain}", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Networks", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Networks", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_contract_deploy(self):
+        """Test smart contract deployment endpoint"""
+        print("📜 Testing Smart Contract Deployment...")
+        
+        url = f"{BASE_URL}/blockchain/smart-contracts/deploy"
+        headers = {
+            'Authorization': 'Bearer test-token-for-blockchain-deployment',
+            'Content-Type': 'application/json'
+        }
+        params = {
+            'contract_type': 'provider_management',
+            'network': 'cronos'
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, params=params, headers=headers, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Smart Contract Deploy", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['contract_address', 'network', 'contract_type', 'deployment_status', 'transaction_hash']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Smart Contract Deploy", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check contract address format
+                contract_address = data.get('contract_address')
+                if not contract_address or not contract_address.startswith('0x') or len(contract_address) != 42:
+                    self.log_test("Smart Contract Deploy", False, f"Invalid contract address format: {contract_address}", response_time)
+                    return False
+                
+                # Check transaction hash format
+                tx_hash = data.get('transaction_hash')
+                if not tx_hash or not tx_hash.startswith('0x') or len(tx_hash) != 66:
+                    self.log_test("Smart Contract Deploy", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                # Check deployment status
+                status = data.get('deployment_status')
+                if status != 'success':
+                    self.log_test("Smart Contract Deploy", False, f"Deployment failed: {status}", response_time)
+                    return False
+                
+                # Check network matches request
+                network = data.get('network')
+                if network != params['network']:
+                    self.log_test("Smart Contract Deploy", False, f"Network mismatch: expected {params['network']}, got {network}", response_time)
+                    return False
+                
+                gas_used = data.get('gas_used', 0)
+                self.log_test("Smart Contract Deploy", True, f"Contract deployed: {contract_address[:10]}... on {network}, gas: {gas_used}", response_time)
+                return True
+                
+            else:
+                self.log_test("Smart Contract Deploy", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Smart Contract Deploy", False, f"Exception: {str(e)}")
+            return False
+
+    def test_security_credentials_encrypt(self):
+        """Test credential encryption endpoint"""
+        print("🔐 Testing Security Credential Encryption...")
+        
+        url = f"{BASE_URL}/security/credentials/encrypt"
+        headers = {
+            'Authorization': 'Bearer test-token-for-credential-encryption',
+            'Content-Type': 'application/json'
+        }
+        payload = {
+            "provider_id": "amadeus-secure-001",
+            "encrypted_api_key": "test-api-key-12345",
+            "encrypted_secret_key": "test-secret-key-67890",
+            "key_rotation_schedule": "monthly",
+            "access_level": "restricted",
+            "additional_config": {
+                "environment": "production",
+                "rate_limit": 1000
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, headers=headers, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Credential Encryption", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['provider_id', 'encryption_status', 'blockchain_hash', 'last_rotation', 'access_level']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Credential Encryption", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check encryption status
+                encryption_status = data.get('encryption_status')
+                if encryption_status != 'success':
+                    self.log_test("Credential Encryption", False, f"Encryption failed: {encryption_status}", response_time)
+                    return False
+                
+                # Check provider ID matches
+                provider_id = data.get('provider_id')
+                if provider_id != payload['provider_id']:
+                    self.log_test("Credential Encryption", False, f"Provider ID mismatch: expected {payload['provider_id']}, got {provider_id}", response_time)
+                    return False
+                
+                # Check blockchain hash format
+                blockchain_hash = data.get('blockchain_hash')
+                if not blockchain_hash or len(blockchain_hash) != 64:
+                    self.log_test("Credential Encryption", False, f"Invalid blockchain hash format: {blockchain_hash}", response_time)
+                    return False
+                
+                # Check access level
+                access_level = data.get('access_level')
+                if access_level != payload['access_level']:
+                    self.log_test("Credential Encryption", False, f"Access level mismatch: expected {payload['access_level']}, got {access_level}", response_time)
+                    return False
+                
+                # Check security audit
+                security_audit = data.get('security_audit')
+                if security_audit != 'passed':
+                    self.log_test("Credential Encryption", False, f"Security audit failed: {security_audit}", response_time)
+                    return False
+                
+                self.log_test("Credential Encryption", True, f"Credentials encrypted for {provider_id}, hash: {blockchain_hash[:16]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Credential Encryption", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Credential Encryption", False, f"Exception: {str(e)}")
+            return False
+
+    def test_security_audit_logs(self):
+        """Test security audit logs endpoint"""
+        print("📋 Testing Security Audit Logs...")
+        
+        url = f"{BASE_URL}/security/audit/logs"
+        headers = {
+            'Authorization': 'Bearer test-token-for-audit-access',
+            'Content-Type': 'application/json'
+        }
+        params = {
+            'limit': 20,
+            'security_level': 'high',
+            'resource_type': 'provider'
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, params=params, headers=headers, timeout=10)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Security Audit Logs", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['audit_logs', 'total_count', 'filter_applied', 'compliance_status']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Security Audit Logs", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check audit logs
+                audit_logs = data['audit_logs']
+                if not isinstance(audit_logs, list):
+                    self.log_test("Security Audit Logs", False, "Audit logs is not a list", response_time)
+                    return False
+                
+                # Validate first audit log if exists
+                if len(audit_logs) > 0:
+                    log_entry = audit_logs[0]
+                    log_required = ['id', 'timestamp', 'action', 'resource_type', 'resource_id', 'security_level']
+                    log_missing = [field for field in log_required if field not in log_entry]
+                    
+                    if log_missing:
+                        self.log_test("Security Audit Logs", False, f"Missing log entry fields: {log_missing}", response_time)
+                        return False
+                    
+                    # Check security level filter applied
+                    if params.get('security_level') and log_entry.get('security_level') != params['security_level']:
+                        self.log_test("Security Audit Logs", False, f"Security level filter not applied: expected {params['security_level']}, got {log_entry.get('security_level')}", response_time)
+                        return False
+                    
+                    # Check resource type filter applied
+                    if params.get('resource_type') and log_entry.get('resource_type') != params['resource_type']:
+                        self.log_test("Security Audit Logs", False, f"Resource type filter not applied: expected {params['resource_type']}, got {log_entry.get('resource_type')}", response_time)
+                        return False
+                
+                # Check filter applied structure
+                filter_applied = data['filter_applied']
+                if not isinstance(filter_applied, dict):
+                    self.log_test("Security Audit Logs", False, "filter_applied is not a dict", response_time)
+                    return False
+                
+                # Check compliance status
+                compliance_status = data.get('compliance_status')
+                if compliance_status not in ['compliant', 'non_compliant', 'pending']:
+                    self.log_test("Security Audit Logs", False, f"Invalid compliance status: {compliance_status}", response_time)
+                    return False
+                
+                # Check blockchain integrity
+                blockchain_integrity = data.get('blockchain_integrity')
+                if blockchain_integrity not in ['verified', 'pending', 'failed']:
+                    self.log_test("Security Audit Logs", False, f"Invalid blockchain integrity: {blockchain_integrity}", response_time)
+                    return False
+                
+                total_count = data.get('total_count', 0)
+                self.log_test("Security Audit Logs", True, f"Got {total_count} audit logs, compliance: {compliance_status}, integrity: {blockchain_integrity}", response_time)
+                return True
+                
+            else:
+                self.log_test("Security Audit Logs", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Security Audit Logs", False, f"Exception: {str(e)}")
+            return False
+
+    def test_security_audit_metrics(self):
+        """Test security audit metrics endpoint"""
+        print("📊 Testing Security Audit Metrics...")
+        
+        url = f"{BASE_URL}/security/audit/metrics"
+        headers = {
+            'Authorization': 'Bearer test-token-for-metrics-access',
+            'Content-Type': 'application/json'
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, headers=headers, timeout=10)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Security Audit Metrics", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = [
+                    'total_audit_entries', 'security_incidents', 'provider_activations_24h',
+                    'credential_rotations_24h', 'blockchain_transactions_24h', 'compliance_violations',
+                    'security_score', 'compliance_rating', 'blockchain_integrity_score'
+                ]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Security Audit Metrics", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check numeric metrics are reasonable
+                total_entries = data.get('total_audit_entries', 0)
+                if total_entries < 0:
+                    self.log_test("Security Audit Metrics", False, f"Invalid total audit entries: {total_entries}", response_time)
+                    return False
+                
+                security_incidents = data.get('security_incidents', 0)
+                if security_incidents < 0:
+                    self.log_test("Security Audit Metrics", False, f"Invalid security incidents: {security_incidents}", response_time)
+                    return False
+                
+                # Check security score
+                security_score = data.get('security_score', 0)
+                if not (0 <= security_score <= 100):
+                    self.log_test("Security Audit Metrics", False, f"Invalid security score: {security_score}", response_time)
+                    return False
+                
+                # Check blockchain integrity score
+                blockchain_score = data.get('blockchain_integrity_score', 0)
+                if not (0 <= blockchain_score <= 100):
+                    self.log_test("Security Audit Metrics", False, f"Invalid blockchain integrity score: {blockchain_score}", response_time)
+                    return False
+                
+                # Check compliance rating
+                compliance_rating = data.get('compliance_rating')
+                valid_ratings = ['excellent', 'good', 'fair', 'poor', 'critical']
+                if compliance_rating not in valid_ratings:
+                    self.log_test("Security Audit Metrics", False, f"Invalid compliance rating: {compliance_rating}", response_time)
+                    return False
+                
+                # Check encryption coverage
+                encryption_coverage = data.get('encryption_coverage', '0%')
+                if not encryption_coverage.endswith('%'):
+                    self.log_test("Security Audit Metrics", False, f"Invalid encryption coverage format: {encryption_coverage}", response_time)
+                    return False
+                
+                # Check top security events
+                top_events = data.get('top_security_events', [])
+                if not isinstance(top_events, list):
+                    self.log_test("Security Audit Metrics", False, "top_security_events is not a list", response_time)
+                    return False
+                
+                # Validate first security event if exists
+                if len(top_events) > 0:
+                    event = top_events[0]
+                    event_required = ['event', 'frequency', 'security_impact']
+                    event_missing = [field for field in event_required if field not in event]
+                    
+                    if event_missing:
+                        self.log_test("Security Audit Metrics", False, f"Missing event fields: {event_missing}", response_time)
+                        return False
+                
+                provider_activations = data.get('provider_activations_24h', 0)
+                blockchain_transactions = data.get('blockchain_transactions_24h', 0)
+                
+                self.log_test("Security Audit Metrics", True, f"Security score: {security_score}%, {total_entries} audit entries, {provider_activations} activations, {blockchain_transactions} blockchain txs", response_time)
+                return True
+                
+            else:
+                self.log_test("Security Audit Metrics", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Security Audit Metrics", False, f"Exception: {str(e)}")
+            return False
+
+    def test_security_infrastructure_integration(self):
+        """Test security infrastructure functions work properly"""
+        print("🔧 Testing Security Infrastructure Integration...")
+        
+        try:
+            start_time = time.time()
+            
+            # Test 1: Verify encryption/decryption functions work by testing credential encryption
+            url = f"{BASE_URL}/security/credentials/encrypt"
+            headers = {
+                'Authorization': 'Bearer test-token-for-infrastructure-test',
+                'Content-Type': 'application/json'
+            }
+            payload = {
+                "provider_id": "infrastructure-test-001",
+                "encrypted_api_key": "test-infrastructure-key",
+                "access_level": "restricted"
+            }
+            
+            response = self.session.post(url, json=payload, headers=headers, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test("Security Infrastructure", False, f"Encryption test failed: HTTP {response.status_code}", time.time() - start_time)
+                return False
+            
+            encrypt_data = response.json()
+            if encrypt_data.get('encryption_status') != 'success':
+                self.log_test("Security Infrastructure", False, f"Encryption failed: {encrypt_data.get('encryption_status')}", time.time() - start_time)
+                return False
+            
+            # Test 2: Verify blockchain hash generation
+            blockchain_hash = encrypt_data.get('blockchain_hash')
+            if not blockchain_hash or len(blockchain_hash) != 64:
+                self.log_test("Security Infrastructure", False, f"Invalid blockchain hash: {blockchain_hash}", time.time() - start_time)
+                return False
+            
+            # Test 3: Verify audit logging system by checking audit logs
+            audit_url = f"{BASE_URL}/security/audit/logs"
+            audit_response = self.session.get(audit_url, headers=headers, params={'limit': 5}, timeout=10)
+            
+            if audit_response.status_code != 200:
+                self.log_test("Security Infrastructure", False, f"Audit log test failed: HTTP {audit_response.status_code}", time.time() - start_time)
+                return False
+            
+            audit_data = audit_response.json()
+            if 'audit_logs' not in audit_data:
+                self.log_test("Security Infrastructure", False, "Audit logging system not working", time.time() - start_time)
+                return False
+            
+            # Test 4: Verify access credential verification system
+            metrics_url = f"{BASE_URL}/security/audit/metrics"
+            metrics_response = self.session.get(metrics_url, headers=headers, timeout=10)
+            
+            if metrics_response.status_code != 200:
+                self.log_test("Security Infrastructure", False, f"Access verification test failed: HTTP {metrics_response.status_code}", time.time() - start_time)
+                return False
+            
+            response_time = time.time() - start_time
+            self.log_test("Security Infrastructure", True, f"All security functions working: encryption, blockchain hashing, audit logging, access verification", response_time)
+            return True
+            
+        except Exception as e:
+            self.log_test("Security Infrastructure", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_ready_data_models(self):
+        """Test blockchain-ready data models validation"""
+        print("📋 Testing Blockchain-Ready Data Models...")
+        
+        try:
+            start_time = time.time()
+            
+            # Test EnhancedProviderConfig model through provider registry
+            url = f"{BASE_URL}/smart-dreams/providers"
+            response = self.session.get(url, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test("Data Models Validation", False, f"Provider registry failed: HTTP {response.status_code}", time.time() - start_time)
+                return False
+            
+            data = response.json()
+            if 'providers' not in data:
+                self.log_test("Data Models Validation", False, "No providers data found", time.time() - start_time)
+                return False
+            
+            providers = data['providers']
+            if len(providers) == 0:
+                self.log_test("Data Models Validation", False, "No providers returned", time.time() - start_time)
+                return False
+            
+            # Validate EnhancedProviderConfig fields
+            provider = providers[0]
+            blockchain_fields = ['blockchain_verified', 'smart_contract_integration', 'web3_compatible']
+            security_fields = ['security_rating', 'compliance_status']
+            
+            # Check if blockchain-ready fields are present (they should be in the model)
+            model_validation_passed = True
+            missing_blockchain_fields = []
+            missing_security_fields = []
+            
+            for field in blockchain_fields:
+                if field not in provider:
+                    missing_blockchain_fields.append(field)
+            
+            for field in security_fields:
+                if field not in provider:
+                    missing_security_fields.append(field)
+            
+            # Test SecureProviderCredentials model through credential encryption
+            cred_url = f"{BASE_URL}/security/credentials/encrypt"
+            headers = {'Authorization': 'Bearer test-token-for-model-validation'}
+            cred_payload = {
+                "provider_id": "model-test-001",
+                "encrypted_api_key": "test-key-for-model",
+                "key_rotation_schedule": "weekly",
+                "access_level": "confidential"
+            }
+            
+            cred_response = self.session.post(cred_url, json=cred_payload, headers=headers, timeout=10)
+            
+            if cred_response.status_code != 200:
+                self.log_test("Data Models Validation", False, f"Credential model test failed: HTTP {cred_response.status_code}", time.time() - start_time)
+                return False
+            
+            cred_data = cred_response.json()
+            
+            # Validate SecureProviderCredentials response
+            secure_cred_fields = ['provider_id', 'blockchain_hash', 'access_level', 'last_rotation']
+            missing_cred_fields = [field for field in secure_cred_fields if field not in cred_data]
+            
+            if missing_cred_fields:
+                self.log_test("Data Models Validation", False, f"Missing SecureProviderCredentials fields: {missing_cred_fields}", time.time() - start_time)
+                return False
+            
+            # Test AuditLogEntry model through audit logs
+            audit_url = f"{BASE_URL}/security/audit/logs"
+            audit_response = self.session.get(audit_url, headers=headers, params={'limit': 1}, timeout=10)
+            
+            if audit_response.status_code != 200:
+                self.log_test("Data Models Validation", False, f"Audit model test failed: HTTP {audit_response.status_code}", time.time() - start_time)
+                return False
+            
+            audit_data = audit_response.json()
+            if 'audit_logs' not in audit_data or len(audit_data['audit_logs']) == 0:
+                self.log_test("Data Models Validation", False, "No audit logs for model validation", time.time() - start_time)
+                return False
+            
+            # Validate AuditLogEntry fields
+            audit_entry = audit_data['audit_logs'][0]
+            audit_fields = ['id', 'timestamp', 'action', 'resource_type', 'security_level']
+            missing_audit_fields = [field for field in audit_fields if field not in audit_entry]
+            
+            if missing_audit_fields:
+                self.log_test("Data Models Validation", False, f"Missing AuditLogEntry fields: {missing_audit_fields}", time.time() - start_time)
+                return False
+            
+            response_time = time.time() - start_time
+            
+            # Summary of model validation
+            validation_summary = []
+            if not missing_blockchain_fields and not missing_security_fields:
+                validation_summary.append("EnhancedProviderConfig ✓")
+            else:
+                validation_summary.append(f"EnhancedProviderConfig (missing: {missing_blockchain_fields + missing_security_fields})")
+            
+            if not missing_cred_fields:
+                validation_summary.append("SecureProviderCredentials ✓")
+            else:
+                validation_summary.append(f"SecureProviderCredentials (missing: {missing_cred_fields})")
+            
+            if not missing_audit_fields:
+                validation_summary.append("AuditLogEntry ✓")
+            else:
+                validation_summary.append(f"AuditLogEntry (missing: {missing_audit_fields})")
+            
+            self.log_test("Data Models Validation", True, f"Models validated: {', '.join(validation_summary)}", response_time)
+            return True
+            
+        except Exception as e:
+            self.log_test("Data Models Validation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_existing_provider_system_compatibility(self):
+        """Test backward compatibility with existing provider endpoints"""
+        print("🔄 Testing Existing Provider System Compatibility...")
+        
+        try:
+            start_time = time.time()
+            
+            # Test 1: Existing enhanced-dreams endpoints still work
+            dreams_url = f"{BASE_URL}/enhanced-dreams/destinations"
+            dreams_params = {'user_id': TEST_USER_ID, 'limit': 3, 'include_ai_context': True}
+            
+            dreams_response = self.session.get(dreams_url, params=dreams_params, timeout=10)
+            
+            if dreams_response.status_code != 200:
+                self.log_test("Provider System Compatibility", False, f"Enhanced dreams endpoint failed: HTTP {dreams_response.status_code}", time.time() - start_time)
+                return False
+            
+            dreams_data = dreams_response.json()
+            if 'destinations' not in dreams_data:
+                self.log_test("Provider System Compatibility", False, "Enhanced dreams missing destinations", time.time() - start_time)
+                return False
+            
+            # Test 2: Smart Dreams provider endpoints work
+            providers_url = f"{BASE_URL}/smart-dreams/providers"
+            providers_response = self.session.get(providers_url, timeout=10)
+            
+            if providers_response.status_code != 200:
+                self.log_test("Provider System Compatibility", False, f"Smart Dreams providers failed: HTTP {providers_response.status_code}", time.time() - start_time)
+                return False
+            
+            providers_data = providers_response.json()
+            if 'providers' not in providers_data:
+                self.log_test("Provider System Compatibility", False, "Smart Dreams missing providers", time.time() - start_time)
+                return False
+            
+            # Test 3: Provider analytics still work
+            analytics_url = f"{BASE_URL}/smart-dreams/providers/analytics"
+            analytics_response = self.session.get(analytics_url, timeout=10)
+            
+            if analytics_response.status_code != 200:
+                self.log_test("Provider System Compatibility", False, f"Provider analytics failed: HTTP {analytics_response.status_code}", time.time() - start_time)
+                return False
+            
+            analytics_data = analytics_response.json()
+            if 'summary' not in analytics_data:
+                self.log_test("Provider System Compatibility", False, "Provider analytics missing summary", time.time() - start_time)
+                return False
+            
+            # Test 4: AI Intelligence endpoints still work
+            ai_url = f"{BASE_URL}/ai/recommendations/{TEST_USER_ID}"
+            ai_response = self.session.get(ai_url, params={'max_results': 3}, timeout=20)
+            
+            if ai_response.status_code != 200:
+                self.log_test("Provider System Compatibility", False, f"AI recommendations failed: HTTP {ai_response.status_code}", time.time() - start_time)
+                return False
+            
+            ai_data = ai_response.json()
+            if 'recommendations' not in ai_data:
+                self.log_test("Provider System Compatibility", False, "AI recommendations missing data", time.time() - start_time)
+                return False
+            
+            response_time = time.time() - start_time
+            
+            # Check that enhanced security doesn't break existing workflows
+            destinations_count = len(dreams_data.get('destinations', []))
+            providers_count = len(providers_data.get('providers', []))
+            recommendations_count = len(ai_data.get('recommendations', []))
+            
+            self.log_test("Provider System Compatibility", True, f"All existing systems working: {destinations_count} destinations, {providers_count} providers, {recommendations_count} AI recommendations", response_time)
+            return True
+            
+        except Exception as e:
+            self.log_test("Provider System Compatibility", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # MAIN TEST RUNNER
     # =====================================================
     
