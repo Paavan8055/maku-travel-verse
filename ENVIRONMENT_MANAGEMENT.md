@@ -76,11 +76,11 @@ node scripts/switch-environment.js emergent
 ## Environment URLs
 
 ### Lovable Environment
-- Backend URL: `https://maku-smart-dreams.preview.emergentagent.com`
+- Backend URL: `https://smartjourney-6.preview.emergentagent.com`
 - Source: `lovable`
 
 ### Emergent Environment  
-- Backend URL: `https://maku-smart-dreams.preview.emergentagent.com`
+- Backend URL: `https://smartjourney-6.preview.emergentagent.com`
 - Source: `emergent`
 
 ## Best Practices

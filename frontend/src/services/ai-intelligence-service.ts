@@ -14,7 +14,7 @@ import {
 import logger from '@/utils/logger';
 
 class AIIntelligenceService {
-  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://maku-smart-dreams.preview.emergentagent.com';
+  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://smartjourney-6.preview.emergentagent.com';
 
   /**
    * Analyze user's travel DNA based on individual and social data
