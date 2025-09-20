@@ -40,14 +40,14 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
     return (
       <div className={`
         ${sizeClasses[size]} 
-        rounded-full flex items-center justify-center 
+        rounded-lg flex items-center justify-center 
         ${contextStyles[context]}
         ${theme === 'dark' ? 'shadow-lg' : 'shadow-md'}
-        overflow-hidden bg-transparent
+        overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src={MakuLogoOfficial} 
-          alt="Maku Travel - Official Logo" 
+          src={MakuLogo7Official} 
+          alt="Maku Travel - Official Logo with Dog, Suitcase, Sun & Tricolor Arc" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -60,11 +60,11 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         ${sizeClasses[size]} 
         rounded-xl flex items-center justify-center 
         ${contextStyles[context]}
-        overflow-hidden bg-transparent
+        overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src={MakuLogoOfficial} 
-          alt="Maku Travel Icon" 
+          src={MakuLogo7Official} 
+          alt="Maku Travel - Official Logo Icon" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -72,15 +72,16 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
   }
 
   if (variant === 'full') {
-    // Full logo already includes text, so just show the complete logo
+    // Full official logo with dog, suitcase, sun, tricolor arc, airplane, and text
     return (
       <div className={`
         ${contextStyles[context]}
-        ${size === 'hero' ? 'w-48 h-48' : size === 'xl' ? 'w-36 h-36' : size === 'lg' ? 'w-28 h-28' : size === 'md' ? 'w-20 h-20' : size === 'sm' ? 'w-16 h-16' : 'w-12 h-12'}
+        ${size === 'hero' ? 'w-64 h-48' : size === 'xl' ? 'w-48 h-36' : size === 'lg' ? 'w-32 h-24' : size === 'md' ? 'w-24 h-18' : size === 'sm' ? 'w-20 h-15' : 'w-16 h-12'}
+        flex items-center justify-center
       `}>
         <img 
-          src={MakuLogoOfficial} 
-          alt="Maku Travel - Official Complete Logo" 
+          src={MakuLogo7Official} 
+          alt="Maku.Travel - Official Complete Logo (Maku Logo 7)" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -91,7 +92,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
     return (
       <div className="flex flex-col">
         <span className={`
-          font-bold bg-gradient-to-r from-orange-500 via-orange-400 to-green-500 bg-clip-text text-transparent
+          font-bold bg-gradient-to-r from-orange-500 to-green-500 bg-clip-text text-transparent
           ${size === 'hero' ? 'text-4xl' : size === 'xl' ? 'text-2xl' : size === 'lg' ? 'text-xl' : size === 'lg' ? 'text-lg' : 'text-base'}
         `}>
           Maku.Travel
@@ -100,7 +101,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
           text-gray-600 font-medium
           ${size === 'hero' ? 'text-base' : size === 'xl' ? 'text-sm' : 'text-xs'}
         `}>
-          We Make "U" Travel
+          (We Make "U" Travel)
         </span>
       </div>
     );
