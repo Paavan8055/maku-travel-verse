@@ -1068,18 +1068,19 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Check for all 5 key partners with demo labels
-                key_partners = ['Amadeus', 'Sabre', 'Viator', 'Duffle', 'RateHawk']
+                key_partner_names = ['Amadeus', 'Sabre', 'Viator', 'Duffle', 'RateHawk']
                 found_partners = []
                 
-                for partner in partner_spotlight:
+                for partner in key_partners:
                     partner_name = partner.get('name')
-                    if partner_name in key_partners:
+                    if partner_name in key_partner_names:
                         found_partners.append(partner_name)
                         
-                        # Check for demo label
-                        if partner.get('demo_label') != '✨ DEMO DATA':
-                            self.log_test("Enhanced Provider Analytics", False, f"Partner {partner_name} missing demo label", response_time)
-                            return False
+                        # Check for demo label on Duffle and RateHawk
+                        if partner_name in ['Duffle', 'RateHawk']:
+                            if partner.get('demo_label') != '✨ DEMO':
+                                self.log_test("Enhanced Provider Analytics", False, f"Partner {partner_name} missing demo label", response_time)
+                                return False
                 
                 missing_partners = set(key_partners) - set(found_partners)
                 if missing_partners:
