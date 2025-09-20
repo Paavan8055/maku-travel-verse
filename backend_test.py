@@ -1392,6 +1392,15 @@ class MakuTravelBackendTester:
                 self.test_predictive_insights,
                 self.test_ai_feedback,
                 self.test_recommendation_explanation
+            ]),
+            ("Smart Dreams Provider Management", [
+                self.test_smart_dreams_providers_registry,
+                self.test_smart_dreams_providers_discover,
+                self.test_smart_dreams_providers_analytics,
+                self.test_smart_dreams_provider_health_check,
+                self.test_smart_dreams_provider_activate,
+                self.test_smart_dreams_provider_credentials,
+                self.test_existing_enhanced_dreams_integration
             ])
         ]
         
