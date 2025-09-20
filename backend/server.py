@@ -1391,6 +1391,171 @@ async def explain_recommendation(recommendation_id: str, user_id: str):
             "confidence": 0.75
         }
 
+# Smart Dreams Enhanced Provider Search Models
+class SmartDreamProviderRequest(BaseModel):
+    companion_type: str
+    travel_dna: Optional[dict] = None
+    destination: Optional[str] = None
+    date_range: Optional[dict] = None
+    budget: Optional[dict] = None
+    preferences: Optional[List[str]] = None
+
+class ProviderSearchResponse(BaseModel):
+    hotels: List[dict]
+    flights: List[dict]
+    activities: List[dict]
+    aggregated_insights: dict
+
+@api_router.post("/smart-dreams/provider-search")
+async def smart_dreams_provider_search(request: SmartDreamProviderRequest):
+    """Enhanced provider search with AI intelligence and companion matching"""
+    try:
+        logger.info(f"Smart Dreams provider search started for companion type: {request.companion_type}")
+        
+        # Simulate enhanced provider search with AI intelligence
+        start_time = datetime.utcnow()
+        
+        # Mock enhanced hotel results with AI scoring
+        enhanced_hotels = [
+            {
+                "id": f"hotel_{request.companion_type}_1",
+                "name": "Dream Paradise Resort" if request.companion_type == "romantic" else "Adventure Hub Hotel",
+                "provider": "amadeus",
+                "price": 299 if request.companion_type != "family" else 199,
+                "rating": 4.8,
+                "ai_confidence_score": 92 if request.companion_type == "romantic" else 85,
+                "personality_match": 87,
+                "companion_suitability": 95 if request.companion_type == "romantic" else 80,
+                "dream_destination_match": True,
+                "recommendation_reasons": [
+                    "Perfect for romantic getaways" if request.companion_type == "romantic" else "Great for group adventures",
+                    "AI personality match detected",
+                    "Highly rated by travelers"
+                ],
+                "location": request.destination or "Paradise Island",
+                "amenities": ["spa", "restaurant", "pool"] if request.companion_type == "romantic" else ["gym", "activities", "dining"]
+            },
+            {
+                "id": f"hotel_{request.companion_type}_2",
+                "name": "Luxury Companion Retreat" if request.companion_type != "solo" else "Solo Traveler's Haven",
+                "provider": "sabre",
+                "price": 450 if request.companion_type == "romantic" else 320,
+                "rating": 4.9,
+                "ai_confidence_score": 89,
+                "personality_match": 91,
+                "companion_suitability": 88,
+                "dream_destination_match": False,
+                "recommendation_reasons": [
+                    "Luxury amenities available",
+                    "Perfect companion type match",
+                    "High traveler satisfaction"
+                ],
+                "location": request.destination or "Sunset Bay",
+                "amenities": ["concierge", "fine_dining", "wellness"]
+            }
+        ]
+        
+        # Mock enhanced flight results with AI optimization
+        enhanced_flights = [
+            {
+                "id": f"flight_{request.companion_type}_1",
+                "provider": "amadeus",
+                "price": 599,
+                "duration": "6h 30m",
+                "ai_optimization_score": 88,
+                "journey_flow": 85 if request.companion_type == "solo" else 75,
+                "airline": "Dream Airways",
+                "companions": {
+                    "solo": 85,
+                    "romantic": 78,
+                    "friends": 82,
+                    "family": 79
+                },
+                "route": "JFK → Paradise Island",
+                "departure_time": "08:00",
+                "arrival_time": "14:30"
+            }
+        ]
+        
+        # Mock enhanced activity results with personalization
+        enhanced_activities = [
+            {
+                "id": f"activity_{request.companion_type}_1",
+                "name": "Romantic Sunset Cruise" if request.companion_type == "romantic" else "Group Adventure Tour",
+                "provider": "viator",
+                "price": 120 if request.companion_type == "romantic" else 85,
+                "personality_alignment": 92,
+                "companion_match": 95 if request.companion_type == "romantic" else 88,
+                "experience_type": "romantic" if request.companion_type == "romantic" else "adventure",
+                "ai_recommendation_rank": 94,
+                "duration": "3 hours",
+                "category": request.companion_type,
+                "description": f"Perfect for {request.companion_type} travelers",
+                "highlights": ["Professional guide", "All equipment included", "Photo opportunities"]
+            },
+            {
+                "id": f"activity_{request.companion_type}_2", 
+                "name": "Cultural Discovery Experience",
+                "provider": "local_partner",
+                "price": 95,
+                "personality_alignment": 85,
+                "companion_match": 82,
+                "experience_type": "cultural",
+                "ai_recommendation_rank": 87,
+                "duration": "4 hours",
+                "category": "cultural",
+                "description": "Immersive cultural experience",
+                "highlights": ["Local guide", "Traditional cuisine", "Historical sites"]
+            }
+        ]
+        
+        # Calculate processing time
+        processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        
+        # Create aggregated insights
+        aggregated_insights = {
+            "total_options": len(enhanced_hotels) + len(enhanced_flights) + len(enhanced_activities),
+            "avg_personality_match": 89,
+            "top_recommendation_provider": "amadeus",
+            "ai_processing_time": processing_time,
+            "cache_hit_rate": 0,
+            "companion_optimization": {
+                "primary_matches": len([h for h in enhanced_hotels if h["companion_suitability"] > 85]),
+                "ai_confidence_avg": sum(h["ai_confidence_score"] for h in enhanced_hotels) / len(enhanced_hotels),
+                "journey_flow_score": enhanced_flights[0]["journey_flow"] if enhanced_flights else 0
+            }
+        }
+        
+        response = {
+            "hotels": enhanced_hotels,
+            "flights": enhanced_flights,
+            "activities": enhanced_activities,
+            "aggregated_insights": aggregated_insights,
+            "search_metadata": {
+                "companion_type": request.companion_type,
+                "destination": request.destination,
+                "search_timestamp": start_time.isoformat(),
+                "providers_queried": ["amadeus", "sabre", "viator"],
+                "ai_enhancement_enabled": True
+            }
+        }
+        
+        logger.info(f"Smart Dreams provider search completed in {processing_time}ms")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Smart Dreams provider search failed: {e}")
+        return {
+            "error": f"Enhanced provider search failed: {str(e)}",
+            "hotels": [],
+            "flights": [],
+            "activities": [],
+            "aggregated_insights": {
+                "total_options": 0,
+                "error": True
+            }
+        }
+
 # Include the router in the main app
 app.include_router(api_router)
 
