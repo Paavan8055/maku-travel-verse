@@ -153,7 +153,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
     }
   }, [loading, permissions, requiredRole, navigate, fallbackPath, showAccessDenied, location.pathname, toast, accessDeniedShown, allowBypass]);
 
-  // Show loading state
+  // If user doesn't have access and no bypass, show loading or deny access
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -163,7 +163,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   }
 
   // Check if user has required access
-  const hasAccess = checkRoleAccess(permissions, requiredRole);
+  const hasAccess = checkRoleAccess(permissions, requiredRole) || allowBypass;
 
   if (!hasAccess) {
     return null; // Component will redirect via useEffect
