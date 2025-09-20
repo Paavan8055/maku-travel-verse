@@ -163,7 +163,7 @@ export const SmartDreamDashboard: React.FC = () => {
     }
   ];
 
-  const initializeJourney = (companion: TravelCompanion) => {
+  const initializeJourney = async (companion: TravelCompanion) => {
     const newJourney: PersonalJourney = {
       id: `journey_${Date.now()}`,
       title: journeyName || `My ${companion.journeyType}`,
@@ -178,6 +178,20 @@ export const SmartDreamDashboard: React.FC = () => {
 
     setCurrentJourney(newJourney);
     setSelectedCompanion(companion);
+    
+    // Trigger Smart Dreams Enhanced Provider Search
+    if (aiEnabled) {
+      try {
+        await searchProviders({
+          companionType: companion.type === 'partner' ? 'romantic' : companion.type,
+          travelDNA: travelDNA,
+          preferences: companion.perks
+        });
+      } catch (error) {
+        console.error('Enhanced provider search failed:', error);
+      }
+    }
+    
     setActiveTab('dream-destinations');
   };
 
