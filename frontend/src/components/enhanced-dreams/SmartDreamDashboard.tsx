@@ -401,14 +401,17 @@ export const SmartDreamDashboard: React.FC = () => {
                           ))}
                         </div>
                         
-                        <Button 
-                          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                        <MakuButton 
+                          variant="tricolor"
+                          size="md"
+                          onClick={() => initializeJourney(companion)}
+                          className="w-full"
                         >
                           <span className="flex items-center justify-center space-x-2">
                             <span>Start Journey</span>
                             <MapPin className="h-4 w-4" />
                           </span>
-                        </Button>
+                        </MakuButton>
                       </CardContent>
                     </Card>
                   ))}
