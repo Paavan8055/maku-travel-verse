@@ -1174,14 +1174,14 @@ class MakuTravelBackendTester:
                         continue
                     
                     # Validate metadata includes provider-specific details
-                    if 'metadata' not in data:
-                        self.log_test(f"{provider_id.title()} Health Check", False, "Missing metadata field", response_time)
+                    if 'details' not in data:
+                        self.log_test(f"{provider_id.title()} Health Check", False, "Missing details field", response_time)
                         results.append(False)
                         continue
                     
-                    metadata = data['metadata']
-                    if not isinstance(metadata, dict):
-                        self.log_test(f"{provider_id.title()} Health Check", False, "Metadata should be a dict", response_time)
+                    details = data['details']
+                    if not isinstance(details, dict):
+                        self.log_test(f"{provider_id.title()} Health Check", False, "Details should be a dict", response_time)
                         results.append(False)
                         continue
                     
