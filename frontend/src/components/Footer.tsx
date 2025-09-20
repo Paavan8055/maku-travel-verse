@@ -157,7 +157,7 @@ return <footer className="bg-primary text-primary-foreground">
       {/* Main Footer Content */}
       <div className="py-12 px-6 bg-gradient-pink-orange">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12">
             {/* Company */}
             <div>
               <h4 className="font-semibold text-lg mb-4">Company</h4>
@@ -165,6 +165,41 @@ return <footer className="bg-primary text-primary-foreground">
                 {footerLinks.company.map(link => (
                   <li key={link.name}>
                     <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Products */}
+            <div>
+              <h4 className="font-semibold text-lg mb-4">Products</h4>
+              <ul className="space-y-3">
+                {footerLinks.products.map(link => (
+                  <li key={link.name}>
+                    <Link to={link.href} className={`story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group ${link.name === 'Smart Dreams' ? 'text-yellow-200' : ''}`}>
+                      {link.icon && <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />}
+                      {link.name}
+                      {link.isNew && (
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs ml-1">
+                          New
+                        </Badge>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Smart Travel - New Section */}
+            <div className="relative">
+              <h4 className="font-semibold text-lg mb-4 bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">Smart Travel</h4>
+              <ul className="space-y-3">
+                {footerLinks.smartTravel.map(link => (
+                  <li key={link.name}>
+                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                      <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
                       {link.name}
                     </Link>
                   </li>
@@ -180,20 +215,6 @@ return <footer className="bg-primary text-primary-foreground">
                   <li key={link.name}>
                     <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
                       <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Services */}
-            <div>
-              <h4 className="font-semibold text-lg mb-4">Services</h4>
-              <ul className="space-y-3">
-                {footerLinks.services.map(link => (
-                  <li key={link.name}>
-                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base">
                       {link.name}
                     </Link>
                   </li>
