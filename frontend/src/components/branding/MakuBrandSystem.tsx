@@ -46,8 +46,8 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent
       `}>
         <img 
-          src={MakuLogoSVG} 
-          alt="Maku Travel - Official Logo with Dog, Suitcase & Sun" 
+          src={MakuLogoOfficial} 
+          alt="Maku Travel - Official Logo" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -63,7 +63,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent
       `}>
         <img 
-          src={MakuLogoSVG} 
+          src={MakuLogoOfficial} 
           alt="Maku Travel Icon" 
           className="w-full h-full object-contain"
         />
@@ -79,8 +79,8 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         ${size === 'hero' ? 'w-48 h-48' : size === 'xl' ? 'w-36 h-36' : size === 'lg' ? 'w-28 h-28' : size === 'md' ? 'w-20 h-20' : size === 'sm' ? 'w-16 h-16' : 'w-12 h-12'}
       `}>
         <img 
-          src={MakuLogoSVG} 
-          alt="Maku Travel - Complete Brand Logo" 
+          src={MakuLogoOfficial} 
+          alt="Maku Travel - Official Complete Logo" 
           className="w-full h-full object-contain"
         />
       </div>
