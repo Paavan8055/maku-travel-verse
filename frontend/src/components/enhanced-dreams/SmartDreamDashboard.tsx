@@ -529,6 +529,146 @@ export const SmartDreamDashboard: React.FC = () => {
               </div>
             )}
 
+            {/* Enhanced Provider Results Section */}
+            {hasProviderResults && aiEnabled && (
+              <div className="mb-8">
+                <div className="bg-gradient-to-r from-indigo-900/50 via-purple-900/50 to-pink-900/50 border border-purple-500/30 backdrop-blur-xl rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 flex items-center space-x-2">
+                        <Zap className="h-5 w-5 text-yellow-400" />
+                        <span>Enhanced Provider Recommendations</span>
+                      </h3>
+                      <p className="text-purple-200 text-sm">
+                        {totalProviderResults} personalized options from {providerResults?.searchMetadata.providersQueried.join(', ')} 
+                        • {Math.round(providerResults?.aggregatedInsights.aiProcessingTime || 0)}ms AI processing
+                      </p>
+                    </div>
+                    
+                    {providerLoading && (
+                      <div className="flex items-center space-x-2 text-yellow-400">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+                        <span className="text-sm">Enhancing results...</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Top Hotels from Enhanced Search */}
+                  {getTopRecommendations('hotels', 3).length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center space-x-2">
+                        <Heart className="h-4 w-4 text-pink-400" />
+                        <span>Smart Hotel Matches</span>
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {getTopRecommendations('hotels', 3).map((hotel, index) => (
+                          <Card key={hotel.id} className="bg-black/40 backdrop-blur-xl border-white/10 hover:border-pink-400/50 transition-all duration-300">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="font-bold text-white text-sm">{hotel.name}</h5>
+                                <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs">
+                                  {hotel.aiConfidenceScore}% AI Match
+                                </Badge>
+                              </div>
+                              <p className="text-gray-300 text-xs mb-2">{hotel.location}</p>
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-pink-400 font-bold">${hotel.price}/night</span>
+                                <div className="flex items-center">
+                                  <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                                  <span className="text-yellow-400 text-xs ml-1">{hotel.rating}</span>
+                                </div>
+                              </div>
+                              <div className="mb-3">
+                                <div className="text-xs text-gray-400 mb-1">Companion Match: {hotel.companionSuitability}%</div>
+                                <div className="w-full bg-gray-700 rounded-full h-1">
+                                  <div 
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-1 rounded-full" 
+                                    style={{ width: `${hotel.companionSuitability}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <Button 
+                                onClick={() => {
+                                  const hotelDestination = {
+                                    id: hotel.id,
+                                    name: hotel.location,
+                                    country: hotel.location,
+                                    image: dreamDestinations[index % dreamDestinations.length].image,
+                                    price: hotel.price,
+                                    days: 3,
+                                    excitement: hotel.aiConfidenceScore,
+                                    perfectFor: hotel.recommendationReasons
+                                  };
+                                  addDestinationToJourney(hotelDestination);
+                                }}
+                                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-xs"
+                                disabled={!currentJourney}
+                              >
+                                <Heart className="h-3 w-3 mr-1" />
+                                Add to Journey
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Top Activities from Enhanced Search */}
+                  {getTopRecommendations('activities', 2).length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-blue-400" />
+                        <span>Curated Experiences</span>
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {getTopRecommendations('activities', 2).map((activity) => (
+                          <Card key={activity.id} className="bg-black/40 backdrop-blur-xl border-white/10 hover:border-blue-400/50 transition-all duration-300">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="font-bold text-white text-sm">{activity.name}</h5>
+                                <Badge className="bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs">
+                                  Rank #{activity.aiRecommendationRank}
+                                </Badge>
+                              </div>
+                              <p className="text-gray-300 text-xs mb-2">{activity.description}</p>
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-blue-400 font-bold">${activity.price}</span>
+                                <span className="text-gray-400 text-xs">{activity.duration}</span>
+                              </div>
+                              <div className="mb-3">
+                                <div className="text-xs text-gray-400 mb-1">Experience Match: {activity.companionMatch}%</div>
+                                <div className="w-full bg-gray-700 rounded-full h-1">
+                                  <div 
+                                    className="bg-gradient-to-r from-blue-500 to-green-500 h-1 rounded-full" 
+                                    style={{ width: `${activity.companionMatch}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap gap-1 mb-3">
+                                {activity.highlights.slice(0, 2).map((highlight, index) => (
+                                  <Badge key={index} variant="outline" className="bg-white/5 border-white/20 text-white text-xs">
+                                    {highlight}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <Button 
+                                className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-xs"
+                                disabled={!currentJourney}
+                              >
+                                <Calendar className="h-3 w-3 mr-1" />
+                                Add Experience
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {dreamDestinations.map((destination) => (
                 <Card 
