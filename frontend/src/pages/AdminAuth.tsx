@@ -15,10 +15,13 @@ const AdminAuth = () => {
   // Get the intended destination after login
   const from = location.state?.from?.pathname || '/admin/dashboard';
 
-  // Development bypass - check for development environment
-  const isDevelopment = import.meta.env.MODE === 'development' || window.location.hostname === 'localhost';
+  // Development bypass - more flexible approach
   const urlParams = new URLSearchParams(window.location.search);
-  const hasDevBypass = urlParams.get('dev') === 'true';
+  const hasDevBypass = urlParams.get('dev') === 'true' || urlParams.get('bypass') === 'admin';
+  const isPreviewEnvironment = window.location.hostname.includes('preview.emergentagent.com');
+  
+  // Allow bypass in preview environments with specific parameter
+  const allowBypass = hasDevBypass && (isPreviewEnvironment || window.location.hostname === 'localhost');
 
   // Check if current user is admin
   useEffect(() => {
