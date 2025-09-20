@@ -780,32 +780,45 @@ export class SmartDreamProviderOrchestrator {
   }
 
   /**
-   * Aggregate and enhance results from all providers
+   * Aggregate and enhance results from all providers (static + dynamic)
    */
   private async aggregateAndEnhanceResults(
     providerResults: PromiseSettledResult<any>[],
     request: SmartDreamProviderRequest,
-    startTime: number
+    startTime: number,
+    dynamicProviderCount: number = 0
   ): Promise<SmartDreamProviderResponse> {
     const allHotels: any[] = [];
     const allFlights: any[] = [];
     const allActivities: any[] = [];
     const providerStats: { [key: string]: { success: boolean; responseTime: number } } = {};
+    let autoDiscoveredResults = 0;
+    let dynamicProvidersUsed = 0;
 
     // Process provider results
     providerResults.forEach((result, index) => {
       if (result.status === 'fulfilled' && result.value.success) {
-        const data = result.value.data;
+        const resultData = result.value;
+        const data = resultData.data;
+        
+        // Track dynamic provider usage
+        if (resultData.providerType === 'dynamic') {
+          dynamicProvidersUsed++;
+          if (resultData.autoDiscovered) {
+            autoDiscoveredResults += (data.hotels?.length || 0) + (data.flights?.length || 0) + (data.activities?.length || 0);
+          }
+        }
+        
         allHotels.push(...data.hotels);
         allFlights.push(...data.flights);
         allActivities.push(...data.activities);
       }
     });
 
-    // Sort by AI scoring
-    allHotels.sort((a, b) => b.aiConfidenceScore - a.aiConfidenceScore);
-    allFlights.sort((a, b) => b.aiOptimizationScore - a.aiOptimizationScore);
-    allActivities.sort((a, b) => b.aiRecommendationRank - a.aiRecommendationRank);
+    // Sort by AI scoring with dynamic provider priority boost
+    allHotels.sort((a, b) => this.compareProviderResults(a, b, 'aiConfidenceScore'));
+    allFlights.sort((a, b) => this.compareProviderResults(a, b, 'aiOptimizationScore'));
+    allActivities.sort((a, b) => this.compareProviderResults(a, b, 'aiRecommendationRank'));
 
     // Calculate aggregated insights
     const avgPersonalityMatch = allHotels.reduce((sum, hotel) => sum + hotel.personalityMatch, 0) / allHotels.length || 0;
@@ -821,9 +834,25 @@ export class SmartDreamProviderOrchestrator {
         avgPersonalityMatch: Math.round(avgPersonalityMatch),
         topRecommendationProvider: topProvider,
         aiProcessingTime: processingTime,
-        cacheHitRate: 0 // Will be calculated based on cache usage
+        cacheHitRate: 0, // Will be calculated based on cache usage
+        dynamicProvidersUsed,
+        autoDiscoveredResults
       }
     };
+  }
+
+  /**
+   * Compare provider results with dynamic provider priority boost
+   */
+  private compareProviderResults(a: any, b: any, scoreField: string): number {
+    const scoreA = a[scoreField] || 0;
+    const scoreB = b[scoreField] || 0;
+    
+    // Boost dynamic providers slightly to encourage diversity
+    const boostA = a.isDynamicProvider ? 2 : 0;
+    const boostB = b.isDynamicProvider ? 2 : 0;
+    
+    return (scoreB + boostB) - (scoreA + boostA);
   }
 
   /**
