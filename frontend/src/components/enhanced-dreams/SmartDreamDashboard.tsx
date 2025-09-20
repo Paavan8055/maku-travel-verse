@@ -32,6 +32,7 @@ import { PredictiveInsightsPanel } from '../ai-intelligence/PredictiveInsightsPa
 import { JourneyOptimizerCard } from '../ai-intelligence/JourneyOptimizerCard';
 import { useEnhancedDreams } from '@/hooks/useEnhancedDreams';
 import { useAIIntelligence } from '@/hooks/useAIIntelligence';
+import { useSmartDreamProviders } from '@/hooks/useSmartDreamProviders';
 
 interface TravelCompanion {
   type: 'solo' | 'partner' | 'friends' | 'family';
