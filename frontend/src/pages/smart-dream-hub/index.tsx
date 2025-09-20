@@ -1,6 +1,6 @@
 import React from 'react';
 import { SmartDreamDashboard } from '@/components/enhanced-dreams/SmartDreamDashboard';
-import { Navbar } from '@/components/Navbar';
+import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 const SmartDreamHubPage: React.FC = () => {
