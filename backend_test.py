@@ -905,6 +905,453 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # SMART DREAMS PROVIDER MANAGEMENT TESTS - Phase 5
+    # =====================================================
+    
+    def test_smart_dreams_providers_registry(self):
+        """Test Smart Dreams Provider Registry endpoint"""
+        print("🏢 Testing Smart Dreams Provider Registry...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Provider Registry", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['providers', 'total_count', 'active_count', 'healthy_count', 'auto_discovered_count']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Registry", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                providers = data['providers']
+                if not isinstance(providers, list):
+                    self.log_test("Provider Registry", False, "Providers is not a list", response_time)
+                    return False
+                
+                if len(providers) == 0:
+                    self.log_test("Provider Registry", False, "No providers returned", response_time)
+                    return False
+                
+                # Validate first provider structure
+                provider = providers[0]
+                provider_required = ['id', 'name', 'type', 'status', 'health_status', 'performance_score']
+                provider_missing = [field for field in provider_required if field not in provider]
+                
+                if provider_missing:
+                    self.log_test("Provider Registry", False, f"Missing provider fields: {provider_missing}", response_time)
+                    return False
+                
+                # Check performance score is valid
+                score = provider.get('performance_score', 0)
+                if not (0 <= score <= 100):
+                    self.log_test("Provider Registry", False, f"Invalid performance score: {score}", response_time)
+                    return False
+                
+                active_count = data.get('active_count', 0)
+                healthy_count = data.get('healthy_count', 0)
+                auto_discovered = data.get('auto_discovered_count', 0)
+                
+                self.log_test("Provider Registry", True, f"Got {len(providers)} providers, {active_count} active, {healthy_count} healthy, {auto_discovered} auto-discovered", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Registry", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Registry", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_providers_discover(self):
+        """Test Smart Dreams Provider Auto-Discovery endpoint"""
+        print("🔍 Testing Smart Dreams Provider Auto-Discovery...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers/discover"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json={}, timeout=20)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Provider Auto-Discovery", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['discovered_providers', 'discovery_summary', 'recommendations']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Auto-Discovery", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                discovered = data['discovered_providers']
+                if not isinstance(discovered, list):
+                    self.log_test("Provider Auto-Discovery", False, "Discovered providers is not a list", response_time)
+                    return False
+                
+                # Validate discovery summary
+                summary = data['discovery_summary']
+                summary_required = ['total_discovered', 'processing_time_ms', 'discovery_methods']
+                summary_missing = [field for field in summary_required if field not in summary]
+                
+                if summary_missing:
+                    self.log_test("Provider Auto-Discovery", False, f"Missing summary fields: {summary_missing}", response_time)
+                    return False
+                
+                # Check if discovered providers have auto_discovered flag
+                if len(discovered) > 0:
+                    first_provider = discovered[0]
+                    if not first_provider.get('auto_discovered', False):
+                        self.log_test("Provider Auto-Discovery", False, "Discovered provider missing auto_discovered flag", response_time)
+                        return False
+                    
+                    # Check discovery metadata
+                    if 'discovery_date' not in first_provider:
+                        self.log_test("Provider Auto-Discovery", False, "Missing discovery_date in discovered provider", response_time)
+                        return False
+                
+                total_discovered = summary.get('total_discovered', 0)
+                processing_time = summary.get('processing_time_ms', 0)
+                
+                self.log_test("Provider Auto-Discovery", True, f"Discovered {total_discovered} providers in {processing_time:.0f}ms", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Auto-Discovery", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Auto-Discovery", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_providers_analytics(self):
+        """Test Smart Dreams Provider Analytics endpoint"""
+        print("📊 Testing Smart Dreams Provider Analytics...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers/analytics"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Provider Analytics", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['summary', 'performance_by_type', 'top_performers', 'integration_pipeline', 'cost_analytics']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Analytics", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate summary structure
+                summary = data['summary']
+                summary_required = ['total_providers', 'active_providers', 'healthy_providers', 'avg_performance_score']
+                summary_missing = [field for field in summary_required if field not in summary]
+                
+                if summary_missing:
+                    self.log_test("Provider Analytics", False, f"Missing summary fields: {summary_missing}", response_time)
+                    return False
+                
+                # Check performance metrics are reasonable
+                avg_score = summary.get('avg_performance_score', 0)
+                if not (0 <= avg_score <= 100):
+                    self.log_test("Provider Analytics", False, f"Invalid average performance score: {avg_score}", response_time)
+                    return False
+                
+                # Validate performance by type
+                perf_by_type = data['performance_by_type']
+                if not isinstance(perf_by_type, dict):
+                    self.log_test("Provider Analytics", False, "Performance by type is not a dict", response_time)
+                    return False
+                
+                # Check top performers
+                top_performers = data['top_performers']
+                if not isinstance(top_performers, list):
+                    self.log_test("Provider Analytics", False, "Top performers is not a list", response_time)
+                    return False
+                
+                total_providers = summary.get('total_providers', 0)
+                active_providers = summary.get('active_providers', 0)
+                
+                self.log_test("Provider Analytics", True, f"Analytics: {total_providers} total, {active_providers} active, avg score: {avg_score:.1f}", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Analytics", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Analytics", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_provider_health_check(self):
+        """Test Smart Dreams Provider Health Check endpoint"""
+        print("🏥 Testing Smart Dreams Provider Health Check...")
+        
+        provider_id = "amadeus-001"
+        url = f"{BASE_URL}/smart-dreams/providers/{provider_id}/health-check"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json={}, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Provider Health Check", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['provider_id', 'timestamp', 'status', 'response_time_ms', 'success_rate']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Health Check", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check provider ID matches
+                if data.get('provider_id') != provider_id:
+                    self.log_test("Provider Health Check", False, f"Provider ID mismatch: expected {provider_id}, got {data.get('provider_id')}", response_time)
+                    return False
+                
+                # Check status is valid
+                status = data.get('status')
+                valid_statuses = ['healthy', 'degraded', 'offline']
+                if status not in valid_statuses:
+                    self.log_test("Provider Health Check", False, f"Invalid status: {status}", response_time)
+                    return False
+                
+                # Check success rate is valid
+                success_rate = data.get('success_rate', 0)
+                if not (0 <= success_rate <= 100):
+                    self.log_test("Provider Health Check", False, f"Invalid success rate: {success_rate}", response_time)
+                    return False
+                
+                # Check response time is reasonable
+                resp_time_ms = data.get('response_time_ms', 0)
+                if resp_time_ms <= 0:
+                    self.log_test("Provider Health Check", False, f"Invalid response time: {resp_time_ms}ms", response_time)
+                    return False
+                
+                self.log_test("Provider Health Check", True, f"Provider {provider_id}: {status}, {success_rate}% success, {resp_time_ms}ms response", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Health Check", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health Check", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_provider_activate(self):
+        """Test Smart Dreams Provider Activation endpoint"""
+        print("⚡ Testing Smart Dreams Provider Activation...")
+        
+        provider_id = "expedia-taap-001"
+        url = f"{BASE_URL}/smart-dreams/providers/{provider_id}/activate"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json={}, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Provider Activation", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['provider_id', 'activation_status', 'new_status', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Activation", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check provider ID matches
+                if data.get('provider_id') != provider_id:
+                    self.log_test("Provider Activation", False, f"Provider ID mismatch: expected {provider_id}, got {data.get('provider_id')}", response_time)
+                    return False
+                
+                # Check activation status
+                activation_status = data.get('activation_status')
+                if activation_status != 'success':
+                    self.log_test("Provider Activation", False, f"Activation failed: {activation_status}", response_time)
+                    return False
+                
+                # Check new status
+                new_status = data.get('new_status')
+                if new_status != 'active':
+                    self.log_test("Provider Activation", False, f"Expected active status, got: {new_status}", response_time)
+                    return False
+                
+                # Check integration steps if present
+                if 'integration_steps_completed' in data:
+                    steps = data['integration_steps_completed']
+                    if not isinstance(steps, list) or len(steps) == 0:
+                        self.log_test("Provider Activation", False, "No integration steps completed", response_time)
+                        return False
+                
+                self.log_test("Provider Activation", True, f"Provider {provider_id} activated successfully, status: {new_status}", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Activation", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Activation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_provider_credentials(self):
+        """Test Smart Dreams Provider Credentials endpoint"""
+        print("🔐 Testing Smart Dreams Provider Credentials...")
+        
+        provider_id = "amadeus-001"
+        url = f"{BASE_URL}/smart-dreams/providers/{provider_id}/credentials"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=10)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Provider Credentials", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['provider_id', 'has_api_key', 'credentials_status']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Credentials", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check provider ID matches
+                if data.get('provider_id') != provider_id:
+                    self.log_test("Provider Credentials", False, f"Provider ID mismatch: expected {provider_id}, got {data.get('provider_id')}", response_time)
+                    return False
+                
+                # Check credentials status
+                cred_status = data.get('credentials_status')
+                valid_statuses = ['valid', 'invalid', 'expired', 'missing']
+                if cred_status not in valid_statuses:
+                    self.log_test("Provider Credentials", False, f"Invalid credentials status: {cred_status}", response_time)
+                    return False
+                
+                # Check boolean flags
+                has_api_key = data.get('has_api_key')
+                if not isinstance(has_api_key, bool):
+                    self.log_test("Provider Credentials", False, f"has_api_key should be boolean, got: {type(has_api_key)}", response_time)
+                    return False
+                
+                # Check masked info if present
+                if 'masked_info' in data:
+                    masked = data['masked_info']
+                    if not isinstance(masked, dict):
+                        self.log_test("Provider Credentials", False, "masked_info should be a dict", response_time)
+                        return False
+                    
+                    # Ensure credentials are properly masked
+                    for key, value in masked.items():
+                        if not isinstance(value, str) or '****' not in value:
+                            self.log_test("Provider Credentials", False, f"Credential {key} not properly masked: {value}", response_time)
+                            return False
+                
+                self.log_test("Provider Credentials", True, f"Provider {provider_id}: {cred_status}, API key: {has_api_key}", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Credentials", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Credentials", False, f"Exception: {str(e)}")
+            return False
+
+    def test_existing_enhanced_providers_integration(self):
+        """Test integration with existing Smart Dreams system"""
+        print("🔗 Testing Integration with Existing Smart Dreams System...")
+        
+        # Test the existing enhanced-dreams endpoints to ensure they still work
+        url = f"{BASE_URL}/enhanced-dreams/destinations"
+        params = {
+            'user_id': TEST_USER_ID,
+            'limit': 5,
+            'include_ai_context': True
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Enhanced Dreams Integration", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Check that enhanced dreams still works
+                if 'destinations' not in data:
+                    self.log_test("Enhanced Dreams Integration", False, "Missing destinations field", response_time)
+                    return False
+                
+                destinations = data['destinations']
+                if not isinstance(destinations, list) or len(destinations) == 0:
+                    self.log_test("Enhanced Dreams Integration", False, "No destinations returned", response_time)
+                    return False
+                
+                # Check that AI context is included
+                if 'user_context' in data:
+                    user_context = data['user_context']
+                    if 'personality_match_scores' not in user_context:
+                        self.log_test("Enhanced Dreams Integration", False, "Missing personality match scores in user context", response_time)
+                        return False
+                
+                self.log_test("Enhanced Dreams Integration", True, f"Enhanced Dreams API working with {len(destinations)} destinations", response_time)
+                return True
+                
+            else:
+                self.log_test("Enhanced Dreams Integration", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Enhanced Dreams Integration", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # MAIN TEST RUNNER
     # =====================================================
     
