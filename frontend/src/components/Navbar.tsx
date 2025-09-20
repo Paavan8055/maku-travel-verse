@@ -242,7 +242,48 @@ const Navbar = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 flex-shrink-0">
+            {/* Secondary Navigation - Compact */}
+            <div className="hidden lg:flex items-center space-x-2">
+              {/* More Menu for Secondary Items */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-foreground hover:text-primary flex items-center space-x-1">
+                    <span className="text-sm">More</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate('/gift-cards')}>
+                    <Gift className="mr-2 h-4 w-4" />
+                    Gift Cards
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/roadmap')}>
+                    <Rocket className="mr-2 h-4 w-4" />
+                    Roadmap
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/partners')}>
+                    <UsersIcon className="mr-2 h-4 w-4" />
+                    Partners
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/nft')}>NFT Collection</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/airdrop')}>Airdrop</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/environment-manager')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Environment
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             {/* System Health */}
             <SystemHealthIndicator />
             
@@ -252,10 +293,11 @@ const Navbar = () => {
             {/* Help Link */}
             <Button 
               variant="ghost" 
-              className="text-foreground hover:text-primary text-sm flex items-center space-x-1"
+              size="sm"
+              className="text-foreground hover:text-primary text-sm hidden sm:flex"
               onClick={() => navigate('/help')}
             >
-              <span>{t('navigation.help')}</span>
+              <span>Help</span>
             </Button>
 
             {/* User Authentication */}
