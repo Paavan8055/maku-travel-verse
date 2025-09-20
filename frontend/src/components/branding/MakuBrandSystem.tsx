@@ -148,10 +148,10 @@ export const MakuColors = {
   }
 };
 
-// Responsive Brand Components
+// Enhanced Button Components with Tricolor Arc Design Inspiration
 export const MakuButton: React.FC<{
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'tricolor' | 'sun';
   size?: 'sm' | 'md' | 'lg';
   onClick?: () => void;
   className?: string;
@@ -162,12 +162,14 @@ export const MakuButton: React.FC<{
   onClick,
   className = '' 
 }) => {
-  const baseClasses = 'font-medium rounded-full transition-all duration-300 flex items-center justify-center';
+  const baseClasses = 'font-medium rounded-full transition-all duration-300 flex items-center justify-center border-0 outline-none focus:ring-2 focus:ring-offset-2';
   
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl',
-    secondary: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl',
-    outline: 'border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white'
+    primary: 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl focus:ring-orange-500',
+    secondary: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl focus:ring-green-500',
+    outline: 'border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white focus:ring-orange-500',
+    tricolor: 'bg-gradient-to-r from-orange-500 via-yellow-400 to-green-500 hover:from-orange-600 hover:via-yellow-500 hover:to-green-600 text-white shadow-lg hover:shadow-xl focus:ring-orange-500',
+    sun: 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white shadow-lg hover:shadow-xl focus:ring-yellow-500'
   };
   
   const sizeClasses = {
