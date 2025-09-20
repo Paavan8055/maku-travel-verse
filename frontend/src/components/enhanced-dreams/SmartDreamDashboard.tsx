@@ -463,7 +463,7 @@ export const SmartDreamDashboard: React.FC = () => {
                         <div className="text-2xl font-bold text-green-600">{currentJourney.totalDays}</div>
                         <div className="text-sm text-green-700 font-medium">Total Days</div>
                       </div>
-                      <div class="text-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                      <div className="text-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
                         <div className="text-2xl font-bold text-yellow-600">${currentJourney.totalBudget}</div>
                         <div className="text-sm text-yellow-700 font-medium">Estimated Cost</div>
                       </div>
