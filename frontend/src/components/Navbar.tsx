@@ -109,77 +109,136 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8" role="menubar">
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/hotels')} role="menuitem">
-              <span>{t('navigation.hotels')}</span>
-            </Button>
-            
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/search/flights')} role="menuitem">
-              <Plane className="h-4 w-4" aria-hidden="true" />
-              <span>{t('navigation.flights')}</span>
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              className="text-foreground hover:text-primary flex items-center space-x-1" 
-              onClick={() => navigate('/search/activities')}
-              role="menuitem"
-            >
-              <MapPin className="h-4 w-4" aria-hidden="true" />
-              <span>{t('navigation.activities')}</span>
-            </Button>
-            
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/travel-fund')} role="menuitem">
-              <Coins className="h-4 w-4" aria-hidden="true" />
-              <span>Travel Fund</span>
-            </Button>
-            
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/gift-cards')} role="menuitem">
-              <Gift className="h-4 w-4" aria-hidden="true" />
-              <span>Gift Cards</span>
-            </Button>
-            
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/roadmap')} role="menuitem">
-              <Rocket className="h-4 w-4" aria-hidden="true" />
-              <span>Roadmap</span>
-            </Button>
-            
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/partners')} role="menuitem">
-              <UsersIcon className="h-4 w-4" aria-hidden="true" />
-              <span>Partners</span>
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" role="menuitem">
-                  <span>Web3</span>
-                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem onClick={() => navigate('/nft')}>NFT Collection</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/airdrop')}>Airdrop</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            {/* Smart Dream Hub */}
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/smart-dreams')} role="menuitem">
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-              <span>Smart Dreams</span>
-            </Button>
-
-            {/* Environment Manager - Development Tool */}
-            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/environment-manager')} role="menuitem">
-              <Settings className="h-4 w-4" aria-hidden="true" />
-              <span>Environment</span>
-            </Button>
-
-            {isAdmin && (
-              <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/admin')} role="menuitem">
-                <Shield className="h-4 w-4" aria-hidden="true" />
-                <span>Admin</span>
+          <div className="hidden md:flex items-center justify-center flex-1 max-w-4xl mx-8" role="menubar">
+            <div className="flex items-center space-x-6">
+              <Button variant="ghost" className="text-foreground hover:text-primary hover:bg-orange-50 transition-all duration-200" onClick={() => navigate('/search/hotels')} role="menuitem">
+                <span>Hotels</span>
               </Button>
-            )}
+              
+              <Button variant="ghost" className="text-foreground hover:text-primary hover:bg-orange-50 transition-all duration-200 flex items-center space-x-1" onClick={() => navigate('/search/flights')} role="menuitem">
+                <Plane className="h-4 w-4" aria-hidden="true" />
+                <span>Flights</span>
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                className="text-foreground hover:text-primary hover:bg-orange-50 transition-all duration-200 flex items-center space-x-1" 
+                onClick={() => navigate('/search/activities')}
+                role="menuitem"
+              >
+                <MapPin className="h-4 w-4" aria-hidden="true" />
+                <span>Activities</span>
+              </Button>
+              
+              {/* Smart Dreams - Enhanced with Dropdown */}
+              <div className="relative">
+                <DropdownMenu open={isSmartDreamDropdownOpen} onOpenChange={setIsSmartDreamDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className={`text-foreground hover:text-primary transition-all duration-200 flex items-center space-x-2 px-4 py-2 rounded-lg group ${
+                        isSmartDreamActive 
+                          ? 'bg-gradient-to-r from-orange-100 to-pink-100 text-orange-600' 
+                          : 'hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50'
+                      }`}
+                      role="menuitem"
+                    >
+                      <Sparkles className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
+                      <span className="font-medium">Smart Dreams</span>
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-600 text-xs px-1.5 py-0.5">
+                        New
+                      </Badge>
+                      <ChevronDown className="h-3 w-3 transition-transform duration-200" aria-hidden="true" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-80 p-4 bg-white/95 backdrop-blur-md border border-orange-200 shadow-xl rounded-xl">
+                    <div className="space-y-4">
+                      {/* Header with AI Status */}
+                      <div className="flex items-center justify-between pb-2 border-b border-orange-100">
+                        <h3 className="font-semibold text-gray-900">Your Smart Journey</h3>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
+                            <div 
+                              className="w-2 h-2 rounded-full transition-colors duration-300" 
+                              style={{ backgroundColor: aiStatus.color }}
+                            />
+                            <span className="text-xs text-gray-600">{aiStatus.description}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Quick Actions */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => {
+                            navigate('/smart-dreams?tab=journey');
+                            setIsSmartDreamDropdownOpen(false);
+                          }}
+                          className="flex flex-col items-center p-3 rounded-lg hover:bg-orange-50 transition-colors duration-200 group"
+                        >
+                          <MapPin className="h-5 w-5 text-orange-500 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="text-sm font-medium text-gray-900 mt-1">Start Journey</span>
+                          <span className="text-xs text-gray-500 text-center">Plan your dream trip</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            navigate('/smart-dreams?tab=ai-dna');
+                            setIsSmartDreamDropdownOpen(false);
+                          }}
+                          className="flex flex-col items-center p-3 rounded-lg hover:bg-purple-50 transition-colors duration-200 group"
+                        >
+                          <Brain className="h-5 w-5 text-purple-500 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="text-sm font-medium text-gray-900 mt-1">Travel DNA</span>
+                          <span className="text-xs text-gray-500 text-center">Discover your style</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            navigate('/smart-dreams?tab=dreams');
+                            setIsSmartDreamDropdownOpen(false);
+                          }}
+                          className="flex flex-col items-center p-3 rounded-lg hover:bg-pink-50 transition-colors duration-200 group"
+                        >
+                          <Sparkles className="h-5 w-5 text-pink-500 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="text-sm font-medium text-gray-900 mt-1">Dream Places</span>
+                          <span className="text-xs text-gray-500 text-center">Explore destinations</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            navigate('/smart-dreams?tab=planner');
+                            setIsSmartDreamDropdownOpen(false);
+                          }}
+                          className="flex flex-col items-center p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200 group"
+                        >
+                          <Calendar className="h-5 w-5 text-blue-500 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="text-sm font-medium text-gray-900 mt-1">AI Planner</span>
+                          <span className="text-xs text-gray-500 text-center">Smart itinerary</span>
+                        </button>
+                      </div>
+                      
+                      {/* Main CTA */}
+                      <button
+                        onClick={() => {
+                          navigate('/smart-dreams');
+                          setIsSmartDreamDropdownOpen(false);
+                        }}
+                        className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white py-2.5 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
+                      >
+                        <Zap className="h-4 w-4" />
+                        <span>Open Smart Dreams</span>
+                      </button>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              <Button variant="ghost" className="text-foreground hover:text-primary hover:bg-orange-50 transition-all duration-200 flex items-center space-x-1" onClick={() => navigate('/travel-fund')} role="menuitem">
+                <Coins className="h-4 w-4" aria-hidden="true" />
+                <span>Travel Fund</span>
+              </Button>
+            </div>
           </div>
 
           {/* Right Side Actions */}
