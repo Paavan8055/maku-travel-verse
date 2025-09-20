@@ -104,7 +104,7 @@ const Navbar = () => {
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-orange-100 w-full transition-all duration-300 ${isSmartDreamActive ? 'smart-dream-active' : ''}`} role="navigation" aria-label="Main navigation">
       <div className="w-full px-6">
         <div className={`flex items-center justify-between transition-all duration-300 ${viewportWidth < 768 ? 'h-14' : viewportWidth < 1024 ? 'h-16' : 'h-18'}`}>
-          {/* Maku.Travel Brand Logo */}
+          {/* Official Maku.Travel Brand Logo */}
           <div className="flex items-center cursor-pointer flex-shrink-0" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>
             <MakuLogo 
               size={viewportWidth < 768 ? 'sm' : 'md'} 
