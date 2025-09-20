@@ -238,20 +238,14 @@ export const SmartDreamDashboard: React.FC = () => {
       <div className="bg-white shadow-sm border-b border-orange-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Maku Brand Integration */}
+            {/* Official Maku Brand Integration */}
             <div className="flex items-center space-x-3">
               <MakuLogo 
                 size="md" 
-                variant="mascot" 
+                variant="full" 
                 theme="light" 
                 context="header" 
               />
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 via-orange-400 to-green-500 bg-clip-text text-transparent">
-                  My Dream Journey
-                </h1>
-                <p className="text-sm text-gray-600 font-medium">(We Make "U" Travel)</p>
-              </div>
             </div>
             
             {/* AI Status with Maku Branding */}
