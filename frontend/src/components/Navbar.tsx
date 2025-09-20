@@ -1,17 +1,19 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield, Coins, Heart, Settings, Sparkles, Brain } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield, Coins, Heart, Settings, Sparkles, Brain, Calendar, Trophy, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast, toast } from "@/hooks/use-toast";
 import { useApiHealth } from "@/hooks/useApiHealth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
 import { useHealthMonitor } from "@/hooks/useHealthMonitor";
+import { useAIIntelligence } from "@/hooks/useAIIntelligence";
 
 
 const Navbar = () => {
