@@ -43,12 +43,13 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         rounded-full flex items-center justify-center 
         ${contextStyles[context]}
         ${theme === 'dark' ? 'shadow-lg' : 'shadow-sm'}
-        overflow-hidden bg-white
+        overflow-hidden bg-gradient-to-br from-orange-50 via-white to-green-50
+        border-2 border-gradient-to-r from-orange-300 to-green-300
       `}>
         <img 
           src={MakuMascotImage} 
           alt="Maku Travel - Dog with Suitcase Mascot" 
-          className="w-full h-full object-contain p-1"
+          className="w-full h-full object-contain"
         />
       </div>
     );
@@ -58,14 +59,15 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
     return (
       <div className={`
         ${sizeClasses[size]} 
-        rounded-lg flex items-center justify-center 
+        rounded-xl flex items-center justify-center 
         ${contextStyles[context]}
-        overflow-hidden bg-white border border-orange-200
+        overflow-hidden bg-gradient-to-br from-orange-50 via-white to-green-50
+        border border-orange-200 shadow-md
       `}>
         <img 
           src={MakuMascotImage} 
           alt="Maku Travel Icon" 
-          className="w-full h-full object-contain p-2"
+          className="w-full h-full object-contain p-1"
         />
       </div>
     );
@@ -75,16 +77,16 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
     return (
       <div className="flex flex-col">
         <span className={`
-          font-bold bg-gradient-to-r from-orange-500 to-green-500 bg-clip-text text-transparent
-          ${size === 'hero' ? 'text-4xl' : size === 'xl' ? 'text-2xl' : size === 'lg' ? 'text-xl' : 'text-lg'}
+          font-bold bg-gradient-to-r from-orange-500 via-orange-400 to-green-500 bg-clip-text text-transparent
+          ${size === 'hero' ? 'text-4xl' : size === 'xl' ? 'text-2xl' : size === 'lg' ? 'text-xl' : size === 'lg' ? 'text-lg' : 'text-base'}
         `}>
           Maku.Travel
         </span>
         <span className={`
-          text-gray-600 
-          ${size === 'hero' ? 'text-base' : 'text-sm'}
+          text-gray-600 font-medium
+          ${size === 'hero' ? 'text-base' : size === 'xl' ? 'text-sm' : 'text-xs'}
         `}>
-          We Make "U" Travel
+          (We Make "U" Travel)
         </span>
       </div>
     );
