@@ -239,9 +239,12 @@ export const SmartDreamDashboard: React.FC = () => {
           <div className="flex items-center justify-between h-16">
             {/* Maku Brand Integration */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">🐕</span>
-              </div>
+              <MakuLogo 
+                size="md" 
+                variant="mascot" 
+                theme="light" 
+                context="header" 
+              />
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-green-500 bg-clip-text text-transparent">
                   My Dream Journey
