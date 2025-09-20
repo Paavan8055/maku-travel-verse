@@ -254,7 +254,7 @@ const PartnersPage = () => {
           </div>
         </div>
 
-        {/* Existing Partners */}
+        {/* Current Technology Partners */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Current Technology Partners</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
@@ -266,6 +266,11 @@ const PartnersPage = () => {
                 </CardContent>
               </Card>)}
           </div>
+        </div>
+
+        {/* Enhanced Partner Showcase */}
+        <div className="mb-16">
+          <PartnerShowcase showTitle={true} variant="full" />
         </div>
 
               <Card className="travel-card">
