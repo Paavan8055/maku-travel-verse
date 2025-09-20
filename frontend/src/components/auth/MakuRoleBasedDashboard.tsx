@@ -405,7 +405,12 @@ export const MakuRoleBasedDashboard: React.FC<{
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <MakuLogo size="md" variant={config.branding.logoVariant} theme={config.branding.theme} context="header" />
+              <MakuLogo 
+                size="md" 
+                variant="full" 
+                theme="light" 
+                context="header" 
+              />
               <div className="hidden md:block">
                 <h1 className="text-xl font-semibold text-gray-800">
                   {userProfile.role === 'end_user' ? 'My Travel Hub' : 
