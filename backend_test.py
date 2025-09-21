@@ -2855,6 +2855,240 @@ class MakuTravelBackendTester:
     # EXPEDIA GROUP API INTEGRATION TESTS - COMPREHENSIVE
     # =====================================================
     
+    def test_expedia_car_search_endpoint(self):
+        """Test Expedia Car Search endpoint specifically for 404 error resolution"""
+        print("🚗 Testing Expedia Car Search Endpoint (404 Fix Validation)...")
+        
+        url = f"{BASE_URL}/expedia/cars/search"
+        payload = {
+            "pickup_location": "LAX",
+            "pickup_date": "2024-06-01",
+            "dropoff_location": "LAX",
+            "dropoff_date": "2024-06-03",
+            "driver_age": 25
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=30)
+            response_time = time.time() - start_time
+            
+            # Check if 404 error is resolved
+            if response.status_code == 404:
+                self.log_test("Expedia Car Search (404 Fix)", False, "❌ CRITICAL: Still returning 404 - endpoint not found", response_time)
+                return False
+            elif response.status_code == 405:
+                self.log_test("Expedia Car Search (404 Fix)", False, "❌ CRITICAL: Method Not Allowed - endpoint exists but wrong method", response_time)
+                return False
+            elif response.status_code == 200:
+                data = response.json()
+                if "error" in data:
+                    # Expected error due to missing credentials, but endpoint is accessible
+                    self.log_test("Expedia Car Search (404 Fix)", True, f"✅ 404 FIXED: Endpoint accessible, error: {data['error'][:100]}...", response_time)
+                    return True
+                else:
+                    self.log_test("Expedia Car Search (404 Fix)", True, "✅ 404 FIXED: Endpoint working correctly", response_time)
+                    return True
+            elif response.status_code == 500:
+                # Check if it's a configuration error (acceptable)
+                error_text = response.text.lower()
+                if 'supabase' in error_text or 'not configured' in error_text or 'credentials' in error_text:
+                    self.log_test("Expedia Car Search (404 Fix)", True, "✅ 404 FIXED: Endpoint accessible, missing config (expected)", response_time)
+                    return True
+                else:
+                    self.log_test("Expedia Car Search (404 Fix)", False, f"Server error: {response.text[:200]}...", response_time)
+                    return False
+            else:
+                self.log_test("Expedia Car Search (404 Fix)", False, f"HTTP {response.status_code}: {response.text[:200]}...", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Car Search (404 Fix)", False, f"Exception: {str(e)}")
+            return False
+
+    def test_expedia_activity_search_endpoint(self):
+        """Test Expedia Activity Search endpoint specifically for 404 error resolution"""
+        print("🎭 Testing Expedia Activity Search Endpoint (404 Fix Validation)...")
+        
+        url = f"{BASE_URL}/expedia/activities/search"
+        payload = {
+            "destination": "New York",
+            "start_date": "2024-06-01",
+            "end_date": "2024-06-03",
+            "adults": 2,
+            "children": 0
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=30)
+            response_time = time.time() - start_time
+            
+            # Check if 404 error is resolved
+            if response.status_code == 404:
+                self.log_test("Expedia Activity Search (404 Fix)", False, "❌ CRITICAL: Still returning 404 - endpoint not found", response_time)
+                return False
+            elif response.status_code == 405:
+                self.log_test("Expedia Activity Search (404 Fix)", False, "❌ CRITICAL: Method Not Allowed - endpoint exists but wrong method", response_time)
+                return False
+            elif response.status_code == 200:
+                data = response.json()
+                if "error" in data:
+                    # Expected error due to missing credentials, but endpoint is accessible
+                    self.log_test("Expedia Activity Search (404 Fix)", True, f"✅ 404 FIXED: Endpoint accessible, error: {data['error'][:100]}...", response_time)
+                    return True
+                else:
+                    self.log_test("Expedia Activity Search (404 Fix)", True, "✅ 404 FIXED: Endpoint working correctly", response_time)
+                    return True
+            elif response.status_code == 500:
+                # Check if it's a configuration error (acceptable)
+                error_text = response.text.lower()
+                if 'supabase' in error_text or 'not configured' in error_text or 'credentials' in error_text:
+                    self.log_test("Expedia Activity Search (404 Fix)", True, "✅ 404 FIXED: Endpoint accessible, missing config (expected)", response_time)
+                    return True
+                else:
+                    self.log_test("Expedia Activity Search (404 Fix)", False, f"Server error: {response.text[:200]}...", response_time)
+                    return False
+            else:
+                self.log_test("Expedia Activity Search (404 Fix)", False, f"HTTP {response.status_code}: {response.text[:200]}...", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Activity Search (404 Fix)", False, f"Exception: {str(e)}")
+            return False
+
+    def test_expedia_test_all_services_endpoint(self):
+        """Test Expedia test-all-services endpoint for comprehensive validation"""
+        print("🔍 Testing Expedia Test-All-Services Endpoint...")
+        
+        url = f"{BASE_URL}/expedia/test-all-services"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json={}, timeout=60)  # Longer timeout for comprehensive test
+            response_time = time.time() - start_time
+            
+            if response.status_code == 404:
+                self.log_test("Expedia Test-All-Services", False, "❌ CRITICAL: Endpoint not found", response_time)
+                return False
+            elif response.status_code == 405:
+                self.log_test("Expedia Test-All-Services", False, "❌ CRITICAL: Method Not Allowed", response_time)
+                return False
+            elif response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['test_results', 'summary', 'success_rate']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Expedia Test-All-Services", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check success rate
+                success_rate = data.get('success_rate', 0)
+                if success_rate == 100:
+                    self.log_test("Expedia Test-All-Services", True, f"✅ 100% SUCCESS RATE: All services operational", response_time)
+                    return True
+                elif success_rate >= 80:
+                    self.log_test("Expedia Test-All-Services", True, f"✅ HIGH SUCCESS RATE: {success_rate}% services operational", response_time)
+                    return True
+                else:
+                    # Check if failures are due to configuration issues
+                    test_results = data.get('test_results', {})
+                    config_failures = 0
+                    total_tests = len(test_results)
+                    
+                    for service, result in test_results.items():
+                        if not result.get('success', False):
+                            error = result.get('error', '').lower()
+                            if 'supabase' in error or 'not configured' in error or 'credentials' in error:
+                                config_failures += 1
+                    
+                    if config_failures == total_tests - (success_rate * total_tests / 100):
+                        self.log_test("Expedia Test-All-Services", True, f"✅ ACCEPTABLE: {success_rate}% success, failures due to missing config", response_time)
+                        return True
+                    else:
+                        self.log_test("Expedia Test-All-Services", False, f"❌ LOW SUCCESS RATE: {success_rate}% - check service implementations", response_time)
+                        return False
+                        
+            elif response.status_code == 500:
+                # Check if it's a configuration error
+                error_text = response.text.lower()
+                if 'supabase' in error_text or 'not configured' in error_text or 'credentials' in error_text:
+                    self.log_test("Expedia Test-All-Services", True, "✅ Endpoint accessible, missing config (expected)", response_time)
+                    return True
+                else:
+                    self.log_test("Expedia Test-All-Services", False, f"Server error: {response.text[:200]}...", response_time)
+                    return False
+            else:
+                self.log_test("Expedia Test-All-Services", False, f"HTTP {response.status_code}: {response.text[:200]}...", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Test-All-Services", False, f"Exception: {str(e)}")
+            return False
+
+    def test_expedia_health_with_authentication_check(self):
+        """Test Expedia health endpoint with authentication validation"""
+        print("🏥 Testing Expedia Health Check (Authentication Validation)...")
+        
+        url = f"{BASE_URL}/expedia/health"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['provider', 'status', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Expedia Health Check (Auth)", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if data.get('provider') != 'expedia':
+                    self.log_test("Expedia Health Check (Auth)", False, f"Expected provider 'expedia', got {data.get('provider')}", response_time)
+                    return False
+                
+                status = data.get('status')
+                if status == 'healthy':
+                    # Check for authenticated field
+                    if 'authenticated' in data:
+                        authenticated = data.get('authenticated')
+                        if authenticated:
+                            self.log_test("Expedia Health Check (Auth)", True, f"✅ Status: {status}, Authenticated: {authenticated}", response_time)
+                        else:
+                            self.log_test("Expedia Health Check (Auth)", True, f"✅ Status: {status}, Not authenticated (expected without credentials)", response_time)
+                        return True
+                    else:
+                        self.log_test("Expedia Health Check (Auth)", False, "Missing 'authenticated' field for healthy status", response_time)
+                        return False
+                elif status == 'unhealthy':
+                    # Check if it's due to missing configuration
+                    error = data.get('error', '')
+                    if 'supabase' in error.lower() or 'not configured' in error.lower() or 'credentials' in error.lower():
+                        self.log_test("Expedia Health Check (Auth)", True, f"✅ Status: {status}, Expected error: {error[:100]}...", response_time)
+                        return True
+                    else:
+                        self.log_test("Expedia Health Check (Auth)", False, f"Unhealthy status with unexpected error: {error}", response_time)
+                        return False
+                else:
+                    self.log_test("Expedia Health Check (Auth)", False, f"Invalid status: {status}", response_time)
+                    return False
+                    
+            else:
+                self.log_test("Expedia Health Check (Auth)", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Health Check (Auth)", False, f"Exception: {str(e)}")
+            return False
+
     def test_expedia_setup_endpoint(self):
         """Test Expedia setup endpoint for credential validation"""
         print("🏨 Testing Expedia Setup Endpoint...")
