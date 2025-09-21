@@ -3020,6 +3020,9 @@ async def setup_expedia_credentials(credentials: dict):
         else:
             raise HTTPException(status_code=500, detail="Failed to store credentials")
         
+    except HTTPException:
+        # Re-raise HTTPExceptions to preserve status codes
+        raise
     except Exception as e:
         logger.error(f"Failed to setup Expedia credentials: {e}")
         raise HTTPException(status_code=500, detail=str(e))
