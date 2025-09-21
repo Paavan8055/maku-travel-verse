@@ -1,7 +1,8 @@
 import React from 'react';
 
 // Maku.Travel Brand System Component Library  
-// Using the correct user-provided logo with dog, sun, tricolor arc, airplane, and suitcase
+// Using ONLY the exact user-provided logos from /logos/ directory
+// NO MODIFICATIONS ALLOWED - Using exact uploaded files only
 
 export interface MakuBrandConfig {
   size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'hero';
