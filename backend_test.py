@@ -777,24 +777,29 @@ class MakuTravelBackendTester:
         url = f"{BASE_URL}/admin/nft/airdrop/create"
         payload = {
             "name": "Test Travel Rewards Airdrop",
-            "description": "Special airdrop for active travel community members",
-            "total_tokens": 100000,
-            "eligibility_criteria": {
+            "start_date": "2024-04-01T00:00:00Z",  # Moved from distribution_schedule
+            "end_date": "2024-04-30T23:59:59Z",    # Moved from distribution_schedule
+            "total_allocation": 100000,             # Changed from total_tokens
+            "tier_multipliers": {                   # Required field
+                "legend": 2.5,
+                "adventurer": 2.0,
+                "explorer": 1.5,
+                "wanderer": 1.0
+            },
+            "quest_points_multiplier": 1.2,        # Required field
+            "provider_bonuses": {                   # Required field
+                "expedia": 15.0,
+                "amadeus": 10.0,
+                "viator": 12.0,
+                "duffle": 10.0,
+                "ratehawk": 10.0,
+                "sabre": 10.0
+            },
+            "eligibility_criteria": {               # Optional field
                 "min_tier": "explorer",
                 "min_points": 200,
                 "providers_used": ["expedia", "amadeus"],
                 "nft_holder_bonus": True
-            },
-            "distribution_schedule": {
-                "start_date": "2024-04-01T00:00:00Z",
-                "end_date": "2024-04-30T23:59:59Z",
-                "claim_period_days": 90
-            },
-            "tier_allocations": {
-                "legend": 40.0,
-                "adventurer": 30.0,
-                "explorer": 20.0,
-                "wanderer": 10.0
             }
         }
         
