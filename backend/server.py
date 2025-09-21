@@ -2162,179 +2162,180 @@ async def smart_dreams_provider_search(request: SmartDreamProviderRequest):
 
 # Provider Management and Auto-Discovery Endpoints
 
-@api_router.get("/smart-dreams/providers")
-async def get_all_providers():
-    """Get all registered providers with their status and configurations"""
-    try:
-        # Mock provider registry - in production this would be stored in database
-        mock_providers = [
-            {
-                "id": "amadeus-001",
-                "name": "Amadeus",
-                "type": "flight",
-                "api_endpoint": "https://api.amadeus.com/v2",
-                "status": "active",
-                "health_status": "healthy",
-                "performance_score": 92.5,
-                "auto_discovered": False,
-                "integration_priority": 9,
-                "supported_companions": ["solo", "romantic", "friends", "family"],
-                "rate_limit": 1000,
-                "cost_per_request": 0.02,
-                "last_health_check": datetime.utcnow().isoformat(),
-                "metadata": {
-                    "region": "global",
-                    "specialties": ["flights", "hotels"],
-                    "established": "2018"
-                }
-            },
-            {
-                "id": "sabre-001", 
-                "name": "Sabre",
-                "type": "hotel",
-                "api_endpoint": "https://api.sabre.com/v3",
-                "status": "active",
-                "health_status": "healthy",
-                "performance_score": 88.2,
-                "auto_discovered": False,
-                "integration_priority": 8,
-                "supported_companions": ["solo", "romantic", "friends", "family"],
-                "rate_limit": 500,
-                "cost_per_request": 0.015,
-                "last_health_check": datetime.utcnow().isoformat(),
-                "metadata": {
-                    "region": "global",
-                    "specialties": ["hotels", "car_rentals"],
-                    "established": "2019"
-                }
-            },
-            {
-                "id": "viator-001",
-                "name": "Viator",
-                "type": "activity",
-                "api_endpoint": "https://api.viator.com/v1",
-                "status": "active",
-                "health_status": "healthy",
-                "performance_score": 85.7,
-                "auto_discovered": False,
-                "integration_priority": 7,
-                "supported_companions": ["solo", "romantic", "friends", "family"],
-                "rate_limit": 2000,
-                "cost_per_request": 0.01,
-                "last_health_check": datetime.utcnow().isoformat(),
-                "metadata": {
-                    "region": "global",
-                    "specialties": ["activities", "tours", "experiences"],
-                    "established": "2020"
-                }
-            },
-            {
-                "id": "expedia-taap-001",
-                "name": "Expedia TAAP",
-                "type": "hotel",
-                "api_endpoint": "https://api.expedia.com/taap/v3",
-                "status": "testing",
-                "health_status": "degraded",
-                "performance_score": 78.3,
-                "auto_discovered": True,
-                "discovery_date": (datetime.utcnow() - timedelta(days=2)).isoformat(),
-                "integration_priority": 6,
-                "supported_companions": ["solo", "romantic", "friends"],
-                "rate_limit": 800,
-                "cost_per_request": 0.025,
-                "last_health_check": datetime.utcnow().isoformat(),
-                "metadata": {
-                    "region": "global",
-                    "specialties": ["hotels", "packages"],
-                    "established": "2024",
-                    "auto_discovery_score": 85
-                }
-            },
-            {
-                "id": "duffle-001",
-                "name": "Duffle",
-                "type": "flight",
-                "api_endpoint": "https://api.duffel.com/v2",
-                "status": "active",
-                "health_status": "healthy",
-                "performance_score": 94.8,
-                "auto_discovered": False,
-                "integration_priority": 9,
-                "supported_companions": ["solo", "romantic", "friends", "family"],
-                "rate_limit": 2000,
-                "cost_per_request": 0.018,
-                "last_health_check": datetime.utcnow().isoformat(),
-                "metadata": {
-                    "region": "global",
-                    "specialties": ["flights", "direct_airline_connectivity", "ancillary_services"],
-                    "established": "2023",
-                    "features": ["real_time_search", "instant_booking", "baggage_selection", "seat_selection"],
-                    "demo_label": "✨ DEMO DATA",
-                    "api_version": "v2",
-                    "sandbox_available": True
-                }
-            },
-            {
-                "id": "ratehawk-001",
-                "name": "RateHawk",
-                "type": "hotel",
-                "api_endpoint": "https://api.ratehawk.com/v3",
-                "status": "active",
-                "health_status": "healthy",
-                "performance_score": 91.3,
-                "auto_discovered": False,
-                "integration_priority": 8,
-                "supported_companions": ["solo", "romantic", "friends", "family"],
-                "rate_limit": 1800,
-                "cost_per_request": 0.016,
-                "last_health_check": datetime.utcnow().isoformat(),
-                "metadata": {
-                    "region": "global",
-                    "specialties": ["hotels", "accommodations", "real_time_booking"],
-                    "established": "2023",
-                    "features": ["2.9M_accommodations", "280_suppliers", "32_languages", "webhook_integration"],
-                    "demo_label": "✨ DEMO DATA",
-                    "api_version": "v3",
-                    "countries_covered": "220+"
-                }
-            },
-            {
-                "id": "hotelbeds-001",
-                "name": "HotelBeds",
-                "type": "hotel",
-                "api_endpoint": "https://api.hotelbeds.com/v1",
-                "status": "inactive",
-                "health_status": "offline",
-                "performance_score": 45.2,
-                "auto_discovered": True,
-                "discovery_date": (datetime.utcnow() - timedelta(days=7)).isoformat(),
-                "integration_priority": 4,
-                "supported_companions": ["solo", "romantic"],
-                "rate_limit": 300,
-                "cost_per_request": 0.03,
-                "last_health_check": (datetime.utcnow() - timedelta(hours=2)).isoformat(),
-                "metadata": {
-                    "region": "europe",
-                    "specialties": ["hotels"],
-                    "established": "2024",
-                    "auto_discovery_score": 65,
-                    "issues": ["rate_limiting", "authentication_errors"]
-                }
-            }
-        ]
-        
-        return {
-            "providers": mock_providers,
-            "total_count": len(mock_providers),
-            "active_count": len([p for p in mock_providers if p["status"] == "active"]),
-            "healthy_count": len([p for p in mock_providers if p["health_status"] == "healthy"]),
-            "auto_discovered_count": len([p for p in mock_providers if p["auto_discovered"] == True]),
-            "last_updated": datetime.utcnow().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Failed to get providers: {e}")
-        return {"error": f"Failed to get providers: {str(e)}"}
+# OLD ENDPOINT - REPLACED BY EXPEDIA-ENHANCED VERSION BELOW
+# @api_router.get("/smart-dreams/providers")
+# async def get_all_providers():
+#     """Get all registered providers with their status and configurations"""
+#     try:
+#         # Mock provider registry - in production this would be stored in database
+#         mock_providers = [
+#             {
+#                 "id": "amadeus-001",
+#                 "name": "Amadeus",
+#                 "type": "flight",
+#                 "api_endpoint": "https://api.amadeus.com/v2",
+#                 "status": "active",
+#                 "health_status": "healthy",
+#                 "performance_score": 92.5,
+#                 "auto_discovered": False,
+#                 "integration_priority": 9,
+#                 "supported_companions": ["solo", "romantic", "friends", "family"],
+#                 "rate_limit": 1000,
+#                 "cost_per_request": 0.02,
+#                 "last_health_check": datetime.utcnow().isoformat(),
+#                 "metadata": {
+#                     "region": "global",
+#                     "specialties": ["flights", "hotels"],
+#                     "established": "2018"
+#                 }
+#             },
+#             {
+#                 "id": "sabre-001", 
+#                 "name": "Sabre",
+#                 "type": "hotel",
+#                 "api_endpoint": "https://api.sabre.com/v3",
+#                 "status": "active",
+#                 "health_status": "healthy",
+#                 "performance_score": 88.2,
+#                 "auto_discovered": False,
+#                 "integration_priority": 8,
+#                 "supported_companions": ["solo", "romantic", "friends", "family"],
+#                 "rate_limit": 500,
+#                 "cost_per_request": 0.015,
+#                 "last_health_check": datetime.utcnow().isoformat(),
+#                 "metadata": {
+#                     "region": "global",
+#                     "specialties": ["hotels", "car_rentals"],
+#                     "established": "2019"
+#                 }
+#             },
+#             {
+#                 "id": "viator-001",
+#                 "name": "Viator",
+#                 "type": "activity",
+#                 "api_endpoint": "https://api.viator.com/v1",
+#                 "status": "active",
+#                 "health_status": "healthy",
+#                 "performance_score": 85.7,
+#                 "auto_discovered": False,
+#                 "integration_priority": 7,
+#                 "supported_companions": ["solo", "romantic", "friends", "family"],
+#                 "rate_limit": 2000,
+#                 "cost_per_request": 0.01,
+#                 "last_health_check": datetime.utcnow().isoformat(),
+#                 "metadata": {
+#                     "region": "global",
+#                     "specialties": ["activities", "tours", "experiences"],
+#                     "established": "2020"
+#                 }
+#             },
+#             {
+#                 "id": "expedia-taap-001",
+#                 "name": "Expedia TAAP",
+#                 "type": "hotel",
+#                 "api_endpoint": "https://api.expedia.com/taap/v3",
+#                 "status": "testing",
+#                 "health_status": "degraded",
+#                 "performance_score": 78.3,
+#                 "auto_discovered": True,
+#                 "discovery_date": (datetime.utcnow() - timedelta(days=2)).isoformat(),
+#                 "integration_priority": 6,
+#                 "supported_companions": ["solo", "romantic", "friends"],
+#                 "rate_limit": 800,
+#                 "cost_per_request": 0.025,
+#                 "last_health_check": datetime.utcnow().isoformat(),
+#                 "metadata": {
+#                     "region": "global",
+#                     "specialties": ["hotels", "packages"],
+#                     "established": "2024",
+#                     "auto_discovery_score": 85
+#                 }
+#             },
+#             {
+#                 "id": "duffle-001",
+#                 "name": "Duffle",
+#                 "type": "flight",
+#                 "api_endpoint": "https://api.duffel.com/v2",
+#                 "status": "active",
+#                 "health_status": "healthy",
+#                 "performance_score": 94.8,
+#                 "auto_discovered": False,
+#                 "integration_priority": 9,
+#                 "supported_companions": ["solo", "romantic", "friends", "family"],
+#                 "rate_limit": 2000,
+#                 "cost_per_request": 0.018,
+#                 "last_health_check": datetime.utcnow().isoformat(),
+#                 "metadata": {
+#                     "region": "global",
+#                     "specialties": ["flights", "direct_airline_connectivity", "ancillary_services"],
+#                     "established": "2023",
+#                     "features": ["real_time_search", "instant_booking", "baggage_selection", "seat_selection"],
+#                     "demo_label": "✨ DEMO DATA",
+#                     "api_version": "v2",
+#                     "sandbox_available": True
+#                 }
+#             },
+#             {
+#                 "id": "ratehawk-001",
+#                 "name": "RateHawk",
+#                 "type": "hotel",
+#                 "api_endpoint": "https://api.ratehawk.com/v3",
+#                 "status": "active",
+#                 "health_status": "healthy",
+#                 "performance_score": 91.3,
+#                 "auto_discovered": False,
+#                 "integration_priority": 8,
+#                 "supported_companions": ["solo", "romantic", "friends", "family"],
+#                 "rate_limit": 1800,
+#                 "cost_per_request": 0.016,
+#                 "last_health_check": datetime.utcnow().isoformat(),
+#                 "metadata": {
+#                     "region": "global",
+#                     "specialties": ["hotels", "accommodations", "real_time_booking"],
+#                     "established": "2023",
+#                     "features": ["2.9M_accommodations", "280_suppliers", "32_languages", "webhook_integration"],
+#                     "demo_label": "✨ DEMO DATA",
+#                     "api_version": "v3",
+#                     "countries_covered": "220+"
+#                 }
+#             },
+#             {
+#                 "id": "hotelbeds-001",
+#                 "name": "HotelBeds",
+#                 "type": "hotel",
+#                 "api_endpoint": "https://api.hotelbeds.com/v1",
+#                 "status": "inactive",
+#                 "health_status": "offline",
+#                 "performance_score": 45.2,
+#                 "auto_discovered": True,
+#                 "discovery_date": (datetime.utcnow() - timedelta(days=7)).isoformat(),
+#                 "integration_priority": 4,
+#                 "supported_companions": ["solo", "romantic"],
+#                 "rate_limit": 300,
+#                 "cost_per_request": 0.03,
+#                 "last_health_check": (datetime.utcnow() - timedelta(hours=2)).isoformat(),
+#                 "metadata": {
+#                     "region": "europe",
+#                     "specialties": ["hotels"],
+#                     "established": "2024",
+#                     "auto_discovery_score": 65,
+#                     "issues": ["rate_limiting", "authentication_errors"]
+#                 }
+#             }
+#         ]
+#         
+#         return {
+#             "providers": mock_providers,
+#             "total_count": len(mock_providers),
+#             "active_count": len([p for p in mock_providers if p["status"] == "active"]),
+#             "healthy_count": len([p for p in mock_providers if p["health_status"] == "healthy"]),
+#             "auto_discovered_count": len([p for p in mock_providers if p["auto_discovered"] == True]),
+#             "last_updated": datetime.utcnow().isoformat()
+#         }
+#         
+#     except Exception as e:
+#         logger.error(f"Failed to get providers: {e}")
+#         return {"error": f"Failed to get providers: {str(e)}"}
 
 @api_router.post("/smart-dreams/providers/discover")
 async def discover_new_providers():
