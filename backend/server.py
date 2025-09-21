@@ -3397,6 +3397,42 @@ async def debug_supabase_providers():
         logger.error(f"Debug Supabase error: {e}")
         return {"error": str(e)}
 
+@api_router.get("/expedia/health")
+async def check_expedia_health():
+    """Check Expedia API health and authentication"""
+    try:
+        # Initialize service if not already done
+        if not expedia_service.config and EXPEDIA_TEST_CONFIG:
+            expedia_service.config = EXPEDIA_TEST_CONFIG
+            expedia_service.auth_client = ExpediaAuthClient(EXPEDIA_TEST_CONFIG)
+        
+        if not expedia_service.config:
+            await expedia_service.initialize()
+        
+        # Test authentication
+        token = await expedia_service.auth_client.get_access_token()
+        
+        return {
+            "provider": "expedia",
+            "status": "healthy" if token else "unhealthy",
+            "authenticated": bool(token),
+            "test_mode": expedia_service.config.get('test_mode', False),
+            "base_url": expedia_service.auth_client.base_url,
+            "timestamp": datetime.utcnow().isoformat(),
+            "credentials_configured": True,
+            "api_key_masked": f"{expedia_service.config.get('api_key', '')[:8]}..." if expedia_service.config else None
+        }
+        
+    except Exception as e:
+        logger.error(f"Expedia health check failed: {e}")
+        return {
+            "provider": "expedia",
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+            "credentials_configured": bool(EXPEDIA_TEST_CONFIG)
+        }
+
 @api_router.post("/expedia/test-all-services")
 async def test_all_expedia_services():
     """Test all Expedia services to validate booking capabilities"""
