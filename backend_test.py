@@ -587,8 +587,7 @@ class MakuTravelBackendTester:
         url = f"{BASE_URL}/admin/nft/templates/create"
         payload = {
             "name": "Test Premium Travel NFT",
-            "category": "luxury_travel",
-            "rarity_tier": "epic",
+            "rarity": "epic",  # Changed from rarity_tier to rarity
             "requirements": {
                 "min_booking_value": 1000,
                 "provider_restrictions": ["expedia", "amadeus"],
@@ -599,11 +598,8 @@ class MakuTravelBackendTester:
                 "discount_percentage": 20,
                 "exclusive_access": True
             },
-            "metadata": {
-                "description": "Premium travel experience NFT for luxury bookings",
-                "image_template": "luxury_travel_template",
-                "blockchain": "cronos"
-            }
+            "image_template": "luxury_travel_template",  # Moved out of metadata
+            "provider_specific": "expedia"  # Added provider_specific field
         }
         
         try:
