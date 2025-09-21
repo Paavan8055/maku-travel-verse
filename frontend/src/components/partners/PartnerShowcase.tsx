@@ -158,26 +158,59 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full' }) =
 
   if (variant === 'compact') {
     return (
-      <div className={`space-y-4 ${className}`}>
-        {showTitle && (
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Trusted Partners</h2>
-            <p className="text-gray-600">Powering your travel dreams with industry leaders</p>
+      <div className="space-y-4">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Trusted Travel Partners</h3>
+          <p className="text-gray-600">Powered by industry-leading providers</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {partners.slice(0, 6).map((partner) => {
+            const IconComponent = getProviderIcon(partner.type, partner.name);
+            const colorClass = getProviderColor(partner.performance_score, partner.name);
+            
+            return (
+              <Card 
+                key={partner.id} 
+                className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-blue-200"
+                onClick={() => partner.name === 'Expedia Group' && setShowExpediaDetails(true)}
+                role={partner.name === 'Expedia Group' ? 'button' : undefined}
+              >
+                <CardContent className="p-4 text-center">
+                  <div className={`w-12 h-12 bg-gradient-to-br ${colorClass} rounded-lg flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+                    <IconComponent className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">{partner.name}</h4>
+                  <div className="flex items-center justify-center space-x-2 mb-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {partner.performance_score}/100
+                    </Badge>
+                    {partner.demo_label && (
+                      <Badge variant="outline" className="text-xs text-blue-600 border-blue-200">
+                        {partner.demo_label}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 line-clamp-2">
+                    {partner.specialties.slice(0, 2).join(' • ')}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+        {showExpediaDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Expedia Group Integration</h2>
+                <Button variant="ghost" onClick={() => setShowExpediaDetails(false)}>×</Button>
+              </div>
+              <div className="p-6">
+                <ExpediaShowcase variant="full" />
+              </div>
+            </div>
           </div>
         )}
-        <div className="flex flex-wrap justify-center gap-4">
-          {partners.map((partner) => (
-            <div key={partner.name} className="flex items-center space-x-2 bg-white rounded-full px-4 py-2 shadow-md border">
-              <div className={`p-1.5 rounded-full ${PARTNER_COLORS[partner.type].accent}`}>
-                {React.createElement(PARTNER_ICONS[partner.type], { className: `h-4 w-4 ${PARTNER_COLORS[partner.type].icon}` })}
-              </div>
-              <span className="font-medium text-gray-900">{partner.name}</span>
-              {partner.demo_label && (
-                <Badge className="bg-purple-100 text-purple-800 text-xs border-0">Demo</Badge>
-              )}
-            </div>
-          ))}
-        </div>
       </div>
     );
   }
