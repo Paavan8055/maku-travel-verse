@@ -2990,42 +2990,120 @@ async def get_provider_analytics():
 # Expedia API Endpoints
 
 @api_router.post("/expedia/setup")
-async def setup_expedia_credentials(credentials: dict):
-    """Setup Expedia API credentials in Supabase"""
+async def setup_expedia_credentials(credentials: dict = None):
+    """Setup Expedia API credentials from Supabase or validate existing ones"""
     try:
-        required_fields = ['api_key', 'shared_secret']
-        for field in required_fields:
-            if field not in credentials:
-                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+        from supabase import create_client, Client
         
-        config_data = {
-            'api_key': credentials['api_key'],
-            'shared_secret': credentials['shared_secret'],
-            'base_url': credentials.get('base_url', 'https://api.expediagroup.com'),
-            'sandbox_url': credentials.get('sandbox_url', 'https://api.sandbox.expediagroup.com'),
-            'test_mode': credentials.get('test_mode', True)
-        }
+        # Initialize Supabase client
+        supabase_url = os.environ.get('SUPABASE_URL')
+        supabase_key = os.environ.get('SUPABASE_ANON_KEY')
         
-        success = await store_supabase_config('expedia', config_data)
+        if not supabase_url or not supabase_key:
+            raise HTTPException(status_code=500, detail="Supabase not configured")
         
-        if success:
-            # Test the credentials
-            test_auth = ExpediaAuthClient(config_data)
-            await test_auth.get_access_token()
+        supabase: Client = create_client(supabase_url, supabase_key)
+        
+        # Try to retrieve existing credentials from Supabase
+        logger.info("Retrieving Expedia credentials from Supabase...")
+        
+        try:
+            # Query for Maku.Travel Test Expedia credentials
+            api_key_result = supabase.table('api_configuration').select('*').eq('provider', 'Maku.Travel Test Expedia').eq('is_active', True).execute()
+            secret_key_result = supabase.table('api_configuration').select('*').eq('provider', 'Maku.Travel Test Expedia_SECRET').eq('is_active', True).execute()
             
-            logger.info("Expedia credentials configured successfully")
-            return {
-                "success": True,
-                "message": "Expedia credentials configured and validated successfully",
-                "provider": "expedia",
-                "test_mode": config_data['test_mode']
-            }
-        else:
-            raise HTTPException(status_code=500, detail="Failed to store credentials")
+            if api_key_result.data and secret_key_result.data:
+                # Extract credentials from config_data
+                api_key_data = api_key_result.data[0]['config_data']
+                secret_key_data = secret_key_result.data[0]['config_data']
+                
+                # Handle different possible structures
+                api_key = None
+                shared_secret = None
+                
+                if isinstance(api_key_data, dict):
+                    api_key = api_key_data.get('api_key') or api_key_data.get('key') or api_key_data.get('value')
+                else:
+                    api_key = api_key_data
+                
+                if isinstance(secret_key_data, dict):
+                    shared_secret = secret_key_data.get('shared_secret') or secret_key_data.get('secret') or secret_key_data.get('value')
+                else:
+                    shared_secret = secret_key_data
+                
+                if not api_key or not shared_secret:
+                    raise HTTPException(status_code=400, detail="Invalid credential format in Supabase")
+                
+                logger.info("Successfully retrieved Expedia credentials from Supabase")
+                
+                # Create configuration
+                config_data = {
+                    'api_key': api_key,
+                    'shared_secret': shared_secret,
+                    'base_url': 'https://api.expediagroup.com',
+                    'sandbox_url': 'https://api.sandbox.expediagroup.com',
+                    'test_mode': True  # Default to test mode for safety
+                }
+                
+                # Store unified configuration
+                unified_config_result = supabase.table('api_configuration').upsert({
+                    'provider': 'expedia',
+                    'environment': 'production',
+                    'config_data': config_data,
+                    'is_active': True
+                }).execute()
+                
+                # Test the credentials
+                test_auth = ExpediaAuthClient(config_data)
+                await test_auth.get_access_token()
+                
+                logger.info("Expedia credentials configured and validated successfully")
+                return {
+                    "success": True,
+                    "message": "Expedia credentials retrieved from Supabase and validated successfully",
+                    "provider": "expedia",
+                    "test_mode": config_data['test_mode'],
+                    "credentials_source": "supabase_existing",
+                    "api_key_masked": f"{api_key[:8]}...{api_key[-4:]}" if len(api_key) > 12 else "***",
+                    "validation_status": "authenticated"
+                }
+                
+            else:
+                raise HTTPException(status_code=404, detail="Expedia credentials not found in Supabase. Expected providers: 'Maku.Travel Test Expedia' and 'Maku.Travel Test Expedia_SECRET'")
         
-    except HTTPException:
-        # Re-raise HTTPExceptions to preserve status codes
-        raise
+        except Exception as supabase_error:
+            logger.error(f"Failed to retrieve credentials from Supabase: {supabase_error}")
+            
+            # Fallback to manual credential input if provided
+            if credentials and 'api_key' in credentials and 'shared_secret' in credentials:
+                config_data = {
+                    'api_key': credentials['api_key'],
+                    'shared_secret': credentials['shared_secret'],
+                    'base_url': credentials.get('base_url', 'https://api.expediagroup.com'),
+                    'sandbox_url': credentials.get('sandbox_url', 'https://api.sandbox.expediagroup.com'),
+                    'test_mode': credentials.get('test_mode', True)
+                }
+                
+                # Test the credentials
+                test_auth = ExpediaAuthClient(config_data)
+                await test_auth.get_access_token()
+                
+                # Store in Supabase
+                success = await store_supabase_config('expedia', config_data)
+                
+                if success:
+                    return {
+                        "success": True,
+                        "message": "Expedia credentials configured and validated successfully",
+                        "provider": "expedia",
+                        "test_mode": config_data['test_mode'],
+                        "credentials_source": "manual_input"
+                    }
+                else:
+                    raise HTTPException(status_code=500, detail="Failed to store credentials")
+            else:
+                raise HTTPException(status_code=500, detail=f"Could not retrieve credentials from Supabase: {str(supabase_error)}")
+        
     except Exception as e:
         logger.error(f"Failed to setup Expedia credentials: {e}")
         raise HTTPException(status_code=500, detail=str(e))
