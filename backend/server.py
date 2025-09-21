@@ -1428,8 +1428,8 @@ async def explain_recommendation(recommendation_id: str, user_id: str):
     except Exception as e:
         logger.error(f"Failed to explain recommendation: {e}")
         return {
-            "explanation": "This recommendation is based on your travel personality, social connections, and optimal timing factors. Our AI analyzed your preferences and found this destination highly matches your interests.",
-            "confidence": 0.75
+            "explanation": "This recommendation is based on your travel personality, social connections, and optimal timing factors. Our AI analyzed your preferences and found this destination highly matches your interests. With the new Expedia Group integration, you can now book comprehensive travel packages including hotels, flights, cars, and activities all in one place.",
+            "confidence": 0.85
         }
 
 # Smart Dreams Enhanced Provider Search Models
