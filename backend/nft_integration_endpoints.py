@@ -190,7 +190,7 @@ async def get_airdrop_eligibility(user_id: str):
         tier = determine_airdrop_tier(total_points)
         
         # Calculate estimated allocation
-        estimated_allocation = total_points * 2.5  # Direct calculation instead of function call
+        estimated_allocation = int(total_points * 2.5)  # Convert to integer
         
         eligibility = AirdropEligibility(
             user_id=user_id,
