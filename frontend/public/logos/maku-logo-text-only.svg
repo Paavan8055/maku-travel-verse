@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="100" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Text-only version (exact replica) -->
+  <g id="text-only">
+    <!-- Main Maku.Travel text -->
+    <text x="200" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#FF6600">Maku</text>
+    <text x="250" y="45" text-anchor="start" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#138808">.Travel</text>
+    
+    <!-- Tagline -->
+    <text x="200" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="500" fill="#666666">(We Make "U" Travel)</text>
+  </g>
+</svg>
