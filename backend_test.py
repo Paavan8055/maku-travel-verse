@@ -4676,6 +4676,56 @@ class MakuTravelBackendTester:
         print("=" * 70)
         return total_passed == total_tests
 
+    def run_all_tests(self):
+        """Run comprehensive test suite with focus on Admin NFT and Airdrop Management"""
+        print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
+        print("=" * 80)
+        
+        total_passed = 0
+        total_tests = 0
+        
+        # Run Admin NFT and Airdrop Management Tests (Primary Focus)
+        admin_passed, admin_total = self.run_admin_nft_tests()
+        total_passed += admin_passed
+        total_tests += admin_total
+        
+        # Run other test suites for completeness
+        health_passed, health_total = self.run_health_tests()
+        total_passed += health_passed
+        total_tests += health_total
+        
+        env_passed, env_total = self.run_environment_tests()
+        total_passed += env_passed
+        total_tests += env_total
+        
+        dreams_passed, dreams_total = self.run_enhanced_dreams_tests()
+        total_passed += dreams_passed
+        total_tests += dreams_total
+        
+        game_passed, game_total = self.run_gamification_tests()
+        total_passed += game_passed
+        total_tests += game_total
+        
+        ai_passed, ai_total = self.run_ai_intelligence_tests()
+        total_passed += ai_passed
+        total_tests += ai_total
+        
+        # Final summary
+        print("=" * 80)
+        print("🎯 FINAL TEST SUMMARY")
+        print("=" * 80)
+        print(f"🔐 Admin NFT & Airdrop Management: {admin_passed}/{admin_total} ({(admin_passed/admin_total)*100:.1f}%)")
+        print(f"🏥 Health Check: {health_passed}/{health_total} ({(health_passed/health_total)*100:.1f}%)")
+        print(f"⚙️ Environment Management: {env_passed}/{env_total} ({(env_passed/env_total)*100:.1f}%)")
+        print(f"🌟 Enhanced Dreams API: {dreams_passed}/{dreams_total} ({(dreams_passed/dreams_total)*100:.1f}%)")
+        print(f"🎮 Gamification System: {game_passed}/{game_total} ({(game_passed/game_total)*100:.1f}%)")
+        print(f"🧠 AI Intelligence Layer: {ai_passed}/{ai_total} ({(ai_passed/ai_total)*100:.1f}%)")
+        print("=" * 80)
+        print(f"🎉 OVERALL RESULT: {total_passed}/{total_tests} tests passed ({(total_passed/total_tests)*100:.1f}%)")
+        print("=" * 80)
+        
+        return total_passed, total_tests
+
 if __name__ == "__main__":
     tester = MakuTravelBackendTester()
     success = tester.run_all_tests()
