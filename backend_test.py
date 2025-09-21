@@ -673,7 +673,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate response structure
-                required_fields = ['success', 'nft', 'transaction_hash']
+                required_fields = ['success', 'mint_record', 'message']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -684,23 +684,23 @@ class MakuTravelBackendTester:
                     self.log_test("Manual NFT Minting", False, f"Minting failed: {data.get('message', 'Unknown error')}", response_time)
                     return False
                 
-                nft = data['nft']
-                tx_hash = data['transaction_hash']
+                mint_record = data['mint_record']
+                tx_hash = mint_record.get('transaction_hash')
                 
-                # Validate NFT structure
-                nft_required = ['id', 'name', 'metadata', 'owner']
-                nft_missing = [field for field in nft_required if field not in nft]
+                # Validate mint record structure
+                mint_required = ['mint_id', 'template_id', 'recipient', 'minted_by']
+                mint_missing = [field for field in mint_required if field not in mint_record]
                 
-                if nft_missing:
-                    self.log_test("Manual NFT Minting", False, f"Missing NFT fields: {nft_missing}", response_time)
+                if mint_missing:
+                    self.log_test("Manual NFT Minting", False, f"Missing mint record fields: {mint_missing}", response_time)
                     return False
                 
                 # Validate transaction hash format
-                if not tx_hash.startswith('0x') or len(tx_hash) != 66:
+                if not tx_hash or not tx_hash.startswith('0x') or len(tx_hash) != 66:
                     self.log_test("Manual NFT Minting", False, f"Invalid transaction hash format: {tx_hash}", response_time)
                     return False
                 
-                self.log_test("Manual NFT Minting", True, f"Minted NFT: {nft['name']} for {nft['owner']}, TX: {tx_hash[:10]}...", response_time)
+                self.log_test("Manual NFT Minting", True, f"Minted NFT: {mint_record['template_id']} for {mint_record['recipient']}, TX: {tx_hash[:10]}...", response_time)
                 return True
                 
             else:
