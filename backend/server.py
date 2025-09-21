@@ -1622,12 +1622,18 @@ class ExpediaService:
         self.config = None
     
     async def initialize(self):
-        """Initialize Expedia service with configuration from Supabase"""
+        """Initialize Expedia service with configuration from Supabase or test credentials"""
         try:
-            # Get configuration from Supabase
+            # First try to get configuration from Supabase
             config = await get_supabase_config('expedia')
+            
+            # If not found, use test credentials directly
+            if not config and EXPEDIA_TEST_CONFIG:
+                logger.info("Using provided test credentials for Expedia integration")
+                config = EXPEDIA_TEST_CONFIG
+            
             if not config:
-                logger.error("Expedia configuration not found in Supabase")
+                logger.error("No Expedia configuration available")
                 return False
             
             self.config = config
@@ -1635,7 +1641,7 @@ class ExpediaService:
             
             # Test authentication
             await self.auth_client.get_access_token()
-            logger.info("Expedia service initialized successfully")
+            logger.info("Expedia service initialized successfully with test credentials")
             return True
             
         except Exception as e:
