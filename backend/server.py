@@ -3178,8 +3178,55 @@ async def create_expedia_hotel_booking(booking_request: ExpediaBookingRequest):
         logger.error(f"Expedia hotel booking failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/expedia/health")
-async def check_expedia_health():
+@api_router.get("/expedia/debug-supabase")
+async def debug_supabase_providers():
+    """Debug endpoint to check what providers are available in Supabase"""
+    try:
+        from supabase import create_client, Client
+        
+        supabase_url = os.environ.get('SUPABASE_URL')
+        supabase_key = os.environ.get('SUPABASE_ANON_KEY')
+        
+        if not supabase_url or not supabase_key:
+            return {"error": "Supabase not configured"}
+        
+        supabase: Client = create_client(supabase_url, supabase_key)
+        
+        # Get all providers in api_configuration table
+        result = supabase.table('api_configuration').select('*').execute()
+        
+        providers_info = []
+        for item in result.data:
+            providers_info.append({
+                "provider": item.get("provider"),
+                "environment": item.get("environment"),
+                "is_active": item.get("is_active"),
+                "created_at": item.get("created_at"),
+                "config_keys": list(item.get("config_data", {}).keys()) if isinstance(item.get("config_data"), dict) else "non-dict"
+            })
+        
+        # Also search for any providers containing "expedia" (case insensitive)
+        expedia_matches = []
+        for item in result.data:
+            provider_name = item.get("provider", "").lower()
+            if "expedia" in provider_name or "maku" in provider_name:
+                expedia_matches.append({
+                    "provider": item.get("provider"),
+                    "environment": item.get("environment"),
+                    "config_data_type": type(item.get("config_data")).__name__,
+                    "config_preview": str(item.get("config_data"))[:100] + "..." if item.get("config_data") else None
+                })
+        
+        return {
+            "total_providers": len(result.data),
+            "all_providers": [p["provider"] for p in providers_info],
+            "expedia_related": expedia_matches,
+            "providers_detail": providers_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Debug Supabase error: {e}")
+        return {"error": str(e)}
     """Check Expedia API health and authentication"""
     try:
         if not expedia_service.config:
