@@ -216,104 +216,131 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full' }) =
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {showTitle && (
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Shield className="h-8 w-8 text-orange-500" />
-            <Award className="h-8 w-8 text-green-500" />
-            <Globe className="h-8 w-8 text-blue-500" />
-          </div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent mb-3">
-            Trusted Travel Partners
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            We partner with industry leaders to bring you the best travel experiences worldwide
-          </p>
-          <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-gray-500">
-            <div className="flex items-center space-x-1">
-              <Users className="h-4 w-4" />
-              <span>5 Key Partners</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Globe className="h-4 w-4" />
-              <span>Global Coverage</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Zap className="h-4 w-4" />
-              <span>Real-time Integration</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Partner Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {partners.map((partner, index) => renderPartnerCard(partner, index))}
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent">
+          Travel Partner Ecosystem
+        </h2>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Powered by world-class travel providers, including our latest comprehensive integration with Expedia Group
+        </p>
       </div>
 
-      {/* Partner Detail Modal/Popup */}
-      {activePartner && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <MakuCard className="bg-white max-w-md w-full p-6 relative">
-            <button
-              onClick={() => setActivePartner(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+      {/* Expedia Group Highlight */}
+      <div className="mb-8">
+        <ExpediaShowcase variant="compact" />
+      </div>
+
+      {/* Other Partners Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {partners.filter(p => p.name !== 'Expedia Group').map((partner) => {
+          const IconComponent = getProviderIcon(partner.type, partner.name);
+          const colorClass = getProviderColor(partner.performance_score, partner.name);
+          
+          return (
+            <Card 
+              key={partner.id}
+              className="hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-blue-200 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30"
             >
-              ×
-            </button>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className={`p-3 rounded-xl ${PARTNER_COLORS[activePartner.type].accent}`}>
-                  {React.createElement(PARTNER_ICONS[activePartner.type], { 
-                    className: `h-6 w-6 ${PARTNER_COLORS[activePartner.type].icon}` 
-                  })}
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${colorClass} rounded-lg flex items-center justify-center shadow-lg`}>
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-bold text-gray-900">{partner.name}</CardTitle>
+                      <CardDescription className="text-sm capitalize">{partner.type} Provider</CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                    <Award className="w-3 h-3 mr-1" />
+                    {partner.performance_score}
+                  </Badge>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{activePartner.name}</h3>
-                  <p className="text-gray-600 capitalize">{activePartner.type} Provider</p>
+              </CardHeader>
+              <CardContent>
+                {/* Specialties */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Specialties</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {partner.specialties.slice(0, 3).map((specialty, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {specialty}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              
-              {renderPerformanceScore(activePartner.performance)}
-              
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">All Specialties</h4>
-                <div className="flex flex-wrap gap-2">
-                  {activePartner.specialties.map((specialty) => (
-                    <Badge key={specialty} variant="secondary" className="text-xs">
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="text-sm text-gray-600">
-                <p><strong>Status:</strong> {activePartner.status === 'production' ? 'Live & Active' : 'Demo Integration'}</p>
-                <p><strong>Integrated:</strong> {new Date(activePartner.integration_date).toLocaleDateString()}</p>
-              </div>
-            </div>
-          </MakuCard>
-        </div>
-      )}
 
-      {/* Trust Indicators */}
-      <div className="bg-gradient-to-r from-orange-50 to-green-50 rounded-2xl p-6 border border-orange-100">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-orange-600">99.9%</div>
-            <div className="text-sm text-gray-600">Uptime Guarantee</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-green-600">24/7</div>
-            <div className="text-sm text-gray-600">Partner Support</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-blue-600">Global</div>
-            <div className="text-sm text-gray-600">Coverage Network</div>
-          </div>
-        </div>
+                {/* Features */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Key Features</h4>
+                  <div className="space-y-1">
+                    {partner.features.slice(0, 3).map((feature, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs text-gray-600">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Status Indicators */}
+                <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>{partner.health_status}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-3 h-3" />
+                    <span>Real-time</span>
+                  </div>
+                  {partner.demo_label && (
+                    <Badge variant="outline" className="text-blue-600 border-blue-200">
+                      {partner.demo_label}
+                    </Badge>
+                  )}
+                </div>
+
+                <Button 
+                  size="sm" 
+                  className={`w-full bg-gradient-to-r ${colorClass} hover:opacity-90 text-white`}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  Explore Services
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
+
+      {/* Integration Stats */}
+      <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+              <div className="text-3xl font-bold text-blue-600 mb-1">{partners.length}</div>
+              <div className="text-sm text-gray-600">Active Partners</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-green-600 mb-1">99.9%</div>
+              <div className="text-sm text-gray-600">Uptime</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-purple-600 mb-1">
+                {Math.round(partners.reduce((acc, p) => acc + p.performance_score, 0) / partners.length)}
+              </div>
+              <div className="text-sm text-gray-600">Avg Performance</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-orange-600 mb-1">24/7</div>
+              <div className="text-sm text-gray-600">Support</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
