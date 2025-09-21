@@ -46,8 +46,8 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/maku-travel-official-logo.svg" 
-          alt="Maku.Travel - Official Logo with Dog, Sun, Tricolor Arc & Airplane" 
+          src="/logos/maku-logo-head-circular.png" 
+          alt="Maku.Travel - Dog Head Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -63,8 +63,8 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/maku-travel-official-logo.svg" 
-          alt="Maku.Travel - Official Logo Icon" 
+          src="/logos/maku-logo-full-circular.png" 
+          alt="Maku.Travel - Full Circular Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -72,7 +72,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
   }
 
   if (variant === 'full') {
-    // Full official logo with dog, suitcase, sun, tricolor arc, airplane, and text
+    // Full official logo with complete scene and text
     return (
       <div className={`
         ${contextStyles[context]}
@@ -80,8 +80,25 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src="/maku-travel-official-logo.svg" 
-          alt="Maku.Travel - Complete Official Logo" 
+          src="/logos/maku-logo-complete.png" 
+          alt="Maku.Travel - Complete Logo with Text (EXACT USER VERSION)" 
+          className="w-full h-full object-contain"
+        />
+      </div>
+    );
+  }
+
+  if (variant === 'text') {
+    // Text-only version
+    return (
+      <div className={`
+        ${contextStyles[context]}
+        ${size === 'hero' ? 'w-64 h-32' : size === 'xl' ? 'w-48 h-24' : size === 'lg' ? 'w-32 h-16' : size === 'md' ? 'w-24 h-12' : size === 'sm' ? 'w-20 h-10' : 'w-16 h-8'}
+        flex items-center justify-center
+      `}>
+        <img 
+          src="/logos/maku-logo-text-only.png" 
+          alt="Maku.Travel - Text Only Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
         />
       </div>
