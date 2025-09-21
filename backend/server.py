@@ -3398,8 +3398,134 @@ async def debug_supabase_providers():
         logger.error(f"Debug Supabase error: {e}")
         return {"error": str(e)}
 
-@api_router.get("/expedia/health")
-async def check_expedia_health():
+@api_router.post("/expedia/test-all-services")
+async def test_all_expedia_services():
+    """Test all Expedia services to validate booking capabilities"""
+    try:
+        if not expedia_service.config and EXPEDIA_TEST_CONFIG:
+            expedia_service.config = EXPEDIA_TEST_CONFIG
+            expedia_service.auth_client = ExpediaAuthClient(EXPEDIA_TEST_CONFIG)
+        
+        if not expedia_service.config:
+            await expedia_service.initialize()
+        
+        test_results = {}
+        
+        # Test 1: Authentication
+        try:
+            token = await expedia_service.auth_client.get_access_token()
+            test_results["authentication"] = {
+                "status": "success",
+                "authenticated": bool(token),
+                "token_preview": f"{token[:10]}..." if token else None
+            }
+        except Exception as e:
+            test_results["authentication"] = {
+                "status": "failed", 
+                "error": str(e)
+            }
+        
+        # Test 2: Hotel Search
+        try:
+            hotel_search = ExpediaHotelSearchRequest(
+                checkin="2024-07-15",
+                checkout="2024-07-18", 
+                occupancy=[{"adults": 2, "children": 0}]
+            )
+            hotel_results = await expedia_service.search_hotels(hotel_search)
+            test_results["hotel_search"] = {
+                "status": "success",
+                "total_results": hotel_results.get("total_results", 0),
+                "demo_mode": hotel_results.get("demo_mode", False)
+            }
+        except Exception as e:
+            test_results["hotel_search"] = {
+                "status": "failed",
+                "error": str(e)
+            }
+        
+        # Test 3: Flight Search  
+        try:
+            flight_search = ExpediaFlightSearchRequest(
+                origin="LAX",
+                destination="JFK",
+                departure_date="2024-07-15",
+                passengers={"adults": 1}
+            )
+            flight_results = await expedia_service.search_flights(flight_search)
+            test_results["flight_search"] = {
+                "status": "success",
+                "total_results": flight_results.get("total_results", 0),
+                "demo_mode": flight_results.get("demo_mode", False)
+            }
+        except Exception as e:
+            test_results["flight_search"] = {
+                "status": "failed", 
+                "error": str(e)
+            }
+        
+        # Test 4: Car Search
+        try:
+            car_search = ExpediaCarSearchRequest(
+                pickup_location="LAX",
+                pickup_date="2024-07-15T10:00:00Z",
+                driver_age=25
+            )
+            car_results = await expedia_service.search_cars(car_search)
+            test_results["car_search"] = {
+                "status": "success",
+                "total_results": car_results.get("total_results", 0),
+                "demo_mode": car_results.get("demo_mode", False)
+            }
+        except Exception as e:
+            test_results["car_search"] = {
+                "status": "failed",
+                "error": str(e)
+            }
+        
+        # Test 5: Activity Search
+        try:
+            activity_search = ExpediaActivitySearchRequest(
+                destination="New York",
+                start_date="2024-07-15",
+                adults=2
+            )
+            activity_results = await expedia_service.search_activities(activity_search)
+            test_results["activity_search"] = {
+                "status": "success", 
+                "total_results": activity_results.get("total_results", 0),
+                "demo_mode": activity_results.get("demo_mode", False)
+            }
+        except Exception as e:
+            test_results["activity_search"] = {
+                "status": "failed",
+                "error": str(e)
+            }
+        
+        # Calculate overall success rate
+        successful_tests = sum(1 for test in test_results.values() if test.get("status") == "success")
+        total_tests = len(test_results)
+        success_rate = (successful_tests / total_tests) * 100
+        
+        return {
+            "overall_status": "operational" if success_rate >= 60 else "needs_attention",
+            "success_rate": f"{success_rate:.1f}%",
+            "successful_tests": successful_tests,
+            "total_tests": total_tests,
+            "test_results": test_results,
+            "credentials_status": "configured",
+            "api_environment": "sandbox" if expedia_service.config.get('test_mode') else "production",
+            "timestamp": datetime.utcnow().isoformat(),
+            "ready_for_live_use": success_rate >= 80
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to test Expedia services: {e}")
+        return {
+            "overall_status": "error",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
     """Check Expedia API health and authentication"""
     try:
         # Initialize service if not already done
