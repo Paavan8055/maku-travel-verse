@@ -1441,6 +1441,54 @@ class SmartDreamProviderRequest(BaseModel):
     budget: Optional[dict] = None
     preferences: Optional[List[str]] = None
 
+# Expedia Group API Models
+
+class ExpediaConfig(BaseModel):
+    api_key: str
+    shared_secret: str
+    base_url: str = "https://api.expediagroup.com"
+    sandbox_url: str = "https://api.sandbox.expediagroup.com" 
+    test_mode: bool = False
+
+class ExpediaHotelSearchRequest(BaseModel):
+    checkin: str  # YYYY-MM-DD format
+    checkout: str
+    occupancy: List[Dict[str, int]]  # [{"adults": 2, "children": 1}]
+    property_ids: Optional[List[str]] = None
+    region_id: Optional[str] = None
+    include: List[str] = ["property_ids", "room_types", "rate_plans"]
+
+class ExpediaBookingRequest(BaseModel):
+    property_id: str
+    room_id: str
+    rate_id: str
+    guest_details: Dict[str, Any]
+    payment_details: Dict[str, Any]
+    special_requests: Optional[str] = None
+
+class ExpediaFlightSearchRequest(BaseModel):
+    origin: str
+    destination: str
+    departure_date: str
+    return_date: Optional[str] = None
+    passengers: Dict[str, int] = {"adults": 1, "children": 0, "infants": 0}
+    cabin_class: str = "economy"
+
+class ExpediaCarSearchRequest(BaseModel):
+    pickup_location: str
+    pickup_date: str
+    dropoff_location: Optional[str] = None
+    dropoff_date: Optional[str] = None
+    driver_age: int = 25
+
+class ExpediaActivitySearchRequest(BaseModel):
+    destination: str
+    start_date: str
+    end_date: Optional[str] = None
+    adults: int = 1
+    children: int = 0
+    category: Optional[str] = None
+
 # Enhanced Security & Blockchain-Ready Models
 
 class BlockchainMetadata(BaseModel):
