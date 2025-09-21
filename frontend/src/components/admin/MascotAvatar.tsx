@@ -1,6 +1,5 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import makuMascot from '@/assets/maku-mascot.png';
 
 interface MascotAvatarProps {
   category: string;
