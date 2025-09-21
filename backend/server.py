@@ -1498,14 +1498,15 @@ async def get_supabase_config(provider: str, environment: str = "production"):
     try:
         from supabase import create_client, Client
         
-        # Initialize Supabase client (in production, use environment variables)
+        # Initialize Supabase client with environment variables
         supabase_url = os.environ.get('SUPABASE_URL')
         supabase_key = os.environ.get('SUPABASE_ANON_KEY')
         
         if not supabase_url or not supabase_key:
-            logger.error("Supabase credentials not configured")
+            logger.error("Supabase credentials not found in environment variables")
             return None
             
+        logger.info(f"Connecting to Supabase: {supabase_url}")
         supabase: Client = create_client(supabase_url, supabase_key)
         
         # Query api_configuration table
@@ -1513,6 +1514,7 @@ async def get_supabase_config(provider: str, environment: str = "production"):
         
         if result.data and len(result.data) > 0:
             config_data = result.data[0]['config_data']
+            logger.info(f"Retrieved configuration for provider {provider}")
             return config_data
         
         logger.warning(f"No configuration found for provider {provider} in environment {environment}")
@@ -1531,7 +1533,7 @@ async def store_supabase_config(provider: str, config_data: dict, environment: s
         supabase_key = os.environ.get('SUPABASE_ANON_KEY')
         
         if not supabase_url or not supabase_key:
-            logger.error("Supabase credentials not configured")
+            logger.error("Supabase credentials not found in environment variables")
             return False
             
         supabase: Client = create_client(supabase_url, supabase_key)
@@ -1544,6 +1546,7 @@ async def store_supabase_config(provider: str, config_data: dict, environment: s
             'is_active': True
         }).execute()
         
+        logger.info(f"Successfully stored configuration for provider {provider}")
         return True
         
     except Exception as e:
