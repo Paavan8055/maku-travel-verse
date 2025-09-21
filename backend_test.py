@@ -4676,6 +4676,128 @@ class MakuTravelBackendTester:
         print("=" * 70)
         return total_passed == total_tests
 
+    def run_health_tests(self):
+        """Run health check tests"""
+        print("🏥 STARTING HEALTH CHECK TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_health_check,
+            self.test_root_endpoint
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print("=" * 60)
+        print(f"🏥 HEALTH TESTS COMPLETE: {passed}/{total} passed ({(passed/total)*100:.1f}%)")
+        print("=" * 60)
+        
+        return passed, total
+
+    def run_environment_tests(self):
+        """Run environment management tests"""
+        print("⚙️ STARTING ENVIRONMENT MANAGEMENT TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_environment_config,
+            self.test_environment_status
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print("=" * 60)
+        print(f"⚙️ ENVIRONMENT TESTS COMPLETE: {passed}/{total} passed ({(passed/total)*100:.1f}%)")
+        print("=" * 60)
+        
+        return passed, total
+
+    def run_enhanced_dreams_tests(self):
+        """Run enhanced dreams API tests"""
+        print("🌟 STARTING ENHANCED DREAMS API TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_enhanced_destinations,
+            self.test_user_profile
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print("=" * 60)
+        print(f"🌟 ENHANCED DREAMS TESTS COMPLETE: {passed}/{total} passed ({(passed/total)*100:.1f}%)")
+        print("=" * 60)
+        
+        return passed, total
+
+    def run_gamification_tests(self):
+        """Run gamification system tests"""
+        print("🎮 STARTING GAMIFICATION SYSTEM TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_user_game_stats,
+            self.test_user_achievements,
+            self.test_leaderboards,
+            self.test_user_challenges,
+            self.test_social_activity
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print("=" * 60)
+        print(f"🎮 GAMIFICATION TESTS COMPLETE: {passed}/{total} passed ({(passed/total)*100:.1f}%)")
+        print("=" * 60)
+        
+        return passed, total
+
+    def run_ai_intelligence_tests(self):
+        """Run AI intelligence layer tests"""
+        print("🧠 STARTING AI INTELLIGENCE LAYER TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_travel_dna_analysis,
+            self.test_intelligent_recommendations,
+            self.test_journey_optimization,
+            self.test_predictive_insights,
+            self.test_ai_feedback,
+            self.test_recommendation_explanation
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print("=" * 60)
+        print(f"🧠 AI INTELLIGENCE TESTS COMPLETE: {passed}/{total} passed ({(passed/total)*100:.1f}%)")
+        print("=" * 60)
+        
+        return passed, total
+
     def run_all_tests(self):
         """Run comprehensive test suite with focus on Admin NFT and Airdrop Management"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
