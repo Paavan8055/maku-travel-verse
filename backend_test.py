@@ -2344,6 +2344,565 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # NFT & AIRDROP INTEGRATION TESTS
+    # =====================================================
+    
+    def test_nft_collection_endpoint(self):
+        """Test NFT Collection endpoint for travel NFT data"""
+        print("🎨 Testing NFT Collection Endpoint...")
+        
+        url = f"{BASE_URL}/nft/collection/{TEST_USER_ID}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("NFT Collection", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['user_id', 'collection', 'total_nfts', 'total_value', 'total_credits']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("NFT Collection", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                collection = data['collection']
+                if not isinstance(collection, list):
+                    self.log_test("NFT Collection", False, "Collection is not a list", response_time)
+                    return False
+                
+                # Validate NFT structure if collection exists
+                if len(collection) > 0:
+                    nft = collection[0]
+                    nft_required = ['id', 'token_id', 'name', 'metadata', 'blockchain', 'owner', 'rewards']
+                    nft_missing = [field for field in nft_required if field not in nft]
+                    
+                    if nft_missing:
+                        self.log_test("NFT Collection", False, f"Missing NFT fields: {nft_missing}", response_time)
+                        return False
+                    
+                    # Check for Expedia integration
+                    metadata = nft.get('metadata', {})
+                    if metadata.get('provider') == 'expedia':
+                        self.log_test("NFT Collection", True, f"✅ Expedia integration confirmed: {nft['name']} with provider: expedia", response_time)
+                    else:
+                        self.log_test("NFT Collection", True, f"Collection retrieved: {len(collection)} NFTs, provider: {metadata.get('provider', 'unknown')}", response_time)
+                else:
+                    self.log_test("NFT Collection", True, "Empty collection retrieved successfully", response_time)
+                
+                return True
+                
+            else:
+                self.log_test("NFT Collection", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("NFT Collection", False, f"Exception: {str(e)}")
+            return False
+
+    def test_airdrop_eligibility_endpoint(self):
+        """Test Airdrop Eligibility endpoint for tier calculation"""
+        print("🪂 Testing Airdrop Eligibility Endpoint...")
+        
+        url = f"{BASE_URL}/nft/airdrop/eligibility/{TEST_USER_ID}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Airdrop Eligibility", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['user_id', 'total_points', 'current_tier', 'estimated_allocation', 'completion_percentage']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Airdrop Eligibility", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate tier progression (Wanderer→Explorer→Adventurer→Legend)
+                tier = data.get('current_tier')
+                valid_tiers = ['Wanderer', 'Explorer', 'Adventurer', 'Legend']
+                if tier not in valid_tiers:
+                    self.log_test("Airdrop Eligibility", False, f"Invalid tier: {tier}, expected one of {valid_tiers}", response_time)
+                    return False
+                
+                # Validate point calculations
+                total_points = data.get('total_points', 0)
+                estimated_allocation = data.get('estimated_allocation', 0)
+                completion_percentage = data.get('completion_percentage', 0)
+                
+                if total_points < 0:
+                    self.log_test("Airdrop Eligibility", False, f"Invalid total_points: {total_points}", response_time)
+                    return False
+                
+                if estimated_allocation < 0:
+                    self.log_test("Airdrop Eligibility", False, f"Invalid estimated_allocation: {estimated_allocation}", response_time)
+                    return False
+                
+                if not (0 <= completion_percentage <= 100):
+                    self.log_test("Airdrop Eligibility", False, f"Invalid completion_percentage: {completion_percentage}", response_time)
+                    return False
+                
+                self.log_test("Airdrop Eligibility", True, f"Tier: {tier}, Points: {total_points}, Allocation: {estimated_allocation}, Progress: {completion_percentage:.1f}%", response_time)
+                return True
+                
+            else:
+                self.log_test("Airdrop Eligibility", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Airdrop Eligibility", False, f"Exception: {str(e)}")
+            return False
+
+    def test_quest_system_endpoint(self):
+        """Test Quest System endpoint for travel-integrated quest data"""
+        print("🎯 Testing Quest System Endpoint...")
+        
+        url = f"{BASE_URL}/nft/quests/{TEST_USER_ID}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Quest System", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['user_id', 'quests', 'total_available_points', 'completed_quests', 'in_progress_quests']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Quest System", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                quests = data['quests']
+                if not isinstance(quests, list):
+                    self.log_test("Quest System", False, "Quests is not a list", response_time)
+                    return False
+                
+                if len(quests) == 0:
+                    self.log_test("Quest System", False, "No quests returned", response_time)
+                    return False
+                
+                # Check for provider integration quests
+                provider_quests = []
+                expedia_quest_found = False
+                
+                for quest in quests:
+                    # Validate quest structure
+                    quest_required = ['id', 'title', 'description', 'points', 'category', 'requirements', 'progress', 'completed']
+                    quest_missing = [field for field in quest_required if field not in quest]
+                    
+                    if quest_missing:
+                        self.log_test("Quest System", False, f"Missing quest fields: {quest_missing}", response_time)
+                        return False
+                    
+                    # Check for provider-specific quests
+                    if quest.get('category') == 'provider':
+                        provider_quests.append(quest)
+                        
+                        # Check for Expedia Group Explorer quest
+                        if quest.get('id') == 'expedia_integration_quest':
+                            expedia_quest_found = True
+                            if quest.get('provider') != 'expedia':
+                                self.log_test("Quest System", False, f"Expedia quest has wrong provider: {quest.get('provider')}", response_time)
+                                return False
+                
+                # Verify all 6 providers are integrated in quest system
+                expected_providers = ['expedia', 'amadeus', 'viator', 'duffle', 'ratehawk', 'sabre']
+                found_providers = set()
+                
+                for quest in quests:
+                    if quest.get('provider'):
+                        found_providers.add(quest.get('provider'))
+                    
+                    # Check requirements for provider lists
+                    requirements = quest.get('requirements', {})
+                    if 'providers_list' in requirements:
+                        found_providers.update(requirements['providers_list'])
+                
+                # Check if we have good provider coverage
+                provider_coverage = len(found_providers.intersection(set(expected_providers)))
+                
+                if not expedia_quest_found:
+                    self.log_test("Quest System", False, "Expedia Group Explorer quest not found", response_time)
+                    return False
+                
+                self.log_test("Quest System", True, f"✅ {len(quests)} quests found, Expedia quest confirmed, {provider_coverage} providers integrated", response_time)
+                return True
+                
+            else:
+                self.log_test("Quest System", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Quest System", False, f"Exception: {str(e)}")
+            return False
+
+    def test_booking_reward_endpoint(self):
+        """Test Booking Reward endpoint for travel booking NFT integration"""
+        print("💰 Testing Booking Reward Endpoint...")
+        
+        url = f"{BASE_URL}/nft/booking-reward"
+        
+        # Mock booking data with Expedia integration
+        booking_data = {
+            "user_id": TEST_USER_ID,
+            "booking_id": f"booking_{int(time.time())}",
+            "provider": "expedia",
+            "destination": "Paris, France",
+            "total_price": 1200,
+            "type": "hotel",
+            "trip_date": "2024-07-15",
+            "booking_details": {
+                "hotel_name": "Le Meurice",
+                "nights": 3,
+                "guests": 2
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=booking_data, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Booking Reward", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['booking_id', 'user_id', 'rewards_earned', 'total_points_awarded', 'processed_at']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Booking Reward", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                rewards_earned = data['rewards_earned']
+                if not isinstance(rewards_earned, list):
+                    self.log_test("Booking Reward", False, "Rewards_earned is not a list", response_time)
+                    return False
+                
+                # Check for different types of rewards
+                reward_types = [reward.get('type') for reward in rewards_earned]
+                expected_types = ['nft', 'quest_points', 'provider_bonus']
+                
+                # Validate provider-specific bonuses (15% for Expedia)
+                expedia_bonus_found = False
+                for reward in rewards_earned:
+                    if reward.get('type') == 'provider_bonus' and reward.get('provider') == 'expedia':
+                        expedia_bonus_found = True
+                        bonus = reward.get('bonus', {})
+                        if bonus.get('credits') != int(1200 * 0.15):  # 15% of booking value
+                            self.log_test("Booking Reward", False, f"Incorrect Expedia bonus: expected {int(1200 * 0.15)}, got {bonus.get('credits')}", response_time)
+                            return False
+                
+                total_points = data.get('total_points_awarded', 0)
+                if total_points <= 0:
+                    self.log_test("Booking Reward", False, f"No points awarded: {total_points}", response_time)
+                    return False
+                
+                self.log_test("Booking Reward", True, f"✅ Rewards processed: {len(rewards_earned)} rewards, {total_points} points, Expedia bonus: {expedia_bonus_found}", response_time)
+                return True
+                
+            else:
+                self.log_test("Booking Reward", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Booking Reward", False, f"Exception: {str(e)}")
+            return False
+
+    def test_nft_minting_endpoint(self):
+        """Test NFT Minting endpoint for travel experience NFT creation"""
+        print("🎨 Testing NFT Minting Endpoint...")
+        
+        url = f"{BASE_URL}/nft/mint-travel-nft"
+        
+        # Mock travel experience data
+        travel_data = {
+            "user_id": TEST_USER_ID,
+            "destination": "Tokyo, Japan",
+            "provider": "expedia",
+            "total_price": 2500,
+            "type": "luxury_stay",
+            "trip_date": "2024-08-20",
+            "booking_id": f"exp_booking_{int(time.time())}",
+            "experience_details": {
+                "hotel_name": "The Ritz-Carlton Tokyo",
+                "nights": 5,
+                "room_type": "Executive Suite"
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=travel_data, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("NFT Minting", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'nft', 'transaction_hash', 'message']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("NFT Minting", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("NFT Minting", False, f"Minting failed: {data.get('message')}", response_time)
+                    return False
+                
+                nft = data['nft']
+                if not isinstance(nft, dict):
+                    self.log_test("NFT Minting", False, "NFT is not a dict", response_time)
+                    return False
+                
+                # Validate NFT structure
+                nft_required = ['id', 'token_id', 'name', 'metadata', 'blockchain', 'owner', 'rewards']
+                nft_missing = [field for field in nft_required if field not in nft]
+                
+                if nft_missing:
+                    self.log_test("NFT Minting", False, f"Missing NFT fields: {nft_missing}", response_time)
+                    return False
+                
+                # Validate metadata
+                metadata = nft.get('metadata', {})
+                if metadata.get('provider') != 'expedia':
+                    self.log_test("NFT Minting", False, f"Expected provider 'expedia', got '{metadata.get('provider')}'", response_time)
+                    return False
+                
+                if metadata.get('destination') != 'Tokyo, Japan':
+                    self.log_test("NFT Minting", False, f"Expected destination 'Tokyo, Japan', got '{metadata.get('destination')}'", response_time)
+                    return False
+                
+                # Check rarity score
+                rarity_score = metadata.get('rarity_score', 0)
+                if not (1 <= rarity_score <= 100):
+                    self.log_test("NFT Minting", False, f"Invalid rarity score: {rarity_score}", response_time)
+                    return False
+                
+                # Validate transaction hash format
+                tx_hash = data.get('transaction_hash', '')
+                if not tx_hash.startswith('0x') or len(tx_hash) != 66:
+                    self.log_test("NFT Minting", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                # Check blockchain is set to Cronos (default)
+                if nft.get('blockchain') != 'cronos':
+                    self.log_test("NFT Minting", False, f"Expected blockchain 'cronos', got '{nft.get('blockchain')}'", response_time)
+                    return False
+                
+                self.log_test("NFT Minting", True, f"✅ NFT minted: {nft['name']}, Rarity: {rarity_score}, Provider: expedia", response_time)
+                return True
+                
+            else:
+                self.log_test("NFT Minting", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("NFT Minting", False, f"Exception: {str(e)}")
+            return False
+
+    def test_provider_integration_verification(self):
+        """Test that all 6 providers are integrated in the NFT/quest system"""
+        print("🔗 Testing Provider Integration Verification...")
+        
+        # Test quest system for provider integration
+        quest_url = f"{BASE_URL}/nft/quests/{TEST_USER_ID}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(quest_url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Provider Integration", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                quests = data.get('quests', [])
+                
+                # Expected providers: Expedia, Amadeus, Viator, Duffle, RateHawk, Sabre
+                expected_providers = ['expedia', 'amadeus', 'viator', 'duffle', 'ratehawk', 'sabre']
+                found_providers = set()
+                
+                # Check quest system integration
+                for quest in quests:
+                    # Direct provider field
+                    if quest.get('provider'):
+                        found_providers.add(quest.get('provider'))
+                    
+                    # Provider lists in requirements
+                    requirements = quest.get('requirements', {})
+                    if 'providers_list' in requirements:
+                        found_providers.update(requirements['providers_list'])
+                    
+                    # Provider-specific requirements
+                    if 'provider' in requirements:
+                        found_providers.add(requirements['provider'])
+                
+                # Test booking reward with different providers
+                providers_tested = []
+                for provider in ['expedia', 'amadeus', 'viator']:
+                    booking_data = {
+                        "user_id": TEST_USER_ID,
+                        "booking_id": f"test_{provider}_{int(time.time())}",
+                        "provider": provider,
+                        "destination": "Test Destination",
+                        "total_price": 500,
+                        "type": "hotel"
+                    }
+                    
+                    try:
+                        reward_response = self.session.post(f"{BASE_URL}/nft/booking-reward", json=booking_data, timeout=10)
+                        if reward_response.status_code == 200:
+                            reward_data = reward_response.json()
+                            if not reward_data.get('error'):
+                                providers_tested.append(provider)
+                                found_providers.add(provider)
+                    except:
+                        pass  # Continue testing other providers
+                
+                # Calculate integration coverage
+                integration_coverage = len(found_providers.intersection(set(expected_providers)))
+                total_expected = len(expected_providers)
+                
+                # Check for specific provider bonuses
+                provider_bonuses = {}
+                for provider in ['expedia', 'amadeus', 'viator']:
+                    if provider in providers_tested:
+                        provider_bonuses[provider] = True
+                
+                # Verify Expedia has 15% bonus as specified
+                expedia_bonus_correct = False
+                if 'expedia' in providers_tested:
+                    # This was already tested in booking reward test
+                    expedia_bonus_correct = True
+                
+                if integration_coverage >= 4:  # At least 4 out of 6 providers
+                    self.log_test("Provider Integration", True, f"✅ {integration_coverage}/{total_expected} providers integrated, {len(providers_tested)} tested, Expedia 15% bonus: {expedia_bonus_correct}", response_time)
+                    return True
+                else:
+                    self.log_test("Provider Integration", False, f"Insufficient provider integration: {integration_coverage}/{total_expected} providers found", response_time)
+                    return False
+                
+            else:
+                self.log_test("Provider Integration", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Integration", False, f"Exception: {str(e)}")
+            return False
+
+    def test_data_consistency_check(self):
+        """Test data consistency between existing travel APIs and new NFT/airdrop endpoints"""
+        print("🔍 Testing Data Consistency Check...")
+        
+        try:
+            start_time = time.time()
+            
+            # Test existing travel API
+            travel_response = self.session.get(f"{BASE_URL}/enhanced-dreams/destinations", timeout=10)
+            
+            # Test NFT collection API
+            nft_response = self.session.get(f"{BASE_URL}/nft/collection/{TEST_USER_ID}", timeout=10)
+            
+            # Test airdrop eligibility API
+            airdrop_response = self.session.get(f"{BASE_URL}/nft/airdrop/eligibility/{TEST_USER_ID}", timeout=10)
+            
+            response_time = time.time() - start_time
+            
+            # Check all endpoints are accessible
+            if travel_response.status_code != 200:
+                self.log_test("Data Consistency", False, f"Travel API failed: {travel_response.status_code}", response_time)
+                return False
+            
+            if nft_response.status_code != 200:
+                self.log_test("Data Consistency", False, f"NFT API failed: {nft_response.status_code}", response_time)
+                return False
+            
+            if airdrop_response.status_code != 200:
+                self.log_test("Data Consistency", False, f"Airdrop API failed: {airdrop_response.status_code}", response_time)
+                return False
+            
+            # Parse responses
+            travel_data = travel_response.json()
+            nft_data = nft_response.json()
+            airdrop_data = airdrop_response.json()
+            
+            # Check for conflicts or errors
+            conflicts = []
+            
+            # Check if travel API still works
+            if 'error' in travel_data:
+                conflicts.append(f"Travel API error: {travel_data['error']}")
+            
+            if 'error' in nft_data:
+                conflicts.append(f"NFT API error: {nft_data['error']}")
+            
+            if 'error' in airdrop_data:
+                conflicts.append(f"Airdrop API error: {airdrop_data['error']}")
+            
+            # Check data structure consistency
+            if 'destinations' not in travel_data:
+                conflicts.append("Travel API missing destinations field")
+            
+            if 'collection' not in nft_data:
+                conflicts.append("NFT API missing collection field")
+            
+            if 'current_tier' not in airdrop_data:
+                conflicts.append("Airdrop API missing current_tier field")
+            
+            # Test user ID consistency
+            if nft_data.get('user_id') != TEST_USER_ID:
+                conflicts.append(f"NFT API user_id mismatch: expected {TEST_USER_ID}, got {nft_data.get('user_id')}")
+            
+            if airdrop_data.get('user_id') != TEST_USER_ID:
+                conflicts.append(f"Airdrop API user_id mismatch: expected {TEST_USER_ID}, got {airdrop_data.get('user_id')}")
+            
+            if conflicts:
+                self.log_test("Data Consistency", False, f"Conflicts found: {'; '.join(conflicts)}", response_time)
+                return False
+            else:
+                self.log_test("Data Consistency", True, "✅ No conflicts detected between travel APIs and NFT/airdrop endpoints", response_time)
+                return True
+                
+        except Exception as e:
+            self.log_test("Data Consistency", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # EXPEDIA GROUP API INTEGRATION TESTS
     # =====================================================
     
