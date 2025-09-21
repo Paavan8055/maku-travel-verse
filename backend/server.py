@@ -1906,8 +1906,17 @@ class ExpediaService:
                 logger.error(f"Expedia hotel booking failed: {e}")
                 raise
 
-# Global Expedia service instance
+# Global Expedia service instance with test credentials
 expedia_service = ExpediaService()
+
+# Configure Expedia with provided test credentials
+EXPEDIA_TEST_CONFIG = {
+    'api_key': '90269849-c322-49ff-a595-facb309434b6',
+    'shared_secret': 'MDhmZmE3MjQtOWM5Ny00OTE5LTkwYWMtOWVhYzY1MjljZDgzOk5hSk5JRmRRWUhZRXIzVkFocno3fkVHaVFmbk1kMVV-',
+    'base_url': 'https://api.expediagroup.com',
+    'sandbox_url': 'https://api.sandbox.expediagroup.com',
+    'test_mode': True
+}
 
 # Enhanced Security & Blockchain-Ready Models
 
