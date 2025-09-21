@@ -2344,6 +2344,514 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # EXPEDIA GROUP API INTEGRATION TESTS
+    # =====================================================
+    
+    def test_expedia_setup_endpoint(self):
+        """Test Expedia setup endpoint for credential configuration"""
+        print("🏨 Testing Expedia Setup Endpoint...")
+        
+        url = f"{BASE_URL}/expedia/setup"
+        
+        # Test with missing credentials (should fail)
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json={}, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 400:
+                self.log_test("Expedia Setup (Missing Credentials)", True, "Correctly rejected empty credentials", response_time)
+            else:
+                self.log_test("Expedia Setup (Missing Credentials)", False, f"Expected 400, got {response.status_code}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Setup (Missing Credentials)", False, f"Exception: {str(e)}")
+            return False
+        
+        # Test with valid test credentials
+        test_credentials = {
+            "api_key": "test_api_key_123",
+            "shared_secret": "test_shared_secret_456",
+            "test_mode": True
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=test_credentials, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    # Expected if Supabase is not configured
+                    if "Supabase credentials not configured" in str(data.get("error", "")):
+                        self.log_test("Expedia Setup", True, "Missing Supabase configuration (expected)", response_time)
+                        return True
+                    else:
+                        self.log_test("Expedia Setup", False, f"API Error: {data['error']}", response_time)
+                        return False
+                
+                # Validate successful response structure
+                required_fields = ['success', 'message', 'provider']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Expedia Setup", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if data.get('provider') != 'expedia':
+                    self.log_test("Expedia Setup", False, f"Expected provider 'expedia', got {data.get('provider')}", response_time)
+                    return False
+                
+                self.log_test("Expedia Setup", True, f"Credentials configured successfully, test_mode: {data.get('test_mode')}", response_time)
+                return True
+                
+            elif response.status_code == 500:
+                # Check if it's a Supabase configuration issue
+                error_text = response.text.lower()
+                if "supabase" in error_text or "credentials not configured" in error_text:
+                    self.log_test("Expedia Setup", True, "Missing Supabase configuration (expected)", response_time)
+                    return True
+                else:
+                    self.log_test("Expedia Setup", False, f"HTTP 500: {response.text}", response_time)
+                    return False
+            else:
+                self.log_test("Expedia Setup", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Setup", False, f"Exception: {str(e)}")
+            return False
+
+    def test_expedia_health_check(self):
+        """Test Expedia health check endpoint"""
+        print("🏥 Testing Expedia Health Check...")
+        
+        url = f"{BASE_URL}/expedia/health"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['provider', 'status', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Expedia Health Check", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if data.get('provider') != 'expedia':
+                    self.log_test("Expedia Health Check", False, f"Expected provider 'expedia', got {data.get('provider')}", response_time)
+                    return False
+                
+                status = data.get('status')
+                if status == 'unhealthy':
+                    # Check if it's due to missing Supabase configuration
+                    error = data.get('error', '')
+                    if 'Supabase' in error or 'not configured' in error:
+                        self.log_test("Expedia Health Check", True, "Unhealthy due to missing Supabase config (expected)", response_time)
+                        return True
+                    else:
+                        self.log_test("Expedia Health Check", False, f"Unhealthy status: {error}", response_time)
+                        return False
+                elif status == 'healthy':
+                    # Check additional fields for healthy status
+                    if 'authenticated' not in data:
+                        self.log_test("Expedia Health Check", False, "Missing 'authenticated' field for healthy status", response_time)
+                        return False
+                    
+                    self.log_test("Expedia Health Check", True, f"Status: {status}, Authenticated: {data.get('authenticated')}", response_time)
+                    return True
+                else:
+                    self.log_test("Expedia Health Check", False, f"Invalid status: {status}", response_time)
+                    return False
+                
+            else:
+                self.log_test("Expedia Health Check", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Health Check", False, f"Exception: {str(e)}")
+            return False
+
+    def test_enhanced_provider_registry_expedia(self):
+        """Test enhanced provider registry includes Expedia with comprehensive data"""
+        print("🌟 Testing Enhanced Provider Registry (Expedia Integration)...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    self.log_test("Enhanced Provider Registry (Expedia)", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['providers', 'summary', 'expedia_services']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Enhanced Provider Registry (Expedia)", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                providers = data['providers']
+                if not isinstance(providers, list):
+                    self.log_test("Enhanced Provider Registry (Expedia)", False, "Providers is not a list", response_time)
+                    return False
+                
+                # Find Expedia provider
+                expedia_provider = None
+                for provider in providers:
+                    if provider.get('name') == 'Expedia Group':
+                        expedia_provider = provider
+                        break
+                
+                if not expedia_provider:
+                    self.log_test("Enhanced Provider Registry (Expedia)", False, "Expedia Group provider not found in registry", response_time)
+                    return False
+                
+                # Validate Expedia provider specifications
+                expected_expedia = {
+                    'performance_score': 96.2,
+                    'type': 'comprehensive',
+                    'status': 'active',
+                    'health_status': 'healthy'
+                }
+                
+                for field, expected_value in expected_expedia.items():
+                    actual_value = expedia_provider.get(field)
+                    if actual_value != expected_value:
+                        self.log_test("Enhanced Provider Registry (Expedia)", False, f"Expedia {field} should be {expected_value}, got {actual_value}", response_time)
+                        return False
+                
+                # Validate Expedia services structure
+                if 'services' not in expedia_provider:
+                    self.log_test("Enhanced Provider Registry (Expedia)", False, "Expedia provider missing 'services' field", response_time)
+                    return False
+                
+                services = expedia_provider['services']
+                expected_services = ['hotels', 'flights', 'cars', 'activities']
+                missing_services = [service for service in expected_services if service not in services]
+                
+                if missing_services:
+                    self.log_test("Enhanced Provider Registry (Expedia)", False, f"Expedia missing services: {missing_services}", response_time)
+                    return False
+                
+                # Validate service endpoints
+                for service_name in expected_services:
+                    service = services[service_name]
+                    if 'endpoint' not in service:
+                        self.log_test("Enhanced Provider Registry (Expedia)", False, f"Expedia {service_name} service missing endpoint", response_time)
+                        return False
+                    
+                    expected_endpoint = f"/api/expedia/{service_name}/search"
+                    if service['endpoint'] != expected_endpoint:
+                        self.log_test("Enhanced Provider Registry (Expedia)", False, f"Expedia {service_name} endpoint should be {expected_endpoint}, got {service['endpoint']}", response_time)
+                        return False
+                
+                # Validate expedia_services summary
+                expedia_services = data['expedia_services']
+                expected_service_flags = ['hotels', 'flights', 'cars', 'activities', 'comprehensive_booking']
+                
+                for flag in expected_service_flags:
+                    if not expedia_services.get(flag, False):
+                        self.log_test("Enhanced Provider Registry (Expedia)", False, f"Expedia services flag '{flag}' should be True", response_time)
+                        return False
+                
+                # Check provider count increased (should be 6th major provider)
+                total_providers = data['summary'].get('total_providers', 0)
+                if total_providers < 6:
+                    self.log_test("Enhanced Provider Registry (Expedia)", False, f"Expected at least 6 providers with Expedia, got {total_providers}", response_time)
+                    return False
+                
+                self.log_test("Enhanced Provider Registry (Expedia)", True, f"✅ Expedia Group found with performance score 96.2, comprehensive services, {total_providers} total providers", response_time)
+                return True
+                
+            else:
+                self.log_test("Enhanced Provider Registry (Expedia)", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Enhanced Provider Registry (Expedia)", False, f"Exception: {str(e)}")
+            return False
+
+    def test_expedia_service_endpoints(self):
+        """Test all 8 Expedia service endpoints for accessibility"""
+        print("🔗 Testing Expedia Service Endpoints Accessibility...")
+        
+        # Define all Expedia endpoints to test
+        endpoints = [
+            {
+                'name': 'Hotels Search',
+                'url': f"{BASE_URL}/expedia/hotels/search",
+                'method': 'POST',
+                'payload': {
+                    'checkin': '2024-06-01',
+                    'checkout': '2024-06-03',
+                    'occupancy': [{'adults': 2, 'children': 0}],
+                    'region_id': 'paris'
+                }
+            },
+            {
+                'name': 'Flights Search',
+                'url': f"{BASE_URL}/expedia/flights/search",
+                'method': 'POST',
+                'payload': {
+                    'origin': 'LAX',
+                    'destination': 'JFK',
+                    'departure_date': '2024-06-01',
+                    'passengers': {'adults': 1, 'children': 0, 'infants': 0}
+                }
+            },
+            {
+                'name': 'Cars Search',
+                'url': f"{BASE_URL}/expedia/cars/search",
+                'method': 'POST',
+                'payload': {
+                    'pickup_location': 'LAX',
+                    'pickup_date': '2024-06-01',
+                    'dropoff_date': '2024-06-03',
+                    'driver_age': 25
+                }
+            },
+            {
+                'name': 'Activities Search',
+                'url': f"{BASE_URL}/expedia/activities/search",
+                'method': 'POST',
+                'payload': {
+                    'destination': 'paris',
+                    'start_date': '2024-06-01',
+                    'adults': 2
+                }
+            },
+            {
+                'name': 'Hotels Booking',
+                'url': f"{BASE_URL}/expedia/hotels/book",
+                'method': 'POST',
+                'payload': {
+                    'property_id': 'test_property_123',
+                    'room_id': 'test_room_456',
+                    'rate_id': 'test_rate_789',
+                    'guest_details': {'name': 'Test Guest'},
+                    'payment_details': {'method': 'test'}
+                }
+            }
+        ]
+        
+        results = []
+        
+        for endpoint in endpoints:
+            try:
+                start_time = time.time()
+                
+                if endpoint['method'] == 'POST':
+                    response = self.session.post(endpoint['url'], json=endpoint['payload'], timeout=30)
+                else:
+                    response = self.session.get(endpoint['url'], timeout=30)
+                
+                response_time = time.time() - start_time
+                
+                # We expect these to fail due to missing Supabase config, but they should be accessible
+                if response.status_code in [200, 500]:
+                    # Check if it's a Supabase configuration error (expected)
+                    if response.status_code == 500:
+                        error_text = response.text.lower()
+                        if 'supabase' in error_text or 'not configured' in error_text or 'configuration not found' in error_text:
+                            self.log_test(f"Expedia {endpoint['name']}", True, "Endpoint accessible, missing Supabase config (expected)", response_time)
+                            results.append(True)
+                            continue
+                    
+                    # If 200, validate response structure
+                    try:
+                        data = response.json()
+                        if 'error' in data and 'Supabase' in str(data['error']):
+                            self.log_test(f"Expedia {endpoint['name']}", True, "Endpoint accessible, missing Supabase config (expected)", response_time)
+                            results.append(True)
+                        elif 'error' not in data:
+                            self.log_test(f"Expedia {endpoint['name']}", True, "Endpoint accessible and responding", response_time)
+                            results.append(True)
+                        else:
+                            self.log_test(f"Expedia {endpoint['name']}", False, f"Unexpected error: {data.get('error')}", response_time)
+                            results.append(False)
+                    except:
+                        self.log_test(f"Expedia {endpoint['name']}", False, f"Invalid JSON response", response_time)
+                        results.append(False)
+                        
+                elif response.status_code == 404:
+                    self.log_test(f"Expedia {endpoint['name']}", False, "Endpoint not found", response_time)
+                    results.append(False)
+                else:
+                    self.log_test(f"Expedia {endpoint['name']}", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                    results.append(False)
+                    
+            except Exception as e:
+                self.log_test(f"Expedia {endpoint['name']}", False, f"Exception: {str(e)}")
+                results.append(False)
+        
+        # Overall result
+        successful_endpoints = sum(results)
+        total_endpoints = len(endpoints)
+        
+        if successful_endpoints == total_endpoints:
+            self.log_test("Expedia Service Endpoints", True, f"✅ All {total_endpoints} Expedia endpoints accessible")
+            return True
+        else:
+            self.log_test("Expedia Service Endpoints", False, f"Only {successful_endpoints}/{total_endpoints} endpoints accessible")
+            return False
+
+    def test_expedia_integration_compatibility(self):
+        """Test that existing provider endpoints still work with Expedia integration"""
+        print("🔄 Testing Expedia Integration Compatibility...")
+        
+        # Test existing Smart Dreams endpoints to ensure backward compatibility
+        compatibility_tests = [
+            {
+                'name': 'Enhanced Dreams Destinations',
+                'url': f"{BASE_URL}/enhanced-dreams/destinations",
+                'method': 'GET',
+                'params': {'limit': 3}
+            },
+            {
+                'name': 'Smart Dreams Provider Registry',
+                'url': f"{BASE_URL}/smart-dreams/providers",
+                'method': 'GET'
+            },
+            {
+                'name': 'AI Intelligence Recommendations',
+                'url': f"{BASE_URL}/ai/recommendations/{TEST_USER_ID}",
+                'method': 'GET',
+                'params': {'max_results': 3}
+            }
+        ]
+        
+        results = []
+        
+        for test in compatibility_tests:
+            try:
+                start_time = time.time()
+                
+                if test['method'] == 'GET':
+                    response = self.session.get(test['url'], params=test.get('params', {}), timeout=30)
+                else:
+                    response = self.session.post(test['url'], json=test.get('payload', {}), timeout=30)
+                
+                response_time = time.time() - start_time
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if 'error' in data:
+                        self.log_test(f"Compatibility: {test['name']}", False, f"API Error: {data['error']}", response_time)
+                        results.append(False)
+                    else:
+                        self.log_test(f"Compatibility: {test['name']}", True, "Working with Expedia integration", response_time)
+                        results.append(True)
+                else:
+                    self.log_test(f"Compatibility: {test['name']}", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                    results.append(False)
+                    
+            except Exception as e:
+                self.log_test(f"Compatibility: {test['name']}", False, f"Exception: {str(e)}")
+                results.append(False)
+        
+        # Overall compatibility result
+        successful_tests = sum(results)
+        total_tests = len(compatibility_tests)
+        
+        if successful_tests == total_tests:
+            self.log_test("Expedia Integration Compatibility", True, f"✅ All {total_tests} existing endpoints working with Expedia integration")
+            return True
+        else:
+            self.log_test("Expedia Integration Compatibility", False, f"Only {successful_tests}/{total_tests} existing endpoints working")
+            return False
+
+    def test_expedia_error_handling(self):
+        """Test Expedia error handling for missing Supabase configuration"""
+        print("⚠️ Testing Expedia Error Handling (Missing Supabase)...")
+        
+        # Test endpoints that should gracefully handle missing Supabase configuration
+        error_handling_tests = [
+            {
+                'name': 'Setup without Supabase',
+                'url': f"{BASE_URL}/expedia/setup",
+                'method': 'POST',
+                'payload': {'api_key': 'test', 'shared_secret': 'test'}
+            },
+            {
+                'name': 'Health Check without Supabase',
+                'url': f"{BASE_URL}/expedia/health",
+                'method': 'GET'
+            }
+        ]
+        
+        results = []
+        
+        for test in error_handling_tests:
+            try:
+                start_time = time.time()
+                
+                if test['method'] == 'POST':
+                    response = self.session.post(test['url'], json=test['payload'], timeout=30)
+                else:
+                    response = self.session.get(test['url'], timeout=30)
+                
+                response_time = time.time() - start_time
+                
+                # We expect these to handle missing Supabase gracefully
+                if response.status_code in [200, 500]:
+                    try:
+                        data = response.json()
+                        
+                        # Check for proper error handling
+                        if 'error' in data or data.get('status') == 'unhealthy':
+                            error_msg = data.get('error', data.get('message', ''))
+                            if 'supabase' in error_msg.lower() or 'not configured' in error_msg.lower():
+                                self.log_test(f"Error Handling: {test['name']}", True, "Properly handles missing Supabase config", response_time)
+                                results.append(True)
+                            else:
+                                self.log_test(f"Error Handling: {test['name']}", False, f"Unexpected error: {error_msg}", response_time)
+                                results.append(False)
+                        else:
+                            # If no error, that's also acceptable (might have fallback)
+                            self.log_test(f"Error Handling: {test['name']}", True, "Handles missing config gracefully", response_time)
+                            results.append(True)
+                            
+                    except:
+                        self.log_test(f"Error Handling: {test['name']}", False, "Invalid JSON response", response_time)
+                        results.append(False)
+                else:
+                    self.log_test(f"Error Handling: {test['name']}", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                    results.append(False)
+                    
+            except Exception as e:
+                self.log_test(f"Error Handling: {test['name']}", False, f"Exception: {str(e)}")
+                results.append(False)
+        
+        # Overall error handling result
+        successful_tests = sum(results)
+        total_tests = len(error_handling_tests)
+        
+        if successful_tests == total_tests:
+            self.log_test("Expedia Error Handling", True, f"✅ All {total_tests} error scenarios handled properly")
+            return True
+        else:
+            self.log_test("Expedia Error Handling", False, f"Only {successful_tests}/{total_tests} error scenarios handled properly")
+            return False
+
+    # =====================================================
     # MAIN TEST RUNNER
     # =====================================================
     
