@@ -525,6 +525,544 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # ADMIN NFT AND AIRDROP MANAGEMENT TESTS
+    # =====================================================
+    
+    def test_admin_nft_templates(self):
+        """Test Admin NFT Template Management endpoint"""
+        print("🎨 Testing Admin NFT Templates...")
+        
+        url = f"{BASE_URL}/admin/nft/templates"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Admin NFT Templates", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                if 'templates' not in data:
+                    self.log_test("Admin NFT Templates", False, "Missing templates field", response_time)
+                    return False
+                
+                templates = data['templates']
+                if not isinstance(templates, list):
+                    self.log_test("Admin NFT Templates", False, "Templates is not a list", response_time)
+                    return False
+                
+                if len(templates) == 0:
+                    self.log_test("Admin NFT Templates", False, "No templates returned", response_time)
+                    return False
+                
+                # Validate first template structure
+                template = templates[0]
+                template_required = ['id', 'name', 'category', 'rarity_tier', 'requirements']
+                template_missing = [field for field in template_required if field not in template]
+                
+                if template_missing:
+                    self.log_test("Admin NFT Templates", False, f"Missing template fields: {template_missing}", response_time)
+                    return False
+                
+                self.log_test("Admin NFT Templates", True, f"Got {len(templates)} templates, first: {template['name']} ({template['category']})", response_time)
+                return True
+                
+            else:
+                self.log_test("Admin NFT Templates", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin NFT Templates", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_nft_creation(self):
+        """Test Admin NFT Creation endpoint"""
+        print("🏗️ Testing Admin NFT Creation...")
+        
+        url = f"{BASE_URL}/admin/nft/templates/create"
+        payload = {
+            "name": "Test Premium Travel NFT",
+            "category": "luxury_travel",
+            "rarity_tier": "epic",
+            "requirements": {
+                "min_booking_value": 1000,
+                "provider_restrictions": ["expedia", "amadeus"],
+                "experience_types": ["hotel", "package"]
+            },
+            "rewards": {
+                "platform_credits": 500,
+                "discount_percentage": 20,
+                "exclusive_access": True
+            },
+            "metadata": {
+                "description": "Premium travel experience NFT for luxury bookings",
+                "image_template": "luxury_travel_template",
+                "blockchain": "cronos"
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Admin NFT Creation", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'template', 'message']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Admin NFT Creation", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Admin NFT Creation", False, f"Creation failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                template = data['template']
+                if 'id' not in template or 'name' not in template:
+                    self.log_test("Admin NFT Creation", False, "Invalid template structure in response", response_time)
+                    return False
+                
+                self.log_test("Admin NFT Creation", True, f"Created template: {template['name']} (ID: {template['id']})", response_time)
+                return True
+                
+            else:
+                self.log_test("Admin NFT Creation", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin NFT Creation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_manual_nft_minting(self):
+        """Test Manual NFT Minting endpoint"""
+        print("⚒️ Testing Manual NFT Minting...")
+        
+        url = f"{BASE_URL}/admin/nft/mint/manual"
+        payload = {
+            "user_id": TEST_USER_ID,
+            "template_id": "luxury_travel_template",
+            "custom_metadata": {
+                "destination": "Maldives Luxury Resort",
+                "provider": "expedia",
+                "booking_value": 2500,
+                "experience_type": "luxury_resort",
+                "admin_note": "Manual mint for VIP customer"
+            },
+            "override_requirements": True,
+            "reason": "VIP customer reward"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Manual NFT Minting", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'nft', 'transaction_hash']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Manual NFT Minting", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Manual NFT Minting", False, f"Minting failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                nft = data['nft']
+                tx_hash = data['transaction_hash']
+                
+                # Validate NFT structure
+                nft_required = ['id', 'name', 'metadata', 'owner']
+                nft_missing = [field for field in nft_required if field not in nft]
+                
+                if nft_missing:
+                    self.log_test("Manual NFT Minting", False, f"Missing NFT fields: {nft_missing}", response_time)
+                    return False
+                
+                # Validate transaction hash format
+                if not tx_hash.startswith('0x') or len(tx_hash) != 66:
+                    self.log_test("Manual NFT Minting", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                self.log_test("Manual NFT Minting", True, f"Minted NFT: {nft['name']} for {nft['owner']}, TX: {tx_hash[:10]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Manual NFT Minting", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Manual NFT Minting", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_airdrop_events(self):
+        """Test Airdrop Event Management endpoint"""
+        print("🪂 Testing Airdrop Event Management...")
+        
+        url = f"{BASE_URL}/admin/nft/airdrop/events"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Airdrop Event Management", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                if 'events' not in data:
+                    self.log_test("Airdrop Event Management", False, "Missing events field", response_time)
+                    return False
+                
+                events = data['events']
+                if not isinstance(events, list):
+                    self.log_test("Airdrop Event Management", False, "Events is not a list", response_time)
+                    return False
+                
+                # Check summary data
+                if 'summary' in data:
+                    summary = data['summary']
+                    summary_required = ['total_events', 'active_events', 'total_participants']
+                    summary_missing = [field for field in summary_required if field not in summary]
+                    
+                    if summary_missing:
+                        self.log_test("Airdrop Event Management", False, f"Missing summary fields: {summary_missing}", response_time)
+                        return False
+                
+                # If events exist, validate first event structure
+                if len(events) > 0:
+                    event = events[0]
+                    event_required = ['id', 'name', 'status', 'start_date', 'end_date']
+                    event_missing = [field for field in event_required if field not in event]
+                    
+                    if event_missing:
+                        self.log_test("Airdrop Event Management", False, f"Missing event fields: {event_missing}", response_time)
+                        return False
+                
+                self.log_test("Airdrop Event Management", True, f"Got {len(events)} events, summary data available", response_time)
+                return True
+                
+            else:
+                self.log_test("Airdrop Event Management", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Airdrop Event Management", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_airdrop_creation(self):
+        """Test Airdrop Creation endpoint"""
+        print("🎁 Testing Airdrop Creation...")
+        
+        url = f"{BASE_URL}/admin/nft/airdrop/create"
+        payload = {
+            "name": "Test Travel Rewards Airdrop",
+            "description": "Special airdrop for active travel community members",
+            "total_tokens": 100000,
+            "eligibility_criteria": {
+                "min_tier": "explorer",
+                "min_points": 200,
+                "providers_used": ["expedia", "amadeus"],
+                "nft_holder_bonus": True
+            },
+            "distribution_schedule": {
+                "start_date": "2024-04-01T00:00:00Z",
+                "end_date": "2024-04-30T23:59:59Z",
+                "claim_period_days": 90
+            },
+            "tier_allocations": {
+                "legend": 40.0,
+                "adventurer": 30.0,
+                "explorer": 20.0,
+                "wanderer": 10.0
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Airdrop Creation", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'airdrop_event', 'estimated_participants']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Airdrop Creation", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Airdrop Creation", False, f"Creation failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                airdrop = data['airdrop_event']
+                participants = data['estimated_participants']
+                
+                # Validate airdrop structure
+                airdrop_required = ['id', 'name', 'total_tokens', 'status']
+                airdrop_missing = [field for field in airdrop_required if field not in airdrop]
+                
+                if airdrop_missing:
+                    self.log_test("Airdrop Creation", False, f"Missing airdrop fields: {airdrop_missing}", response_time)
+                    return False
+                
+                # Validate participants is a positive number
+                if not isinstance(participants, int) or participants < 0:
+                    self.log_test("Airdrop Creation", False, f"Invalid participants count: {participants}", response_time)
+                    return False
+                
+                self.log_test("Airdrop Creation", True, f"Created airdrop: {airdrop['name']} ({airdrop['total_tokens']} tokens, {participants} participants)", response_time)
+                return True
+                
+            else:
+                self.log_test("Airdrop Creation", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Airdrop Creation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_tokenomics_config(self):
+        """Test Tokenomics Configuration endpoint"""
+        print("💰 Testing Tokenomics Configuration...")
+        
+        url = f"{BASE_URL}/admin/nft/tokenomics"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Tokenomics Configuration", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['total_supply', 'distribution', 'token_amounts']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Tokenomics Configuration", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate total supply
+                total_supply = data.get('total_supply', 0)
+                if total_supply != 10000000:  # Expected 10M total supply
+                    self.log_test("Tokenomics Configuration", False, f"Unexpected total supply: {total_supply} (expected 10,000,000)", response_time)
+                    return False
+                
+                # Validate distribution percentages sum to 100%
+                distribution = data.get('distribution', {})
+                total_percentage = sum(distribution.values())
+                if abs(total_percentage - 100.0) > 0.01:
+                    self.log_test("Tokenomics Configuration", False, f"Distribution percentages don't sum to 100%: {total_percentage}%", response_time)
+                    return False
+                
+                # Validate token amounts match distribution
+                token_amounts = data.get('token_amounts', {})
+                for category, percentage in distribution.items():
+                    expected_amount = int(total_supply * percentage / 100)
+                    actual_amount = token_amounts.get(category, 0)
+                    if abs(actual_amount - expected_amount) > 1:  # Allow for rounding
+                        self.log_test("Tokenomics Configuration", False, f"Token amount mismatch for {category}: {actual_amount} vs {expected_amount}", response_time)
+                        return False
+                
+                self.log_test("Tokenomics Configuration", True, f"Total supply: {total_supply:,}, {len(distribution)} categories, distribution valid", response_time)
+                return True
+                
+            else:
+                self.log_test("Tokenomics Configuration", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Tokenomics Configuration", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_provider_bonuses(self):
+        """Test Provider Bonus Control endpoint"""
+        print("🎯 Testing Provider Bonus Control...")
+        
+        url = f"{BASE_URL}/admin/nft/provider-bonuses"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Provider Bonus Control", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                if 'provider_bonuses' not in data:
+                    self.log_test("Provider Bonus Control", False, "Missing provider_bonuses field", response_time)
+                    return False
+                
+                bonuses = data['provider_bonuses']
+                if not isinstance(bonuses, dict):
+                    self.log_test("Provider Bonus Control", False, "Provider bonuses is not a dictionary", response_time)
+                    return False
+                
+                # Check for expected providers
+                expected_providers = ['expedia', 'amadeus', 'viator', 'duffle', 'ratehawk', 'sabre']
+                missing_providers = [p for p in expected_providers if p not in bonuses]
+                
+                if missing_providers:
+                    self.log_test("Provider Bonus Control", False, f"Missing providers: {missing_providers}", response_time)
+                    return False
+                
+                # Validate Expedia has 15% bonus as specified
+                expedia_bonus = bonuses.get('expedia', 0)
+                if expedia_bonus != 15.0:
+                    self.log_test("Provider Bonus Control", False, f"Expedia bonus should be 15%, got {expedia_bonus}%", response_time)
+                    return False
+                
+                # Validate other providers have 10-12% bonuses
+                for provider, bonus in bonuses.items():
+                    if provider != 'expedia' and not (10.0 <= bonus <= 12.0):
+                        self.log_test("Provider Bonus Control", False, f"Provider {provider} bonus {bonus}% outside expected range (10-12%)", response_time)
+                        return False
+                
+                # Check summary data
+                summary_fields = ['total_providers', 'highest_bonus', 'average_bonus']
+                summary_missing = [field for field in summary_fields if field not in data]
+                
+                if summary_missing:
+                    self.log_test("Provider Bonus Control", False, f"Missing summary fields: {summary_missing}", response_time)
+                    return False
+                
+                self.log_test("Provider Bonus Control", True, f"Got {len(bonuses)} providers, Expedia: {expedia_bonus}%, avg: {data['average_bonus']:.1f}%", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Bonus Control", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Bonus Control", False, f"Exception: {str(e)}")
+            return False
+
+    def test_admin_analytics_overview(self):
+        """Test Analytics Dashboard endpoint"""
+        print("📊 Testing Analytics Dashboard...")
+        
+        url = f"{BASE_URL}/admin/nft/analytics/overview"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Analytics Dashboard", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_sections = ['nft_metrics', 'airdrop_metrics', 'tokenomics_health', 'system_health']
+                missing_sections = [section for section in required_sections if section not in data]
+                
+                if missing_sections:
+                    self.log_test("Analytics Dashboard", False, f"Missing sections: {missing_sections}", response_time)
+                    return False
+                
+                # Validate NFT metrics
+                nft_metrics = data['nft_metrics']
+                nft_required = ['total_minted', 'total_value_locked', 'holder_count', 'rarity_distribution']
+                nft_missing = [field for field in nft_required if field not in nft_metrics]
+                
+                if nft_missing:
+                    self.log_test("Analytics Dashboard", False, f"Missing NFT metrics: {nft_missing}", response_time)
+                    return False
+                
+                # Validate airdrop metrics
+                airdrop_metrics = data['airdrop_metrics']
+                airdrop_required = ['total_eligible_users', 'total_points_earned', 'provider_participation']
+                airdrop_missing = [field for field in airdrop_required if field not in airdrop_metrics]
+                
+                if airdrop_missing:
+                    self.log_test("Analytics Dashboard", False, f"Missing airdrop metrics: {airdrop_missing}", response_time)
+                    return False
+                
+                # Validate provider participation includes expected providers
+                provider_participation = airdrop_metrics.get('provider_participation', {})
+                expected_providers = ['expedia', 'amadeus', 'viator']
+                missing_providers = [p for p in expected_providers if p not in provider_participation]
+                
+                if missing_providers:
+                    self.log_test("Analytics Dashboard", False, f"Missing provider participation: {missing_providers}", response_time)
+                    return False
+                
+                # Validate system health
+                system_health = data['system_health']
+                health_required = ['blockchain_sync', 'smart_contracts_verified', 'api_endpoints_healthy']
+                health_missing = [field for field in health_required if field not in system_health]
+                
+                if health_missing:
+                    self.log_test("Analytics Dashboard", False, f"Missing system health fields: {health_missing}", response_time)
+                    return False
+                
+                # Check that system is healthy
+                if not all([
+                    system_health.get('blockchain_sync'),
+                    system_health.get('smart_contracts_verified'),
+                    system_health.get('api_endpoints_healthy')
+                ]):
+                    self.log_test("Analytics Dashboard", False, "System health checks failing", response_time)
+                    return False
+                
+                self.log_test("Analytics Dashboard", True, f"NFTs: {nft_metrics['total_minted']}, Users: {airdrop_metrics['total_eligible_users']}, System: Healthy", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics Dashboard", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics Dashboard", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # AI INTELLIGENCE LAYER TESTS
     # =====================================================
     
