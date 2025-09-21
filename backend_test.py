@@ -648,16 +648,15 @@ class MakuTravelBackendTester:
         
         url = f"{BASE_URL}/admin/nft/mint/manual"
         payload = {
-            "user_id": TEST_USER_ID,
+            "recipient_address": "0x742d35Cc6346C4C75eE21F7bA0C9a3De5C4B6aAe",  # Added required field
             "template_id": "luxury_travel_template",
-            "custom_metadata": {
+            "metadata_override": {  # Changed from custom_metadata to metadata_override
                 "destination": "Maldives Luxury Resort",
                 "provider": "expedia",
                 "booking_value": 2500,
                 "experience_type": "luxury_resort",
                 "admin_note": "Manual mint for VIP customer"
             },
-            "override_requirements": True,
             "reason": "VIP customer reward"
         }
         
