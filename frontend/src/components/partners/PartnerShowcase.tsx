@@ -32,9 +32,10 @@ interface Partner {
 
 interface PartnerShowcaseProps {
   variant?: 'full' | 'compact' | 'cards';
+  showTitle?: boolean;
 }
 
-const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full' }) => {
+const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', showTitle = true }) => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [showExpediaDetails, setShowExpediaDetails] = useState(false);
