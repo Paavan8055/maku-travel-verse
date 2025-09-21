@@ -34,99 +34,125 @@ interface PartnerShowcaseProps {
   variant?: 'full' | 'compact' | 'cards';
 }
 
-export const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ 
-  className = '', 
-  showTitle = true,
-  variant = 'full' 
-}) => {
-  const [partners] = useState<Partner[]>(MOCK_PARTNERS);
-  const [activePartner, setActivePartner] = useState<Partner | null>(null);
+const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full' }) => {
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showExpediaDetails, setShowExpediaDetails] = useState(false);
 
-  const renderPerformanceScore = (score: number) => {
-    const getScoreColor = (score: number) => {
-      if (score >= 90) return 'text-green-600 bg-green-100';
-      if (score >= 80) return 'text-orange-600 bg-orange-100';
-      return 'text-red-600 bg-red-100';
-    };
+  useEffect(() => {
+    fetchPartners();
+  }, []);
 
-    return (
-      <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full ${getScoreColor(score)}`}>
-        <TrendingUp className="h-4 w-4" />
-        <span className="text-sm font-semibold">{score}%</span>
-      </div>
-    );
+  const fetchPartners = async () => {
+    try {
+      const backendUrl = import.meta.env.VITE_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/api/smart-dreams/providers`);
+      const data = await response.json();
+      
+      if (data.providers) {
+        // Filter for key partners including Expedia
+        const keyPartners = data.providers.filter((p: Partner) => 
+          ['Amadeus', 'Sabre', 'Viator', 'Duffle', 'RateHawk', 'Expedia Group'].includes(p.name)
+        );
+        setPartners(keyPartners);
+      }
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      // Fallback to mock data including Expedia
+      setPartners([
+        {
+          id: 'amadeus-001',
+          name: 'Amadeus',
+          type: 'hotel',
+          performance_score: 92.5,
+          specialties: ['Global hotel inventory', 'Real-time availability', 'Corporate rates'],
+          features: ['Price matching', 'Instant confirmation', '24/7 support'],
+          status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'sabre-001', 
+          name: 'Sabre',
+          type: 'flight',
+          performance_score: 88.7,
+          specialties: ['Flight booking', 'Airline partnerships', 'Route optimization'],
+          features: ['Multi-city booking', 'Seat selection', 'Meal preferences'],
+          status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'viator-001',
+          name: 'Viator',
+          type: 'activity', 
+          performance_score: 85.2,
+          specialties: ['Tours and activities', 'Local experiences', 'Skip-the-line tickets'],
+          features: ['Expert guides', 'Small groups', 'Cultural immersion'],
+          status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'duffle-001',
+          name: 'Duffle',
+          type: 'flight',
+          performance_score: 94.8,
+          specialties: ['Modern flight booking', 'Direct airline connectivity', 'Ancillary services'],
+          features: ['Real-time availability', 'Dynamic pricing', 'Seat maps'],
+          demo_label: '✨ DEMO DATA',
+          status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'ratehawk-001',
+          name: 'RateHawk',
+          type: 'hotel',
+          performance_score: 91.3,
+          specialties: ['Hotel inventory', 'Competitive rates', 'Global coverage'],
+          features: ['Best price guarantee', 'Instant booking', 'Multi-language support'],
+          demo_label: '✨ DEMO DATA',
+          status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'expedia-001',
+          name: 'Expedia Group',
+          type: 'comprehensive',
+          performance_score: 96.2,
+          specialties: ['Complete travel ecosystem', 'Hotels & flights', 'Cars & activities', 'Package deals'],
+          features: ['EPS Rapid API', 'Multi-service booking', 'Global inventory', 'Loyalty rewards'],
+          status: 'active',
+          health_status: 'healthy'
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderPartnerCard = (partner: Partner, index: number) => {
-    const Icon = PARTNER_ICONS[partner.type];
-    const colors = PARTNER_COLORS[partner.type];
-    
+  const getProviderIcon = (type: string, name: string) => {
+    if (name === 'Expedia Group') return Globe;
+    switch (type) {
+      case 'flight': return Plane;
+      case 'hotel': return Hotel;
+      case 'activity': return MapPin;
+      case 'car': return Car;
+      case 'comprehensive': return Globe;
+      default: return Globe;
+    }
+  };
+
+  const getProviderColor = (score: number, name: string) => {
+    if (name === 'Expedia Group') return 'from-blue-600 via-purple-600 to-orange-600';
+    if (score >= 95) return 'from-green-500 to-emerald-600';
+    if (score >= 90) return 'from-blue-500 to-cyan-600';
+    if (score >= 85) return 'from-purple-500 to-violet-600';
+    return 'from-gray-500 to-slate-600';
+  };
+
+  if (loading) {
     return (
-      <MakuCard 
-        key={partner.name}
-        variant="elevated"
-        className={`${colors.bg} ${colors.border} border-2 p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer relative overflow-hidden group`}
-        onClick={() => setActivePartner(partner)}
-      >
-        {/* Demo Badge */}
-        {partner.demo_label && (
-          <Badge className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs border-0">
-            {partner.demo_label}
-          </Badge>
-        )}
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className={`p-3 rounded-xl ${colors.accent} group-hover:scale-110 transition-transform duration-300`}>
-              <Icon className={`h-6 w-6 ${colors.icon}`} />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">{partner.name}</h3>
-              <p className="text-sm text-gray-600 capitalize">{partner.type} Provider</p>
-            </div>
-          </div>
-          {renderPerformanceScore(partner.performance)}
-        </div>
-
-        {/* Status */}
-        <div className="flex items-center space-x-2 mb-4">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <span className="text-sm font-medium text-gray-700">
-            {partner.status === 'production' ? 'Live & Active' : 'Demo Integration'}
-          </span>
-        </div>
-
-        {/* Specialties */}
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Specialties</h4>
-          <div className="flex flex-wrap gap-1.5">
-            {partner.specialties.slice(0, 3).map((specialty) => (
-              <Badge 
-                key={specialty}
-                variant="secondary"
-                className="text-xs bg-white/70 text-gray-700 border-gray-200"
-              >
-                {specialty}
-              </Badge>
-            ))}
-            {partner.specialties.length > 3 && (
-              <Badge variant="secondary" className="text-xs bg-white/70 text-gray-500">
-                +{partner.specialties.length - 3} more
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {/* Integration Date */}
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Clock className="h-4 w-4" />
-          <span>Integrated {new Date(partner.integration_date).getFullYear()}</span>
-        </div>
-
-        {/* Hover Effect Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-      </MakuCard>
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
     );
   };
 
