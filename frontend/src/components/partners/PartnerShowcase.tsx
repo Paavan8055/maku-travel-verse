@@ -1,108 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { MakuCard, MakuButton, MakuColors } from '@/components/branding/MakuBrandSystem';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
+  Globe, 
   Plane, 
-  Building2, 
+  Hotel, 
   MapPin, 
-  Star, 
+  Car,
   Shield, 
-  Zap, 
-  Award, 
-  TrendingUp,
-  Globe,
-  Users,
-  Clock,
-  CheckCircle2
-} from "lucide-react";
+  Clock, 
+  Star, 
+  TrendingUp, 
+  Zap,
+  Award,
+  ExternalLink
+} from 'lucide-react';
+import ExpediaShowcase from './ExpediaShowcase';
 
 interface Partner {
+  id: string;
   name: string;
-  type: 'flight' | 'hotel' | 'activity';
-  status: 'production' | 'demo';
-  performance: number;
+  type: string;
+  performance_score: number;
   specialties: string[];
-  integration_date: string;
+  features: string[];
   demo_label?: string;
+  status: string;
+  health_status: string;
 }
 
 interface PartnerShowcaseProps {
-  className?: string;
-  showTitle?: boolean;
   variant?: 'full' | 'compact' | 'cards';
 }
-
-const PARTNER_ICONS = {
-  flight: Plane,
-  hotel: Building2,
-  activity: MapPin
-};
-
-const PARTNER_COLORS = {
-  flight: {
-    bg: 'bg-gradient-to-br from-blue-50 to-indigo-100',
-    border: 'border-blue-200',
-    icon: 'text-blue-600',
-    accent: 'bg-blue-100 text-blue-800'
-  },
-  hotel: {
-    bg: 'bg-gradient-to-br from-green-50 to-emerald-100', 
-    border: 'border-green-200',
-    icon: 'text-green-600',
-    accent: 'bg-green-100 text-green-800'
-  },
-  activity: {
-    bg: 'bg-gradient-to-br from-orange-50 to-amber-100',
-    border: 'border-orange-200', 
-    icon: 'text-orange-600',
-    accent: 'bg-orange-100 text-orange-800'
-  }
-};
-
-const MOCK_PARTNERS: Partner[] = [
-  {
-    name: "Amadeus",
-    type: "flight",
-    status: "production",
-    performance: 92.5,
-    specialties: ["Global Network", "Corporate Travel", "NDC Technology"],
-    integration_date: "2018-03-15"
-  },
-  {
-    name: "Sabre", 
-    type: "hotel",
-    status: "production",
-    performance: 88.2,
-    specialties: ["Hotel Chain Partnerships", "Corporate Rates", "GDS Integration"],
-    integration_date: "2019-07-22"
-  },
-  {
-    name: "Viator",
-    type: "activity", 
-    status: "production",
-    performance: 85.7,
-    specialties: ["Tours", "Experiences", "Local Activities", "Skip-the-line"],
-    integration_date: "2020-01-10"
-  },
-  {
-    name: "Duffle",
-    type: "flight",
-    status: "demo", 
-    performance: 94.8,
-    specialties: ["Direct Airlines", "Modern API", "Ancillary Services", "Real-time Pricing"],
-    integration_date: "2025-01-15",
-    demo_label: "✨ DEMO"
-  },
-  {
-    name: "RateHawk",
-    type: "hotel",
-    status: "demo",
-    performance: 91.3, 
-    specialties: ["2.9M Properties", "280+ Suppliers", "Real-time Booking", "Global Coverage"],
-    integration_date: "2025-01-15",
-    demo_label: "✨ DEMO"
-  }
-];
 
 export const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ 
   className = '', 
