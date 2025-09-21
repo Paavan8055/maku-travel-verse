@@ -46,7 +46,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/logos/maku-logo-head-circular.png" 
+          src="/logos/maku-logo-head-circular.svg" 
           alt="Maku.Travel - Dog Head Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
         />
@@ -63,7 +63,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/logos/maku-logo-full-circular.png" 
+          src="/logos/maku-logo-full-circular.svg" 
           alt="Maku.Travel - Full Circular Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
         />
@@ -80,7 +80,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src="/logos/maku-logo-complete.png" 
+          src="/logos/maku-logo-complete.svg" 
           alt="Maku.Travel - Complete Logo with Text (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
         />
@@ -97,7 +97,7 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src="/logos/maku-logo-text-only.png" 
+          src="/logos/maku-logo-text-only.svg" 
           alt="Maku.Travel - Text Only Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
         />
