@@ -1,7 +1,8 @@
 import React from 'react';
+import LogoResolver from '@/utils/logoResolver';
 
 // Maku.Travel Brand System Component Library  
-// Using ONLY the exact user-provided logos from /logos/ directory
+// Using ONLY the exact user-provided logos with intelligent path resolution
 // NO MODIFICATIONS ALLOWED - Using exact uploaded files only
 
 export interface MakuBrandConfig {
