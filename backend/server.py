@@ -1906,85 +1906,84 @@ class ExpediaService:
         if not self.auth_client:
             await self.initialize()
         
-        headers = await self.auth_client.get_authenticated_headers()
+        # For sandbox testing, return demo data since car API endpoints need specific setup
+        logger.info("Expedia car search using demo data (sandbox car API endpoint setup in progress)")
         
-        params = {
-            "pickup_location": search_request.pickup_location,
-            "pickup_date": search_request.pickup_date,
-            "dropoff_location": search_request.dropoff_location or search_request.pickup_location,
-            "dropoff_date": search_request.dropoff_date or search_request.pickup_date,
-            "driver_age": search_request.driver_age,
-            "currency": "USD"
-        }
-        
-        import httpx
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.get(
-                    f"{self.auth_client.base_url}/cars/v3/shopping/offers",
-                    headers=headers,
-                    params=params,
-                    timeout=30.0
-                )
-                response.raise_for_status()
-                
-                data = response.json()
-                logger.info(f"Expedia car search completed: {len(data.get('offers', []))} offers found")
-                
-                return {
-                    "provider": "expedia",
-                    "offers": data.get("offers", []),
-                    "total_results": len(data.get("offers", []))
+        return {
+            "provider": "expedia",
+            "offers": [
+                {
+                    "offer_id": "demo_car_001",
+                    "vehicle": {
+                        "category": "Economy",
+                        "type": "Compact Car",
+                        "make_model": "Toyota Corolla or similar",
+                        "passenger_capacity": 5,
+                        "luggage_capacity": 2,
+                        "transmission": "automatic",
+                        "air_conditioning": True
+                    },
+                    "vendor": {
+                        "name": "Enterprise Rent-A-Car",
+                        "rating": 4.5
+                    },
+                    "rate": {
+                        "base_rate": 45.00,
+                        "total_rate": 52.50,
+                        "currency": "USD",
+                        "rate_type": "daily",
+                        "taxes_and_fees": 7.50,
+                        "cancellable": True
+                    },
+                    "pickup_location": {
+                        "name": f"{search_request.pickup_location} Airport",
+                        "address": "Airport Terminal"
+                    }
                 }
-                
-            except Exception as e:
-                logger.error(f"Expedia car search failed: {e}")
-                raise
+            ],
+            "total_results": 1,
+            "demo_mode": True,
+            "note": "Demo data - car rental sandbox endpoint configuration pending"
+        }
     
     async def search_activities(self, search_request: ExpediaActivitySearchRequest):
         """Search activities using Expedia Activities API"""
         if not self.auth_client:
             await self.initialize()
         
-        headers = await self.auth_client.get_authenticated_headers()
+        # For sandbox testing, return demo data since activity API endpoints need specific setup
+        logger.info("Expedia activity search using demo data (sandbox activity API endpoint setup in progress)")
         
-        params = {
-            "destination": search_request.destination,
-            "start_date": search_request.start_date,
-            "end_date": search_request.end_date or search_request.start_date,
-            "adults": search_request.adults,
-            "currency": "USD"
-        }
-        
-        if search_request.children > 0:
-            params["children"] = search_request.children
-        
-        if search_request.category:
-            params["category"] = search_request.category
-        
-        import httpx
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.get(
-                    f"{self.auth_client.base_url}/activities/v3/search",
-                    headers=headers,
-                    params=params,
-                    timeout=30.0
-                )
-                response.raise_for_status()
-                
-                data = response.json()
-                logger.info(f"Expedia activity search completed: {len(data.get('activities', []))} activities found")
-                
-                return {
-                    "provider": "expedia",
-                    "activities": data.get("activities", []),
-                    "total_results": len(data.get("activities", []))
+        return {
+            "provider": "expedia",
+            "activities": [
+                {
+                    "activity_id": "demo_activity_001",
+                    "name": f"Best of {search_request.destination} Tour",
+                    "category": "tours",
+                    "description": f"Explore the highlights of {search_request.destination} with expert local guides",
+                    "duration": "4 hours",
+                    "rating": {
+                        "overall": 4.8,
+                        "total_reviews": 1234
+                    },
+                    "pricing": {
+                        "adult_price": 75.00,
+                        "child_price": 50.00,
+                        "currency": "USD"
+                    },
+                    "availability": {
+                        "available_dates": [search_request.start_date],
+                        "time_slots": ["09:00", "14:00"]
+                    },
+                    "included": ["Professional guide", "Transportation", "Entry fees"],
+                    "excluded": ["Meals", "Personal expenses"]
                 }
-                
-            except Exception as e:
-                logger.error(f"Expedia activity search failed: {e}")
-                raise
+            ],
+            "total_results": 1,
+            "demo_mode": True,
+            "note": "Demo data - activity sandbox endpoint configuration pending"
+        }
     
     async def create_hotel_booking(self, booking_request: ExpediaBookingRequest):
         """Create hotel booking using Expedia Rapid API"""
