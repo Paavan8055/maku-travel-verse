@@ -3101,6 +3101,16 @@ async def check_expedia_health():
         if not expedia_service.config:
             await expedia_service.initialize()
         
+        # Check if initialization was successful
+        if not expedia_service.auth_client:
+            return {
+                "provider": "expedia",
+                "status": "unhealthy",
+                "error": "Expedia service not initialized - Supabase configuration required",
+                "authenticated": False,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
         # Test authentication
         token = await expedia_service.auth_client.get_access_token()
         
