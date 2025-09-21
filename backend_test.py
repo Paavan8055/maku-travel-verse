@@ -4015,6 +4015,15 @@ class MakuTravelBackendTester:
                 self.test_ai_feedback,
                 self.test_recommendation_explanation
             ]),
+            ("NFT & Airdrop Integration", [
+                self.test_nft_collection_endpoint,
+                self.test_airdrop_eligibility_endpoint,
+                self.test_quest_system_endpoint,
+                self.test_booking_reward_endpoint,
+                self.test_nft_minting_endpoint,
+                self.test_provider_integration_verification,
+                self.test_data_consistency_check
+            ]),
             ("Expedia Group API Integration", [
                 self.test_expedia_car_search_endpoint,
                 self.test_expedia_activity_search_endpoint,
