@@ -133,10 +133,9 @@ export default function Dashboard() {
               <Button 
                 variant="secondary" 
                 className="w-full h-10 text-sm font-medium"
-                onClick={() => navigate('/travel-fund')}
+                onClick={() => navigate('/itinerary-generator')}
               >
-                <Coins className="mr-2 h-4 w-4" />
-                Travel Fund
+                Plan Trip
               </Button>
             </CardContent>
           </Card>

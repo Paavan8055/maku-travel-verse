@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield, Coins, Heart } from "lucide-react";
+import { Search, User, Menu, X, Globe, LogOut, Plane, Gift, MapPin, Rocket, Users as UsersIcon, ChevronDown, Shield, Coins, Heart, Calendar, Route } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -93,6 +93,16 @@ const Navbar = () => {
             >
               <MapPin className="h-4 w-4" aria-hidden="true" />
               <span>{t('navigation.activities')}</span>
+            </Button>
+            
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/itinerary-generator')} role="menuitem">
+              <Calendar className="h-4 w-4" aria-hidden="true" />
+              <span>Plan Trip</span>
+            </Button>
+            
+            <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/trip-planner')} role="menuitem">
+              <Route className="h-4 w-4" aria-hidden="true" />
+              <span>Custom Itinerary</span>
             </Button>
             
             <Button variant="ghost" className="text-foreground hover:text-primary flex items-center space-x-1" onClick={() => navigate('/travel-fund')} role="menuitem">
@@ -226,6 +236,20 @@ const Navbar = () => {
               >
                 <MapPin className="mr-2 h-4 w-4" />
                 Activities
+              </Button>
+              <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                navigate('/itinerary-generator');
+                setIsMenuOpen(false);
+              }}>
+                <Calendar className="mr-2 h-4 w-4" />
+                Plan Trip
+              </Button>
+              <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                navigate('/trip-planner');
+                setIsMenuOpen(false);
+              }}>
+                <Route className="mr-2 h-4 w-4" />
+                Custom Itinerary
               </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => {
                 navigate('/travel-fund');

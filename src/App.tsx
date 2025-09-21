@@ -100,8 +100,11 @@ const AutomationHubPage = createLazyRoute(() => import("./pages/admin/automation
 const WorkflowsPage = createLazyRoute(() => import("./pages/admin/automation/workflows"));
 const OrchestrationPage = createLazyRoute(() => import("./pages/admin/automation/orchestration"));
 const AgentCoordinationPage = createLazyRoute(() => import("./pages/admin/coordination/agent-orchestration"));
+const AdminItineraryManagementPage = createLazyRoute(() => import("./pages/admin/AdminItineraryManagement"));
 
 const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
+const ItineraryPlannerPage = createLazyRoute(() => import("./features/itinerary/components/ItineraryPlanner"));
+const PersonalizedItineraryPage = createLazyRoute(() => import("./pages/PersonalizedItinerary"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -194,9 +197,11 @@ const App = () => (
                                          <Route path="/bookings" element={<BookingsPage />} />
                                          <Route path="/my-trips" element={<MyTripsPage />} />
                                          <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
-                                        <Route path="/invite-friends" element={<InviteFriendsPage />} />
-                                        <Route path="/sitemap.xml" element={<SitemapRoute />} />
-                                        <Route path="/admin" element={<AdminAuth />} />
+                                         <Route path="/invite-friends" element={<InviteFriendsPage />} />
+                                         <Route path="/itinerary-generator" element={<ItineraryPlannerPage />} />
+                                         <Route path="/trip-planner" element={<PersonalizedItineraryPage />} />
+                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
+                                         <Route path="/admin" element={<AdminAuth />} />
                                        <Route path="/admin/*" element={
                                          <AdminGuard>
                                            <AdminLayout />
@@ -235,9 +240,10 @@ const App = () => (
                            <Route path="automation/hub" element={<AutomationHubPage />} />
                             <Route path="automation/workflows" element={<WorkflowsPage />} />
                             <Route path="automation/orchestration" element={<OrchestrationPage />} />
-                            <Route path="coordination/agents" element={<AgentCoordinationPage />} />
-                           
-                            {/* Settings Routes */}
+                             <Route path="coordination/agents" element={<AgentCoordinationPage />} />
+                             <Route path="itinerary-management" element={<AdminItineraryManagementPage />} />
+                            
+                             {/* Settings Routes */}
                            <Route path="settings/features" element={<AdminFeatureFlagsPage />} />
                            <Route path="settings/environment" element={<AdminEnvironmentPage />} />
                            <Route path="settings/providers" element={<AdminProvidersSettingsPage />} />
