@@ -1489,6 +1489,423 @@ class ExpediaActivitySearchRequest(BaseModel):
     children: int = 0
     category: Optional[str] = None
 
+# ==================================================
+# EXPEDIA GROUP API INTEGRATION - COMPREHENSIVE SERVICE
+# ==================================================
+
+async def get_supabase_config(provider: str, environment: str = "production"):
+    """Get provider configuration from Supabase"""
+    try:
+        from supabase import create_client, Client
+        
+        # Initialize Supabase client (in production, use environment variables)
+        supabase_url = os.environ.get('SUPABASE_URL')
+        supabase_key = os.environ.get('SUPABASE_ANON_KEY')
+        
+        if not supabase_url or not supabase_key:
+            logger.error("Supabase credentials not configured")
+            return None
+            
+        supabase: Client = create_client(supabase_url, supabase_key)
+        
+        # Query api_configuration table
+        result = supabase.table('api_configuration').select('*').eq('provider', provider).eq('environment', environment).eq('is_active', True).execute()
+        
+        if result.data and len(result.data) > 0:
+            config_data = result.data[0]['config_data']
+            return config_data
+        
+        logger.warning(f"No configuration found for provider {provider} in environment {environment}")
+        return None
+        
+    except Exception as e:
+        logger.error(f"Failed to get Supabase config for {provider}: {e}")
+        return None
+
+async def store_supabase_config(provider: str, config_data: dict, environment: str = "production"):
+    """Store provider configuration in Supabase"""
+    try:
+        from supabase import create_client, Client
+        
+        supabase_url = os.environ.get('SUPABASE_URL')
+        supabase_key = os.environ.get('SUPABASE_ANON_KEY')
+        
+        if not supabase_url or not supabase_key:
+            logger.error("Supabase credentials not configured")
+            return False
+            
+        supabase: Client = create_client(supabase_url, supabase_key)
+        
+        # Insert or update configuration
+        result = supabase.table('api_configuration').upsert({
+            'provider': provider,
+            'environment': environment,
+            'config_data': config_data,
+            'is_active': True
+        }).execute()
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to store Supabase config for {provider}: {e}")
+        return False
+
+class ExpediaAuthClient:
+    def __init__(self, config: Dict[str, Any]):
+        self.api_key = config.get('api_key')
+        self.shared_secret = config.get('shared_secret')
+        self.base_url = config.get('base_url', 'https://api.expediagroup.com')
+        self.test_mode = config.get('test_mode', False)
+        
+        if self.test_mode:
+            self.base_url = config.get('sandbox_url', 'https://api.sandbox.expediagroup.com')
+        
+        self.access_token = None
+        self.token_expires_at = None
+    
+    async def get_access_token(self):
+        """Get OAuth2 access token from Expedia API"""
+        if self.access_token and self.token_expires_at and datetime.utcnow() < self.token_expires_at:
+            return self.access_token
+        
+        import base64
+        import httpx
+        
+        # Encode credentials to Base64
+        credentials = f"{self.api_key}:{self.shared_secret}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": f"Basic {encoded_credentials}"
+        }
+        
+        data = {"grant_type": "client_credentials"}
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(
+                    f"{self.base_url}/identity/oauth2/v3/token",
+                    headers=headers,
+                    data=data,
+                    timeout=30.0
+                )
+                response.raise_for_status()
+                
+                token_data = response.json()
+                self.access_token = token_data["access_token"]
+                expires_in = token_data.get("expires_in", 1800)
+                self.token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in - 60)
+                
+                logger.info("Successfully obtained Expedia access token")
+                return self.access_token
+                
+            except Exception as e:
+                logger.error(f"Failed to obtain Expedia access token: {e}")
+                raise
+    
+    async def get_authenticated_headers(self):
+        """Get headers with valid authentication token"""
+        token = await self.get_access_token()
+        return {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+
+class ExpediaService:
+    def __init__(self):
+        self.auth_client = None
+        self.config = None
+    
+    async def initialize(self):
+        """Initialize Expedia service with configuration from Supabase"""
+        try:
+            # Get configuration from Supabase
+            config = await get_supabase_config('expedia')
+            if not config:
+                logger.error("Expedia configuration not found in Supabase")
+                return False
+            
+            self.config = config
+            self.auth_client = ExpediaAuthClient(config)
+            
+            # Test authentication
+            await self.auth_client.get_access_token()
+            logger.info("Expedia service initialized successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize Expedia service: {e}")
+            return False
+    
+    async def search_hotels(self, search_request: ExpediaHotelSearchRequest):
+        """Search hotels using Expedia Rapid API"""
+        if not self.auth_client:
+            await self.initialize()
+        
+        headers = await self.auth_client.get_authenticated_headers()
+        
+        # Build search parameters
+        params = {
+            "checkin": search_request.checkin,
+            "checkout": search_request.checkout,
+            "currency": "USD",
+            "language": "en-US",
+            "country_code": "US",
+            "include": ",".join(search_request.include)
+        }
+        
+        # Add occupancy
+        for i, occupancy in enumerate(search_request.occupancy):
+            params[f"occupancy[{i}].adults"] = occupancy.get("adults", 2)
+            if occupancy.get("children", 0) > 0:
+                params[f"occupancy[{i}].children"] = occupancy["children"]
+        
+        # Add property IDs if specified
+        if search_request.property_ids:
+            params["property_id"] = ",".join(search_request.property_ids)
+        
+        import httpx
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.auth_client.base_url}/rapid/lodging/v3/properties/availability",
+                    headers=headers,
+                    params=params,
+                    timeout=30.0
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                logger.info(f"Expedia hotel search completed: {len(data.get('data', []))} properties found")
+                
+                return {
+                    "provider": "expedia",
+                    "properties": data.get("data", []),
+                    "search_id": data.get("search_id"),
+                    "total_results": len(data.get("data", []))
+                }
+                
+            except Exception as e:
+                logger.error(f"Expedia hotel search failed: {e}")
+                raise
+    
+    async def search_flights(self, search_request: ExpediaFlightSearchRequest):
+        """Search flights using Expedia Flight API"""
+        if not self.auth_client:
+            await self.initialize()
+        
+        headers = await self.auth_client.get_authenticated_headers()
+        
+        params = {
+            "origin": search_request.origin,
+            "destination": search_request.destination,
+            "departure_date": search_request.departure_date,
+            "cabin_class": search_request.cabin_class,
+            "currency": "USD",
+            "adults": search_request.passengers.get("adults", 1)
+        }
+        
+        if search_request.return_date:
+            params["return_date"] = search_request.return_date
+        
+        if search_request.passengers.get("children", 0) > 0:
+            params["children"] = search_request.passengers["children"]
+        
+        import httpx
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.auth_client.base_url}/flights/v3/shopping/offers",
+                    headers=headers,
+                    params=params,
+                    timeout=45.0
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                logger.info(f"Expedia flight search completed: {len(data.get('offers', []))} offers found")
+                
+                return {
+                    "provider": "expedia",
+                    "offers": data.get("offers", []),
+                    "total_results": len(data.get("offers", []))
+                }
+                
+            except Exception as e:
+                logger.error(f"Expedia flight search failed: {e}")
+                raise
+    
+    async def search_cars(self, search_request: ExpediaCarSearchRequest):
+        """Search car rentals using Expedia Car API"""
+        if not self.auth_client:
+            await self.initialize()
+        
+        headers = await self.auth_client.get_authenticated_headers()
+        
+        params = {
+            "pickup_location": search_request.pickup_location,
+            "pickup_date": search_request.pickup_date,
+            "dropoff_location": search_request.dropoff_location or search_request.pickup_location,
+            "dropoff_date": search_request.dropoff_date or search_request.pickup_date,
+            "driver_age": search_request.driver_age,
+            "currency": "USD"
+        }
+        
+        import httpx
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.auth_client.base_url}/cars/v3/shopping/offers",
+                    headers=headers,
+                    params=params,
+                    timeout=30.0
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                logger.info(f"Expedia car search completed: {len(data.get('offers', []))} offers found")
+                
+                return {
+                    "provider": "expedia",
+                    "offers": data.get("offers", []),
+                    "total_results": len(data.get("offers", []))
+                }
+                
+            except Exception as e:
+                logger.error(f"Expedia car search failed: {e}")
+                raise
+    
+    async def search_activities(self, search_request: ExpediaActivitySearchRequest):
+        """Search activities using Expedia Activities API"""
+        if not self.auth_client:
+            await self.initialize()
+        
+        headers = await self.auth_client.get_authenticated_headers()
+        
+        params = {
+            "destination": search_request.destination,
+            "start_date": search_request.start_date,
+            "end_date": search_request.end_date or search_request.start_date,
+            "adults": search_request.adults,
+            "currency": "USD"
+        }
+        
+        if search_request.children > 0:
+            params["children"] = search_request.children
+        
+        if search_request.category:
+            params["category"] = search_request.category
+        
+        import httpx
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.auth_client.base_url}/activities/v3/search",
+                    headers=headers,
+                    params=params,
+                    timeout=30.0
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                logger.info(f"Expedia activity search completed: {len(data.get('activities', []))} activities found")
+                
+                return {
+                    "provider": "expedia",
+                    "activities": data.get("activities", []),
+                    "total_results": len(data.get("activities", []))
+                }
+                
+            except Exception as e:
+                logger.error(f"Expedia activity search failed: {e}")
+                raise
+    
+    async def create_hotel_booking(self, booking_request: ExpediaBookingRequest):
+        """Create hotel booking using Expedia Rapid API"""
+        if not self.auth_client:
+            await self.initialize()
+        
+        headers = await self.auth_client.get_authenticated_headers()
+        
+        # First do price check
+        price_check_params = {
+            "property_id": booking_request.property_id,
+            "room_id": booking_request.room_id,
+            "rate_id": booking_request.rate_id
+        }
+        
+        import httpx
+        async with httpx.AsyncClient() as client:
+            try:
+                # Price check
+                price_response = await client.get(
+                    f"{self.auth_client.base_url}/rapid/lodging/v3/properties/price-check",
+                    headers=headers,
+                    params=price_check_params,
+                    timeout=30.0
+                )
+                price_response.raise_for_status()
+                price_data = price_response.json()
+                
+                if not price_data.get("available", False):
+                    raise ValueError("Selected rate is no longer available")
+                
+                # Create booking payload
+                booking_payload = {
+                    "affiliateReferenceId": f"booking_{int(datetime.utcnow().timestamp())}",
+                    "hold": booking_request.guest_details.get("hold", False),
+                    "email": booking_request.guest_details["email"],
+                    "phone": {
+                        "country_code": "1",
+                        "area_code": booking_request.guest_details["phone"][:3],
+                        "number": booking_request.guest_details["phone"][3:]
+                    },
+                    "rooms": [{
+                        "room_id": booking_request.room_id,
+                        "rate_id": booking_request.rate_id,
+                        "travelers": [{
+                            "first_name": booking_request.guest_details["first_name"],
+                            "last_name": booking_request.guest_details["last_name"]
+                        }]
+                    }],
+                    "payments": [{
+                        "type": "credit_card",
+                        "number": booking_request.payment_details["card_number"],
+                        "security_code": booking_request.payment_details["cvv"],
+                        "expiration_month": booking_request.payment_details["expiry_month"],
+                        "expiration_year": booking_request.payment_details["expiry_year"]
+                    }]
+                }
+                
+                # Create booking
+                booking_response = await client.post(
+                    f"{self.auth_client.base_url}/rapid/lodging/v3/itineraries",
+                    headers=headers,
+                    json=booking_payload,
+                    timeout=60.0
+                )
+                booking_response.raise_for_status()
+                
+                booking_data = booking_response.json()
+                logger.info(f"Expedia hotel booking created: {booking_data.get('itinerary_id')}")
+                
+                return {
+                    "booking_id": booking_data.get("itinerary_id"),
+                    "confirmation_code": booking_data.get("confirmation_code"),
+                    "status": "confirmed",
+                    "total_price": booking_data.get("total", {}).get("value"),
+                    "currency": booking_data.get("total", {}).get("currency")
+                }
+                
+            except Exception as e:
+                logger.error(f"Expedia hotel booking failed: {e}")
+                raise
+
+# Global Expedia service instance
+expedia_service = ExpediaService()
+
 # Enhanced Security & Blockchain-Ready Models
 
 class BlockchainMetadata(BaseModel):
