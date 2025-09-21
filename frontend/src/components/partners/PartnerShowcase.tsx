@@ -160,10 +160,12 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
   if (variant === 'compact') {
     return (
       <div className="space-y-4">
-        <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Trusted Travel Partners</h3>
-          <p className="text-gray-600">Powered by industry-leading providers</p>
-        </div>
+        {showTitle && (
+          <div className="text-center mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Trusted Travel Partners</h3>
+            <p className="text-gray-600">Powered by industry-leading providers</p>
+          </div>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {partners.slice(0, 6).map((partner) => {
             const IconComponent = getProviderIcon(partner.type, partner.name);
