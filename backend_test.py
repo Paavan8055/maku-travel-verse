@@ -4517,7 +4517,34 @@ class MakuTravelBackendTester:
     # MAIN TEST RUNNER
     # =====================================================
     
-    def run_all_tests(self):
+    def run_admin_nft_tests(self):
+        """Run all Admin NFT and Airdrop management tests"""
+        print("🔐 STARTING ADMIN NFT & AIRDROP MANAGEMENT TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_admin_nft_templates,
+            self.test_admin_nft_creation,
+            self.test_admin_manual_nft_minting,
+            self.test_admin_airdrop_events,
+            self.test_admin_airdrop_creation,
+            self.test_admin_tokenomics_config,
+            self.test_admin_provider_bonuses,
+            self.test_admin_analytics_overview
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print("=" * 60)
+        print(f"🔐 ADMIN NFT TESTS COMPLETE: {passed}/{total} passed ({(passed/total)*100:.1f}%)")
+        print("=" * 60)
+        
+        return passed, total
         """Run comprehensive backend tests"""
         print("🚀 Starting Comprehensive Maku.Travel Backend Tests")
         print("=" * 70)
