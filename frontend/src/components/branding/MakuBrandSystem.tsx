@@ -47,8 +47,13 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
       `}>
         <img 
           src="/logos/maku-logo-head-circular.svg"
-          alt="Maku.Travel - Dog Head Logo (EXACT USER VERSION)" 
+          alt="Maku.Travel - Dog Head Logo (TEMPORARY - WAITING FOR USER FILES)" 
           className="w-full h-full object-contain"
+          onError={(e) => {
+            console.warn("Logo file not found, using fallback");
+            // Fallback to text if image fails
+            e.currentTarget.style.display = 'none';
+          }}
         />
       </div>
     );
