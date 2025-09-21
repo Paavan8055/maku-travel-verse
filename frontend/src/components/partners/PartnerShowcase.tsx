@@ -345,4 +345,5 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full' }) =
   );
 };
 
+export { PartnerShowcase };
 export default PartnerShowcase;
