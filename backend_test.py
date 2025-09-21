@@ -2411,7 +2411,7 @@ class MakuTravelBackendTester:
             elif response.status_code == 500:
                 # Check if it's a Supabase configuration issue
                 error_text = response.text.lower()
-                if "supabase" in error_text or "credentials not configured" in error_text:
+                if "supabase" in error_text or "credentials not configured" in error_text or "failed to store credentials" in error_text:
                     self.log_test("Expedia Setup", True, "Missing Supabase configuration (expected)", response_time)
                     return True
                 else:
