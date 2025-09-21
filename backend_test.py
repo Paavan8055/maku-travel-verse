@@ -562,14 +562,14 @@ class MakuTravelBackendTester:
                 
                 # Validate first template structure
                 template = templates[0]
-                template_required = ['id', 'name', 'category', 'rarity_tier', 'requirements']
+                template_required = ['id', 'name', 'rarity', 'requirements']  # Updated to match actual response
                 template_missing = [field for field in template_required if field not in template]
                 
                 if template_missing:
                     self.log_test("Admin NFT Templates", False, f"Missing template fields: {template_missing}", response_time)
                     return False
                 
-                self.log_test("Admin NFT Templates", True, f"Got {len(templates)} templates, first: {template['name']} ({template['category']})", response_time)
+                self.log_test("Admin NFT Templates", True, f"Got {len(templates)} templates, first: {template['name']} ({template['rarity']})", response_time)
                 return True
                 
             else:
