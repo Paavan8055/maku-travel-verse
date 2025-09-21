@@ -47,13 +47,9 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src={LogoResolver.getLogoSrc('head-circular')}
+          src="/logos/maku-logo-head-circular.svg"
           alt="Maku.Travel - Dog Head Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
-          onError={(e) => {
-            console.log("Head circular logo failed to load, trying alternatives");
-            // The LogoResolver will handle fallbacks
-          }}
         />
       </div>
     );
@@ -68,12 +64,9 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src={LogoResolver.getLogoSrc('full-circular')}
+          src="/logos/maku-logo-full-circular.svg"
           alt="Maku.Travel - Full Circular Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
-          onError={(e) => {
-            console.log("Full circular logo failed to load, trying alternatives");
-          }}
         />
       </div>
     );
@@ -88,12 +81,9 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src={LogoResolver.getLogoSrc('complete')}
+          src="/logos/maku-logo-complete.svg"
           alt="Maku.Travel - Complete Logo with Text (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
-          onError={(e) => {
-            console.log("Complete logo failed to load, trying alternatives");
-          }}
         />
       </div>
     );
@@ -108,12 +98,9 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src={LogoResolver.getLogoSrc('text-only')}
+          src="/logos/maku-logo-text-only.svg"
           alt="Maku.Travel - Text Only Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
-          onError={(e) => {
-            console.log("Text-only logo failed to load, trying alternatives");
-          }}
         />
       </div>
     );
