@@ -46,7 +46,7 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
 
   const fetchPartners = async () => {
     try {
-      const backendUrl = import.meta.env.VITE_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || "https://travel-portal-dev.preview.emergentagent.com";
       const response = await fetch(`${backendUrl}/api/smart-dreams/providers`);
       const data = await response.json();
       
