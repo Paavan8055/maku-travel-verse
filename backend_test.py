@@ -3225,10 +3225,10 @@ class MakuTravelBackendTester:
             ("Expedia Group API Integration", [
                 self.test_expedia_setup_endpoint,
                 self.test_expedia_health_check,
-                self.test_enhanced_provider_registry_expedia,
-                self.test_expedia_service_endpoints,
+                self.test_expedia_provider_registry_integration,
+                self.test_expedia_service_endpoints_accessibility,
                 self.test_expedia_integration_compatibility,
-                self.test_expedia_error_handling
+                self.test_supabase_connection_validation
             ]),
             ("Enhanced Partner Provider Integration (Duffle & RateHawk)", [
                 self.test_enhanced_provider_registry_duffle_ratehawk,
