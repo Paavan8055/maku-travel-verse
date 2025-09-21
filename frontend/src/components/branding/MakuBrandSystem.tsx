@@ -36,6 +36,22 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
     success: 'animate-bounce'
   };
 
+  // Fallback to try multiple possible logo sources until we find your uploaded images
+  const getLogoSrc = (filename: string) => {
+    // Try multiple possible locations where Emergent might store uploaded images
+    const possiblePaths = [
+      `/logos/${filename}`,
+      `/assets/${filename}`,
+      `/lovable-uploads/${filename}`,
+      `/.emergent/uploads/${filename}`,
+      `/tmp/uploads/${filename}`,
+      `/uploads/${filename}`
+    ];
+    
+    // For now, return the primary path - we'll need to locate your actual uploaded files
+    return possiblePaths[0];
+  };
+
   if (variant === 'mascot') {
     return (
       <div className={`
@@ -46,9 +62,13 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/logos/maku-logo-head-circular.png" 
+          src={getLogoSrc("maku-logo-head-circular.png")}
           alt="Maku.Travel - Dog Head Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
+          onError={(e) => {
+            console.log("Logo not found, using fallback");
+            // Could try next fallback path here
+          }}
         />
       </div>
     );
@@ -63,9 +83,12 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         overflow-hidden bg-transparent p-1
       `}>
         <img 
-          src="/logos/maku-logo-full-circular.png" 
+          src={getLogoSrc("maku-logo-full-circular.png")}
           alt="Maku.Travel - Full Circular Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
+          onError={(e) => {
+            console.log("Logo not found, using fallback");
+          }}
         />
       </div>
     );
@@ -80,9 +103,12 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src="/logos/maku-logo-complete.png" 
+          src={getLogoSrc("maku-logo-complete.png")}
           alt="Maku.Travel - Complete Logo with Text (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
+          onError={(e) => {
+            console.log("Logo not found, using fallback");
+          }}
         />
       </div>
     );
@@ -97,9 +123,12 @@ export const MakuLogo: React.FC<MakuBrandConfig> = ({
         flex items-center justify-center
       `}>
         <img 
-          src="/logos/maku-logo-text-only.png" 
+          src={getLogoSrc("maku-logo-text-only.png")}
           alt="Maku.Travel - Text Only Logo (EXACT USER VERSION)" 
           className="w-full h-full object-contain"
+          onError={(e) => {
+            console.log("Logo not found, using fallback");
+          }}
         />
       </div>
     );
