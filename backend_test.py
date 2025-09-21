@@ -2643,7 +2643,6 @@ class MakuTravelBackendTester:
         
         # Mock travel experience data
         travel_data = {
-            "user_id": TEST_USER_ID,
             "destination": "Tokyo, Japan",
             "provider": "expedia",
             "total_price": 2500,
@@ -2657,9 +2656,12 @@ class MakuTravelBackendTester:
             }
         }
         
+        # Add user_id as query parameter
+        params = {"user_id": TEST_USER_ID}
+        
         try:
             start_time = time.time()
-            response = self.session.post(url, json=travel_data, timeout=15)
+            response = self.session.post(url, json=travel_data, params=params, timeout=15)
             response_time = time.time() - start_time
             
             if response.status_code == 200:
