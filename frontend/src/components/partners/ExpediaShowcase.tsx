@@ -221,7 +221,7 @@ const ExpediaShowcase: React.FC<ExpediaShowcaseProps> = ({ variant = 'full' }) =
                             <Clock className="w-4 h-4 text-purple-600" />
                             <span className="text-sm font-medium text-gray-900">Response</span>
                           </div>
-                          <p className="text-2xl font-bold text-purple-600">< 2s</p>
+                          <p className="text-2xl font-bold text-purple-600">&lt; 2s</p>
                         </div>
                         <div className="bg-white/60 p-4 rounded-lg border border-gray-200">
                           <div className="flex items-center space-x-2 mb-2">
