@@ -816,7 +816,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate response structure
-                required_fields = ['success', 'airdrop_event', 'estimated_participants']
+                required_fields = ['success', 'airdrop_event', 'message']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -828,22 +828,22 @@ class MakuTravelBackendTester:
                     return False
                 
                 airdrop = data['airdrop_event']
-                participants = data['estimated_participants']
                 
                 # Validate airdrop structure
-                airdrop_required = ['id', 'name', 'total_tokens', 'status']
+                airdrop_required = ['id', 'name', 'total_allocation', 'status']
                 airdrop_missing = [field for field in airdrop_required if field not in airdrop]
                 
                 if airdrop_missing:
                     self.log_test("Airdrop Creation", False, f"Missing airdrop fields: {airdrop_missing}", response_time)
                     return False
                 
-                # Validate participants is a positive number
-                if not isinstance(participants, int) or participants < 0:
-                    self.log_test("Airdrop Creation", False, f"Invalid participants count: {participants}", response_time)
+                # Validate total allocation is positive
+                total_allocation = airdrop.get('total_allocation', 0)
+                if not isinstance(total_allocation, int) or total_allocation <= 0:
+                    self.log_test("Airdrop Creation", False, f"Invalid total allocation: {total_allocation}", response_time)
                     return False
                 
-                self.log_test("Airdrop Creation", True, f"Created airdrop: {airdrop['name']} ({airdrop['total_tokens']} tokens, {participants} participants)", response_time)
+                self.log_test("Airdrop Creation", True, f"Created airdrop: {airdrop['name']} ({airdrop['total_allocation']} tokens, status: {airdrop['status']})", response_time)
                 return True
                 
             else:
