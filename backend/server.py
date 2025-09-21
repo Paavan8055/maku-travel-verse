@@ -3901,6 +3901,7 @@ async def get_smart_dreams_providers_with_expedia():
 # Include the routers
 app.include_router(api_router)
 app.include_router(nft_router)
+app.include_router(admin_nft_router)
 
 app.add_middleware(
     CORSMiddleware,
