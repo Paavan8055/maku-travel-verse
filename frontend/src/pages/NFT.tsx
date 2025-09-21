@@ -70,96 +70,9 @@ export default function NFT() {
         </div>
       </section>
 
-      {/* Main NFT Dashboard */}
+      {/* Main NFT Dashboard - NOW USING ACTUAL COMPONENTS */}
       <section className="mx-auto max-w-7xl px-6 py-16">
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="dashboard">NFT Dashboard</TabsTrigger>
-            <TabsTrigger value="rewards">Travel Rewards</TabsTrigger>
-            <TabsTrigger value="legacy">Phase Info</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="dashboard">
-            <TravelNFTDashboard />
-          </TabsContent>
-
-          <TabsContent value="rewards">
-            <TravelRewardsNFT variant="full" />
-          </TabsContent>
-
-          <TabsContent value="legacy">
-            {/* Original Phase Information */}
-            <div className="space-y-8">
-              {/* Utilities */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">NFT Holder Utilities</CardTitle>
-                  <CardDescription>Practical, platform-native benefits with real value</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[
-                      { icon: Sparkles, title: "Priority Access", desc: "Early access to new features, pilots and limited drops." },
-                      { icon: Wallet, title: "Platform Credits", desc: "Fee-credit vouchers for bookings (values set conservatively)." },
-                      { icon: Shield, title: "Transparent Provenance", desc: "IPFS metadata with reveal window and provenance hash." },
-                      { icon: Star, title: "Community Multipliers", desc: "Leaderboard/WL priority multipliers during hype seasons." },
-                    ].map(({ icon: Icon, title, desc }) => (
-                      <Card key={title} className="h-full hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6">
-                          <Icon className="h-8 w-8 text-purple-600 mb-4" />
-                          <h3 className="font-semibold text-lg mb-2">{title}</h3>
-                          <p className="text-sm text-gray-600">{desc}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Phases */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Collection Phases</CardTitle>
-                  <CardDescription>Structured release across three phases with increasing rarity</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-3 gap-6 mb-8">
-                    {[
-                      { phase: "Phase-1", cap: "3,333", status: "Live (Enhanced with Travel Integration)", color: "from-green-500 to-emerald-600" },
-                      { phase: "Phase-2", cap: "3,333", status: "Scheduled (Provider Milestones)", color: "from-blue-500 to-cyan-600" },
-                      { phase: "Phase-3", cap: "3,333", status: "Scheduled (Community Achievements)", color: "from-purple-500 to-pink-600" },
-                    ].map((p) => (
-                      <Card key={p.phase} className="relative overflow-hidden">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${p.color} opacity-10`}></div>
-                        <CardContent className="relative p-6">
-                          <p className="text-xs uppercase tracking-wide text-gray-600 font-medium">{p.phase}</p>
-                          <h3 className="font-bold text-2xl mt-2">{p.cap}</h3>
-                          <p className="text-sm text-gray-600 mt-2">{p.status}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-4">
-                        <Crown className="w-12 h-12 text-yellow-600" />
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-yellow-700 font-medium">Universal 1/1</p>
-                          <h3 className="font-bold text-xl text-gray-900 mt-1">Legendary "Universal" Maku NFT</h3>
-                          <p className="text-sm text-gray-700 mt-2">
-                            Awarded to one lucky Maku traveller by transparent raffle (snapshot & proof published).
-                            Includes lifetime platform benefits and exclusive travel experiences.
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+        <TravelNFTDashboard />
       </section>
 
       <FooterCtas />
