@@ -44,7 +44,7 @@ const Index = () => {
           <Suspense fallback={<div className="h-64 bg-muted/50 animate-pulse" />}>
             <div className="py-16 bg-gradient-to-br from-orange-50 via-white to-green-50">
               <div className="max-w-7xl mx-auto px-6">
-                <PartnerShowcase showTitle={true} variant="compact" />
+                <PartnerShowcase variant="compact" />
               </div>
             </div>
           </Suspense>
