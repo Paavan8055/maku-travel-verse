@@ -1906,84 +1906,176 @@ class ExpediaService:
         if not self.auth_client:
             await self.initialize()
         
-        # For sandbox testing, return demo data since car API endpoints need specific setup
-        logger.info("Expedia car search using demo data (sandbox car API endpoint setup in progress)")
+        headers = await self.auth_client.get_authenticated_headers()
         
-        return {
-            "provider": "expedia",
-            "offers": [
-                {
-                    "offer_id": "demo_car_001",
-                    "vehicle": {
-                        "category": "Economy",
-                        "type": "Compact Car",
-                        "make_model": "Toyota Corolla or similar",
-                        "passenger_capacity": 5,
-                        "luggage_capacity": 2,
-                        "transmission": "automatic",
-                        "air_conditioning": True
-                    },
-                    "vendor": {
-                        "name": "Enterprise Rent-A-Car",
-                        "rating": 4.5
-                    },
-                    "rate": {
-                        "base_rate": 45.00,
-                        "total_rate": 52.50,
-                        "currency": "USD",
-                        "rate_type": "daily",
-                        "taxes_and_fees": 7.50,
-                        "cancellable": True
-                    },
-                    "pickup_location": {
-                        "name": f"{search_request.pickup_location} Airport",
-                        "address": "Airport Terminal"
-                    }
+        import httpx
+        async with httpx.AsyncClient() as client:
+            try:
+                # Try the potential Expedia car endpoints
+                potential_endpoints = [
+                    f"{self.auth_client.base_url}/rapid/cars/v1/search",
+                    f"{self.auth_client.base_url}/cars/v1/search",
+                    f"{self.auth_client.base_url}/supply/cars/search"
+                ]
+                
+                params = {
+                    "pickup_location": search_request.pickup_location,
+                    "pickup_date": search_request.pickup_date,
+                    "dropoff_location": search_request.dropoff_location or search_request.pickup_location,
+                    "dropoff_date": search_request.dropoff_date or search_request.pickup_date,
+                    "driver_age": search_request.driver_age,
+                    "currency": "USD"
                 }
-            ],
-            "total_results": 1,
-            "demo_mode": True,
-            "note": "Demo data - car rental sandbox endpoint configuration pending"
-        }
+                
+                last_error = None
+                
+                for endpoint in potential_endpoints:
+                    try:
+                        response = await client.get(
+                            endpoint,
+                            headers=headers,
+                            params=params,
+                            timeout=30.0
+                        )
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            logger.info(f"Expedia car search succeeded via {endpoint}")
+                            return {
+                                "provider": "expedia",
+                                "offers": data.get("offers", data.get("cars", [])),
+                                "total_results": len(data.get("offers", data.get("cars", []))),
+                                "endpoint_used": endpoint
+                            }
+                        elif response.status_code == 404:
+                            continue  # Try next endpoint
+                        else:
+                            response.raise_for_status()
+                            
+                    except httpx.HTTPStatusError as e:
+                        last_error = e
+                        if e.response.status_code != 404:
+                            logger.error(f"Car search failed on {endpoint}: {e}")
+                            break  # Non-404 errors should not continue
+                        continue
+                    except Exception as e:
+                        last_error = e
+                        continue
+                
+                # If all endpoints failed, check if it's a permission/access issue
+                if last_error and "404" in str(last_error):
+                    logger.warning("Car API endpoints not accessible - may require specific partner permissions")
+                    return {
+                        "provider": "expedia",
+                        "offers": [],
+                        "total_results": 0,
+                        "status": "endpoint_not_accessible",
+                        "note": "Car rental API requires specific Expedia partner permissions",
+                        "requires_partner_access": True
+                    }
+                else:
+                    raise last_error
+                
+            except Exception as e:
+                logger.error(f"Expedia car search failed: {e}")
+                return {
+                    "provider": "expedia",
+                    "offers": [],
+                    "total_results": 0,
+                    "error": str(e),
+                    "status": "api_error"
+                }
     
     async def search_activities(self, search_request: ExpediaActivitySearchRequest):
         """Search activities using Expedia Activities API"""
         if not self.auth_client:
             await self.initialize()
         
-        # For sandbox testing, return demo data since activity API endpoints need specific setup
-        logger.info("Expedia activity search using demo data (sandbox activity API endpoint setup in progress)")
+        headers = await self.auth_client.get_authenticated_headers()
         
-        return {
-            "provider": "expedia",
-            "activities": [
-                {
-                    "activity_id": "demo_activity_001",
-                    "name": f"Best of {search_request.destination} Tour",
-                    "category": "tours",
-                    "description": f"Explore the highlights of {search_request.destination} with expert local guides",
-                    "duration": "4 hours",
-                    "rating": {
-                        "overall": 4.8,
-                        "total_reviews": 1234
-                    },
-                    "pricing": {
-                        "adult_price": 75.00,
-                        "child_price": 50.00,
-                        "currency": "USD"
-                    },
-                    "availability": {
-                        "available_dates": [search_request.start_date],
-                        "time_slots": ["09:00", "14:00"]
-                    },
-                    "included": ["Professional guide", "Transportation", "Entry fees"],
-                    "excluded": ["Meals", "Personal expenses"]
+        import httpx
+        async with httpx.AsyncClient() as client:
+            try:
+                # Try the potential Expedia activity endpoints
+                potential_endpoints = [
+                    f"{self.auth_client.base_url}/rapid/activities/v1/search",
+                    f"{self.auth_client.base_url}/activities/v1/search", 
+                    f"{self.auth_client.base_url}/supply/activities/search",
+                    f"{self.auth_client.base_url}/experiences/v1/search"
+                ]
+                
+                params = {
+                    "destination": search_request.destination,
+                    "start_date": search_request.start_date,
+                    "end_date": search_request.end_date or search_request.start_date,
+                    "adults": search_request.adults,
+                    "currency": "USD"
                 }
-            ],
-            "total_results": 1,
-            "demo_mode": True,
-            "note": "Demo data - activity sandbox endpoint configuration pending"
-        }
+                
+                if search_request.children > 0:
+                    params["children"] = search_request.children
+                
+                if search_request.category:
+                    params["category"] = search_request.category
+                
+                last_error = None
+                
+                for endpoint in potential_endpoints:
+                    try:
+                        response = await client.get(
+                            endpoint,
+                            headers=headers,
+                            params=params,
+                            timeout=30.0
+                        )
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            logger.info(f"Expedia activity search succeeded via {endpoint}")
+                            return {
+                                "provider": "expedia",
+                                "activities": data.get("activities", data.get("experiences", [])),
+                                "total_results": len(data.get("activities", data.get("experiences", []))),
+                                "endpoint_used": endpoint
+                            }
+                        elif response.status_code == 404:
+                            continue  # Try next endpoint
+                        else:
+                            response.raise_for_status()
+                            
+                    except httpx.HTTPStatusError as e:
+                        last_error = e
+                        if e.response.status_code != 404:
+                            logger.error(f"Activity search failed on {endpoint}: {e}")
+                            break  # Non-404 errors should not continue
+                        continue
+                    except Exception as e:
+                        last_error = e
+                        continue
+                
+                # If all endpoints failed, check if it's a permission/access issue
+                if last_error and "404" in str(last_error):
+                    logger.warning("Activity API endpoints not accessible - may require specific partner permissions")
+                    return {
+                        "provider": "expedia",
+                        "activities": [],
+                        "total_results": 0,
+                        "status": "endpoint_not_accessible", 
+                        "note": "Activity API requires specific Expedia partner permissions",
+                        "requires_partner_access": True
+                    }
+                else:
+                    raise last_error
+                
+            except Exception as e:
+                logger.error(f"Expedia activity search failed: {e}")
+                return {
+                    "provider": "expedia",
+                    "activities": [],
+                    "total_results": 0,
+                    "error": str(e),
+                    "status": "api_error"
+                }
     
     async def create_hotel_booking(self, booking_request: ExpediaBookingRequest):
         """Create hotel booking using Expedia Rapid API"""
