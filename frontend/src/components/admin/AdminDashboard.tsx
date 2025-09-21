@@ -15,6 +15,7 @@ import AgentMonitorDashboard from '@/features/admin/components/AgentMonitorDashb
 import ApiValidationDashboard from '@/components/admin/ApiValidationDashboard';
 import AgentSystemTests from '@/components/admin/AgentSystemTests';
 import SmartDreamManagement from '@/components/admin/SmartDreamManagement';
+import NFTAdminDashboard from '@/components/admin/NFTAdminDashboard';
 
 interface ProviderHealth {
   provider: string;
