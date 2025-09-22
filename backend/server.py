@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 # Import NFT integration endpoints
 from nft_integration_endpoints import nft_router
 from admin_nft_endpoints import admin_nft_router
+from unified_ai_orchestrator import unified_ai_router
 
 # Create the main app without a prefix
 app = FastAPI(
