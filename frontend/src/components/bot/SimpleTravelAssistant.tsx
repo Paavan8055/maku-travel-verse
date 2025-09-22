@@ -328,7 +328,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about hotels, flights, rewards, or planning..."
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 border-2 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 bg-white text-gray-900 placeholder-gray-500"
             />
             <Button 
               type="submit" 
