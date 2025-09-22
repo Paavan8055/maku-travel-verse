@@ -168,12 +168,9 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
           <Bot className="h-8 w-8 text-white" />
         </Button>
         {userContext?.nftCount && userContext.nftCount > 0 && (
-          <Badge 
-            variant="secondary" 
-            className="absolute -top-2 -right-2 bg-green-500 text-white border-none px-2"
-          >
-            {userContext.nftCount} NFTs
-          </Badge>
+          <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-md">
+            ${calculateRewardValue(userContext)}
+          </div>
         )}
       </div>
     );
