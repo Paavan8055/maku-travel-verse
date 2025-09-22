@@ -448,4 +448,12 @@ async function generateTravelResponse(
   };
 }
 
+// Helper function to calculate clear reward value
+const calculateRewardValue = (userContext: any): number => {
+  if (!userContext?.nftCount) return 0;
+  // Calculate based on average reward value per NFT (travel experience)
+  const averageRewardPerNFT = 67; // $67 average per completed trip
+  return userContext.nftCount * averageRewardPerNFT;
+};
+
 export default SimpleTravelAssistant;
