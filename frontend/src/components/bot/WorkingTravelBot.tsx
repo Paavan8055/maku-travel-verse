@@ -176,9 +176,9 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-[420px] h-[650px] z-50 shadow-2xl border-2 border-orange-200 bg-white">
+    <Card className="fixed bottom-6 right-6 w-[420px] h-[650px] z-50 shadow-2xl border-2 border-orange-200 bg-white overflow-hidden">
       {/* Header */}
-      <CardHeader className="pb-3 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-green-50">
+      <CardHeader className="pb-3 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-green-50 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-green-500 rounded-full flex items-center justify-center shadow-lg">
@@ -210,42 +210,37 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
         </div>
       </CardHeader>
 
-      {/* Chat Area */}
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+      {/* Chat Area - Fixed Height with Proper Scrolling */}
+      <div className="flex flex-col h-[calc(650px-120px)] overflow-hidden">
+        <ScrollArea className="flex-1 px-4 py-2 overflow-y-auto">
+          <div className="space-y-3 pr-2">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-lg p-4 shadow-sm ${
+                  className={`max-w-[280px] rounded-lg p-3 shadow-sm break-words ${
                     message.role === 'user'
                       ? 'bg-orange-500 text-white'
                       : 'bg-white text-gray-900 border-2 border-gray-200'
                   }`}
                 >
-                  <div className="text-sm leading-relaxed font-medium">
+                  <div className="text-sm leading-relaxed font-medium whitespace-pre-wrap break-words">
                     {message.content}
                   </div>
                   
                   {/* Show attachments */}
                   {message.attachments && message.attachments.length > 0 && (
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-2 space-y-1">
                       {message.attachments.map((attachment, index) => (
-                        <div key={index} className="flex items-center space-x-2 p-2 bg-white/20 rounded border">
+                        <div key={index} className="flex items-center space-x-2 p-2 bg-white/20 rounded border text-xs">
                           {attachment.type === 'image' ? (
-                            <Image className="w-4 h-4" />
+                            <Image className="w-3 h-3" />
                           ) : (
-                            <FileText className="w-4 h-4" />
+                            <FileText className="w-3 h-3" />
                           )}
-                          <span className="text-xs truncate">{attachment.name}</span>
-                          {attachment.size && (
-                            <span className="text-xs opacity-75">
-                              ({Math.round(attachment.size / 1024)}KB)
-                            </span>
-                          )}
+                          <span className="truncate flex-1">{attachment.name}</span>
                         </div>
                       ))}
                     </div>
@@ -253,22 +248,22 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
                   
                   {/* Suggestions */}
                   {message.suggestions && message.suggestions.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      <p className="text-xs font-semibold opacity-90">Try asking:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {message.suggestions.map((suggestion, index) => (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs font-semibold opacity-90">Try:</p>
+                      <div className="grid grid-cols-1 gap-1">
+                        {message.suggestions.slice(0, 3).map((suggestion, index) => (
                           <Button
                             key={index}
                             variant="outline"
                             size="sm"
                             onClick={() => handleSuggestionClick(suggestion)}
-                            className={`h-7 text-xs ${
+                            className={`h-6 text-xs text-left justify-start p-1 px-2 ${
                               message.role === 'user'
                                 ? 'bg-white/20 border-white/30 text-white hover:bg-white/30'
                                 : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
                             }`}
                           >
-                            {suggestion}
+                            <span className="truncate">{suggestion}</span>
                           </Button>
                         ))}
                       </div>
@@ -284,9 +279,9 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white border-2 border-gray-200 rounded-lg p-4 flex items-center space-x-3 shadow-sm">
-                  <Loader2 className="h-5 w-5 animate-spin text-orange-500" />
-                  <span className="text-sm text-gray-700 font-medium">Analyzing your request...</span>
+                <div className="bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center space-x-2 shadow-sm max-w-[280px]">
+                  <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                  <span className="text-sm text-gray-700 font-medium">Thinking...</span>
                 </div>
               </div>
             )}
@@ -294,12 +289,12 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
           </div>
         </ScrollArea>
 
-        {/* File Attachments Preview */}
+        {/* File Attachments Preview - Fixed Position */}
         {attachments.length > 0 && (
-          <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-700">Attached files:</p>
-              <div className="flex flex-wrap gap-2">
+          <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="space-y-2 max-h-20 overflow-y-auto">
+              <p className="text-xs font-semibold text-gray-700">Files to send:</p>
+              <div className="grid grid-cols-1 gap-1">
                 {attachments.map((file, index) => (
                   <div key={index} className="flex items-center space-x-2 bg-white border border-gray-300 rounded px-2 py-1">
                     {file.type.startsWith('image/') ? (
@@ -307,14 +302,14 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
                     ) : (
                       <FileText className="w-3 h-3 text-green-600" />
                     )}
-                    <span className="text-xs text-gray-700 truncate max-w-[100px]">
+                    <span className="text-xs text-gray-700 truncate flex-1">
                       {file.name}
                     </span>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => removeAttachment(index)}
-                      className="h-4 w-4 text-gray-500 hover:text-red-600"
+                      className="h-4 w-4 text-gray-500 hover:text-red-600 flex-shrink-0"
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -325,16 +320,16 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
           </div>
         )}
 
-        {/* Input Area with File Upload */}
-        <div className="p-4 border-t border-gray-200 bg-white">
-          <form onSubmit={handleSendMessage} className="space-y-3">
+        {/* Input Area - Fixed at Bottom */}
+        <div className="px-4 py-3 border-t border-gray-200 bg-white flex-shrink-0">
+          <form onSubmit={handleSendMessage} className="space-y-2">
             <div className="flex space-x-2">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message or upload files..."
+                placeholder="Ask about travel..."
                 disabled={isLoading}
-                className="flex-1 border-2 border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 bg-white text-gray-900 placeholder-gray-500 font-medium"
+                className="flex-1 border-2 border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-200 bg-white text-gray-900 placeholder-gray-500 text-sm"
               />
               
               {/* File Upload Button */}
@@ -344,7 +339,7 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
-                className="border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50"
+                className="border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 flex-shrink-0"
               >
                 <Paperclip className="h-4 w-4 text-gray-600" />
               </Button>
@@ -353,7 +348,7 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
               <Button 
                 type="submit" 
                 disabled={isLoading || (!input.trim() && attachments.length === 0)}
-                className="bg-orange-500 hover:bg-orange-600 border-2 border-orange-500 shadow-md px-4"
+                className="bg-orange-500 hover:bg-orange-600 border-2 border-orange-500 shadow-md px-3 flex-shrink-0"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -374,23 +369,23 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
             />
             
             {/* Capabilities hint */}
-            <div className="flex items-center justify-center space-x-4 text-xs text-gray-600">
+            <div className="flex items-center justify-center space-x-3 text-xs text-gray-600">
               <span className="flex items-center space-x-1">
                 <Image className="w-3 h-3" />
-                <span>Screenshots</span>
+                <span>Images</span>
               </span>
               <span className="flex items-center space-x-1">
                 <FileText className="w-3 h-3" />
-                <span>Documents</span>
+                <span>Docs</span>
               </span>
               <span className="flex items-center space-x-1">
                 <Bot className="w-3 h-3" />
-                <span>AI Travel Help</span>
+                <span>AI Help</span>
               </span>
             </div>
           </form>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };
