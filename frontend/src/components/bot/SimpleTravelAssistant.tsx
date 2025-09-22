@@ -99,7 +99,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
     setIsLoading(true);
 
     try {
-      // Simulate AI response with travel-focused logic
+      // Generate travel-focused response
       const response = await generateTravelResponse(input, userContext);
       
       const assistantMessage: TravelMessage = {
@@ -113,6 +113,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
+      console.error('Chat error:', error);
       const errorMessage: TravelMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
