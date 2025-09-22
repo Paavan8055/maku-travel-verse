@@ -159,8 +159,8 @@ const App = () => (
                                         <Route path="/auth" element={<Auth />} />
                                         <Route path="/acknowledgments" element={<Acknowledgments />} />
                                         <Route path="/about" element={<About />} />
-                                        <Route path="/nft" element={<NFT />} />
-                                        <Route path="/airdrop" element={<Airdrop />} />
+                                        <Route path="/nft" element={<NFTDirect />} />
+                                        <Route path="/airdrop" element={<AirdropDirect />} />
                                         <Route path="/careers" element={<Careers />} />
                                         <Route path="/press" element={<Press />} />
                                         <Route path="/crypto-payments" element={<CryptoPayments />} />
