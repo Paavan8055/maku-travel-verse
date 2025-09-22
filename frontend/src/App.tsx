@@ -20,7 +20,11 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { UniversalAIProvider } from "@/features/universal-ai/context/UniversalAIContext";
 import "./App.css";
 
-// Lazy load pages for better performance
+// Direct imports for NFT and Airdrop to fix routing issues
+import NFTDirect from "./pages/NFT";
+import AirdropDirect from "./pages/Airdrop";
+
+// Lazy load other pages for better performance
 const Index = createLazyRoute(() => import("./pages/Index"));
 const Acknowledgments = createLazyRoute(() => import("./pages/Acknowledgments"));
 const Auth = createLazyRoute(() => import("./pages/Auth"));
