@@ -199,10 +199,10 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
           </div>
           
           <div className="flex items-center space-x-2">
-            {showRewardsIntegration && userContext && (
-              <Badge variant="outline" className="text-xs">
-                {userContext.currentTier} • {userContext.nftCount} NFTs
-              </Badge>
+            {showRewardsIntegration && userContext && userContext.nftCount > 0 && (
+              <div className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded">
+                ${calculateRewardValue(userContext)} earned
+              </div>
             )}
             {variant === 'widget' && (
               <Button
