@@ -264,7 +264,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
                   
                   {message.suggestions && (
                     <div className="mt-3 space-y-2">
-                      <p className="text-xs opacity-80">Try asking:</p>
+                      <p className="text-xs text-gray-600 font-medium">Try asking:</p>
                       <div className="flex flex-wrap gap-1">
                         {message.suggestions.map((suggestion, index) => (
                           <Button
@@ -272,7 +272,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
                             variant="outline"
                             size="sm"
                             onClick={() => handleSuggestionClick(suggestion)}
-                            className="h-6 text-xs bg-white/20 border-white/30 text-white hover:bg-white/30"
+                            className="h-6 text-xs bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                           >
                             {suggestion}
                           </Button>
@@ -283,7 +283,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
                   
                   {message.quickActions && (
                     <div className="mt-3 space-y-2">
-                      <p className="text-xs opacity-80">Quick actions:</p>
+                      <p className="text-xs text-gray-600 font-medium">Quick actions:</p>
                       <div className="space-y-1">
                         {message.quickActions.map((action, index) => (
                           <Button
@@ -291,7 +291,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
                             variant="outline"
                             size="sm"
                             onClick={() => handleQuickAction(action.action)}
-                            className="w-full justify-start h-7 text-xs bg-white/20 border-white/30 text-white hover:bg-white/30"
+                            className="w-full justify-start h-7 text-xs bg-white border-gray-300 text-gray-800 hover:bg-gray-50"
                           >
                             {action.icon}
                             <span className="ml-2">{action.label}</span>
@@ -301,7 +301,7 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
                     </div>
                   )}
                   
-                  <div className="text-xs opacity-60 mt-2">
+                  <div className="text-xs text-gray-500 mt-2">
                     {message.timestamp.toLocaleTimeString()}
                   </div>
                 </div>
