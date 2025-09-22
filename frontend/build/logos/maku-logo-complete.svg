@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Based on exact user-uploaded complete logo -->
+  
+  <!-- Yellow sun with rays (top left) -->
+  <g id="sun">
+    <circle cx="120" cy="80" r="25" fill="#FFD700"/>
+    <g id="sun-rays">
+      <!-- Radiating rays in all directions -->
+      <line x1="120" y1="40" x2="120" y2="50" stroke="#FFD700" stroke-width="3"/>
+      <line x1="120" y1="110" x2="120" y2="120" stroke="#FFD700" stroke-width="3"/>
+      <line x1="80" y1="80" x2="90" y2="80" stroke="#FFD700" stroke-width="3"/>
+      <line x1="150" y1="80" x2="160" y2="80" stroke="#FFD700" stroke-width="3"/>
+      <line x1="95" y1="55" x2="103" y2="63" stroke="#FFD700" stroke-width="3"/>
+      <line x1="137" y1="97" x2="145" y2="105" stroke="#FFD700" stroke-width="3"/>
+      <line x1="145" y1="55" x2="137" y2="63" stroke="#FFD700" stroke-width="3"/>
+      <line x1="103" y1="97" x2="95" y2="105" stroke="#FFD700" stroke-width="3"/>
+      <!-- Additional smaller rays -->
+      <line x1="102" y1="42" x2="107" y2="51" stroke="#FFD700" stroke-width="2"/>
+      <line x1="138" y1="42" x2="133" y2="51" stroke="#FFD700" stroke-width="2"/>
+      <line x1="102" y1="118" x2="107" y2="109" stroke="#FFD700" stroke-width="2"/>
+      <line x1="138" y1="118" x2="133" y2="109" stroke="#FFD700" stroke-width="2"/>
+    </g>
+  </g>
+  
+  <!-- Tricolor arc (Indian flag colors) -->
+  <path d="M 100 120 Q 220 60 340 120" stroke="#FF6600" stroke-width="12" fill="none"/>
+  <path d="M 105 125 Q 220 68 335 125" stroke="#FFFFFF" stroke-width="8" fill="none"/>
+  <path d="M 110 130 Q 220 76 330 130" stroke="#138808" stroke-width="12" fill="none"/>
+  
+  <!-- Green airplane flying on arc -->
+  <g id="airplane" transform="translate(320, 110) rotate(-15)">
+    <path d="M 0 0 L 16 3 L 13 0 L 16 -3 Z" fill="#138808"/>
+    <path d="M 3 -1.5 L 8 -4 L 9 -2 L 5 1.5 Z" fill="#138808"/>
+    <path d="M 3 1.5 L 8 4 L 9 2 L 5 -1.5 Z" fill="#138808"/>
+    <circle cx="6" cy="0" r="1.5" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- White dog with exact styling from user upload -->
+  <g id="dog" transform="translate(220, 180)">
+    <!-- Body -->
+    <ellipse cx="0" cy="25" rx="35" ry="28" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+    
+    <!-- Head -->
+    <circle cx="0" cy="-5" r="28" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+    
+    <!-- Ears -->
+    <ellipse cx="-20" cy="-15" rx="8" ry="16" fill="#E8E8E8" stroke="#000000" stroke-width="1.5" transform="rotate(-15)"/>
+    <ellipse cx="20" cy="-15" rx="8" ry="16" fill="#E8E8E8" stroke="#000000" stroke-width="1.5" transform="rotate(15)"/>
+    
+    <!-- Brown hat (exact style from upload) -->
+    <ellipse cx="0" cy="-26" rx="24" ry="8" fill="#8B4513"/>
+    <ellipse cx="0" cy="-30" rx="18" ry="6" fill="#A0522D"/>
+    <rect x="-1.5" y="-34" width="3" height="2.5" fill="#8B4513"/>
+    <line x1="-20" y1="-26" x2="20" y2="-26" stroke="#654321" stroke-width="1.5"/>
+    
+    <!-- Black sunglasses (exact style) -->
+    <ellipse cx="-7" cy="-5" rx="6.5" ry="5" fill="#000000"/>
+    <ellipse cx="7" cy="-5" rx="6.5" ry="5" fill="#000000"/>
+    <line x1="-0.5" y1="-5" x2="0.5" y2="-5" stroke="#000000" stroke-width="1.5"/>
+    <line x1="-13.5" y1="-5" x2="-18" y2="-3" stroke="#000000" stroke-width="1.5"/>
+    <line x1="13.5" y1="-5" x2="18" y2="-3" stroke="#000000" stroke-width="1.5"/>
+    
+    <!-- Red bandana/neckerchief (exact style from upload) -->
+    <path d="M -16 8 L 0 18 L 16 8 L 12 -2 L -12 -2 Z" fill="#DC143C"/>
+    <path d="M -13 12 L 0 15 L 13 12" stroke="#B22222" stroke-width="1.5"/>
+    <circle cx="-8" cy="6" r="1" fill="#8B0000"/>
+    <circle cx="8" cy="6" r="1" fill="#8B0000"/>
+    
+    <!-- Black nose -->
+    <ellipse cx="0" cy="2" rx="2.5" ry="2" fill="#000000"/>
+    
+    <!-- Pink tongue -->
+    <ellipse cx="4" cy="8" rx="3.5" ry="5" fill="#FF69B4"/>
+    
+    <!-- Mouth -->
+    <path d="M -7 5 Q 0 9 7 5" stroke="#000000" stroke-width="1.5" fill="none"/>
+    
+    <!-- Legs -->
+    <ellipse cx="-16" cy="48" rx="5" ry="14" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    <ellipse cx="-5" cy="48" rx="5" ry="14" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    <ellipse cx="5" cy="48" rx="5" ry="14" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    <ellipse cx="16" cy="48" rx="5" ry="14" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    
+    <!-- Tail -->
+    <path d="M -30 20 Q -50 15 -45 -2 Q -40 -10 -35 -6" stroke="#000000" stroke-width="2.5" fill="none"/>
+  </g>
+  
+  <!-- Brown vintage suitcase with travel stickers (exact from upload) -->
+  <g id="suitcase" transform="translate(380, 220)">
+    <rect x="0" y="0" width="45" height="35" fill="#8B4513" stroke="#654321" stroke-width="2" rx="3"/>
+    <rect x="2" y="2" width="41" height="31" fill="#A0522D" rx="2"/>
+    
+    <!-- Handle -->
+    <rect x="20" y="-3" width="5" height="6" fill="#654321" rx="2"/>
+    
+    <!-- Travel stickers (exact from upload) -->
+    <circle cx="12" cy="9" r="3.5" fill="#FF6600"/>
+    <text x="12" y="11" text-anchor="middle" font-family="Arial" font-size="4" fill="#FFFFFF" font-weight="bold">✈</text>
+    
+    <rect x="25" y="15" width="7" height="4" fill="#138808" rx="1"/>
+    <text x="28.5" y="17.5" text-anchor="middle" font-family="Arial" font-size="3" fill="#FFFFFF">UK</text>
+    
+    <circle cx="16" cy="24" r="3" fill="#1E90FF"/>
+    <text x="16" y="25.5" text-anchor="middle" font-family="Arial" font-size="3" fill="#FFFFFF">🗽</text>
+    
+    <rect x="30" y="6" width="6" height="4" fill="#FFD700" rx="1"/>
+    <text x="33" y="8.5" text-anchor="middle" font-family="Arial" font-size="3" fill="#000000">FR</text>
+    
+    <rect x="8" y="20" width="5" height="3" fill="#FF1493" rx="0.5"/>
+    
+    <!-- Corner reinforcements -->
+    <circle cx="4" cy="4" r="1.5" fill="#654321"/>
+    <circle cx="41" cy="4" r="1.5" fill="#654321"/>
+    <circle cx="4" cy="31" r="1.5" fill="#654321"/>
+    <circle cx="41" cy="31" r="1.5" fill="#654321"/>
+    
+    <!-- Wheels -->
+    <circle cx="10" cy="37" r="2.5" fill="#333333"/>
+    <circle cx="35" cy="37" r="2.5" fill="#333333"/>
+  </g>
+  
+  <!-- Floating travel stickers -->
+  <g id="floating-stickers">
+    <rect x="290" y="170" width="8" height="6" fill="#FFD700" rx="1" transform="rotate(15)"/>
+    <rect x="430" y="190" width="6" height="8" fill="#FF6600" rx="1" transform="rotate(-10)"/>
+    <circle cx="460" cy="210" r="3" fill="#1E90FF"/>
+    <rect x="110" y="210" width="7" height="5" fill="#138808" rx="1" transform="rotate(20)"/>
+  </g>
+  
+  <!-- Text exactly as in user upload -->
+  <g id="text">
+    <text x="300" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#FF6600">Maku</text>
+    <text x="360" y="330" text-anchor="start" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#138808">.Travel</text>
+    <text x="300" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="500" fill="#666666">(We Make "U" Travel)</text>
+  </g>
+</svg>
