@@ -397,19 +397,19 @@ async function generateTravelResponse(
   // Rewards and NFT queries
   if (inputLower.includes('reward') || inputLower.includes('nft') || inputLower.includes('tier') || inputLower.includes('points')) {
     const tierInfo = userContext?.currentTier || 'Explorer';
-    const nftCount = userContext?.nftCount || 0;
+    const rewardValue = calculateRewardValue(userContext);
     
     return {
-      content: `Great question about your rewards! 🏆 You're currently a ${tierInfo} tier member with ${nftCount} travel NFTs. Each booking earns you platform credits and potential NFT rewards. Your tier gives you enhanced benefits and airdrop multipliers!`,
+      content: `Great question about your rewards! 🏆 You've earned $${rewardValue} in travel benefits from your completed trips. These rewards give you discounts on future bookings, access to exclusive deals, and special member benefits as a ${tierInfo} tier member!`,
       suggestions: [
-        "How do I earn more NFTs?",
-        "What's my next tier?",
+        "How do I use my rewards?",
+        "What's my member status?",
         "Show my airdrop progress",
         "Explain provider bonuses"
       ],
       quickActions: [
-        { label: "View NFT Collection", action: "Open NFT dashboard", icon: <Gift className="w-3 h-3" /> },
-        { label: "Airdrop Progress", action: "Check airdrop status", icon: <Star className="w-3 h-3" /> }
+        { label: "Use My Rewards", action: "Help me apply rewards to booking", icon: <Gift className="w-3 h-3" /> },
+        { label: "View All Benefits", action: "Show all my member benefits", icon: <Star className="w-3 h-3" /> }
       ]
     };
   }
