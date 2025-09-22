@@ -27,7 +27,15 @@ const Index = () => {
           <SearchSection />
           <Suspense fallback={null}>
             <div className="relative">
-              <EnhancedAgenticWidget dashboardType="user" />
+              <SimpleTravelAssistant 
+                variant="widget" 
+                showRewardsIntegration={true}
+                userContext={{
+                  currentTier: 'Explorer',
+                  nftCount: 3,
+                  recentBookings: []
+                }}
+              />
             </div>
           </Suspense>
           
