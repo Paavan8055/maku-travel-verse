@@ -27,9 +27,8 @@ const Index = () => {
           <SearchSection />
           <Suspense fallback={null}>
             <div className="relative">
-              <SimpleTravelAssistant 
-                variant="widget" 
-                showRewardsIntegration={true}
+              <WorkingTravelBot 
+                variant="widget"
                 userContext={{
                   currentTier: 'Explorer',
                   nftCount: 3,
