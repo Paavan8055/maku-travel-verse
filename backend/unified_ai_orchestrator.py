@@ -349,7 +349,7 @@ async def generate_capability_analysis():
     return {
         "technical_capabilities": {
             "api_endpoints": {
-                "count": 50+,
+                "count": "50+",
                 "categories": ["travel", "ai", "rewards", "admin"],
                 "authentication": "Bearer token + API key",
                 "rate_limits": "100 requests/minute standard"
