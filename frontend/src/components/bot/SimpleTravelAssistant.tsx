@@ -254,10 +254,10 @@ const SimpleTravelAssistant: React.FC<SimpleTravelAssistantProps> = ({
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-lg p-3 ${
+                  className={`max-w-[85%] rounded-lg p-3 shadow-sm ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-r from-orange-500 to-green-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-orange-500 text-white ml-auto'
+                      : 'bg-white text-gray-900 border border-gray-200'
                   }`}
                 >
                   <div className="text-sm leading-relaxed">{message.content}</div>
