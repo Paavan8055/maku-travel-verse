@@ -495,12 +495,14 @@ metadata:
 
 test_plan:
   current_focus:
+    - "NFT and Airdrop Pages Redesign - Travala Quality Standards"  # CRITICAL ROUTING ISSUE - needs immediate fix
     - "Enhanced Partner Provider Integration - Duffle & RateHawk"
     - "Official Maku.Travel Logo Verification & Implementation"
     - "Creative Partner Provider Showcase & Equal Highlighting"
     - "Enhanced Testing Protocol for Multi-Provider Scalability"
     - "NFT and Airdrop Integration System" # COMPLETED - All tests passed
-  stuck_tasks: []
+  stuck_tasks: 
+    - "NFT and Airdrop Pages Redesign - Travala Quality Standards"  # Routing issue preventing page access
   test_all: false
   test_priority: "high_first"
   provider_testing_enabled: true
