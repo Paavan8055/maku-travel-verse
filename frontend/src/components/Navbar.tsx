@@ -380,10 +380,12 @@ const Navbar = () => {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+              
+              {/* System Health - ADMIN ONLY */}
+              {isAdmin && (
+                <SystemHealthIndicator />
+              )}
             </div>
-
-            {/* System Health */}
-            <SystemHealthIndicator />
             
             {/* Language Selector */}
             <LanguageSwitcher />
