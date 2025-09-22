@@ -16,7 +16,8 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
-  Info
+  Info,
+  Brain
 } from 'lucide-react';
 
 interface TravelMessage {
