@@ -368,9 +368,6 @@ const Navbar = () => {
                     Partners
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/nft')}>NFT Collection</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/airdrop')}>Airdrop</DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate('/environment-manager')}>
                     <Settings className="mr-2 h-4 w-4" />
                     Environment
