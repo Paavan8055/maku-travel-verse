@@ -433,7 +433,7 @@ async function generateTravelResponse(
   
   // Default helpful response
   return {
-    content: "I'm here to help with all your travel needs! I can assist with booking hotels and flights, explaining your NFT rewards, planning trips with our AI, or answering any travel questions. What would you like to explore?",
+    content: "I'm here to help with all your travel needs! I can assist with booking hotels and flights, explaining your travel rewards, planning trips with our AI, or answering any travel questions. What would you like to explore?",
     suggestions: [
       "Help me book a hotel",
       "Find flight deals",
