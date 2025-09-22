@@ -6,7 +6,7 @@ import MarketplacePills from "@/components/MarketplacePills";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import SimpleTravelAssistant from "@/components/bot/SimpleTravelAssistant";
+import WorkingTravelBot from "@/components/bot/WorkingTravelBot";
 import { PartnerShowcase } from "@/components/partners/PartnerShowcase";
 
 // Lazy load below-the-fold components for better performance
