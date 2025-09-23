@@ -390,51 +390,7 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
   );
 };
 
-// Enhanced AI response generation using real Emergent LLM integration
-async function generateBotResponse(
-  input: string,
-  attachments?: Array<{type: string; name: string; url: string}>,
-  userContext?: any
-): Promise<{content: string; suggestions?: string[]}> {
-  
-  try {
-    // Call the unified AI system for intelligent responses
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
-    
-    // Prepare context for AI
-    const aiContext = {
-      user_profile: {
-        current_tier: userContext?.currentTier || 'Explorer',
-        nft_count: userContext?.nftCount || 0,
-        recent_bookings: userContext?.recentBookings || [],
-        reward_value: userContext?.nftCount ? userContext.nftCount * 67 : 0
-      },
-      current_module: 'chat_assistant',
-      conversation_context: 'travel_assistance',
-      has_attachments: attachments && attachments.length > 0,
-      attachment_types: attachments?.map(a => a.type) || []
-    };
 
-    // Handle file attachments with AI analysis
-    if (attachments && attachments.length > 0) {
-      const imageAttachments = attachments.filter(a => a.type === 'image');
-      const docAttachments = attachments.filter(a => a.type === 'document');
-      
-      // Enhance input with file context
-      let enhancedInput = input || "Please analyze these files";
-      enhancedInput += `\n\nFiles shared: `;
-      
-      if (imageAttachments.length > 0) {
-        enhancedInput += `${imageAttachments.length} image(s) - likely travel photos, screenshots, or booking confirmations. `;
-      }
-      
-      if (docAttachments.length > 0) {
-        enhancedInput += `${docAttachments.length} document(s) - likely itineraries, bookings, or travel plans. `;
-      }
-      
-      enhancedInput += "Please provide helpful travel assistance based on these files.";
-      input = enhancedInput;
-    }
 
 // Enhanced AI response generation using real Emergent LLM integration
 async function generateBotResponse(
