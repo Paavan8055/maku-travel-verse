@@ -568,27 +568,7 @@ This will maximize both your enjoyment and reward earnings!`,
   return generateIntelligentFallback(input, userContext);
 }
 
-    if (response.ok) {
-      const aiData = await response.json();
-      
-      // Generate contextual suggestions based on AI response
-      const suggestions = generateContextualSuggestions(input, aiData.response, userContext);
-      
-      return {
-        content: aiData.response,
-        suggestions: suggestions
-      };
-    } else {
-      // Fallback to intelligent static responses if AI service is unavailable
-      return generateIntelligentFallback(input, userContext, attachments);
-    }
-    
-  } catch (error) {
-    console.error('AI response generation failed:', error);
-    // Intelligent fallback responses
-    return generateIntelligentFallback(input, userContext, attachments);
-  }
-}
+
 
 // Intelligent fallback system with travel context
 function generateIntelligentFallback(
