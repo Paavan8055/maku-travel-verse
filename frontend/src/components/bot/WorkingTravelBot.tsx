@@ -443,9 +443,26 @@ async function generateBotResponse(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: input,
-        context: aiContext,
-        module: 'travel_chat'
+        request: {
+          query: input,
+          context: aiContext,
+          user_id: 'current_user',
+          module: 'travel_chat',
+          intent: extractIntent(input)
+        },
+        context: {
+          user_profile: aiContext.user_profile,
+          current_module: 'travel_chat',
+          recent_actions: [],
+          travel_data: {
+            bookings: userContext?.recentBookings || []
+          },
+          rewards_data: {
+            current_tier: userContext?.currentTier || 'Explorer',
+            nft_count: userContext?.nftCount || 0,
+            total_points: (userContext?.nftCount || 0) * 100
+          }
+        }
       })
     });
 
