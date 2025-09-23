@@ -445,7 +445,8 @@ async function generateBotResponse(
   
   try {
     // Use existing AI endpoints that are already working
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
+    const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
+    console.log('🤖 WorkingTravelBot: Using backend URL:', backendUrl);
     
     // Handle file attachments with intelligent analysis
     if (attachments && attachments.length > 0) {
@@ -464,21 +465,21 @@ async function generateBotResponse(
       
       // Use AI to generate intelligent file analysis
       if (imageAttachments.length > 0) {
-        response += "🖼️ **Image Analysis**: I can help identify destinations, analyze booking screenshots, review hotel photos, or examine travel documents in your images.\n\n";
+        response += "🖼️ **AI Image Analysis**: I can help identify destinations, analyze booking screenshots, review hotel photos, or examine travel documents in your images using advanced AI.\n\n";
       }
       
       if (docAttachments.length > 0) {
-        response += "📄 **Document Analysis**: I can review itineraries, booking confirmations, travel plans, or any travel-related documents you've shared.\n\n";
+        response += "📄 **AI Document Analysis**: I can review itineraries, booking confirmations, travel plans, or any travel-related documents you've shared using intelligent processing.\n\n";
       }
       
-      response += `💡 **Smart Assistance**: As a ${userContext?.currentTier || 'Explorer'} member with $${userContext?.nftCount ? userContext.nftCount * 67 : 0} in rewards, I can also show you how to maximize benefits from your travels.\n\nWhat specific help do you need with these files?`;
+      response += `💡 **Smart AI Assistance**: As a ${userContext?.currentTier || 'Explorer'} member with $${userContext?.nftCount ? userContext.nftCount * 67 : 0} in rewards, I can use AI to show you how to maximize benefits from your travels.\n\nWhat specific help do you need with these files?`;
       
       return {
         content: response,
         suggestions: [
-          "Analyze these travel photos",
+          "Analyze these travel photos with AI",
           "Help me understand this booking",
-          "Review this itinerary", 
+          "Review this itinerary with AI", 
           "How can I earn rewards here?"
         ]
       };
@@ -488,16 +489,23 @@ async function generateBotResponse(
     const intent = extractIntent(input);
     let aiResponse = null;
 
+    console.log('🤖 WorkingTravelBot: Detected intent:', intent);
+
     try {
       // Try to use existing AI intelligence endpoints for smart responses
       if (intent === 'trip_planning' || intent === 'general_inquiry') {
+        console.log('🤖 WorkingTravelBot: Calling AI recommendations endpoint');
         // Use AI recommendations endpoint
         const recommendationsResponse = await fetch(`${backendUrl}/api/ai/recommendations/demo_user?max_results=3&include_social_proof=true`);
         if (recommendationsResponse.ok) {
           const aiData = await recommendationsResponse.json();
+          console.log('🤖 WorkingTravelBot: AI recommendations received');
           aiResponse = generateIntelligentResponseFromAI(input, aiData, userContext);
+        } else {
+          console.log('🤖 WorkingTravelBot: AI recommendations failed with status:', recommendationsResponse.status);
         }
       } else if (intent === 'rewards_inquiry') {
+        console.log('🤖 WorkingTravelBot: Calling Travel DNA endpoint');
         // Use travel DNA endpoint for personalized response
         const dnaResponse = await fetch(`${backendUrl}/api/ai/travel-dna/demo_user`, {
           method: 'POST',
@@ -506,22 +514,28 @@ async function generateBotResponse(
         });
         if (dnaResponse.ok) {
           const dnaData = await dnaResponse.json();
+          console.log('🤖 WorkingTravelBot: Travel DNA data received');
           aiResponse = generateRewardsResponseFromDNA(input, dnaData, userContext);
+        } else {
+          console.log('🤖 WorkingTravelBot: Travel DNA failed with status:', dnaResponse.status);
         }
       }
     } catch (apiError) {
+      console.log('🤖 WorkingTravelBot: AI API error:', apiError);
       console.log('AI API unavailable, using intelligent fallback');
     }
 
     // If AI response was generated, use it; otherwise use intelligent fallback
     if (aiResponse) {
+      console.log('🤖 WorkingTravelBot: Using AI response');
       return aiResponse;
     } else {
+      console.log('🤖 WorkingTravelBot: Using intelligent fallback');
       return generateIntelligentFallback(input, userContext, attachments);
     }
     
   } catch (error) {
-    console.error('AI response generation failed:', error);
+    console.error('🤖 WorkingTravelBot: AI response generation failed:', error);
     return generateIntelligentFallback(input, userContext, attachments);
   }
 }
