@@ -390,174 +390,312 @@ const WorkingTravelBot: React.FC<WorkingTravelBotProps> = ({
   );
 };
 
-// Enhanced response generation with file analysis capability
+// Enhanced AI response generation using real Emergent LLM integration
 async function generateBotResponse(
   input: string,
   attachments?: Array<{type: string; name: string; url: string}>,
   userContext?: any
 ): Promise<{content: string; suggestions?: string[]}> {
   
-  // Handle file attachments
+  try {
+    // Call the unified AI system for intelligent responses
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
+    
+    // Prepare context for AI
+    const aiContext = {
+      user_profile: {
+        current_tier: userContext?.currentTier || 'Explorer',
+        nft_count: userContext?.nftCount || 0,
+        recent_bookings: userContext?.recentBookings || [],
+        reward_value: userContext?.nftCount ? userContext.nftCount * 67 : 0
+      },
+      current_module: 'chat_assistant',
+      conversation_context: 'travel_assistance',
+      has_attachments: attachments && attachments.length > 0,
+      attachment_types: attachments?.map(a => a.type) || []
+    };
+
+    // Handle file attachments with AI analysis
+    if (attachments && attachments.length > 0) {
+      const imageAttachments = attachments.filter(a => a.type === 'image');
+      const docAttachments = attachments.filter(a => a.type === 'document');
+      
+      // Enhance input with file context
+      let enhancedInput = input || "Please analyze these files";
+      enhancedInput += `\n\nFiles shared: `;
+      
+      if (imageAttachments.length > 0) {
+        enhancedInput += `${imageAttachments.length} image(s) - likely travel photos, screenshots, or booking confirmations. `;
+      }
+      
+      if (docAttachments.length > 0) {
+        enhancedInput += `${docAttachments.length} document(s) - likely itineraries, bookings, or travel plans. `;
+      }
+      
+      enhancedInput += "Please provide helpful travel assistance based on these files.";
+      input = enhancedInput;
+    }
+
+    // Call unified AI orchestrator for intelligent response
+    const response = await fetch(`${backendUrl}/api/unified-ai/contextual-assistance`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: input,
+        context: aiContext,
+        module: 'travel_chat'
+      })
+    });
+
+    if (response.ok) {
+      const aiData = await response.json();
+      
+      // Generate contextual suggestions based on AI response
+      const suggestions = generateContextualSuggestions(input, aiData.response, userContext);
+      
+      return {
+        content: aiData.response,
+        suggestions: suggestions
+      };
+    } else {
+      // Fallback to intelligent static responses if AI service is unavailable
+      return generateIntelligentFallback(input, userContext, attachments);
+    }
+    
+  } catch (error) {
+    console.error('AI response generation failed:', error);
+    // Intelligent fallback responses
+    return generateIntelligentFallback(input, userContext, attachments);
+  }
+}
+
+// Intelligent fallback system with travel context
+function generateIntelligentFallback(
+  input: string,
+  userContext?: any,
+  attachments?: Array<{type: string; name: string; url: string}>
+): {content: string; suggestions?: string[]} {
+  
+  const inputLower = input.toLowerCase();
+  const rewardValue = userContext?.nftCount ? userContext.nftCount * 67 : 0;
+  const tierStatus = userContext?.currentTier || 'Explorer';
+  
+  // Intelligent attachment analysis
   if (attachments && attachments.length > 0) {
-    const imageAttachments = attachments.filter(a => a.type === 'image');
-    const docAttachments = attachments.filter(a => a.type === 'document');
+    const hasImages = attachments.some(a => a.type === 'image');
+    const hasDocs = attachments.some(a => a.type === 'document');
     
     let response = "I can see you've shared ";
-    
-    if (imageAttachments.length > 0) {
-      response += `${imageAttachments.length} image${imageAttachments.length > 1 ? 's' : ''}`;
+    if (hasImages && hasDocs) {
+      response += `${attachments.length} files (images and documents) `;
+    } else if (hasImages) {
+      response += `${attachments.length} image${attachments.length > 1 ? 's' : ''} `;
+    } else {
+      response += `${attachments.length} document${attachments.length > 1 ? 's' : ''} `;
     }
     
-    if (docAttachments.length > 0) {
-      response += `${imageAttachments.length > 0 ? ' and ' : ''}${docAttachments.length} document${docAttachments.length > 1 ? 's' : ''}`;
+    response += "with me! ";
+    
+    if (hasImages) {
+      response += "I can help analyze travel photos, destination screenshots, hotel images, or booking confirmations. ";
     }
     
-    response += " with me! ";
-    
-    if (imageAttachments.length > 0) {
-      response += "I can analyze travel photos, destination screenshots, booking confirmations, or itinerary images. ";
+    if (hasDocs) {
+      response += "I can assist with travel documents, itineraries, booking details, or travel plans. ";
     }
     
-    if (docAttachments.length > 0) {
-      response += "I can help with travel documents, booking confirmations, itineraries, or travel plans. ";
-    }
-    
-    response += "What would you like me to help you with regarding these files?";
+    response += `As a ${tierStatus} member with $${rewardValue} in earned rewards, I can also show you how to maximize benefits from your travels. What specific help do you need with these files?`;
     
     return {
       content: response,
       suggestions: [
-        "Analyze this travel destination",
         "Help me understand this booking",
-        "Plan based on this itinerary",
-        "Compare these options"
+        "Analyze this destination photo",
+        "Plan my trip from this itinerary",
+        "How can I earn rewards from this?"
       ]
     };
   }
   
-  // Regular text responses
-  const inputLower = input.toLowerCase();
-  
-  // Rewards queries
-  if (inputLower.includes('reward') || inputLower.includes('nft') || inputLower.includes('credit')) {
-    const rewardValue = userContext?.nftCount ? userContext.nftCount * 67 : 0;
-    
+  // Intelligent reward-focused responses
+  if (inputLower.includes('reward') || inputLower.includes('nft') || inputLower.includes('credit') || inputLower.includes('benefit')) {
     if (rewardValue > 0) {
       return {
-        content: `You've earned $${rewardValue} in travel rewards! Here's how you can use them:
+        content: `Great question about your travel rewards! 🏆
 
-💳 **Platform Credits**: Apply directly to booking payments
-🎯 **Member Discounts**: Get exclusive deals as a ${userContext?.currentTier || 'Explorer'} member  
-🏆 **Tier Benefits**: Enhanced rewards on future bookings
-🎁 **Special Access**: Exclusive experiences and early deals
+You've earned **$${rewardValue}** in travel benefits from your ${userContext?.nftCount || 0} completed trips. Here's how these rewards work:
 
-Would you like me to help you use these rewards for your next trip?`,
+💳 **Immediate Use**: Apply $${rewardValue} as credits toward any new booking
+🎯 **Member Benefits**: As a ${tierStatus} member, you get enhanced rewards (10-15% bonus)
+🏆 **Tier Advantages**: Your status gives you priority support and exclusive deals
+📈 **Growing Value**: Each new trip earns you more rewards and advances your tier
+
+Would you like me to help you use these rewards for your next adventure?`,
         suggestions: [
-          "Use my rewards for a hotel booking",
-          "Show me member-exclusive deals",
-          "How do I get more rewards?",
-          "Plan a trip with my credits"
+          "Use my $" + rewardValue + " for a hotel booking",
+          "Show me " + tierStatus + " member exclusive deals",
+          "How do I earn even more rewards?",
+          "Plan a trip using my rewards"
         ]
       };
     } else {
       return {
-        content: `You can start earning travel rewards with your first booking! Here's how it works:
+        content: `You're ready to start earning travel rewards! 🌟
 
-📍 **Book Travel**: Hotels, flights, activities, or cars
-💰 **Earn Instantly**: Get credits worth 10-25% of your booking value
-🏆 **Level Up**: Advance through tiers for better rewards
-🎁 **Keep Growing**: Every trip earns you more benefits
+Here's how our intelligent reward system works:
 
-Ready to start earning rewards from your next adventure?`,
+📍 **Every Booking Earns**: Get 10-25% back in platform credits
+🎁 **Instant Rewards**: Earn travel NFTs that provide ongoing benefits  
+🏆 **Tier Progression**: Advance from Wanderer → Explorer → Adventurer → Legend
+💰 **Provider Bonuses**: Expedia (15%), Amadeus (10%), Viator (12%), and more
+🎯 **Smart Benefits**: AI-powered rewards that grow with your travel style
+
+Ready to start earning from your first booking?`,
         suggestions: [
-          "Find hotels with rewards",
-          "Search reward-earning flights",
-          "How much can I earn?",
+          "How much can I earn from a $500 hotel?",
+          "What providers give the best rewards?",
+          "Show me high-reward destinations",
           "Plan my first rewarded trip"
         ]
       };
     }
   }
   
-  // Hotel queries
-  if (inputLower.includes('hotel') || inputLower.includes('stay')) {
+  // Intelligent hotel recommendations
+  if (inputLower.includes('hotel') || inputLower.includes('stay') || inputLower.includes('accommodation')) {
     return {
-      content: `I'd love to help you find the perfect hotel! 🏨 
+      content: `I'd love to help you find the perfect hotel! 🏨
 
-I can search across all our partners:
-• **Expedia**: 700,000+ properties worldwide (15% bonus rewards)
-• **Amadeus**: Global luxury and business hotels (10% bonus)
-• **RateHawk**: Best rates and instant confirmation (10% bonus)
+I can intelligently search across our integrated providers:
 
-Where are you planning to stay and when?`,
+🌟 **Expedia Group**: 700,000+ properties with 15% bonus rewards
+🏢 **Amadeus**: Premium hotels with global coverage (10% bonus)
+🏪 **RateHawk**: Best rates with instant confirmation (10% bonus)
+
+${rewardValue > 0 ? `Plus, you can use your $${rewardValue} in earned rewards for additional discounts!` : 'You\'ll earn rewards on every booking that you can use for future trips!'}
+
+Where are you planning to stay and when? I'll find options that maximize both your comfort and your rewards.`,
       suggestions: [
-        "Luxury hotels in Santorini",
-        "Budget hotels in Tokyo",
-        "Romantic resorts in Maldives",
-        "Business hotels in New York"
+        "Luxury hotels in Santorini with rewards",
+        "Business hotels in Tokyo with member perks", 
+        "Romantic resorts in Maldives with bonuses",
+        "Budget-friendly hotels with highest rewards"
       ]
     };
   }
   
-  // Flight queries
-  if (inputLower.includes('flight') || inputLower.includes('fly')) {
+  // Intelligent flight search
+  if (inputLower.includes('flight') || inputLower.includes('fly') || inputLower.includes('airport') || inputLower.includes('airline')) {
     return {
-      content: `Let me help you find the best flight deals! ✈️
+      content: `Let me help you find intelligent flight options! ✈️
 
-I'll compare options from:
-• **Amadeus**: Global airline network with best routes
-• **Duffle**: Modern booking with real-time prices
-• **Sabre**: Comprehensive flight options and schedules
+I'll search our top flight providers:
 
-Plus you'll earn travel rewards on every booking! Where would you like to fly?`,
+🌍 **Amadeus**: Global airline network with comprehensive routes
+🚀 **Duffle**: Modern booking platform with real-time pricing  
+📊 **Sabre**: Advanced flight options with flexible scheduling
+
+${rewardValue > 0 ? `Your $${rewardValue} in rewards can be applied to reduce flight costs!` : 'Every flight booking earns you rewards for future travels!'}
+
+I can also use AI to find the best timing, routes, and deals based on your travel preferences. Where would you like to fly?`,
       suggestions: [
-        "Round trip to Europe",
-        "One way flights to Asia",
-        "Domestic weekend getaway",
-        "Multi-city adventure"
+        "Find cheap flights to Europe",
+        "Business class deals to Asia",
+        "Weekend getaway flights with rewards",
+        "Multi-city trips with maximum benefits"
       ]
     };
   }
   
-  // Planning queries
-  if (inputLower.includes('plan') || inputLower.includes('trip') || inputLower.includes('vacation')) {
+  // Intelligent trip planning
+  if (inputLower.includes('plan') || inputLower.includes('trip') || inputLower.includes('vacation') || inputLower.includes('travel') || inputLower.includes('destination')) {
     return {
       content: `I'd love to help you plan an amazing trip! 🌟
 
-I can assist with:
-• **Smart Destinations**: AI-powered recommendations based on your style
-• **Complete Itineraries**: Multi-day trip planning with activities
-• **Budget Planning**: Find deals that maximize your travel rewards
-• **Seasonal Timing**: Best times to visit and book for savings
+Using our Smart Dreams AI, I can create personalized recommendations based on:
+
+🧠 **Your Travel DNA**: AI analysis of your travel personality and preferences
+🎯 **Reward Optimization**: Plans that maximize your earnings and tier advancement
+🌍 **Provider Integration**: Best deals across all 6 integrated travel providers
+📅 **Timing Intelligence**: Optimal booking times for savings and availability
+
+${rewardValue > 0 ? `With your $${rewardValue} in rewards and ${tierStatus} status, I can unlock exclusive deals and experiences!` : 'I\'ll also show you how to earn maximum rewards from your trip!'}
 
 What type of adventure are you dreaming about?`,
       suggestions: [
-        "Plan a romantic getaway",
-        "Cultural exploration trip",
-        "Adventure vacation",
-        "Relaxing beach holiday"
+        "Plan a romantic European getaway",
+        "Cultural exploration in Asia with AI",
+        "Adventure vacation with maximum rewards",
+        "Luxury trip using my " + tierStatus + " benefits"
       ]
     };
   }
   
-  // Default helpful response
+  // Intelligent general assistance
   return {
-    content: `I'm here to help with all your travel needs! 🎯
+    content: `Hello! I'm your intelligent Maku Travel Assistant powered by advanced AI. 🤖
 
-I can assist you with:
-• Finding and booking hotels, flights, and activities
-• Planning complete trip itineraries
-• Explaining and using your travel rewards
-• Analyzing travel documents or screenshots you share
+I can provide smart help with:
 
-You can also upload any travel-related images or documents and I'll help you with them. What would you like to explore?`,
+🏨 **Hotel Booking**: Find perfect accommodations with AI recommendations
+✈️ **Flight Search**: Intelligent route and timing optimization
+🎯 **Trip Planning**: Personalized itineraries using your Travel DNA
+🏆 **Reward Optimization**: Maximize earnings from every booking
+📊 **Provider Comparison**: Smart analysis across 6 travel providers
+📎 **File Analysis**: Upload screenshots or documents for assistance
+
+${rewardValue > 0 ? `I see you're a ${tierStatus} member with $${rewardValue} in earned rewards - I can help you make the most of these benefits!` : 'I can also show you how to start earning valuable travel rewards from your first booking!'}
+
+What travel challenge can I help you solve today?`,
     suggestions: [
-      "Find me hotel deals",
-      "Compare flight prices",
-      "Explain my travel rewards",
-      "Help me plan a trip"
+      "Find me the best hotel deals",
+      "Compare flight prices intelligently", 
+      "Optimize my travel rewards",
+      "Plan a trip with AI assistance",
+      "Analyze my travel documents"
     ]
   };
+}
+
+// Generate contextual suggestions based on AI response and user state
+function generateContextualSuggestions(
+  originalInput: string,
+  aiResponse: string,
+  userContext?: any
+): string[] {
+  const suggestions = [];
+  const inputLower = originalInput.toLowerCase();
+  const responseLower = aiResponse.toLowerCase();
+  
+  // Context-aware suggestions based on conversation topic
+  if (inputLower.includes('hotel') || responseLower.includes('hotel')) {
+    suggestions.push("Show me luxury hotel options");
+    suggestions.push("Find budget-friendly hotels");
+    suggestions.push("Hotels with best rewards");
+  }
+  
+  if (inputLower.includes('flight') || responseLower.includes('flight')) {
+    suggestions.push("Compare flight prices");
+    suggestions.push("Find flexible date options");
+    suggestions.push("Best airline rewards");
+  }
+  
+  if (inputLower.includes('reward') || responseLower.includes('reward')) {
+    suggestions.push("How to maximize my rewards");
+    suggestions.push("Use my rewards for booking");
+    suggestions.push("Advance to next tier");
+  }
+  
+  // Default intelligent suggestions
+  if (suggestions.length === 0) {
+    suggestions.push("Plan my next trip");
+    suggestions.push("Find travel deals");
+    suggestions.push("Check my rewards");
+  }
+  
+  return suggestions.slice(0, 3); // Limit to 3 for space
 }
 
 export default WorkingTravelBot;
