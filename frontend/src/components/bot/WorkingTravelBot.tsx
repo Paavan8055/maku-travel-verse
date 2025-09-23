@@ -676,6 +676,20 @@ What travel challenge can I help you solve today?`,
   };
 }
 
+// Extract user intent from input for better AI processing
+function extractIntent(input: string): string {
+  const inputLower = input.toLowerCase();
+  
+  if (inputLower.includes('hotel') || inputLower.includes('stay')) return 'hotel_search';
+  if (inputLower.includes('flight') || inputLower.includes('fly')) return 'flight_search';
+  if (inputLower.includes('plan') || inputLower.includes('trip')) return 'trip_planning';
+  if (inputLower.includes('reward') || inputLower.includes('nft')) return 'rewards_inquiry';
+  if (inputLower.includes('book') || inputLower.includes('reservation')) return 'booking_assistance';
+  if (inputLower.includes('help') || inputLower.includes('support')) return 'general_assistance';
+  
+  return 'general_inquiry';
+}
+
 // Generate contextual suggestions based on AI response and user state
 function generateContextualSuggestions(
   originalInput: string,
