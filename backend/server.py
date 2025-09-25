@@ -1019,8 +1019,19 @@ async def track_game_event(event_data: dict):
 
 @api_router.post("/ai/travel-dna/{user_id}")
 async def analyze_travel_dna(user_id: str, request_data: dict):
-    """Analyze user's travel DNA using AI intelligence"""
+    """Analyze user's travel DNA using FREE APIs during development"""
     try:
+        # Import free AI provider
+        from free_ai_provider import free_ai_provider
+        
+        # Check if we should use free APIs (development mode)
+        if os.environ.get('DEVELOPMENT_MODE', 'true').lower() == 'true':
+            logger.info("🆓 DEVELOPMENT MODE: Using FREE Travel DNA analysis (0 credits)")
+            return await free_ai_provider.get_travel_dna_response(user_id, request_data)
+        
+        # PRODUCTION: Use Emergent LLM Key (costs credits)
+        logger.warning("💰 PRODUCTION MODE: Using Emergent credits for Travel DNA")
+        
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         
         # Get the emergent LLM key
