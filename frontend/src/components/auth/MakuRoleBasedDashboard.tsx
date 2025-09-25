@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MakuLogo, MakuButton, MakuCard } from '@/components/branding/MakuBrandSystem';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   User, 
   Shield, 
