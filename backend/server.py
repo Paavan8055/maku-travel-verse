@@ -1014,6 +1014,46 @@ async def track_game_event(event_data: dict):
         logger.error(f"Failed to track game event: {e}")
         return {"success": False}
 
+@api_router.post("/ai/free-chat")
+async def free_development_chat(request_data: dict):
+    """Free development chat endpoint - no Emergent credits used"""
+    try:
+        query = request_data.get("query", "")
+        user_context = request_data.get("user_context", {})
+        
+        # Always use free provider in development
+        if os.environ.get('DEVELOPMENT_MODE', 'true').lower() == 'true':
+            logger.info("🆓 FREE CHAT: No Emergent credits consumed")
+            response = await free_ai_provider.get_chat_response(query, user_context)
+            
+            return {
+                "message": response.get("response", "I can help you with travel planning!"),
+                "suggestions": response.get("suggestions", ["Find hotels", "Search flights", "Plan trip"]),
+                "source": response.get("source", "free_development"),
+                "credits_used": 0.0,
+                "development_mode": True,
+                "note": "Using free APIs - no Emergent credits consumed"
+            }
+        else:
+            # Production mode - would use Emergent credits
+            logger.warning("💰 PRODUCTION MODE: Would use Emergent credits")
+            return {
+                "message": "Production mode would use Emergent credits here",
+                "source": "emergent_warning",
+                "credits_used": 0.2,
+                "development_mode": False
+            }
+        
+    except Exception as e:
+        logger.error(f"Free chat endpoint failed: {e}")
+        return {
+            "message": "I'm here to help with your travel needs! What can I assist you with?",
+            "suggestions": ["Hotels", "Flights", "Rewards", "Planning"],
+            "source": "fallback",
+            "credits_used": 0.0,
+            "error": str(e)
+        }
+
 # =====================================================
 # AI INTELLIGENCE LAYER - Phase 3 Implementation
 # =====================================================
