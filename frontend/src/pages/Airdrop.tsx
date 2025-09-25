@@ -79,7 +79,7 @@ export default function Airdrop() {
     },
     {
       title: 'Social & Community',
-      description: 'Engage with the Maku community',
+      description: 'Engage with the TravelHub community',
       icon: Users,
       color: 'from-blue-500 to-purple-500',
       quests: [
