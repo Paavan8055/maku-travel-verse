@@ -215,7 +215,7 @@ export default function Airdrop() {
               Active & Upcoming Airdrops
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Scheduled token distributions for the Maku Travel community
+              Scheduled token distributions for the TravelHub community
             </p>
           </div>
 
