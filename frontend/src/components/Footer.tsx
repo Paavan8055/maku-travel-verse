@@ -301,12 +301,12 @@ return <footer className="bg-primary text-primary-foreground">
         <div className="py-6 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md">
-                    <span className="text-white font-bold text-sm">🐕</span>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+                    <span className="text-white font-bold">M</span>
                   </div>
-                  <span className="text-lg font-bold bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+                  <span className="text-lg font-bold text-gray-900">
                     Maku Travel
                   </span>
                 </div>
