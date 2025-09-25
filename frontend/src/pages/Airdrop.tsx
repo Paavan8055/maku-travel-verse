@@ -90,7 +90,7 @@ export default function Airdrop() {
     },
     {
       title: 'Platform Mastery',
-      description: 'Master TravelHub features',
+      description: 'Master Maku Travel features',
       icon: Star,
       color: 'from-purple-500 to-pink-500',
       quests: [
