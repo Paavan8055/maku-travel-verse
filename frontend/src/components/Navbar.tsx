@@ -105,11 +105,11 @@ const Navbar = () => {
         <div className={`flex items-center justify-between transition-all duration-300 ${viewportWidth < 768 ? 'h-14' : viewportWidth < 1024 ? 'h-16' : 'h-18'}`}>
           {/* Maku Travel Brand Text */}
           <div className="flex items-center cursor-pointer flex-shrink-0" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-sm">🐕</span>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+                <span className="text-white font-bold text-lg">M</span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold text-gray-900 whitespace-nowrap">
                 Maku Travel
               </span>
             </div>
