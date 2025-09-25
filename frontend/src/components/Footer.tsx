@@ -307,10 +307,10 @@ return <footer className="bg-primary text-primary-foreground">
                     <span className="text-white font-bold">M</span>
                   </div>
                   <span className="text-lg font-bold text-white">
-                    Maku Travel
+                    Maku
                   </span>
                 </div>
-                <span className="text-sm text-primary-foreground/80">© 2025 Maku Travel. All rights reserved.</span>
+                <span className="text-sm text-primary-foreground/80">© 2025 Maku. All rights reserved.</span>
               </div>
               
               <div className="flex flex-wrap items-center gap-6 text-primary-foreground/90">
