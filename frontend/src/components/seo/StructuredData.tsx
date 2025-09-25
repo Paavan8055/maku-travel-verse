@@ -84,7 +84,7 @@ export const ProductStructuredData = ({ product }: { product: any }) => (
       image: product.image,
       brand: {
         "@type": "Brand",
-        name: product.brand || "MAKU.Travel"
+        name: product.brand || "TravelHub"
       },
       offers: {
         "@type": "Offer",
