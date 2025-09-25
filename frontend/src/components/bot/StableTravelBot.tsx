@@ -185,7 +185,7 @@ const StableTravelBot: React.FC<StableTravelBotProps> = ({ userContext }) => {
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900">Maku Travel Assistant</CardTitle>
+              <CardTitle className="text-lg font-bold text-gray-900">Maku Assistant</CardTitle>
               <CardDescription className="text-sm text-gray-700">
                 Free development • Smart travel help
               </CardDescription>
