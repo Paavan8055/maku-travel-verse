@@ -151,7 +151,7 @@ export default function Airdrop() {
         <div className="relative container mx-auto px-6 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Maku Airdrop Program
+              TravelHub Airdrop Program
               <span className="block text-yellow-300">(Scheduled)</span>
             </h1>
             
