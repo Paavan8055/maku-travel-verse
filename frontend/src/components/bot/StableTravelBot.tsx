@@ -46,7 +46,7 @@ const StableTravelBot: React.FC<StableTravelBotProps> = ({ userContext }) => {
     {
       id: '1',
       role: 'assistant',
-      content: "🆓 FREE DEVELOPMENT MODE: Hi! I'm your TravelHub Assistant. I'm using free AI APIs during development to save your credits while providing intelligent travel help.\n\nI can assist with:\n🏨 Hotel searches across 6 providers\n✈️ Flight comparisons and deals\n🎁 Travel reward optimization\n📋 Trip planning and recommendations\n📎 File analysis (upload screenshots/documents)\n\nWhat can I help you with today?",
+      content: "🆓 FREE DEVELOPMENT MODE: Hi! I'm your Maku Travel Assistant. I'm using free AI APIs during development to save your credits while providing intelligent travel help.\n\nI can assist with:\n🏨 Hotel searches across 6 providers\n✈️ Flight comparisons and deals\n🎁 Travel reward optimization\n📋 Trip planning and recommendations\n📎 File analysis (upload screenshots/documents)\n\nWhat can I help you with today?",
       timestamp: new Date(),
       source: 'free_api',
       creditsUsed: 0,
