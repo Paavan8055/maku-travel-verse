@@ -667,7 +667,7 @@ export default function NFT() {
                   answer: "You can earn up to 25% back on travel bookings through combined NFT rewards, platform credits, provider bonuses, and tier multipliers. Plus ongoing benefits from your NFT collection."
                 },
                 {
-                  question: "What makes Maku NFTs unique?", 
+                  question: "What makes TravelHub NFTs unique?", 
                   answer: "Each NFT represents a real travel experience with AI-generated artwork, ongoing utility, and rewards. Unlike static avatars, our NFTs evolve and provide continuous value based on your journey."
                 },
                 {
