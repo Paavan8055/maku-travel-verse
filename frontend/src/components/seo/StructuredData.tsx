@@ -59,12 +59,12 @@ export const WebsiteStructuredData = () => (
   <StructuredData
     type="Website"
     data={{
-      name: "MAKU.Travel",
-      url: "https://maku.travel",
+      name: "TravelHub",
+      url: "https://travelhub.travel",
       description: "Book flights, hotels, and activities with confidence. Premium travel experiences at competitive prices.",
       publisher: {
         "@type": "Organization",
-        name: "MAKU.Travel"
+        name: "TravelHub"
       },
       potentialAction: {
         "@type": "SearchAction",
