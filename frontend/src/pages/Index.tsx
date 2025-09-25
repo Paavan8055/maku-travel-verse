@@ -1,71 +1,38 @@
-import { lazy, Suspense } from "react";
 import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-import SearchSection from "@/components/SearchSection";
-import MarketplacePills from "@/components/MarketplacePills";
-import { PerformanceWrapper } from "@/components/PerformanceWrapper";
-import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
-import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import StableTravelBot from "@/components/bot/StableTravelBot";
-import { PartnerShowcase } from "@/components/partners/PartnerShowcase";
-
-// Lazy load below-the-fold components for better performance
-const MarketplaceSection = lazy(() => import("@/components/MarketplaceSection"));
-const FeaturedListings = lazy(() => import("@/components/FeaturedListings"));
-const FooterCtas = lazy(() => import("@/components/FooterCtas"));
-const Footer = lazy(() => import("@/components/Footer"));
+import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <ErrorBoundary>
-      <PerformanceWrapper componentName="HomePage" enableMonitoring={false}>
-        <div className="min-h-screen bg-background">
-          <SessionRecoveryBanner />
-          <Navbar />
-          <HeroSection />
-          <MarketplacePills />
-          <SearchSection />
-          <Suspense fallback={<div className="text-center p-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div></div>}>
-            <div className="relative">
-              {/* Bot temporarily removed to fix loading issue */}
-            </div>
-          </Suspense>
-          
-          {/* Lazy load below-the-fold content */}
-          <div className="h-96 bg-muted/50 animate-pulse">
-            {/* MarketplaceSection temporarily disabled */}
-          </div>
-          
-          <div className="h-96 bg-muted/50 animate-pulse">
-            {/* FeaturedListings temporarily disabled */}
-          </div>
-          </Suspense>
-
-          {/* Partner Showcase */}
-          <Suspense fallback={<div className="h-64 bg-muted/50 animate-pulse" />}>
-            <div className="py-16 bg-gradient-to-br from-orange-50 via-white to-green-50">
-              <div className="max-w-7xl mx-auto px-6">
-                <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
-                  Trusted Travel Partners
-                </h2>
-                <p className="text-lg text-center text-gray-600 mb-8">
-                  Powered by industry-leading providers
-                </p>
-                {/* Partner showcase temporarily removed to fix loading */}
-              </div>
-            </div>
-          </Suspense>
+    <div className="min-h-screen bg-background">
+      <Navbar />
       
-          <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse" />}>
-            <FooterCtas />
-          </Suspense>
-          
-          <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse" />}>
-            <Footer />
-          </Suspense>
-        </div>
-      </PerformanceWrapper>
-    </ErrorBoundary>
+      <main className="pt-20">
+        <section className="py-24 px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              Welcome to Maku
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Your intelligent travel platform with AI-powered planning and blockchain rewards.
+            </p>
+          </div>
+        </section>
+        
+        <section className="py-16 bg-gradient-to-br from-orange-50 to-green-50">
+          <div className="container mx-auto px-6">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
+              Trusted Travel Partners
+            </h2>
+            <p className="text-lg text-center text-gray-600">
+              Powered by 6 industry-leading providers including Expedia, Amadeus, Viator, Duffle, RateHawk, and Sabre
+            </p>
+          </div>
+        </section>
+      </main>
+      
+      <Footer />
+    </div>
   );
 };
+
 export default Index;
