@@ -93,7 +93,7 @@ export const ProductStructuredData = ({ product }: { product: any }) => (
         availability: "https://schema.org/InStock",
         seller: {
           "@type": "Organization",
-          name: "MAKU.Travel"
+          name: "TravelHub"
         }
       },
       aggregateRating: product.rating && {
