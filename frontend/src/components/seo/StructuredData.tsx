@@ -68,7 +68,7 @@ export const WebsiteStructuredData = () => (
       },
       potentialAction: {
         "@type": "SearchAction",
-        target: "https://maku.travel/search?q={search_term_string}",
+        target: "https://travelhub.travel/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     }}
