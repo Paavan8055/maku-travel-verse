@@ -306,7 +306,7 @@ return <footer className="bg-primary text-primary-foreground">
                   <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
                     <span className="text-white font-bold">M</span>
                   </div>
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-lg font-bold text-white">
                     Maku Travel
                   </span>
                 </div>
