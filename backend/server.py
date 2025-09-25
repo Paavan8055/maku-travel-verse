@@ -1156,8 +1156,19 @@ async def analyze_travel_dna(user_id: str, request_data: dict):
 
 @api_router.get("/ai/recommendations/{user_id}")
 async def get_intelligent_recommendations(user_id: str, max_results: int = 10, include_social_proof: bool = True):
-    """Get AI-powered intelligent recommendations"""
+    """Get AI-powered intelligent recommendations using FREE APIs during development"""
     try:
+        # Import free AI provider
+        from free_ai_provider import free_ai_provider
+        
+        # Check if we should use free APIs (development mode)
+        if os.environ.get('DEVELOPMENT_MODE', 'true').lower() == 'true':
+            logger.info("🆓 DEVELOPMENT MODE: Using FREE recommendations (0 credits)")
+            return await free_ai_provider.get_recommendations_response(user_id, max_results)
+        
+        # PRODUCTION: Use Emergent LLM Key (costs credits)
+        logger.warning("💰 PRODUCTION MODE: Using Emergent credits for recommendations")
+        
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         
         api_key = os.environ.get('EMERGENT_LLM_KEY')
@@ -1224,7 +1235,8 @@ async def get_intelligent_recommendations(user_id: str, max_results: int = 10, i
             "processing_metadata": {
                 "analysis_time_ms": 245,
                 "ai_model_version": "gpt-4o-mini",
-                "data_sources_used": ["user_behavior", "ai_analysis"]
+                "data_sources_used": ["user_behavior", "ai_analysis"],
+                "credits_used": "PRODUCTION_MODE"
             }
         }
         
