@@ -27,8 +27,7 @@ const Index = () => {
           <SearchSection />
           <Suspense fallback={null}>
             <div className="relative">
-              <WorkingTravelBot 
-                variant="widget"
+              <CreditOptimizedBot 
                 userContext={{
                   currentTier: 'Explorer',
                   nftCount: 3,
