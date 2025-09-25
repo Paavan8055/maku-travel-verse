@@ -133,7 +133,7 @@ export default function NFT() {
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Hero Section - Travala Style but TravelHub Branded */}
+      {/* Hero Section - Travala Style but Maku Branded */}
       <section className="relative bg-gradient-to-br from-orange-500 via-green-500 to-orange-600 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative container mx-auto px-6 py-20">
