@@ -32,10 +32,10 @@ export const OrganizationStructuredData = () => (
   <StructuredData
     type="TravelAgency"
     data={{
-      name: "TravelHub",
+      name: "MAKU.Travel",
       description: "Premium travel booking platform offering flights, hotels, and activities worldwide",
-      url: "https://travelhub.travel",
-      logo: "https://travelhub.travel/logo.png",
+      url: "https://maku.travel",
+      logo: "https://maku.travel/logo.png",
       contactPoint: {
         "@type": "ContactPoint",
         telephone: "+61-XXX-XXX-XXX",
