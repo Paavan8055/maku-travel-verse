@@ -249,9 +249,6 @@ const Navbar = () => {
                     >
                       <Trophy className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 text-orange-500" aria-hidden="true" />
                       <span className="font-medium">Rewards</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-600 text-xs px-1.5 py-0.5">
-                        Earn 25%
-                      </Badge>
                       <ChevronDown className="h-3 w-3 transition-transform duration-200" aria-hidden="true" />
                     </Button>
                   </DropdownMenuTrigger>
