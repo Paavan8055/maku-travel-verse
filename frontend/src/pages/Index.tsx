@@ -44,7 +44,13 @@ const Index = () => {
           <Suspense fallback={<div className="h-64 bg-muted/50 animate-pulse" />}>
             <div className="py-16 bg-gradient-to-br from-orange-50 via-white to-green-50">
               <div className="max-w-7xl mx-auto px-6">
-                <PartnerShowcase variant="compact" />
+                <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
+                  Trusted Travel Partners
+                </h2>
+                <p className="text-lg text-center text-gray-600 mb-8">
+                  Powered by industry-leading providers
+                </p>
+                {/* Partner showcase temporarily removed to fix loading */}
               </div>
             </div>
           </Suspense>
