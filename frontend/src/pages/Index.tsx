@@ -32,12 +32,13 @@ const Index = () => {
           </Suspense>
           
           {/* Lazy load below-the-fold content */}
-          <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
-            <MarketplaceSection />
-          </Suspense>
+          <div className="h-96 bg-muted/50 animate-pulse">
+            {/* MarketplaceSection temporarily disabled */}
+          </div>
           
-          <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
-            <FeaturedListings />
+          <div className="h-96 bg-muted/50 animate-pulse">
+            {/* FeaturedListings temporarily disabled */}
+          </div>
           </Suspense>
 
           {/* Partner Showcase */}
