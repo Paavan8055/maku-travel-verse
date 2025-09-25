@@ -37,6 +37,7 @@ from nft_integration_endpoints import nft_router
 from admin_nft_endpoints import admin_nft_router
 from unified_ai_orchestrator import unified_ai_router
 from credit_optimization import optimized_ai_router
+from free_ai_provider import free_ai_provider
 
 # Create the main app without a prefix
 app = FastAPI(
