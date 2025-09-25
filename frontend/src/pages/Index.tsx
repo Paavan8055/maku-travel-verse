@@ -25,15 +25,9 @@ const Index = () => {
           <HeroSection />
           <MarketplacePills />
           <SearchSection />
-          <Suspense fallback={null}>
+          <Suspense fallback={<div className="text-center p-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div></div>}>
             <div className="relative">
-              <StableTravelBot 
-                userContext={{
-                  currentTier: 'Explorer',
-                  nftCount: 3,
-                  recentBookings: []
-                }}
-              />
+              {/* Bot temporarily removed to fix loading issue */}
             </div>
           </Suspense>
           
