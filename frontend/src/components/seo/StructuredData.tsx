@@ -43,9 +43,9 @@ export const OrganizationStructuredData = () => (
         availableLanguage: ["English"]
       },
       sameAs: [
-        "https://facebook.com/maku.travel",
-        "https://twitter.com/maku_travel",
-        "https://instagram.com/maku.travel"
+        "https://facebook.com/travelhub.travel",
+        "https://twitter.com/travelhub_travel",
+        "https://instagram.com/travelhub.travel"
       ],
       address: {
         "@type": "PostalAddress",
