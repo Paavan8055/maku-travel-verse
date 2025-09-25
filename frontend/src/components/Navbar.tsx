@@ -103,14 +103,14 @@ const Navbar = () => {
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-orange-100 w-full transition-all duration-300 ${isSmartDreamActive ? 'smart-dream-active' : ''}`} role="navigation" aria-label="Main navigation">
       <div className="w-full px-6">
         <div className={`flex items-center justify-between transition-all duration-300 ${viewportWidth < 768 ? 'h-14' : viewportWidth < 1024 ? 'h-16' : 'h-18'}`}>
-          {/* Travel Platform Logo */}
+          {/* Maku Travel Brand Text */}
           <div className="flex items-center cursor-pointer flex-shrink-0" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-sm">TH</span>
+                <span className="text-white font-bold text-sm">🐕</span>
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent">
-                TravelHub
+                Maku Travel
               </span>
             </div>
           </div>
