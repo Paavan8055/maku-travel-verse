@@ -152,9 +152,6 @@ const Navbar = () => {
                     >
                       <Sparkles className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
                       <span className="font-medium">Smart Dreams</span>
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-600 text-xs px-1.5 py-0.5">
-                        New
-                      </Badge>
                       <ChevronDown className="h-3 w-3 transition-transform duration-200" aria-hidden="true" />
                     </Button>
                   </DropdownMenuTrigger>
