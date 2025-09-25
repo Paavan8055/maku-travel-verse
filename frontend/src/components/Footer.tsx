@@ -26,7 +26,7 @@ const Footer = () => {
 
   const footerLinks = {
     company: [{
-      name: "About TravelHub",
+      name: "About Maku.travel",
       href: "/about"
     }, {
       name: "Careers", 
