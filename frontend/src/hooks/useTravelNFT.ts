@@ -57,9 +57,7 @@ export const useTravelNFT = (userId?: string): UseTravelNFTReturn => {
 
   const fetchUserNFTs = async () => {
     try {
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 
-                         process.env.REACT_APP_BACKEND_URL || 
-                         "https://travel-portal-dev.preview.emergentagent.com";
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL;
 
       // First check if blockchain endpoints are available
       const healthResponse = await fetch(`${backendUrl}/api/blockchain/networks`);
