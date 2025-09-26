@@ -410,12 +410,9 @@ export const SmartDreamDashboard: React.FC = () => {
                   <CardContent className="p-8">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-4">
-                        <MakuLogo 
-                          size="lg" 
-                          variant="full" 
-                          theme="light" 
-                          context="card" 
-                        />
+                        <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md">
+                          <span className="text-white font-bold">M</span>
+                        </div>
                         <div>
                           <h2 className="text-3xl font-bold text-gray-800">{currentJourney.title}</h2>
                           <p className="text-gray-600">{selectedCompanion?.description}</p>
