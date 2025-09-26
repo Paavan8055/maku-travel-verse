@@ -342,12 +342,9 @@ export const SmartDreamDashboard: React.FC = () => {
                 <Card className="bg-white shadow-lg border border-orange-100 rounded-2xl">
                   <CardContent className="p-8 text-center">
                     <div className="flex items-center justify-center mb-6">
-                      <MakuLogo 
-                        size="xl" 
-                        variant="full" 
-                        theme="light" 
-                        context="card" 
-                      />
+                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-lg">
+                        <span className="text-white font-bold text-xl">M</span>
+                      </div>
                     </div>
                     <h2 className="text-3xl font-bold text-gray-800 mb-4">What's your dream journey called?</h2>
                     <p className="text-gray-600 mb-6">Give your adventure a memorable name</p>
