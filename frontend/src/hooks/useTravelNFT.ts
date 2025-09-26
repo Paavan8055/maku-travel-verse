@@ -180,9 +180,7 @@ export const useTravelNFT = (userId?: string): UseTravelNFTReturn => {
 
   const mintTravelNFT = async (bookingData: any): Promise<boolean> => {
     try {
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 
-                         process.env.REACT_APP_BACKEND_URL || 
-                         "https://travel-portal-dev.preview.emergentagent.com";
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL;
 
       // Call smart contract deployment endpoint to simulate NFT minting
       const response = await fetch(`${backendUrl}/api/blockchain/smart-contracts/deploy`, {
