@@ -200,7 +200,7 @@ export const SmartDreamManagement = () => {
     try {
       setProvidersLoading(true);
       
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://maku-travel.preview.emergentagent.com';
       if (!backendUrl) {
         throw new Error('Backend URL not configured');
       }
