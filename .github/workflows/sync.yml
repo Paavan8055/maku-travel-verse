@@ -26,7 +26,11 @@ jobs:
         run: |
           git fetch origin
           git checkout dev
-          git merge origin/emergent-integration || true
+          if ! git merge origin/emergent-integration; then
+            echo "Merge conflicts detected. Cannot create automated PR with conflicts."
+            echo "Please resolve conflicts manually and merge."
+            exit 1
+          fi
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
