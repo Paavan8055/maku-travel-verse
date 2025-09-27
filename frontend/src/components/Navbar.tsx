@@ -14,7 +14,6 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
 import { useHealthMonitor } from "@/hooks/useHealthMonitor";
 import { useAIIntelligence } from "@/hooks/useAIIntelligence";
-import { MakuLogo, MakuButton } from '@/components/branding/MakuBrandSystem';
 
 
 const Navbar = () => {
@@ -104,14 +103,16 @@ const Navbar = () => {
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-orange-100 w-full transition-all duration-300 ${isSmartDreamActive ? 'smart-dream-active' : ''}`} role="navigation" aria-label="Main navigation">
       <div className="w-full px-6">
         <div className={`flex items-center justify-between transition-all duration-300 ${viewportWidth < 768 ? 'h-14' : viewportWidth < 1024 ? 'h-16' : 'h-18'}`}>
-          {/* Official Maku.Travel Brand Logo */}
+          {/* Maku Brand */}
           <div className="flex items-center cursor-pointer flex-shrink-0" onClick={() => navigate('/')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/')}>
-            <MakuLogo 
-              size={viewportWidth < 768 ? 'sm' : 'md'} 
-              variant="full" 
-              theme="light" 
-              context="header" 
-            />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+                <span className="text-white font-bold text-lg">M</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900 whitespace-nowrap">
+                Maku
+              </span>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -151,9 +152,6 @@ const Navbar = () => {
                     >
                       <Sparkles className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
                       <span className="font-medium">Smart Dreams</span>
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-600 text-xs px-1.5 py-0.5">
-                        New
-                      </Badge>
                       <ChevronDown className="h-3 w-3 transition-transform duration-200" aria-hidden="true" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -201,19 +199,19 @@ const Navbar = () => {
                         
                         <button
                           onClick={() => {
-                            navigate('/smart-dreams?tab=dreams');
+                            navigate('/smart-dreams?tab=destinations');
                             setIsSmartDreamDropdownOpen(false);
                           }}
-                          className="flex flex-col items-center p-3 rounded-lg hover:bg-pink-50 transition-colors duration-200 group"
+                          className="flex flex-col items-center p-3 rounded-lg hover:bg-green-50 transition-colors duration-200 group"
                         >
-                          <Sparkles className="h-5 w-5 text-pink-500 group-hover:scale-110 transition-transform duration-200" />
-                          <span className="text-sm font-medium text-gray-900 mt-1">Dream Places</span>
-                          <span className="text-xs text-gray-500 text-center">Explore destinations</span>
+                          <Globe className="h-5 w-5 text-green-500 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="text-sm font-medium text-gray-900 mt-1">Destinations</span>
+                          <span className="text-xs text-gray-500 text-center">Explore new places</span>
                         </button>
                         
                         <button
                           onClick={() => {
-                            navigate('/smart-dreams?tab=planner');
+                            navigate('/smart-dreams?tab=ai-planner');
                             setIsSmartDreamDropdownOpen(false);
                           }}
                           className="flex flex-col items-center p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200 group"
@@ -234,6 +232,98 @@ const Navbar = () => {
                       >
                         <Zap className="h-4 w-4" />
                         <span>Open Smart Dreams</span>
+                      </button>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* NEW: Rewards Dropdown - Prominent like Travala */}
+              <div className="relative">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="text-foreground hover:text-primary transition-all duration-200 flex items-center space-x-2 px-4 py-2 rounded-lg group hover:bg-gradient-to-r hover:from-green-50 hover:to-orange-50"
+                      role="menuitem"
+                    >
+                      <Trophy className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 text-orange-500" aria-hidden="true" />
+                      <span className="font-medium">Rewards</span>
+                      <ChevronDown className="h-3 w-3 transition-transform duration-200" aria-hidden="true" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-80 p-4 bg-white/95 backdrop-blur-md border border-green-200 shadow-xl rounded-xl">
+                    <div className="space-y-4">
+                      {/* Header */}
+                      <div className="text-center pb-3 border-b border-green-100">
+                        <h3 className="font-semibold text-gray-900">Travel Rewards Hub</h3>
+                        <p className="text-sm text-gray-600">Earn NFTs and credits from every journey</p>
+                      </div>
+                      
+                      {/* User Stats Preview */}
+                      <div className="grid grid-cols-3 gap-3 p-3 bg-gradient-to-r from-green-50 to-orange-50 rounded-lg">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-600">3</div>
+                          <div className="text-xs text-gray-600">NFTs</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-orange-600">485</div>
+                          <div className="text-xs text-gray-600">Points</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-purple-600">Explorer</div>
+                          <div className="text-xs text-gray-600">Tier</div>
+                        </div>
+                      </div>
+                      
+                      {/* Quick Actions */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => {
+                            navigate('/nft');
+                            setIsMenuOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-orange-50 transition-colors duration-200 group"
+                        >
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                            <Trophy className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <span className="text-sm font-medium text-gray-900">My NFT Collection</span>
+                            <p className="text-xs text-gray-600">View your travel memories</p>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            navigate('/airdrop');
+                            setIsMenuOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-green-50 transition-colors duration-200 group"
+                        >
+                          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                            <Coins className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <span className="text-sm font-medium text-gray-900">Airdrop Progress</span>
+                            <p className="text-xs text-gray-600">Track your tier advancement</p>
+                          </div>
+                          <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                            Active
+                          </Badge>
+                        </button>
+                      </div>
+                      
+                      {/* Main CTA */}
+                      <button
+                        onClick={() => {
+                          navigate('/nft?action=connect');
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full bg-gradient-to-r from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 text-white py-2.5 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
+                      >
+                        <Gift className="h-4 w-4" />
+                        <span>Start Earning Rewards</span>
                       </button>
                     </div>
                   </DropdownMenuContent>
@@ -273,9 +363,6 @@ const Navbar = () => {
                     Partners
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/nft')}>NFT Collection</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/airdrop')}>Airdrop</DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate('/environment-manager')}>
                     <Settings className="mr-2 h-4 w-4" />
                     Environment
@@ -288,10 +375,12 @@ const Navbar = () => {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+              
+              {/* System Health - ADMIN ONLY */}
+              {isAdmin && (
+                <SystemHealthIndicator />
+              )}
             </div>
-
-            {/* System Health */}
-            <SystemHealthIndicator />
             
             {/* Language Selector */}
             <LanguageSwitcher />

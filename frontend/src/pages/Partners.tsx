@@ -270,7 +270,7 @@ const PartnersPage = () => {
 
         {/* Enhanced Partner Showcase */}
         <div className="mb-16">
-          <PartnerShowcase showTitle={true} variant="full" />
+          <PartnerShowcase variant="full" />
         </div>
 
               <Card className="travel-card">

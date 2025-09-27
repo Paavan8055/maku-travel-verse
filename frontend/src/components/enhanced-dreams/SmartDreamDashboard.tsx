@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { MakuLogo, MakuButton } from '@/components/branding/MakuBrandSystem';
 import { 
   Heart,
   Users,
@@ -238,14 +237,12 @@ export const SmartDreamDashboard: React.FC = () => {
       <div className="bg-white shadow-sm border-b border-orange-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Official Maku Brand Integration */}
+            {/* Maku Brand Integration */}
             <div className="flex items-center space-x-3">
-              <MakuLogo 
-                size="md" 
-                variant="full" 
-                theme="light" 
-                context="header" 
-              />
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md">
+                <span className="text-white font-bold">M</span>
+              </div>
+              <span className="text-lg font-bold text-gray-900">Maku</span>
             </div>
             
             {/* AI Status with Maku Branding */}
@@ -345,12 +342,9 @@ export const SmartDreamDashboard: React.FC = () => {
                 <Card className="bg-white shadow-lg border border-orange-100 rounded-2xl">
                   <CardContent className="p-8 text-center">
                     <div className="flex items-center justify-center mb-6">
-                      <MakuLogo 
-                        size="xl" 
-                        variant="full" 
-                        theme="light" 
-                        context="card" 
-                      />
+                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-lg">
+                        <span className="text-white font-bold text-xl">M</span>
+                      </div>
                     </div>
                     <h2 className="text-3xl font-bold text-gray-800 mb-4">What's your dream journey called?</h2>
                     <p className="text-gray-600 mb-6">Give your adventure a memorable name</p>
@@ -395,17 +389,15 @@ export const SmartDreamDashboard: React.FC = () => {
                           ))}
                         </div>
                         
-                        <MakuButton 
-                          variant="tricolor"
-                          size="md"
+                        <Button 
+                          className="w-full bg-gradient-to-r from-orange-500 via-green-500 to-orange-500 hover:from-orange-600 hover:via-green-600 hover:to-orange-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                           onClick={() => initializeJourney(companion)}
-                          className="w-full"
                         >
                           <span className="flex items-center justify-center space-x-2">
                             <span>Start Journey</span>
                             <MapPin className="h-4 w-4" />
                           </span>
-                        </MakuButton>
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
@@ -418,25 +410,21 @@ export const SmartDreamDashboard: React.FC = () => {
                   <CardContent className="p-8">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-4">
-                        <MakuLogo 
-                          size="lg" 
-                          variant="full" 
-                          theme="light" 
-                          context="card" 
-                        />
+                        <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md">
+                          <span className="text-white font-bold">M</span>
+                        </div>
                         <div>
                           <h2 className="text-3xl font-bold text-gray-800">{currentJourney.title}</h2>
                           <p className="text-gray-600">{selectedCompanion?.description}</p>
                         </div>
                       </div>
-                      <MakuButton 
-                        variant="tricolor"
-                        size="md"
+                      <Button 
+                        className="bg-gradient-to-r from-orange-500 via-green-500 to-orange-500 hover:from-orange-600 hover:via-green-600 hover:to-orange-600 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                         onClick={shareJourney}
                       >
                         <Share2 className="h-4 w-4 mr-2" />
                         Share Journey
-                      </MakuButton>
+                      </Button>
                     </div>
 
                     {/* Progress Section */}

@@ -15,6 +15,8 @@ import AgentMonitorDashboard from '@/features/admin/components/AgentMonitorDashb
 import ApiValidationDashboard from '@/components/admin/ApiValidationDashboard';
 import AgentSystemTests from '@/components/admin/AgentSystemTests';
 import SmartDreamManagement from '@/components/admin/SmartDreamManagement';
+import NFTAdminDashboard from '@/components/admin/NFTAdminDashboard';
+import AdminSystemHealthPanel from '@/components/admin/AdminSystemHealthPanel';
 
 interface ProviderHealth {
   provider: string;
@@ -263,6 +265,8 @@ export default function AdminDashboard() {
       <Tabs defaultValue="smart-dreams" className="space-y-4">
         <TabsList>
           <TabsTrigger value="smart-dreams">Smart Dreams</TabsTrigger>
+          <TabsTrigger value="nft-airdrop">NFT & Airdrop</TabsTrigger>
+          <TabsTrigger value="system-health">System Health</TabsTrigger>
           <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
           <TabsTrigger value="agent-monitor">Agent Monitor</TabsTrigger>
           <TabsTrigger value="system-tests">System Tests</TabsTrigger>
@@ -274,6 +278,14 @@ export default function AdminDashboard() {
 
         <TabsContent value="smart-dreams" className="space-y-4">
           <SmartDreamManagement />
+        </TabsContent>
+
+        <TabsContent value="nft-airdrop" className="space-y-4">
+          <NFTAdminDashboard />
+        </TabsContent>
+
+        <TabsContent value="system-health" className="space-y-4">
+          <AdminSystemHealthPanel />
         </TabsContent>
 
         <TabsContent value="ai-assistant" className="space-y-4">

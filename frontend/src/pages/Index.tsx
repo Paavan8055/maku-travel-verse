@@ -6,7 +6,6 @@ import MarketplacePills from "@/components/MarketplacePills";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import { EnhancedAgenticWidget } from "@/components/agentic/enhanced/EnhancedAgenticWidget";
 import { PartnerShowcase } from "@/components/partners/PartnerShowcase";
 
 // Lazy load below-the-fold components for better performance
@@ -25,11 +24,6 @@ const Index = () => {
           <HeroSection />
           <MarketplacePills />
           <SearchSection />
-          <Suspense fallback={null}>
-            <div className="relative">
-              <EnhancedAgenticWidget dashboardType="user" />
-            </div>
-          </Suspense>
           
           {/* Lazy load below-the-fold content */}
           <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
@@ -44,7 +38,7 @@ const Index = () => {
           <Suspense fallback={<div className="h-64 bg-muted/50 animate-pulse" />}>
             <div className="py-16 bg-gradient-to-br from-orange-50 via-white to-green-50">
               <div className="max-w-7xl mx-auto px-6">
-                <PartnerShowcase showTitle={true} variant="compact" />
+                <PartnerShowcase variant="compact" />
               </div>
             </div>
           </Suspense>
@@ -61,4 +55,5 @@ const Index = () => {
     </ErrorBoundary>
   );
 };
+
 export default Index;

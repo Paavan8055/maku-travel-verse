@@ -4,7 +4,7 @@
  * Eliminates data duplication and enhances activity features
  */
 
-import { MakuLogo } from '@/components/branding/MakuBrandSystem';
+
 
 export interface ProviderConfig {
   id: string;

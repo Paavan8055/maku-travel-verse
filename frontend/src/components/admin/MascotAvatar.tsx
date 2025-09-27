@@ -1,6 +1,5 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import makuMascot from '@/assets/maku-mascot.png';
 
 interface MascotAvatarProps {
   category: string;
@@ -117,7 +116,7 @@ export function MascotAvatar({
     <div className="relative">
       <Avatar className={`bg-gradient-to-br ${theme.bgGradient} border-2 ${theme.borderColor} ${sizeClasses} ${className}`}>
         <AvatarImage 
-          src={makuMascot} 
+          src="/logos/maku-logo-head-circular.png" 
           alt={`Maku ${category} agent mascot`}
           className="object-cover"
         />

@@ -1,5 +1,4 @@
 import { Facebook, Twitter, Instagram, Youtube, ShieldCheck, Headphones, BadgeCheck, Send, Bot, Cpu, Coins, Zap, Map, Code, BookOpen, Plug, HelpCircle, MessageCircle, Shield, FileText, Mail, Play, Sparkles, Brain, Calendar, MapPin, Heart } from "lucide-react";
-import { MakuLogo, MakuButton, MakuCard } from '@/components/branding/MakuBrandSystem';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -27,7 +26,7 @@ const Footer = () => {
 
   const footerLinks = {
     company: [{
-      name: "About Maku.travel",
+      name: "About Maku",
       href: "/about"
     }, {
       name: "Careers", 
@@ -302,14 +301,16 @@ return <footer className="bg-primary text-primary-foreground">
         <div className="py-6 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-4">
-                <MakuLogo 
-                  size="sm" 
-                  variant="full" 
-                  theme="light" 
-                  context="footer" 
-                />
-                <span className="text-sm text-primary-foreground/80">© 2025 Maku Travel. All rights reserved.</span>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+                    <span className="text-white font-bold">M</span>
+                  </div>
+                  <span className="text-lg font-bold text-white">
+                    Maku
+                  </span>
+                </div>
+                <span className="text-sm text-primary-foreground/80">© 2025 Maku. All rights reserved.</span>
               </div>
               
               <div className="flex flex-wrap items-center gap-6 text-primary-foreground/90">

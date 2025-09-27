@@ -43,9 +43,9 @@ export const OrganizationStructuredData = () => (
         availableLanguage: ["English"]
       },
       sameAs: [
-        "https://facebook.com/maku.travel",
-        "https://twitter.com/maku_travel",
-        "https://instagram.com/maku.travel"
+        "https://facebook.com/travelhub.travel",
+        "https://twitter.com/travelhub_travel",
+        "https://instagram.com/travelhub.travel"
       ],
       address: {
         "@type": "PostalAddress",
@@ -59,16 +59,16 @@ export const WebsiteStructuredData = () => (
   <StructuredData
     type="Website"
     data={{
-      name: "MAKU.Travel",
-      url: "https://maku.travel",
+      name: "TravelHub",
+      url: "https://travelhub.travel",
       description: "Book flights, hotels, and activities with confidence. Premium travel experiences at competitive prices.",
       publisher: {
         "@type": "Organization",
-        name: "MAKU.Travel"
+        name: "TravelHub"
       },
       potentialAction: {
         "@type": "SearchAction",
-        target: "https://maku.travel/search?q={search_term_string}",
+        target: "https://travelhub.travel/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     }}
@@ -84,7 +84,7 @@ export const ProductStructuredData = ({ product }: { product: any }) => (
       image: product.image,
       brand: {
         "@type": "Brand",
-        name: product.brand || "MAKU.Travel"
+        name: product.brand || "TravelHub"
       },
       offers: {
         "@type": "Offer",
@@ -93,7 +93,7 @@ export const ProductStructuredData = ({ product }: { product: any }) => (
         availability: "https://schema.org/InStock",
         seller: {
           "@type": "Organization",
-          name: "MAKU.Travel"
+          name: "TravelHub"
         }
       },
       aggregateRating: product.rating && {

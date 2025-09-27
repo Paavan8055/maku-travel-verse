@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MakuLogo, MakuButton, MakuCard } from '@/components/branding/MakuBrandSystem';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   User, 
   Shield, 
@@ -405,12 +406,10 @@ export const MakuRoleBasedDashboard: React.FC<{
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <MakuLogo 
-                size="md" 
-                variant="full" 
-                theme="light" 
-                context="header" 
-              />
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-lg flex items-center justify-center shadow-md">
+                <span className="text-white font-bold">M</span>
+              </div>
+              <span className="text-lg font-bold text-gray-900">Maku</span>
               <div className="hidden md:block">
                 <h1 className="text-xl font-semibold text-gray-800">
                   {userProfile.role === 'end_user' ? 'My Travel Hub' : 
