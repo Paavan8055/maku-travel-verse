@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maku.travel - Deployment Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .status {
+            font-size: 1.25rem;
+            margin: 1rem 0;
+        }
+        .timestamp {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Maku.travel</h1>
+        <div class="status">✅ Deployment Test Successful</div>
+        <p>This page confirms the Netlify deployment is working correctly.</p>
+        <div class="timestamp">
+            Deployed: <span id="timestamp"></span>
+        </div>
+        <p><a href="/" style="color: white; text-decoration: underline;">Go to Main Site</a></p>
+    </div>
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toISOString();
+    </script>
+</body>
+</html>
