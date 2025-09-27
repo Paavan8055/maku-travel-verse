@@ -1,0 +1,40 @@
+name: Sync Emergent integration branch with Lovable dev
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'  # runs daily at 01:00 UTC
+  push:
+    branches:
+      - emergent-integration
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # fetch all history to merge branches
+
+      - name: Configure Git
+        run: |
+          git config user.name "Sync Bot"
+          git config user.email "actions@github.com"
+
+      - name: Merge emergent-integration into dev
+        run: |
+          git fetch origin
+          git checkout dev
+          git merge origin/emergent-integration || true
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Automated merge of emergent-integration into dev"
+          branch: emergent-sync-bot
+          title: "Automated sync: emergent-integration -> dev"
+          base: dev
+          body: |
+            This PR automatically merges changes from `emergent-integration` into `dev`. If there are merge conflicts, please resolve them before merging.
