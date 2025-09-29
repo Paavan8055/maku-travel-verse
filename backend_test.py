@@ -6436,15 +6436,67 @@ class MakuTravelBackendTester:
         
         return passed, total
 
+    def run_analytics_tests(self):
+        """Run Analytics and Monitoring System tests"""
+        print("\n📊 ANALYTICS AND MONITORING SYSTEM TESTS")
+        print("=" * 60)
+        
+        tests = [
+            # Event Tracking Tests
+            self.test_analytics_event_tracking_single,
+            self.test_analytics_event_tracking_multiple,
+            self.test_analytics_booking_events,
+            self.test_analytics_referral_tracking,
+            
+            # Provider Health Monitoring Tests
+            self.test_provider_health_monitoring_healthy,
+            self.test_provider_health_monitoring_degraded,
+            self.test_provider_health_monitoring_down,
+            self.test_provider_health_monitoring_maintenance,
+            self.test_provider_health_invalid_status,
+            
+            # Analytics Dashboard Tests
+            self.test_analytics_dashboard_provider_health,
+            self.test_analytics_dashboard_booking_analytics,
+            self.test_analytics_dashboard_user_engagement,
+            self.test_analytics_dashboard_invalid,
+            
+            # System Alerts Tests
+            self.test_system_alerts_all,
+            self.test_system_alerts_filtered_by_severity,
+            self.test_system_alerts_unresolved_only,
+            self.test_system_alerts_critical_severity
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            try:
+                if test():
+                    passed += 1
+            except Exception as e:
+                print(f"❌ EXCEPTION in {test.__name__}: {str(e)}")
+        
+        success_rate = (passed / total) * 100 if total > 0 else 0
+        print(f"\n📊 Analytics Tests Summary: {passed}/{total} passed ({success_rate:.1f}%)")
+        
+        return passed, total
+
     def run_all_tests(self):
-        """Run comprehensive test suite with focus on Waitlist System"""
+        """Run comprehensive test suite with focus on Analytics and Monitoring System"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
         print("=" * 80)
         
         total_passed = 0
         total_tests = 0
         
-        # Run Waitlist System Tests (Primary Focus)
+        # Run Analytics and Monitoring System Tests (Primary Focus)
+        analytics_passed, analytics_total = self.run_analytics_tests()
+        total_passed += analytics_passed
+        total_tests += analytics_total
+        
+        # Run Waitlist System Tests
         waitlist_passed, waitlist_total = self.run_waitlist_tests()
         total_passed += waitlist_passed
         total_tests += waitlist_total
@@ -6479,6 +6531,7 @@ class MakuTravelBackendTester:
         print("=" * 80)
         print("🎯 FINAL TEST SUMMARY")
         print("=" * 80)
+        print(f"📊 Analytics & Monitoring System: {analytics_passed}/{analytics_total} ({(analytics_passed/analytics_total)*100:.1f}%)")
         print(f"📧 Waitlist System: {waitlist_passed}/{waitlist_total} ({(waitlist_passed/waitlist_total)*100:.1f}%)")
         print(f"🔧 Supabase Configuration System: {config_passed}/{config_total} ({(config_passed/config_total)*100:.1f}%)")
         print(f"🏥 Health Check: {health_passed}/{health_total} ({(health_passed/health_total)*100:.1f}%)")
