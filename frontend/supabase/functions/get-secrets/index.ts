@@ -81,6 +81,18 @@ serve(async (req) => {
     const requestData: SecretRequest = await req.json().catch(() => ({}));
     const { keys, environment = 'development' } = requestData;
 
+    // Validate environment
+    const validEnvironments = ['development', 'staging', 'production'];
+    if (!validEnvironments.includes(environment)) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Invalid environment. Must be one of: ${validEnvironments.join(', ')}`
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Initialize Supabase client with service role
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -118,6 +130,25 @@ serve(async (req) => {
 
     if (!secrets || secrets.length === 0) {
       console.warn(`[GET-SECRETS] No secrets found for environment: ${environment}`);
+      
+      // Check if environment exists at all
+      const { data: envCheck } = await supabase
+        .from('environment')
+        .select('environment')
+        .eq('environment', environment)
+        .limit(1);
+      
+      if (!envCheck || envCheck.length === 0) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: `Environment '${environment}' not configured`,
+          available_environments: validEnvironments
+        }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
       return new Response(JSON.stringify({
         success: true,
         secrets: {},
