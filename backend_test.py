@@ -5482,6 +5482,31 @@ class MakuTravelBackendTester:
         
         return passed, total
 
+    def run_waitlist_tests(self):
+        """Run Waitlist System tests"""
+        print("📧 WAITLIST SYSTEM TESTS")
+        print("-" * 50)
+        
+        tests = [
+            self.test_waitlist_signup_valid_email_only,
+            self.test_waitlist_signup_full_details,
+            self.test_waitlist_signup_invalid_email,
+            self.test_waitlist_signup_missing_email,
+            self.test_waitlist_duplicate_email_handling,
+            self.test_waitlist_statistics
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print(f"📧 Waitlist System Tests: {passed}/{total} passed")
+        print()
+        return passed, total
+
     def run_supabase_config_tests(self):
         """Run Supabase Configuration System tests"""
         print("🔧 SUPABASE CONFIGURATION SYSTEM TESTS")
