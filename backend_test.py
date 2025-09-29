@@ -1071,13 +1071,13 @@ class MakuTravelBackendTester:
         print("📧 Testing Waitlist Signup - Valid Email Only...")
         
         url = f"{BASE_URL}/waitlist"
-        payload = {
+        params = {
             "email": "alex.traveler@example.com"
         }
         
         try:
             start_time = time.time()
-            response = self.session.post(url, json=payload, timeout=10)
+            response = self.session.post(url, params=params, timeout=10)
             response_time = time.time() - start_time
             
             if response.status_code == 200:
@@ -1119,7 +1119,7 @@ class MakuTravelBackendTester:
         print("👤 Testing Waitlist Signup - Full Details...")
         
         url = f"{BASE_URL}/waitlist"
-        payload = {
+        params = {
             "email": "sarah.explorer@example.com",
             "full_name": "Sarah Explorer",
             "referral_code": "TRAVEL2024",
@@ -1128,7 +1128,7 @@ class MakuTravelBackendTester:
         
         try:
             start_time = time.time()
-            response = self.session.post(url, json=payload, timeout=10)
+            response = self.session.post(url, params=params, timeout=10)
             response_time = time.time() - start_time
             
             if response.status_code == 200:
@@ -1185,13 +1185,13 @@ class MakuTravelBackendTester:
         ]
         
         for invalid_email in invalid_emails:
-            payload = {
+            params = {
                 "email": invalid_email
             }
             
             try:
                 start_time = time.time()
-                response = self.session.post(url, json=payload, timeout=10)
+                response = self.session.post(url, params=params, timeout=10)
                 response_time = time.time() - start_time
                 
                 if response.status_code == 400:
@@ -1220,14 +1220,14 @@ class MakuTravelBackendTester:
         print("🚫 Testing Waitlist Signup - Missing Email...")
         
         url = f"{BASE_URL}/waitlist"
-        payload = {
+        params = {
             "full_name": "Test User",
             "referral_code": "TEST123"
         }
         
         try:
             start_time = time.time()
-            response = self.session.post(url, json=payload, timeout=10)
+            response = self.session.post(url, params=params, timeout=10)
             response_time = time.time() - start_time
             
             # Should return 422 (validation error) or 400 (bad request)
@@ -1258,7 +1258,7 @@ class MakuTravelBackendTester:
         
         url = f"{BASE_URL}/waitlist"
         test_email = "duplicate.test@example.com"
-        payload = {
+        params = {
             "email": test_email,
             "full_name": "Duplicate Test User"
         }
@@ -1266,7 +1266,7 @@ class MakuTravelBackendTester:
         try:
             # First signup
             start_time = time.time()
-            response1 = self.session.post(url, json=payload, timeout=10)
+            response1 = self.session.post(url, params=params, timeout=10)
             response_time1 = time.time() - start_time
             
             if response1.status_code != 200:
@@ -1275,7 +1275,7 @@ class MakuTravelBackendTester:
             
             # Second signup with same email
             start_time = time.time()
-            response2 = self.session.post(url, json=payload, timeout=10)
+            response2 = self.session.post(url, params=params, timeout=10)
             response_time2 = time.time() - start_time
             
             # The system should handle duplicates gracefully
