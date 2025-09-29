@@ -1063,6 +1063,910 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # ANALYTICS AND MONITORING SYSTEM TESTS
+    # =====================================================
+    
+    def test_analytics_event_tracking_single(self):
+        """Test analytics event tracking with single event"""
+        print("📊 Testing Analytics Event Tracking - Single Event...")
+        
+        url = f"{BASE_URL}/analytics/events"
+        payload = [
+            {
+                "event_type": "page_view",
+                "event_category": "user_action",
+                "user_id": TEST_USER_ID,
+                "session_id": "session_123",
+                "event_data": {
+                    "page": "/hotels",
+                    "referrer": "https://google.com"
+                },
+                "properties": {
+                    "device_type": "desktop",
+                    "browser": "chrome"
+                },
+                "context": {
+                    "ip": "192.168.1.1",
+                    "user_agent": "Mozilla/5.0"
+                }
+            }
+        ]
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'message', 'event_ids']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Analytics Event Tracking - Single", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Analytics Event Tracking - Single", False, f"Tracking failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate event IDs
+                event_ids = data.get('event_ids', [])
+                if len(event_ids) != 1:
+                    self.log_test("Analytics Event Tracking - Single", False, f"Expected 1 event ID, got {len(event_ids)}", response_time)
+                    return False
+                
+                # Validate event ID format (should be UUID)
+                try:
+                    uuid.UUID(event_ids[0])
+                except ValueError:
+                    self.log_test("Analytics Event Tracking - Single", False, f"Invalid event ID format: {event_ids[0]}", response_time)
+                    return False
+                
+                self.log_test("Analytics Event Tracking - Single", True, f"Tracked 1 event, ID: {event_ids[0][:8]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics Event Tracking - Single", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics Event Tracking - Single", False, f"Exception: {str(e)}")
+            return False
+
+    def test_analytics_event_tracking_multiple(self):
+        """Test analytics event tracking with multiple events"""
+        print("📈 Testing Analytics Event Tracking - Multiple Events...")
+        
+        url = f"{BASE_URL}/analytics/events"
+        payload = [
+            {
+                "event_type": "search_query",
+                "event_category": "user_action",
+                "user_id": TEST_USER_ID,
+                "event_data": {
+                    "query": "hotels in paris",
+                    "filters": ["4_star", "free_wifi"]
+                }
+            },
+            {
+                "event_type": "filter_applied",
+                "event_category": "user_action", 
+                "user_id": TEST_USER_ID,
+                "event_data": {
+                    "filter_type": "price_range",
+                    "filter_value": "100-200"
+                }
+            },
+            {
+                "event_type": "booking_started",
+                "event_category": "booking_event",
+                "user_id": TEST_USER_ID,
+                "event_data": {
+                    "provider": "amadeus",
+                    "property_id": "hotel_123",
+                    "booking_value": 450.00
+                }
+            }
+        ]
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Analytics Event Tracking - Multiple", False, f"Tracking failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate event IDs count
+                event_ids = data.get('event_ids', [])
+                if len(event_ids) != 3:
+                    self.log_test("Analytics Event Tracking - Multiple", False, f"Expected 3 event IDs, got {len(event_ids)}", response_time)
+                    return False
+                
+                # Validate all event IDs are valid UUIDs
+                for event_id in event_ids:
+                    try:
+                        uuid.UUID(event_id)
+                    except ValueError:
+                        self.log_test("Analytics Event Tracking - Multiple", False, f"Invalid event ID format: {event_id}", response_time)
+                        return False
+                
+                # Validate message mentions correct count
+                message = data.get('message', '')
+                if '3 event' not in message:
+                    self.log_test("Analytics Event Tracking - Multiple", False, f"Message doesn't mention 3 events: {message}", response_time)
+                    return False
+                
+                self.log_test("Analytics Event Tracking - Multiple", True, f"Tracked 3 events successfully", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics Event Tracking - Multiple", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics Event Tracking - Multiple", False, f"Exception: {str(e)}")
+            return False
+
+    def test_analytics_booking_events(self):
+        """Test analytics tracking for booking events"""
+        print("🛒 Testing Analytics - Booking Events...")
+        
+        url = f"{BASE_URL}/analytics/events"
+        payload = [
+            {
+                "event_type": "booking_completed",
+                "event_category": "booking_event",
+                "user_id": TEST_USER_ID,
+                "event_data": {
+                    "provider": "expedia",
+                    "booking_id": "EXP_123456",
+                    "booking_value": 1250.00,
+                    "property_type": "hotel",
+                    "destination": "Tokyo"
+                },
+                "properties": {
+                    "conversion_funnel": "search->filter->book",
+                    "time_to_book": 1847  # seconds
+                }
+            },
+            {
+                "event_type": "error_occurred",
+                "event_category": "system_event",
+                "user_id": TEST_USER_ID,
+                "event_data": {
+                    "error_type": "payment_failed",
+                    "error_code": "CARD_DECLINED",
+                    "provider": "viator"
+                }
+            }
+        ]
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Analytics - Booking Events", False, f"Tracking failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                event_ids = data.get('event_ids', [])
+                if len(event_ids) != 2:
+                    self.log_test("Analytics - Booking Events", False, f"Expected 2 event IDs, got {len(event_ids)}", response_time)
+                    return False
+                
+                self.log_test("Analytics - Booking Events", True, f"Tracked booking and error events successfully", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics - Booking Events", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics - Booking Events", False, f"Exception: {str(e)}")
+            return False
+
+    def test_analytics_referral_tracking(self):
+        """Test analytics tracking for referral events"""
+        print("🔗 Testing Analytics - Referral Tracking...")
+        
+        url = f"{BASE_URL}/analytics/events"
+        payload = [
+            {
+                "event_type": "referral_signup",
+                "event_category": "referral_event",
+                "user_id": "new_user_456",
+                "event_data": {
+                    "referrer_user_id": TEST_USER_ID,
+                    "referral_code": "TRAVEL2024",
+                    "signup_source": "waitlist"
+                },
+                "properties": {
+                    "referral_tier": "explorer",
+                    "bonus_earned": 50
+                }
+            }
+        ]
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Analytics - Referral Tracking", False, f"Tracking failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                event_ids = data.get('event_ids', [])
+                if len(event_ids) != 1:
+                    self.log_test("Analytics - Referral Tracking", False, f"Expected 1 event ID, got {len(event_ids)}", response_time)
+                    return False
+                
+                self.log_test("Analytics - Referral Tracking", True, f"Tracked referral event successfully", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics - Referral Tracking", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics - Referral Tracking", False, f"Exception: {str(e)}")
+            return False
+
+    def test_provider_health_monitoring_healthy(self):
+        """Test provider health monitoring - healthy status"""
+        print("💚 Testing Provider Health Monitoring - Healthy Status...")
+        
+        url = f"{BASE_URL}/analytics/provider-health"
+        params = {
+            "provider_name": "amadeus",
+            "status": "healthy",
+            "response_time_ms": 1200,
+            "error_rate": 0.01
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'message', 'health_id', 'alerts_created']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Health - Healthy", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Provider Health - Healthy", False, f"Health update failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate health ID format (should be UUID)
+                health_id = data.get('health_id')
+                try:
+                    uuid.UUID(health_id)
+                except ValueError:
+                    self.log_test("Provider Health - Healthy", False, f"Invalid health ID format: {health_id}", response_time)
+                    return False
+                
+                # Healthy status should not create alerts
+                alerts_created = data.get('alerts_created', 0)
+                if alerts_created != 0:
+                    self.log_test("Provider Health - Healthy", False, f"Healthy status created {alerts_created} alerts (expected 0)", response_time)
+                    return False
+                
+                self.log_test("Provider Health - Healthy", True, f"Healthy status updated, no alerts created", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Health - Healthy", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health - Healthy", False, f"Exception: {str(e)}")
+            return False
+
+    def test_provider_health_monitoring_degraded(self):
+        """Test provider health monitoring - degraded status with high response times"""
+        print("🟡 Testing Provider Health Monitoring - Degraded Status...")
+        
+        url = f"{BASE_URL}/analytics/provider-health"
+        params = {
+            "provider_name": "viator",
+            "status": "degraded",
+            "response_time_ms": 3400,
+            "error_rate": 0.08,
+            "error_message": "High response time and error rate detected"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Provider Health - Degraded", False, f"Health update failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Degraded status should create alerts
+                alerts_created = data.get('alerts_created', 0)
+                if alerts_created == 0:
+                    self.log_test("Provider Health - Degraded", False, f"Degraded status created no alerts (expected at least 1)", response_time)
+                    return False
+                
+                self.log_test("Provider Health - Degraded", True, f"Degraded status updated, {alerts_created} alert(s) created", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Health - Degraded", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health - Degraded", False, f"Exception: {str(e)}")
+            return False
+
+    def test_provider_health_monitoring_down(self):
+        """Test provider health monitoring - down status"""
+        print("🔴 Testing Provider Health Monitoring - Down Status...")
+        
+        url = f"{BASE_URL}/analytics/provider-health"
+        params = {
+            "provider_name": "ratehawk",
+            "status": "down",
+            "error_message": "Provider API completely unresponsive"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Provider Health - Down", False, f"Health update failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Down status should create alerts
+                alerts_created = data.get('alerts_created', 0)
+                if alerts_created == 0:
+                    self.log_test("Provider Health - Down", False, f"Down status created no alerts (expected at least 1)", response_time)
+                    return False
+                
+                self.log_test("Provider Health - Down", True, f"Down status updated, {alerts_created} alert(s) created", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Health - Down", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health - Down", False, f"Exception: {str(e)}")
+            return False
+
+    def test_provider_health_monitoring_maintenance(self):
+        """Test provider health monitoring - maintenance status"""
+        print("🔧 Testing Provider Health Monitoring - Maintenance Status...")
+        
+        url = f"{BASE_URL}/analytics/provider-health"
+        params = {
+            "provider_name": "duffle",
+            "status": "maintenance",
+            "error_message": "Scheduled maintenance window"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Provider Health - Maintenance", False, f"Health update failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Maintenance status typically doesn't create critical alerts
+                alerts_created = data.get('alerts_created', 0)
+                
+                self.log_test("Provider Health - Maintenance", True, f"Maintenance status updated, {alerts_created} alert(s) created", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Health - Maintenance", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health - Maintenance", False, f"Exception: {str(e)}")
+            return False
+
+    def test_provider_health_invalid_status(self):
+        """Test provider health monitoring with invalid status"""
+        print("❌ Testing Provider Health - Invalid Status...")
+        
+        url = f"{BASE_URL}/analytics/provider-health"
+        params = {
+            "provider_name": "test_provider",
+            "status": "invalid_status"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            # Should return 400 for invalid status
+            if response.status_code == 400:
+                data = response.json()
+                if 'detail' in data and 'invalid status' in data['detail'].lower():
+                    self.log_test("Provider Health - Invalid Status", True, f"Invalid status properly rejected", response_time)
+                    return True
+                else:
+                    self.log_test("Provider Health - Invalid Status", False, f"Wrong error message: {data}", response_time)
+                    return False
+            else:
+                self.log_test("Provider Health - Invalid Status", False, f"Expected 400, got {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health - Invalid Status", False, f"Exception: {str(e)}")
+            return False
+
+    def test_analytics_dashboard_provider_health(self):
+        """Test analytics dashboard - provider health"""
+        print("📊 Testing Analytics Dashboard - Provider Health...")
+        
+        url = f"{BASE_URL}/analytics/dashboard/provider_health"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'dashboard']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Analytics Dashboard - Provider Health", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Analytics Dashboard - Provider Health", False, f"Dashboard request failed", response_time)
+                    return False
+                
+                dashboard = data.get('dashboard', {})
+                if dashboard.get('name') != 'provider_health':
+                    self.log_test("Analytics Dashboard - Provider Health", False, f"Wrong dashboard name: {dashboard.get('name')}", response_time)
+                    return False
+                
+                # Validate dashboard data structure
+                dashboard_data = dashboard.get('data', {})
+                required_data_fields = ['providers', 'overall_status', 'avg_response_time', 'total_errors']
+                missing_data_fields = [field for field in required_data_fields if field not in dashboard_data]
+                
+                if missing_data_fields:
+                    self.log_test("Analytics Dashboard - Provider Health", False, f"Missing dashboard data fields: {missing_data_fields}", response_time)
+                    return False
+                
+                # Validate providers list
+                providers = dashboard_data.get('providers', [])
+                if not isinstance(providers, list) or len(providers) == 0:
+                    self.log_test("Analytics Dashboard - Provider Health", False, f"Invalid providers data: {providers}", response_time)
+                    return False
+                
+                # Validate first provider structure
+                provider = providers[0]
+                provider_required = ['name', 'status', 'response_time', 'error_rate']
+                provider_missing = [field for field in provider_required if field not in provider]
+                
+                if provider_missing:
+                    self.log_test("Analytics Dashboard - Provider Health", False, f"Missing provider fields: {provider_missing}", response_time)
+                    return False
+                
+                # Check for expected providers
+                provider_names = [p['name'] for p in providers]
+                expected_providers = ['amadeus', 'sabre', 'viator', 'expedia', 'duffle', 'ratehawk']
+                missing_providers = [p for p in expected_providers if p not in provider_names]
+                
+                if missing_providers:
+                    self.log_test("Analytics Dashboard - Provider Health", False, f"Missing expected providers: {missing_providers}", response_time)
+                    return False
+                
+                self.log_test("Analytics Dashboard - Provider Health", True, f"Got {len(providers)} providers, overall status: {dashboard_data['overall_status']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics Dashboard - Provider Health", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics Dashboard - Provider Health", False, f"Exception: {str(e)}")
+            return False
+
+    def test_analytics_dashboard_booking_analytics(self):
+        """Test analytics dashboard - booking analytics"""
+        print("💰 Testing Analytics Dashboard - Booking Analytics...")
+        
+        url = f"{BASE_URL}/analytics/dashboard/booking_analytics"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Analytics Dashboard - Booking Analytics", False, f"Dashboard request failed", response_time)
+                    return False
+                
+                dashboard = data.get('dashboard', {})
+                dashboard_data = dashboard.get('data', {})
+                
+                # Validate booking analytics structure
+                required_fields = ['total_bookings_today', 'total_bookings_week', 'conversion_rate', 'average_booking_value', 'top_providers']
+                missing_fields = [field for field in required_fields if field not in dashboard_data]
+                
+                if missing_fields:
+                    self.log_test("Analytics Dashboard - Booking Analytics", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate numeric values
+                total_today = dashboard_data.get('total_bookings_today', 0)
+                conversion_rate = dashboard_data.get('conversion_rate', 0)
+                avg_value = dashboard_data.get('average_booking_value', 0)
+                
+                if not isinstance(total_today, int) or total_today < 0:
+                    self.log_test("Analytics Dashboard - Booking Analytics", False, f"Invalid total_bookings_today: {total_today}", response_time)
+                    return False
+                
+                if not isinstance(conversion_rate, (int, float)) or conversion_rate < 0 or conversion_rate > 1:
+                    self.log_test("Analytics Dashboard - Booking Analytics", False, f"Invalid conversion_rate: {conversion_rate}", response_time)
+                    return False
+                
+                # Validate top providers
+                top_providers = dashboard_data.get('top_providers', [])
+                if not isinstance(top_providers, list) or len(top_providers) == 0:
+                    self.log_test("Analytics Dashboard - Booking Analytics", False, f"Invalid top_providers: {top_providers}", response_time)
+                    return False
+                
+                # Validate first provider structure
+                provider = top_providers[0]
+                provider_required = ['provider', 'bookings', 'value']
+                provider_missing = [field for field in provider_required if field not in provider]
+                
+                if provider_missing:
+                    self.log_test("Analytics Dashboard - Booking Analytics", False, f"Missing provider fields: {provider_missing}", response_time)
+                    return False
+                
+                self.log_test("Analytics Dashboard - Booking Analytics", True, f"Today: {total_today} bookings, conversion: {conversion_rate:.1%}, avg: ${avg_value:.2f}", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics Dashboard - Booking Analytics", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics Dashboard - Booking Analytics", False, f"Exception: {str(e)}")
+            return False
+
+    def test_analytics_dashboard_user_engagement(self):
+        """Test analytics dashboard - user engagement"""
+        print("👥 Testing Analytics Dashboard - User Engagement...")
+        
+        url = f"{BASE_URL}/analytics/dashboard/user_engagement"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("Analytics Dashboard - User Engagement", False, f"Dashboard request failed", response_time)
+                    return False
+                
+                dashboard = data.get('dashboard', {})
+                dashboard_data = dashboard.get('data', {})
+                
+                # Validate user engagement structure
+                required_fields = ['total_active_users', 'daily_active_users', 'user_sessions', 'avg_session_duration', 'feature_usage', 'top_pages']
+                missing_fields = [field for field in required_fields if field not in dashboard_data]
+                
+                if missing_fields:
+                    self.log_test("Analytics Dashboard - User Engagement", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate feature usage
+                feature_usage = dashboard_data.get('feature_usage', {})
+                expected_features = ['search', 'filters', 'referrals', 'nft', 'airdrop']
+                missing_features = [f for f in expected_features if f not in feature_usage]
+                
+                if missing_features:
+                    self.log_test("Analytics Dashboard - User Engagement", False, f"Missing feature usage: {missing_features}", response_time)
+                    return False
+                
+                # Validate top pages
+                top_pages = dashboard_data.get('top_pages', [])
+                if not isinstance(top_pages, list) or len(top_pages) == 0:
+                    self.log_test("Analytics Dashboard - User Engagement", False, f"Invalid top_pages: {top_pages}", response_time)
+                    return False
+                
+                # Validate first page structure
+                page = top_pages[0]
+                page_required = ['page', 'views']
+                page_missing = [field for field in page_required if field not in page]
+                
+                if page_missing:
+                    self.log_test("Analytics Dashboard - User Engagement", False, f"Missing page fields: {page_missing}", response_time)
+                    return False
+                
+                total_users = dashboard_data.get('total_active_users', 0)
+                daily_users = dashboard_data.get('daily_active_users', 0)
+                avg_session = dashboard_data.get('avg_session_duration', 0)
+                
+                self.log_test("Analytics Dashboard - User Engagement", True, f"Total: {total_users}, Daily: {daily_users}, Avg session: {avg_session}s", response_time)
+                return True
+                
+            else:
+                self.log_test("Analytics Dashboard - User Engagement", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics Dashboard - User Engagement", False, f"Exception: {str(e)}")
+            return False
+
+    def test_analytics_dashboard_invalid(self):
+        """Test analytics dashboard with invalid dashboard name"""
+        print("❌ Testing Analytics Dashboard - Invalid Name...")
+        
+        url = f"{BASE_URL}/analytics/dashboard/invalid_dashboard"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            # Should return 404 for invalid dashboard name
+            if response.status_code == 404:
+                data = response.json()
+                if 'detail' in data and 'not found' in data['detail'].lower():
+                    self.log_test("Analytics Dashboard - Invalid Name", True, f"Invalid dashboard properly rejected", response_time)
+                    return True
+                else:
+                    self.log_test("Analytics Dashboard - Invalid Name", False, f"Wrong error message: {data}", response_time)
+                    return False
+            else:
+                self.log_test("Analytics Dashboard - Invalid Name", False, f"Expected 404, got {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Analytics Dashboard - Invalid Name", False, f"Exception: {str(e)}")
+            return False
+
+    def test_system_alerts_all(self):
+        """Test system alerts - all alerts"""
+        print("🚨 Testing System Alerts - All Alerts...")
+        
+        url = f"{BASE_URL}/analytics/alerts"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'alerts', 'total', 'filters_applied']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("System Alerts - All", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("System Alerts - All", False, f"Alerts request failed", response_time)
+                    return False
+                
+                # Validate alerts structure
+                alerts = data.get('alerts', [])
+                if not isinstance(alerts, list):
+                    self.log_test("System Alerts - All", False, f"Alerts is not a list: {alerts}", response_time)
+                    return False
+                
+                # If alerts exist, validate first alert structure
+                if len(alerts) > 0:
+                    alert = alerts[0]
+                    alert_required = ['id', 'alert_type', 'severity', 'alert_message', 'created_at', 'is_resolved']
+                    alert_missing = [field for field in alert_required if field not in alert]
+                    
+                    if alert_missing:
+                        self.log_test("System Alerts - All", False, f"Missing alert fields: {alert_missing}", response_time)
+                        return False
+                    
+                    # Validate alert ID format (should be UUID)
+                    try:
+                        uuid.UUID(alert['id'])
+                    except ValueError:
+                        self.log_test("System Alerts - All", False, f"Invalid alert ID format: {alert['id']}", response_time)
+                        return False
+                
+                # Validate total count matches alerts length
+                total = data.get('total', 0)
+                if total != len(alerts):
+                    self.log_test("System Alerts - All", False, f"Total count mismatch: {total} vs {len(alerts)}", response_time)
+                    return False
+                
+                self.log_test("System Alerts - All", True, f"Got {len(alerts)} alerts", response_time)
+                return True
+                
+            else:
+                self.log_test("System Alerts - All", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("System Alerts - All", False, f"Exception: {str(e)}")
+            return False
+
+    def test_system_alerts_filtered_by_severity(self):
+        """Test system alerts filtered by severity"""
+        print("⚠️ Testing System Alerts - Filtered by Severity (High)...")
+        
+        url = f"{BASE_URL}/analytics/alerts"
+        params = {'severity': 'high'}
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("System Alerts - Severity Filter", False, f"Alerts request failed", response_time)
+                    return False
+                
+                alerts = data.get('alerts', [])
+                
+                # Validate all alerts have high severity
+                for alert in alerts:
+                    if alert.get('severity') != 'high':
+                        self.log_test("System Alerts - Severity Filter", False, f"Non-high severity alert found: {alert.get('severity')}", response_time)
+                        return False
+                
+                # Validate filters_applied
+                filters_applied = data.get('filters_applied', {})
+                if filters_applied.get('severity') != 'high':
+                    self.log_test("System Alerts - Severity Filter", False, f"Wrong severity in filters_applied: {filters_applied.get('severity')}", response_time)
+                    return False
+                
+                self.log_test("System Alerts - Severity Filter", True, f"Got {len(alerts)} high severity alerts", response_time)
+                return True
+                
+            else:
+                self.log_test("System Alerts - Severity Filter", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("System Alerts - Severity Filter", False, f"Exception: {str(e)}")
+            return False
+
+    def test_system_alerts_unresolved_only(self):
+        """Test system alerts - unresolved only"""
+        print("🔍 Testing System Alerts - Unresolved Only...")
+        
+        url = f"{BASE_URL}/analytics/alerts"
+        params = {'unresolved': True}
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("System Alerts - Unresolved Only", False, f"Alerts request failed", response_time)
+                    return False
+                
+                alerts = data.get('alerts', [])
+                
+                # Validate all alerts are unresolved
+                for alert in alerts:
+                    if alert.get('is_resolved', False):
+                        self.log_test("System Alerts - Unresolved Only", False, f"Resolved alert found in unresolved filter", response_time)
+                        return False
+                
+                # Validate filters_applied
+                filters_applied = data.get('filters_applied', {})
+                if not filters_applied.get('unresolved'):
+                    self.log_test("System Alerts - Unresolved Only", False, f"Wrong unresolved flag in filters_applied: {filters_applied.get('unresolved')}", response_time)
+                    return False
+                
+                self.log_test("System Alerts - Unresolved Only", True, f"Got {len(alerts)} unresolved alerts", response_time)
+                return True
+                
+            else:
+                self.log_test("System Alerts - Unresolved Only", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("System Alerts - Unresolved Only", False, f"Exception: {str(e)}")
+            return False
+
+    def test_system_alerts_critical_severity(self):
+        """Test system alerts filtered by critical severity"""
+        print("🚨 Testing System Alerts - Critical Severity...")
+        
+        url = f"{BASE_URL}/analytics/alerts"
+        params = {'severity': 'critical'}
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, params=params, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if not data.get('success'):
+                    self.log_test("System Alerts - Critical Severity", False, f"Alerts request failed", response_time)
+                    return False
+                
+                alerts = data.get('alerts', [])
+                
+                # Validate all alerts have critical severity (if any)
+                for alert in alerts:
+                    if alert.get('severity') != 'critical':
+                        self.log_test("System Alerts - Critical Severity", False, f"Non-critical severity alert found: {alert.get('severity')}", response_time)
+                        return False
+                
+                self.log_test("System Alerts - Critical Severity", True, f"Got {len(alerts)} critical severity alerts", response_time)
+                return True
+                
+            else:
+                self.log_test("System Alerts - Critical Severity", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("System Alerts - Critical Severity", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # WAITLIST SYSTEM TESTS
     # =====================================================
     
