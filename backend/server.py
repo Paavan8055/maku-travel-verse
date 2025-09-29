@@ -4107,6 +4107,83 @@ async def test_provider_connections():
             "error": str(e)
         }
 
+# Waitlist Management Endpoints
+@api_router.post("/waitlist")
+async def join_waitlist(email: str, full_name: str = None, referral_code: str = None, marketing_consent: bool = False):
+    """Add user to waitlist"""
+    try:
+        # Validate email
+        import re
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_pattern, email.lower()):
+            raise HTTPException(status_code=400, detail="Invalid email format")
+        
+        # Mock waitlist entry (in production, this would write to Supabase)
+        waitlist_entry = {
+            "id": str(uuid.uuid4()),
+            "email": email.lower(),
+            "full_name": full_name,
+            "referral_code": referral_code,
+            "marketing_consent": marketing_consent,
+            "source": "api",
+            "status": "active",
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        logger.info(f"New waitlist signup: {email}")
+        
+        return {
+            "success": True,
+            "message": "Successfully joined waitlist!",
+            "waitlist_id": waitlist_entry["id"],
+            "position": "You will be notified when access is available"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Waitlist signup failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to join waitlist")
+
+@api_router.get("/waitlist/stats")
+async def get_waitlist_stats():
+    """Get waitlist statistics (mock data for now)"""
+    try:
+        # Mock waitlist statistics
+        mock_stats = {
+            "total_signups": 1247,
+            "signups_today": 23,
+            "signups_this_week": 156,
+            "referral_signups": 312,
+            "conversion_rate": 0.087,
+            "top_sources": [
+                {"source": "website", "count": 892},
+                {"source": "social_media", "count": 234},
+                {"source": "referral", "count": 121}
+            ],
+            "top_referrals": [
+                {"code": "TRAVEL2024", "count": 45},
+                {"code": "MAKUEXPLORER", "count": 32},
+                {"code": "DREAMJOURNEY", "count": 28}
+            ],
+            "daily_signups_last_30_days": [
+                {"date": "2024-01-01", "signups": 12},
+                {"date": "2024-01-02", "signups": 8},
+                {"date": "2024-01-03", "signups": 15}
+                # ... would include all 30 days
+            ]
+        }
+        
+        return {
+            "success": True,
+            "stats": mock_stats,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get waitlist stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve waitlist statistics")
+
 # Include the routers
 app.include_router(api_router)
 app.include_router(nft_router)
