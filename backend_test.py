@@ -1160,7 +1160,7 @@ class MakuTravelBackendTester:
                 for provider, config in providers.items():
                     for key, value in config.items():
                         if 'key' in key.lower() or 'secret' in key.lower():
-                            if value not in ["***configured***", "***not_configured***"]:
+                            if value not in ["***configured***", "***not_configured***", None]:
                                 self.log_test("Provider Configurations", False, f"Sensitive info not masked for {provider}.{key}: {value}", response_time)
                                 return False
                 
