@@ -1063,6 +1063,349 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # WAITLIST SYSTEM TESTS
+    # =====================================================
+    
+    def test_waitlist_signup_valid_email_only(self):
+        """Test waitlist signup with valid email only"""
+        print("📧 Testing Waitlist Signup - Valid Email Only...")
+        
+        url = f"{BASE_URL}/waitlist"
+        payload = {
+            "email": "alex.traveler@example.com"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=10)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'message', 'waitlist_id', 'position']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Waitlist Signup - Valid Email Only", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Waitlist Signup - Valid Email Only", False, f"Signup failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate waitlist_id is a valid UUID
+                waitlist_id = data.get('waitlist_id')
+                try:
+                    uuid.UUID(waitlist_id)
+                except ValueError:
+                    self.log_test("Waitlist Signup - Valid Email Only", False, f"Invalid waitlist_id format: {waitlist_id}", response_time)
+                    return False
+                
+                self.log_test("Waitlist Signup - Valid Email Only", True, f"Signup successful, ID: {waitlist_id[:8]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Waitlist Signup - Valid Email Only", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Waitlist Signup - Valid Email Only", False, f"Exception: {str(e)}")
+            return False
+
+    def test_waitlist_signup_full_details(self):
+        """Test waitlist signup with email, full name, and referral code"""
+        print("👤 Testing Waitlist Signup - Full Details...")
+        
+        url = f"{BASE_URL}/waitlist"
+        payload = {
+            "email": "sarah.explorer@example.com",
+            "full_name": "Sarah Explorer",
+            "referral_code": "TRAVEL2024",
+            "marketing_consent": True
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=10)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'message', 'waitlist_id', 'position']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Waitlist Signup - Full Details", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Waitlist Signup - Full Details", False, f"Signup failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate waitlist_id is a valid UUID
+                waitlist_id = data.get('waitlist_id')
+                try:
+                    uuid.UUID(waitlist_id)
+                except ValueError:
+                    self.log_test("Waitlist Signup - Full Details", False, f"Invalid waitlist_id format: {waitlist_id}", response_time)
+                    return False
+                
+                # Validate success message
+                message = data.get('message', '')
+                if 'successfully' not in message.lower() or 'waitlist' not in message.lower():
+                    self.log_test("Waitlist Signup - Full Details", False, f"Unexpected success message: {message}", response_time)
+                    return False
+                
+                self.log_test("Waitlist Signup - Full Details", True, f"Full signup successful, ID: {waitlist_id[:8]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Waitlist Signup - Full Details", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Waitlist Signup - Full Details", False, f"Exception: {str(e)}")
+            return False
+
+    def test_waitlist_signup_invalid_email(self):
+        """Test waitlist signup with invalid email format"""
+        print("❌ Testing Waitlist Signup - Invalid Email...")
+        
+        url = f"{BASE_URL}/waitlist"
+        invalid_emails = [
+            "invalid-email",
+            "missing@domain",
+            "@missing-local.com",
+            "spaces in@email.com",
+            "double@@domain.com"
+        ]
+        
+        for invalid_email in invalid_emails:
+            payload = {
+                "email": invalid_email
+            }
+            
+            try:
+                start_time = time.time()
+                response = self.session.post(url, json=payload, timeout=10)
+                response_time = time.time() - start_time
+                
+                if response.status_code == 400:
+                    data = response.json()
+                    if 'detail' in data and 'invalid email' in data['detail'].lower():
+                        continue  # This is expected behavior
+                    else:
+                        self.log_test("Waitlist Signup - Invalid Email", False, f"Wrong error message for {invalid_email}: {data}", response_time)
+                        return False
+                elif response.status_code == 200:
+                    self.log_test("Waitlist Signup - Invalid Email", False, f"Invalid email {invalid_email} was accepted", response_time)
+                    return False
+                else:
+                    self.log_test("Waitlist Signup - Invalid Email", False, f"Unexpected status {response.status_code} for {invalid_email}", response_time)
+                    return False
+                    
+            except Exception as e:
+                self.log_test("Waitlist Signup - Invalid Email", False, f"Exception testing {invalid_email}: {str(e)}")
+                return False
+        
+        self.log_test("Waitlist Signup - Invalid Email", True, f"All {len(invalid_emails)} invalid emails properly rejected", 0)
+        return True
+
+    def test_waitlist_signup_missing_email(self):
+        """Test waitlist signup with missing email field"""
+        print("🚫 Testing Waitlist Signup - Missing Email...")
+        
+        url = f"{BASE_URL}/waitlist"
+        payload = {
+            "full_name": "Test User",
+            "referral_code": "TEST123"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=10)
+            response_time = time.time() - start_time
+            
+            # Should return 422 (validation error) or 400 (bad request)
+            if response.status_code in [400, 422]:
+                data = response.json()
+                # Check if error message mentions missing email
+                error_text = str(data).lower()
+                if 'email' in error_text and ('required' in error_text or 'missing' in error_text):
+                    self.log_test("Waitlist Signup - Missing Email", True, f"Missing email properly rejected: {response.status_code}", response_time)
+                    return True
+                else:
+                    self.log_test("Waitlist Signup - Missing Email", False, f"Wrong error message: {data}", response_time)
+                    return False
+            elif response.status_code == 200:
+                self.log_test("Waitlist Signup - Missing Email", False, "Missing email was accepted", response_time)
+                return False
+            else:
+                self.log_test("Waitlist Signup - Missing Email", False, f"Unexpected status code: {response.status_code}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Waitlist Signup - Missing Email", False, f"Exception: {str(e)}")
+            return False
+
+    def test_waitlist_duplicate_email_handling(self):
+        """Test waitlist signup with duplicate email handling"""
+        print("🔄 Testing Waitlist Signup - Duplicate Email Handling...")
+        
+        url = f"{BASE_URL}/waitlist"
+        test_email = "duplicate.test@example.com"
+        payload = {
+            "email": test_email,
+            "full_name": "Duplicate Test User"
+        }
+        
+        try:
+            # First signup
+            start_time = time.time()
+            response1 = self.session.post(url, json=payload, timeout=10)
+            response_time1 = time.time() - start_time
+            
+            if response1.status_code != 200:
+                self.log_test("Waitlist Signup - Duplicate Email", False, f"First signup failed: {response1.status_code}", response_time1)
+                return False
+            
+            # Second signup with same email
+            start_time = time.time()
+            response2 = self.session.post(url, json=payload, timeout=10)
+            response_time2 = time.time() - start_time
+            
+            # The system should handle duplicates gracefully
+            # Either accept it (idempotent) or reject with appropriate message
+            if response2.status_code == 200:
+                data2 = response2.json()
+                if data2.get('success'):
+                    self.log_test("Waitlist Signup - Duplicate Email", True, "Duplicate email handled gracefully (idempotent)", response_time2)
+                    return True
+                else:
+                    self.log_test("Waitlist Signup - Duplicate Email", False, f"Duplicate returned success=false: {data2}", response_time2)
+                    return False
+            elif response2.status_code in [400, 409]:
+                data2 = response2.json()
+                error_text = str(data2).lower()
+                if 'duplicate' in error_text or 'already' in error_text or 'exists' in error_text:
+                    self.log_test("Waitlist Signup - Duplicate Email", True, f"Duplicate properly rejected: {response2.status_code}", response_time2)
+                    return True
+                else:
+                    self.log_test("Waitlist Signup - Duplicate Email", False, f"Wrong duplicate error: {data2}", response_time2)
+                    return False
+            else:
+                self.log_test("Waitlist Signup - Duplicate Email", False, f"Unexpected duplicate response: {response2.status_code}", response_time2)
+                return False
+                
+        except Exception as e:
+            self.log_test("Waitlist Signup - Duplicate Email", False, f"Exception: {str(e)}")
+            return False
+
+    def test_waitlist_statistics(self):
+        """Test waitlist statistics endpoint"""
+        print("📊 Testing Waitlist Statistics...")
+        
+        url = f"{BASE_URL}/waitlist/stats"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=10)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'stats', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Waitlist Statistics", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Waitlist Statistics", False, f"Stats request failed: {data}", response_time)
+                    return False
+                
+                stats = data.get('stats', {})
+                if not isinstance(stats, dict):
+                    self.log_test("Waitlist Statistics", False, "Stats is not a dictionary", response_time)
+                    return False
+                
+                # Validate stats structure
+                stats_required = ['total_signups', 'signups_today', 'signups_this_week', 'referral_signups', 'conversion_rate']
+                stats_missing = [field for field in stats_required if field not in stats]
+                
+                if stats_missing:
+                    self.log_test("Waitlist Statistics", False, f"Missing stats fields: {stats_missing}", response_time)
+                    return False
+                
+                # Validate numeric values are reasonable
+                total_signups = stats.get('total_signups', 0)
+                signups_today = stats.get('signups_today', 0)
+                conversion_rate = stats.get('conversion_rate', 0)
+                
+                if not isinstance(total_signups, int) or total_signups < 0:
+                    self.log_test("Waitlist Statistics", False, f"Invalid total_signups: {total_signups}", response_time)
+                    return False
+                
+                if not isinstance(signups_today, int) or signups_today < 0:
+                    self.log_test("Waitlist Statistics", False, f"Invalid signups_today: {signups_today}", response_time)
+                    return False
+                
+                if not isinstance(conversion_rate, (int, float)) or conversion_rate < 0 or conversion_rate > 1:
+                    self.log_test("Waitlist Statistics", False, f"Invalid conversion_rate: {conversion_rate}", response_time)
+                    return False
+                
+                # Validate optional arrays
+                if 'top_sources' in stats:
+                    top_sources = stats['top_sources']
+                    if not isinstance(top_sources, list):
+                        self.log_test("Waitlist Statistics", False, "top_sources is not a list", response_time)
+                        return False
+                    
+                    if len(top_sources) > 0:
+                        source = top_sources[0]
+                        if not isinstance(source, dict) or 'source' not in source or 'count' not in source:
+                            self.log_test("Waitlist Statistics", False, f"Invalid top_sources structure: {source}", response_time)
+                            return False
+                
+                if 'top_referrals' in stats:
+                    top_referrals = stats['top_referrals']
+                    if not isinstance(top_referrals, list):
+                        self.log_test("Waitlist Statistics", False, "top_referrals is not a list", response_time)
+                        return False
+                    
+                    if len(top_referrals) > 0:
+                        referral = top_referrals[0]
+                        if not isinstance(referral, dict) or 'code' not in referral or 'count' not in referral:
+                            self.log_test("Waitlist Statistics", False, f"Invalid top_referrals structure: {referral}", response_time)
+                            return False
+                
+                # Validate timestamp format
+                timestamp = data.get('timestamp')
+                try:
+                    datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                except ValueError:
+                    self.log_test("Waitlist Statistics", False, f"Invalid timestamp format: {timestamp}", response_time)
+                    return False
+                
+                self.log_test("Waitlist Statistics", True, f"Total: {total_signups}, Today: {signups_today}, Conversion: {conversion_rate:.1%}", response_time)
+                return True
+                
+            else:
+                self.log_test("Waitlist Statistics", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Waitlist Statistics", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # SUPABASE CONFIGURATION SYSTEM TESTS
     # =====================================================
     
