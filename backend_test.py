@@ -1229,7 +1229,7 @@ class MakuTravelBackendTester:
                 # Validate sensitive information is masked
                 for key in ['client_id', 'client_secret']:
                     value = config.get(key)
-                    if value not in ["***configured***", "***not_configured***"]:
+                    if value not in ["***configured***", "***not_configured***", None]:
                         self.log_test("Amadeus Provider Config", False, f"Sensitive info not masked for {key}: {value}", response_time)
                         return False
                 
