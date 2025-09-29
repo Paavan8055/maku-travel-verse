@@ -5533,14 +5533,19 @@ class MakuTravelBackendTester:
         return passed, total
 
     def run_all_tests(self):
-        """Run comprehensive test suite with focus on Supabase Configuration System"""
+        """Run comprehensive test suite with focus on Waitlist System"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
         print("=" * 80)
         
         total_passed = 0
         total_tests = 0
         
-        # Run Supabase Configuration System Tests (Primary Focus)
+        # Run Waitlist System Tests (Primary Focus)
+        waitlist_passed, waitlist_total = self.run_waitlist_tests()
+        total_passed += waitlist_passed
+        total_tests += waitlist_total
+        
+        # Run Supabase Configuration System Tests
         config_passed, config_total = self.run_supabase_config_tests()
         total_passed += config_passed
         total_tests += config_total
@@ -5570,6 +5575,7 @@ class MakuTravelBackendTester:
         print("=" * 80)
         print("🎯 FINAL TEST SUMMARY")
         print("=" * 80)
+        print(f"📧 Waitlist System: {waitlist_passed}/{waitlist_total} ({(waitlist_passed/waitlist_total)*100:.1f}%)")
         print(f"🔧 Supabase Configuration System: {config_passed}/{config_total} ({(config_passed/config_total)*100:.1f}%)")
         print(f"🏥 Health Check: {health_passed}/{health_total} ({(health_passed/health_total)*100:.1f}%)")
         print(f"⚙️ Environment Management: {env_passed}/{env_total} ({(env_passed/env_total)*100:.1f}%)")
