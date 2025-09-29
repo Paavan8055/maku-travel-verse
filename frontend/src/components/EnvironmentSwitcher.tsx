@@ -26,7 +26,7 @@ export const EnvironmentSwitcher: React.FC = () => {
 
   const fetchConfig = async () => {
     try {
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-dna.preview.emergentagent.com';
       const response = await fetch(`${backendUrl}/api/environment/config`);
       if (response.ok) {
         const data = await response.json();
@@ -51,7 +51,7 @@ export const EnvironmentSwitcher: React.FC = () => {
     
     setSwitching(true);
     try {
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-dna.preview.emergentagent.com';
       const response = await fetch(`${backendUrl}/api/environment/switch`, {
         method: 'POST',
         headers: {

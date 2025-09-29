@@ -14,7 +14,7 @@ import {
 import logger from '@/utils/logger';
 
 class GamificationService {
-  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
+  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://travel-dna.preview.emergentagent.com';
 
   /**
    * Get user's comprehensive game statistics

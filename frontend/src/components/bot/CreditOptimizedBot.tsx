@@ -208,7 +208,7 @@ const CreditOptimizedBot: React.FC<CreditOptimizedBotProps> = ({ userContext }) 
 
   const callOptimizedAI = async (input: string) => {
     // Simplified AI call for complex queries only
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://travel-portal-dev.preview.emergentagent.com';
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://travel-dna.preview.emergentagent.com';
     
     try {
       // Use shorter, more efficient AI calls

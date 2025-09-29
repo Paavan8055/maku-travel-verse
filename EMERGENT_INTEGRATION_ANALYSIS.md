@@ -423,7 +423,7 @@ DELIVERABLES:
 ### **Current Deployment Gap**
 ```
 IDENTIFIED ISSUE:
-- Development environment: https://travel-portal-dev.preview.emergentagent.com
+- Development environment: https://travel-dna.preview.emergentagent.com
 - Production website: https://maku.travel/ (Netlify)
 - NO AUTOMATIC SYNC: Changes in dev environment don't deploy to live site
 
