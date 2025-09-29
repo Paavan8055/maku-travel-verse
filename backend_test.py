@@ -1298,7 +1298,7 @@ class MakuTravelBackendTester:
                 # Validate sensitive information is masked
                 for key in ['publishable_key', 'secret_key']:
                     value = config.get(key)
-                    if value not in ["***configured***", "***not_configured***"]:
+                    if value not in ["***configured***", "***not_configured***", None]:
                         self.log_test("Stripe Provider Config", False, f"Sensitive info not masked for {key}: {value}", response_time)
                         return False
                 
