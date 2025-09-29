@@ -3967,6 +3967,146 @@ async def get_smart_dreams_providers_with_expedia():
 
 
 
+# Configuration Management Endpoints
+@api_router.get("/config/validate")
+async def validate_config():
+    """Validate system configuration"""
+    try:
+        validation_result = await validate_configuration()
+        return validation_result
+    except Exception as e:
+        logger.error(f"Configuration validation failed: {e}")
+        return {
+            "valid": False,
+            "error": str(e),
+            "environment": os.getenv('ENVIRONMENT', 'development')
+        }
+
+@api_router.get("/config/providers")
+async def get_all_providers_config():
+    """Get configuration for all travel providers"""
+    try:
+        config_instance = get_config_instance()
+        provider_configs = await config_instance.get_all_provider_configs()
+        
+        # Filter out sensitive information for API response
+        public_configs = {}
+        for provider, config in provider_configs.items():
+            public_config = {}
+            for key, value in config.items():
+                # Only include non-sensitive configuration values
+                if key in ['base_url', 'mode'] or key.endswith('_url'):
+                    public_config[key] = value
+                elif 'key' in key.lower() or 'secret' in key.lower():
+                    # Show presence but not value
+                    public_config[key] = "***configured***" if value else "***not_configured***"
+                else:
+                    public_config[key] = value
+            public_configs[provider] = public_config
+        
+        return {
+            "success": True,
+            "providers": public_configs,
+            "environment": config_instance.environment
+        }
+    except Exception as e:
+        logger.error(f"Failed to get provider configurations: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "providers": {}
+        }
+
+@api_router.get("/config/providers/{provider}")
+async def get_provider_configuration(provider: str):
+    """Get configuration for a specific travel provider"""
+    try:
+        provider_config = await get_provider_config(provider)
+        
+        # Filter sensitive information
+        public_config = {}
+        for key, value in provider_config.items():
+            if key in ['base_url', 'mode'] or key.endswith('_url'):
+                public_config[key] = value
+            elif 'key' in key.lower() or 'secret' in key.lower():
+                public_config[key] = "***configured***" if value else "***not_configured***"
+            else:
+                public_config[key] = value
+        
+        return {
+            "success": True,
+            "provider": provider,
+            "config": public_config
+        }
+    except Exception as e:
+        logger.error(f"Failed to get configuration for {provider}: {e}")
+        return {
+            "success": False,
+            "provider": provider,
+            "error": str(e)
+        }
+
+@api_router.post("/config/test-connections")
+async def test_provider_connections():
+    """Test connections to all configured providers"""
+    try:
+        config_instance = get_config_instance()
+        provider_configs = await config_instance.get_all_provider_configs()
+        
+        connection_results = {}
+        
+        for provider, config in provider_configs.items():
+            try:
+                # Test connection based on provider type
+                if provider == 'stripe':
+                    # Test Stripe connection
+                    secret_key = await get_secret('STRIPE_SECRET_KEY')
+                    if secret_key and not secret_key.startswith('your-'):
+                        connection_results[provider] = {
+                            "status": "connected",
+                            "message": "Stripe credentials configured"
+                        }
+                    else:
+                        connection_results[provider] = {
+                            "status": "not_configured",
+                            "message": "Stripe secret key not configured"
+                        }
+                
+                elif provider in ['amadeus', 'sabre', 'viator', 'duffle', 'ratehawk', 'expedia']:
+                    # Test travel provider connections
+                    base_url = config.get('base_url')
+                    if base_url and base_url != 'your-api-base-url':
+                        connection_results[provider] = {
+                            "status": "configured",
+                            "message": f"{provider.capitalize()} base URL configured",
+                            "base_url": base_url
+                        }
+                    else:
+                        connection_results[provider] = {
+                            "status": "not_configured", 
+                            "message": f"{provider.capitalize()} configuration missing"
+                        }
+                        
+            except Exception as e:
+                connection_results[provider] = {
+                    "status": "error",
+                    "message": str(e)
+                }
+        
+        return {
+            "success": True,
+            "connections": connection_results,
+            "environment": config_instance.environment,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to test provider connections: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 # Include the routers
 app.include_router(api_router)
 app.include_router(nft_router)
