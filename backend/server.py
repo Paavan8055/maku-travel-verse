@@ -4184,6 +4184,228 @@ async def get_waitlist_stats():
         logger.error(f"Failed to get waitlist stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve waitlist statistics")
 
+# Analytics and Monitoring Endpoints
+@api_router.post("/analytics/events")
+async def track_analytics_events(events: List[Dict[str, Any]]):
+    """Track analytics events"""
+    try:
+        processed_events = []
+        
+        for event in events:
+            event_record = {
+                "id": str(uuid.uuid4()),
+                "event_type": event.get("event_type", "unknown"),
+                "event_category": event.get("event_category", "user_action"),
+                "user_id": event.get("user_id"),
+                "session_id": event.get("session_id"),
+                "event_data": event.get("event_data", {}),
+                "properties": event.get("properties", {}),
+                "context": event.get("context", {}),
+                "environment": os.getenv("ENVIRONMENT", "development"),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            processed_events.append(event_record)
+            
+            logger.info(f"Analytics event tracked: {event_record['event_type']}")
+        
+        return {
+            "success": True,
+            "message": f"Tracked {len(processed_events)} event(s)",
+            "event_ids": [e["id"] for e in processed_events]
+        }
+        
+    except Exception as e:
+        logger.error(f"Analytics tracking failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to track analytics events")
+
+@api_router.post("/analytics/provider-health")
+async def update_provider_health(
+    provider_name: str, 
+    status: str, 
+    response_time_ms: int = None, 
+    error_rate: float = None, 
+    error_message: str = None
+):
+    """Update provider health status"""
+    try:
+        valid_statuses = ['healthy', 'degraded', 'down', 'maintenance']
+        if status not in valid_statuses:
+            raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+        
+        health_record = {
+            "id": str(uuid.uuid4()),
+            "provider_name": provider_name,
+            "status": status,
+            "response_time_ms": response_time_ms,
+            "error_rate": error_rate,
+            "error_message": error_message,
+            "environment": os.getenv("ENVIRONMENT", "development"),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Check for alert conditions
+        alerts_created = 0
+        if status == 'down':
+            logger.warning(f"ALERT: Provider {provider_name} is DOWN")
+            alerts_created += 1
+        elif status == 'degraded':
+            logger.warning(f"ALERT: Provider {provider_name} is DEGRADED")
+            alerts_created += 1
+        elif error_rate and error_rate > 0.05:
+            logger.warning(f"ALERT: Provider {provider_name} has high error rate: {error_rate}")
+            alerts_created += 1
+        
+        logger.info(f"Provider health updated: {provider_name} -> {status}")
+        
+        return {
+            "success": True,
+            "message": "Provider health updated",
+            "health_id": health_record["id"],
+            "alerts_created": alerts_created
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Provider health update failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update provider health")
+
+@api_router.get("/analytics/dashboard/{dashboard_name}")
+async def get_analytics_dashboard(dashboard_name: str):
+    """Get analytics dashboard data"""
+    try:
+        # Mock dashboard data based on dashboard name
+        dashboards = {
+            "provider_health": {
+                "providers": [
+                    {"name": "amadeus", "status": "healthy", "response_time": 1200, "error_rate": 0.01},
+                    {"name": "sabre", "status": "healthy", "response_time": 950, "error_rate": 0.02},
+                    {"name": "viator", "status": "degraded", "response_time": 3400, "error_rate": 0.08},
+                    {"name": "expedia", "status": "healthy", "response_time": 1100, "error_rate": 0.01},
+                    {"name": "duffle", "status": "maintenance", "response_time": None, "error_rate": None},
+                    {"name": "ratehawk", "status": "healthy", "response_time": 890, "error_rate": 0.03}
+                ],
+                "overall_status": "degraded",
+                "avg_response_time": 1508,
+                "total_errors": 23
+            },
+            "booking_analytics": {
+                "total_bookings_today": 156,
+                "total_bookings_week": 1247,
+                "conversion_rate": 0.087,
+                "average_booking_value": 234.50,
+                "top_providers": [
+                    {"provider": "amadeus", "bookings": 67, "value": 15680.00},
+                    {"provider": "expedia", "bookings": 45, "value": 12340.00},
+                    {"provider": "sabre", "bookings": 32, "value": 8970.00}
+                ],
+                "booking_trends": [
+                    {"hour": "00:00", "bookings": 3},
+                    {"hour": "01:00", "bookings": 1},
+                    {"hour": "02:00", "bookings": 2}
+                ]
+            },
+            "user_engagement": {
+                "total_active_users": 2847,
+                "daily_active_users": 412,
+                "user_sessions": 1836,
+                "avg_session_duration": 847, # seconds
+                "feature_usage": {
+                    "search": 1247,
+                    "filters": 892,
+                    "referrals": 156,
+                    "nft": 89,
+                    "airdrop": 234
+                },
+                "top_pages": [
+                    {"page": "/", "views": 3421},
+                    {"page": "/hotels", "views": 1892},
+                    {"page": "/flights", "views": 1456},
+                    {"page": "/smart-dreams", "views": 967}
+                ]
+            }
+        }
+        
+        if dashboard_name not in dashboards:
+            raise HTTPException(status_code=404, detail="Dashboard not found")
+        
+        return {
+            "success": True,
+            "dashboard": {
+                "name": dashboard_name,
+                "data": dashboards[dashboard_name],
+                "last_updated": datetime.utcnow().isoformat()
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Dashboard data retrieval failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve dashboard data")
+
+@api_router.get("/analytics/alerts")
+async def get_system_alerts(severity: str = None, unresolved: bool = False, limit: int = 50):
+    """Get system alerts"""
+    try:
+        # Mock alerts data
+        all_alerts = [
+            {
+                "id": str(uuid.uuid4()),
+                "alert_type": "provider_degraded",
+                "severity": "high",
+                "provider_name": "viator",
+                "alert_message": "Viator API response time above threshold",
+                "created_at": datetime.utcnow().isoformat(),
+                "is_resolved": False
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "alert_type": "high_error_rate",
+                "severity": "medium",
+                "provider_name": "ratehawk",
+                "alert_message": "RateHawk error rate: 6.7%",
+                "created_at": (datetime.utcnow() - timedelta(hours=2)).isoformat(),
+                "is_resolved": True,
+                "resolved_at": (datetime.utcnow() - timedelta(hours=1)).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "alert_type": "booking_anomaly",
+                "severity": "low",
+                "provider_name": None,
+                "alert_message": "Unusual booking pattern detected",
+                "created_at": (datetime.utcnow() - timedelta(hours=6)).isoformat(),
+                "is_resolved": False
+            }
+        ]
+        
+        # Filter alerts based on parameters
+        filtered_alerts = all_alerts
+        
+        if severity:
+            filtered_alerts = [a for a in filtered_alerts if a["severity"] == severity]
+        
+        if unresolved:
+            filtered_alerts = [a for a in filtered_alerts if not a["is_resolved"]]
+        
+        filtered_alerts = filtered_alerts[:limit]
+        
+        return {
+            "success": True,
+            "alerts": filtered_alerts,
+            "total": len(filtered_alerts),
+            "filters_applied": {
+                "severity": severity,
+                "unresolved": unresolved,
+                "limit": limit
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Alerts retrieval failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve alerts")
+
 # Include the routers
 app.include_router(api_router)
 app.include_router(nft_router)
