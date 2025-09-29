@@ -5165,17 +5165,17 @@ class MakuTravelBackendTester:
         return passed, total
 
     def run_all_tests(self):
-        """Run comprehensive test suite with focus on Admin NFT and Airdrop Management"""
+        """Run comprehensive test suite with focus on Supabase Configuration System"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
         print("=" * 80)
         
         total_passed = 0
         total_tests = 0
         
-        # Run Admin NFT and Airdrop Management Tests (Primary Focus)
-        admin_passed, admin_total = self.run_admin_nft_tests()
-        total_passed += admin_passed
-        total_tests += admin_total
+        # Run Supabase Configuration System Tests (Primary Focus)
+        config_passed, config_total = self.run_supabase_config_tests()
+        total_passed += config_passed
+        total_tests += config_total
         
         # Run other test suites for completeness
         health_passed, health_total = self.run_health_tests()
@@ -5202,7 +5202,7 @@ class MakuTravelBackendTester:
         print("=" * 80)
         print("🎯 FINAL TEST SUMMARY")
         print("=" * 80)
-        print(f"🔐 Admin NFT & Airdrop Management: {admin_passed}/{admin_total} ({(admin_passed/admin_total)*100:.1f}%)")
+        print(f"🔧 Supabase Configuration System: {config_passed}/{config_total} ({(config_passed/config_total)*100:.1f}%)")
         print(f"🏥 Health Check: {health_passed}/{health_total} ({(health_passed/health_total)*100:.1f}%)")
         print(f"⚙️ Environment Management: {env_passed}/{env_total} ({(env_passed/env_total)*100:.1f}%)")
         print(f"🌟 Enhanced Dreams API: {dreams_passed}/{dreams_total} ({(dreams_passed/dreams_total)*100:.1f}%)")
