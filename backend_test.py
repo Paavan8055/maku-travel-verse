@@ -5139,6 +5139,31 @@ class MakuTravelBackendTester:
         
         return passed, total
 
+    def run_supabase_config_tests(self):
+        """Run Supabase Configuration System tests"""
+        print("🔧 SUPABASE CONFIGURATION SYSTEM TESTS")
+        print("-" * 50)
+        
+        tests = [
+            self.test_config_validation,
+            self.test_providers_config,
+            self.test_individual_provider_config_amadeus,
+            self.test_individual_provider_config_stripe,
+            self.test_connection_testing
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print(f"📊 Supabase Configuration Tests: {passed}/{total} passed")
+        print()
+        
+        return passed, total
+
     def run_all_tests(self):
         """Run comprehensive test suite with focus on Admin NFT and Airdrop Management"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
