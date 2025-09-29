@@ -1063,6 +1063,347 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # SUPABASE CONFIGURATION SYSTEM TESTS
+    # =====================================================
+    
+    def test_config_validation(self):
+        """Test Configuration Validation endpoint"""
+        print("✅ Testing Configuration Validation...")
+        
+        url = f"{BASE_URL}/config/validate"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['valid', 'environment']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Configuration Validation", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check environment is set correctly
+                environment = data.get('environment')
+                if environment != 'development':
+                    self.log_test("Configuration Validation", False, f"Expected 'development' environment, got: {environment}", response_time)
+                    return False
+                
+                # Check validation result structure
+                valid = data.get('valid')
+                if not isinstance(valid, bool):
+                    self.log_test("Configuration Validation", False, f"'valid' field should be boolean, got: {type(valid)}", response_time)
+                    return False
+                
+                # Check for missing configs/secrets if validation failed
+                if not valid:
+                    if 'missing_configs' not in data or 'missing_secrets' not in data:
+                        self.log_test("Configuration Validation", False, "Missing 'missing_configs' or 'missing_secrets' fields when validation failed", response_time)
+                        return False
+                
+                self.log_test("Configuration Validation", True, f"Environment: {environment}, Valid: {valid}", response_time)
+                return True
+                
+            else:
+                self.log_test("Configuration Validation", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Configuration Validation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_providers_config(self):
+        """Test Provider Configurations endpoint"""
+        print("🔧 Testing Provider Configurations...")
+        
+        url = f"{BASE_URL}/config/providers"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'providers', 'environment']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Configurations", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Provider Configurations", False, f"API returned success=false: {data.get('error', 'Unknown error')}", response_time)
+                    return False
+                
+                providers = data.get('providers', {})
+                if not isinstance(providers, dict):
+                    self.log_test("Provider Configurations", False, "Providers field is not a dictionary", response_time)
+                    return False
+                
+                # Check for expected providers
+                expected_providers = ['amadeus', 'sabre', 'viator', 'duffle', 'ratehawk', 'expedia', 'stripe']
+                missing_providers = [p for p in expected_providers if p not in providers]
+                
+                if missing_providers:
+                    self.log_test("Provider Configurations", False, f"Missing providers: {missing_providers}", response_time)
+                    return False
+                
+                # Validate sensitive information is properly masked
+                for provider, config in providers.items():
+                    for key, value in config.items():
+                        if 'key' in key.lower() or 'secret' in key.lower():
+                            if value not in ["***configured***", "***not_configured***"]:
+                                self.log_test("Provider Configurations", False, f"Sensitive info not masked for {provider}.{key}: {value}", response_time)
+                                return False
+                
+                # Check environment
+                environment = data.get('environment')
+                if environment != 'development':
+                    self.log_test("Provider Configurations", False, f"Expected 'development' environment, got: {environment}", response_time)
+                    return False
+                
+                self.log_test("Provider Configurations", True, f"Got {len(providers)} providers, environment: {environment}", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Configurations", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Configurations", False, f"Exception: {str(e)}")
+            return False
+
+    def test_individual_provider_config_amadeus(self):
+        """Test Individual Provider Config - Amadeus"""
+        print("🛫 Testing Individual Provider Config - Amadeus...")
+        
+        url = f"{BASE_URL}/config/providers/amadeus"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'provider', 'config']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Amadeus Provider Config", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Amadeus Provider Config", False, f"API returned success=false: {data.get('error', 'Unknown error')}", response_time)
+                    return False
+                
+                # Check provider name
+                provider = data.get('provider')
+                if provider != 'amadeus':
+                    self.log_test("Amadeus Provider Config", False, f"Expected provider 'amadeus', got: {provider}", response_time)
+                    return False
+                
+                config = data.get('config', {})
+                if not isinstance(config, dict):
+                    self.log_test("Amadeus Provider Config", False, "Config field is not a dictionary", response_time)
+                    return False
+                
+                # Check for expected config fields
+                expected_fields = ['client_id', 'client_secret', 'base_url']
+                missing_config_fields = [field for field in expected_fields if field not in config]
+                
+                if missing_config_fields:
+                    self.log_test("Amadeus Provider Config", False, f"Missing config fields: {missing_config_fields}", response_time)
+                    return False
+                
+                # Validate sensitive information is masked
+                for key in ['client_id', 'client_secret']:
+                    value = config.get(key)
+                    if value not in ["***configured***", "***not_configured***"]:
+                        self.log_test("Amadeus Provider Config", False, f"Sensitive info not masked for {key}: {value}", response_time)
+                        return False
+                
+                # Check base_url is not masked (should be visible)
+                base_url = config.get('base_url')
+                if not base_url or base_url.startswith('***'):
+                    self.log_test("Amadeus Provider Config", False, f"Base URL should be visible: {base_url}", response_time)
+                    return False
+                
+                self.log_test("Amadeus Provider Config", True, f"Provider: {provider}, Base URL: {base_url}", response_time)
+                return True
+                
+            else:
+                self.log_test("Amadeus Provider Config", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Amadeus Provider Config", False, f"Exception: {str(e)}")
+            return False
+
+    def test_individual_provider_config_stripe(self):
+        """Test Individual Provider Config - Stripe"""
+        print("💳 Testing Individual Provider Config - Stripe...")
+        
+        url = f"{BASE_URL}/config/providers/stripe"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'provider', 'config']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Stripe Provider Config", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Stripe Provider Config", False, f"API returned success=false: {data.get('error', 'Unknown error')}", response_time)
+                    return False
+                
+                # Check provider name
+                provider = data.get('provider')
+                if provider != 'stripe':
+                    self.log_test("Stripe Provider Config", False, f"Expected provider 'stripe', got: {provider}", response_time)
+                    return False
+                
+                config = data.get('config', {})
+                if not isinstance(config, dict):
+                    self.log_test("Stripe Provider Config", False, "Config field is not a dictionary", response_time)
+                    return False
+                
+                # Check for expected config fields
+                expected_fields = ['publishable_key', 'secret_key', 'mode']
+                missing_config_fields = [field for field in expected_fields if field not in config]
+                
+                if missing_config_fields:
+                    self.log_test("Stripe Provider Config", False, f"Missing config fields: {missing_config_fields}", response_time)
+                    return False
+                
+                # Validate sensitive information is masked
+                for key in ['publishable_key', 'secret_key']:
+                    value = config.get(key)
+                    if value not in ["***configured***", "***not_configured***"]:
+                        self.log_test("Stripe Provider Config", False, f"Sensitive info not masked for {key}: {value}", response_time)
+                        return False
+                
+                # Check mode is visible (should not be masked)
+                mode = config.get('mode')
+                if not mode or mode.startswith('***'):
+                    self.log_test("Stripe Provider Config", False, f"Mode should be visible: {mode}", response_time)
+                    return False
+                
+                self.log_test("Stripe Provider Config", True, f"Provider: {provider}, Mode: {mode}", response_time)
+                return True
+                
+            else:
+                self.log_test("Stripe Provider Config", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Stripe Provider Config", False, f"Exception: {str(e)}")
+            return False
+
+    def test_connection_testing(self):
+        """Test Connection Testing endpoint"""
+        print("🔗 Testing Connection Testing...")
+        
+        url = f"{BASE_URL}/config/test-connections"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json={}, timeout=20)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['success', 'connections', 'environment', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Connection Testing", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Connection Testing", False, f"API returned success=false", response_time)
+                    return False
+                
+                connections = data.get('connections', {})
+                if not isinstance(connections, dict):
+                    self.log_test("Connection Testing", False, "Connections field is not a dictionary", response_time)
+                    return False
+                
+                # Check for expected providers
+                expected_providers = ['amadeus', 'sabre', 'viator', 'duffle', 'ratehawk', 'expedia', 'stripe']
+                missing_providers = [p for p in expected_providers if p not in connections]
+                
+                if missing_providers:
+                    self.log_test("Connection Testing", False, f"Missing provider connections: {missing_providers}", response_time)
+                    return False
+                
+                # Validate connection status for each provider
+                valid_statuses = ['connected', 'configured', 'not_configured', 'error']
+                for provider, connection in connections.items():
+                    if not isinstance(connection, dict):
+                        self.log_test("Connection Testing", False, f"Connection for {provider} is not a dictionary", response_time)
+                        return False
+                    
+                    status = connection.get('status')
+                    if status not in valid_statuses:
+                        self.log_test("Connection Testing", False, f"Invalid status for {provider}: {status}", response_time)
+                        return False
+                    
+                    if 'message' not in connection:
+                        self.log_test("Connection Testing", False, f"Missing message for {provider}", response_time)
+                        return False
+                
+                # Check environment
+                environment = data.get('environment')
+                if environment != 'development':
+                    self.log_test("Connection Testing", False, f"Expected 'development' environment, got: {environment}", response_time)
+                    return False
+                
+                # Check timestamp format
+                timestamp = data.get('timestamp')
+                if not timestamp or 'T' not in timestamp:
+                    self.log_test("Connection Testing", False, f"Invalid timestamp format: {timestamp}", response_time)
+                    return False
+                
+                # Count connection statuses
+                status_counts = {}
+                for provider, connection in connections.items():
+                    status = connection.get('status')
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                
+                self.log_test("Connection Testing", True, f"Tested {len(connections)} providers, Status counts: {status_counts}", response_time)
+                return True
+                
+            else:
+                self.log_test("Connection Testing", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Connection Testing", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # AI INTELLIGENCE LAYER TESTS
     # =====================================================
     
