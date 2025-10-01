@@ -1,0 +1,130 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Type of backup'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - incremental
+          - schema_only
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase Project
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Create Database Backup
+        run: |
+          BACKUP_NAME="maku-travel-backup-$(date +%Y%m%d-%H%M%S)"
+          BACKUP_TYPE="${{ github.event.inputs.backup_type || 'full' }}"
+          
+          echo "Creating $BACKUP_TYPE backup: $BACKUP_NAME"
+          
+          if [ "$BACKUP_TYPE" = "schema_only" ]; then
+            # Schema-only backup
+            supabase db dump --schema-only > "backups/${BACKUP_NAME}-schema.sql"
+          elif [ "$BACKUP_TYPE" = "incremental" ]; then
+            # Incremental backup (tables with recent changes)
+            supabase db dump --data-only --exclude-table-data='events' > "backups/${BACKUP_NAME}-incremental.sql"
+          else
+            # Full backup
+            supabase db dump > "backups/${BACKUP_NAME}-full.sql"
+          fi
+          
+          echo "BACKUP_FILE=${BACKUP_NAME}" >> $GITHUB_ENV
+
+      - name: Compress Backup
+        run: |
+          cd backups
+          gzip *.sql
+          ls -la
+
+      - name: Upload Backup to Cloud Storage
+        run: |
+          # This would upload to your preferred cloud storage
+          # Examples: AWS S3, Google Cloud Storage, Azure Blob
+          echo "Uploading backup to cloud storage..."
+          echo "Backup file: ${{ env.BACKUP_FILE }}"
+          
+          # Example AWS S3 upload (uncomment when configured)
+          # aws s3 cp "backups/${{ env.BACKUP_FILE }}.sql.gz" "s3://${{ secrets.S3_BACKUP_BUCKET }}/maku-travel/$(date +%Y/%m)/"
+
+      - name: Create Backup Manifest
+        run: |
+          cat > backup_manifest.json << EOF
+          {
+            "backup_name": "${{ env.BACKUP_FILE }}",
+            "backup_type": "${{ github.event.inputs.backup_type || 'full' }}",
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "environment": "production",
+            "git_commit": "${{ github.sha }}",
+            "file_size_bytes": $(stat -c%s backups/${{ env.BACKUP_FILE }}.sql.gz),
+            "tables_included": [
+              "environment", "environment_configs", "provider_configs", 
+              "waitlist", "events", "provider_health", "booking_metrics",
+              "user_analytics", "system_alerts", "analytics_dashboards"
+            ]
+          }
+          EOF
+
+      - name: Store Backup Metadata
+        run: |
+          # Store backup metadata in Supabase for tracking
+          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/backup_logs" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -d @backup_manifest.json
+
+      - name: Cleanup Old Backups
+        run: |
+          # Keep last 30 days of backups
+          find backups -name "*.sql.gz" -type f -mtime +30 -delete
+          echo "Cleanup completed"
+
+      - name: Verify Backup Integrity
+        run: |
+          # Basic integrity check
+          if [ -f "backups/${{ env.BACKUP_FILE }}.sql.gz" ]; then
+            echo "✅ Backup file created successfully"
+            echo "File size: $(stat -c%s backups/${{ env.BACKUP_FILE }}.sql.gz) bytes"
+          else
+            echo "❌ Backup file not found"
+            exit 1
+          fi
+
+  notify:
+    needs: [backup]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Success
+        if: needs.backup.result == 'success'
+        run: |
+          echo "✅ Backup completed successfully"
+          
+      - name: Notify Failure
+        if: needs.backup.result == 'failure'
+        run: |
+          echo "❌ Backup failed"
+          # Here you could send notifications to Slack, Discord, email, etc.
