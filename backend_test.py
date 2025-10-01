@@ -1063,6 +1063,542 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # ENHANCED PROVIDER INTEGRATION TESTS
+    # =====================================================
+    
+    def test_enhanced_flight_search(self):
+        """Test enhanced flight search across multiple providers"""
+        print("✈️ Testing Enhanced Flight Search...")
+        
+        url = f"{BASE_URL}/providers/search/flights"
+        payload = {
+            "origin": "NYC",
+            "destination": "LAX", 
+            "departure_date": "2024-12-01",
+            "adults": 1,
+            "currency": "USD"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Enhanced Flight Search", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'search_id', 'providers_searched', 'total_results', 'responses']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Enhanced Flight Search", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Enhanced Flight Search", False, "Search was not successful", response_time)
+                    return False
+                
+                # Validate responses structure
+                responses = data.get('responses', [])
+                if not isinstance(responses, list):
+                    self.log_test("Enhanced Flight Search", False, "Responses is not a list", response_time)
+                    return False
+                
+                # Check for provider-specific results
+                provider_names = [r.get('provider_name', '') for r in responses]
+                expected_providers = ['Expedia Flights', 'Amadeus', 'Sabre']
+                found_providers = [p for p in expected_providers if any(p in name for name in provider_names)]
+                
+                if len(responses) > 0:
+                    # Validate first response structure
+                    first_response = responses[0]
+                    response_required = ['provider_id', 'provider_name', 'success', 'results', 'response_time_ms']
+                    response_missing = [field for field in response_required if field not in first_response]
+                    
+                    if response_missing:
+                        self.log_test("Enhanced Flight Search", False, f"Missing response fields: {response_missing}", response_time)
+                        return False
+                
+                self.log_test("Enhanced Flight Search", True, f"Searched {data['providers_searched']} providers, {data['total_results']} results, providers: {found_providers}", response_time)
+                return True
+                
+            else:
+                self.log_test("Enhanced Flight Search", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Enhanced Flight Search", False, f"Exception: {str(e)}")
+            return False
+
+    def test_enhanced_hotel_search(self):
+        """Test enhanced hotel search across multiple providers"""
+        print("🏨 Testing Enhanced Hotel Search...")
+        
+        url = f"{BASE_URL}/providers/search/hotels"
+        payload = {
+            "destination": "Paris",
+            "checkin_date": "2024-12-01",
+            "checkout_date": "2024-12-03",
+            "adults": 2,
+            "rooms": 1,
+            "currency": "USD"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Enhanced Hotel Search", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'search_id', 'providers_searched', 'total_results', 'responses']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Enhanced Hotel Search", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Enhanced Hotel Search", False, "Search was not successful", response_time)
+                    return False
+                
+                # Validate responses structure
+                responses = data.get('responses', [])
+                if not isinstance(responses, list):
+                    self.log_test("Enhanced Hotel Search", False, "Responses is not a list", response_time)
+                    return False
+                
+                # Check for expected hotel providers
+                provider_names = [r.get('provider_name', '') for r in responses]
+                expected_providers = ['Expedia Hotels', 'Nuitée']
+                found_providers = [p for p in expected_providers if any(p in name for name in provider_names)]
+                
+                self.log_test("Enhanced Hotel Search", True, f"Searched {data['providers_searched']} providers, {data['total_results']} results, providers: {found_providers}", response_time)
+                return True
+                
+            else:
+                self.log_test("Enhanced Hotel Search", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Enhanced Hotel Search", False, f"Exception: {str(e)}")
+            return False
+
+    def test_enhanced_activity_search(self):
+        """Test enhanced activity search across multiple providers"""
+        print("🎯 Testing Enhanced Activity Search...")
+        
+        url = f"{BASE_URL}/providers/search/activities"
+        payload = {
+            "destination": "London",
+            "date": "2024-12-01",
+            "participants": 2,
+            "currency": "USD"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Enhanced Activity Search", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'search_id', 'providers_searched', 'total_results', 'responses']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Enhanced Activity Search", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Enhanced Activity Search", False, "Search was not successful", response_time)
+                    return False
+                
+                # Validate responses structure
+                responses = data.get('responses', [])
+                if not isinstance(responses, list):
+                    self.log_test("Enhanced Activity Search", False, "Responses is not a list", response_time)
+                    return False
+                
+                # Check for expected activity providers
+                provider_names = [r.get('provider_name', '') for r in responses]
+                expected_providers = ['GetYourGuide', 'Viator']
+                found_providers = [p for p in expected_providers if any(p in name for name in provider_names)]
+                
+                self.log_test("Enhanced Activity Search", True, f"Searched {data['providers_searched']} providers, {data['total_results']} results, providers: {found_providers}", response_time)
+                return True
+                
+            else:
+                self.log_test("Enhanced Activity Search", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Enhanced Activity Search", False, f"Exception: {str(e)}")
+            return False
+
+    def test_providers_health_status(self):
+        """Test provider health status endpoint"""
+        print("💚 Testing Provider Health Status...")
+        
+        url = f"{BASE_URL}/providers/health"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Provider Health Status", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'providers', 'summary']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Health Status", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Provider Health Status", False, "Health check was not successful", response_time)
+                    return False
+                
+                # Validate providers structure
+                providers = data.get('providers', {})
+                if not isinstance(providers, dict):
+                    self.log_test("Provider Health Status", False, "Providers is not a dictionary", response_time)
+                    return False
+                
+                # Check for expected provider IDs
+                expected_provider_ids = ['expedia_flights', 'expedia_hotels', 'nuitee_hotels', 'getyourguide_activities', 'viator_activities']
+                found_provider_ids = [pid for pid in expected_provider_ids if pid in providers]
+                
+                # Validate summary
+                summary = data.get('summary', {})
+                summary_required = ['total_providers', 'healthy_providers', 'unhealthy_providers']
+                summary_missing = [field for field in summary_required if field not in summary]
+                
+                if summary_missing:
+                    self.log_test("Provider Health Status", False, f"Missing summary fields: {summary_missing}", response_time)
+                    return False
+                
+                self.log_test("Provider Health Status", True, f"Total: {summary['total_providers']}, Healthy: {summary['healthy_providers']}, Found providers: {found_provider_ids}", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Health Status", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health Status", False, f"Exception: {str(e)}")
+            return False
+
+    def test_providers_health_check(self):
+        """Test comprehensive provider health check"""
+        print("🔍 Testing Provider Health Check...")
+        
+        url = f"{BASE_URL}/providers/health-check"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Provider Health Check", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'health_check', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Health Check", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Provider Health Check", False, "Health check was not successful", response_time)
+                    return False
+                
+                # Validate health check results
+                health_check = data.get('health_check', {})
+                if not isinstance(health_check, dict):
+                    self.log_test("Provider Health Check", False, "Health check is not a dictionary", response_time)
+                    return False
+                
+                # Validate timestamp format
+                timestamp = data.get('timestamp', '')
+                if not timestamp:
+                    self.log_test("Provider Health Check", False, "Missing timestamp", response_time)
+                    return False
+                
+                self.log_test("Provider Health Check", True, f"Health check completed, {len(health_check)} providers checked", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Health Check", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Health Check", False, f"Exception: {str(e)}")
+            return False
+
+    def test_provider_credentials_validation(self):
+        """Test provider credentials validation"""
+        print("🔐 Testing Provider Credentials Validation...")
+        
+        # Test with a known provider ID
+        provider_id = "expedia_flights"
+        url = f"{BASE_URL}/providers/credentials/{provider_id}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Provider Credentials Validation", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'validation']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Provider Credentials Validation", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Provider Credentials Validation", False, "Validation was not successful", response_time)
+                    return False
+                
+                # Validate validation result
+                validation = data.get('validation', {})
+                if not isinstance(validation, dict):
+                    self.log_test("Provider Credentials Validation", False, "Validation is not a dictionary", response_time)
+                    return False
+                
+                self.log_test("Provider Credentials Validation", True, f"Credentials validated for {provider_id}", response_time)
+                return True
+                
+            else:
+                self.log_test("Provider Credentials Validation", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Provider Credentials Validation", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
+    # MULTI-BACKEND AI ASSISTANT TESTS
+    # =====================================================
+    
+    def test_ai_chat_with_provider_selection(self):
+        """Test AI chat with intelligent provider selection"""
+        print("🤖 Testing AI Chat with Provider Selection...")
+        
+        url = f"{BASE_URL}/ai/chat"
+        params = {
+            "prompt": "Plan a 3-day trip to Tokyo",
+            "prefer_free": True,
+            "user_id": TEST_USER_ID,
+            "session_id": f"test_session_{int(time.time())}"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, params=params, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("AI Chat with Provider Selection", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'response']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("AI Chat with Provider Selection", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("AI Chat with Provider Selection", False, "AI chat was not successful", response_time)
+                    return False
+                
+                # Validate response structure
+                ai_response = data.get('response', {})
+                response_required = ['content', 'provider', 'model', 'response_time_ms']
+                response_missing = [field for field in response_required if field not in ai_response]
+                
+                if response_missing:
+                    self.log_test("AI Chat with Provider Selection", False, f"Missing response fields: {response_missing}", response_time)
+                    return False
+                
+                # Check that content is not empty
+                content = ai_response.get('content', '')
+                if not content or len(content.strip()) < 10:
+                    self.log_test("AI Chat with Provider Selection", False, f"Content too short: {content}", response_time)
+                    return False
+                
+                provider = ai_response.get('provider', '')
+                model = ai_response.get('model', '')
+                ai_response_time = ai_response.get('response_time_ms', 0)
+                
+                self.log_test("AI Chat with Provider Selection", True, f"Provider: {provider}, Model: {model}, AI Response Time: {ai_response_time}ms, Content length: {len(content)}", response_time)
+                return True
+                
+            else:
+                self.log_test("AI Chat with Provider Selection", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("AI Chat with Provider Selection", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ai_providers_status(self):
+        """Test AI providers status endpoint"""
+        print("📊 Testing AI Providers Status...")
+        
+        url = f"{BASE_URL}/ai/providers/status"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("AI Providers Status", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'providers', 'total_providers', 'available_providers', 'free_providers']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("AI Providers Status", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("AI Providers Status", False, "Status check was not successful", response_time)
+                    return False
+                
+                # Validate providers structure
+                providers = data.get('providers', {})
+                if not isinstance(providers, dict):
+                    self.log_test("AI Providers Status", False, "Providers is not a dictionary", response_time)
+                    return False
+                
+                # Check counts
+                total_providers = data.get('total_providers', 0)
+                available_providers = data.get('available_providers', 0)
+                free_providers = data.get('free_providers', 0)
+                
+                if total_providers < 1:
+                    self.log_test("AI Providers Status", False, f"No providers found: {total_providers}", response_time)
+                    return False
+                
+                # Check that at least one provider has expected fields
+                if len(providers) > 0:
+                    first_provider = list(providers.values())[0]
+                    provider_required = ['is_available', 'is_free']
+                    provider_missing = [field for field in provider_required if field not in first_provider]
+                    
+                    if provider_missing:
+                        self.log_test("AI Providers Status", False, f"Missing provider fields: {provider_missing}", response_time)
+                        return False
+                
+                self.log_test("AI Providers Status", True, f"Total: {total_providers}, Available: {available_providers}, Free: {free_providers}", response_time)
+                return True
+                
+            else:
+                self.log_test("AI Providers Status", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("AI Providers Status", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ai_cost_optimization(self):
+        """Test AI cost optimization analysis"""
+        print("💰 Testing AI Cost Optimization...")
+        
+        url = f"{BASE_URL}/ai/cost-optimization"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("AI Cost Optimization", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'optimization']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("AI Cost Optimization", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("AI Cost Optimization", False, "Optimization was not successful", response_time)
+                    return False
+                
+                # Validate optimization structure
+                optimization = data.get('optimization', {})
+                if not isinstance(optimization, dict):
+                    self.log_test("AI Cost Optimization", False, "Optimization is not a dictionary", response_time)
+                    return False
+                
+                self.log_test("AI Cost Optimization", True, f"Cost optimization analysis completed", response_time)
+                return True
+                
+            else:
+                self.log_test("AI Cost Optimization", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("AI Cost Optimization", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # ANALYTICS AND MONITORING SYSTEM TESTS
     # =====================================================
     
