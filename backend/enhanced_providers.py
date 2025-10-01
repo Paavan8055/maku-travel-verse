@@ -34,15 +34,15 @@ class ProviderConfig(BaseModel):
 
 class SearchRequest(BaseModel):
     destination: str
-    checkin_date: str = None
-    checkout_date: str = None  
-    departure_date: str = None
-    return_date: str = None
+    checkin_date: Optional[str] = None
+    checkout_date: Optional[str] = None  
+    departure_date: Optional[str] = None
+    return_date: Optional[str] = None
     guests: int = 2
     adults: int = 2
     children: int = 0
     rooms: int = 1
-    origin: str = None
+    origin: Optional[str] = None
     cabin_class: str = "economy"
     currency: str = "USD"
 
