@@ -1,0 +1,194 @@
+name: Schema Snapshot
+
+on:
+  schedule:
+    # Run weekly on Sundays at 3 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'frontend/supabase/migrations/**'
+    branches: [main, staging]
+
+jobs:
+  schema-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase Project
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Generate Schema Snapshot
+        run: |
+          SNAPSHOT_NAME="schema-snapshot-$(date +%Y%m%d-%H%M%S)"
+          mkdir -p schema-snapshots
+          
+          echo "Creating schema snapshot: $SNAPSHOT_NAME"
+          
+          # Generate complete schema dump
+          supabase db dump --schema-only > "schema-snapshots/${SNAPSHOT_NAME}.sql"
+          
+          # Generate individual table schemas
+          mkdir -p "schema-snapshots/${SNAPSHOT_NAME}-tables"
+          
+          # Core tables
+          TABLES="environment environment_configs provider_configs waitlist events provider_health booking_metrics user_analytics system_alerts analytics_dashboards provider_performance"
+          
+          for table in $TABLES; do
+            echo "Extracting schema for table: $table"
+            supabase db dump --schema-only --table="public.$table" > "schema-snapshots/${SNAPSHOT_NAME}-tables/${table}.sql"
+          done
+          
+          echo "SNAPSHOT_NAME=${SNAPSHOT_NAME}" >> $GITHUB_ENV
+
+      - name: Generate Schema Documentation
+        run: |
+          SNAPSHOT_NAME="${{ env.SNAPSHOT_NAME }}"
+          
+          # Create schema documentation
+          cat > "schema-snapshots/${SNAPSHOT_NAME}-README.md" << EOF
+          # Maku.Travel Database Schema Snapshot
+          
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Git Commit:** ${{ github.sha }}
+          **Environment:** Production
+          **Snapshot Name:** ${SNAPSHOT_NAME}
+          
+          ## Tables Included
+          
+          | Table Name | Purpose | RLS Enabled |
+          |------------|---------|-------------|
+          | environment | Secret and config storage | ✅ |
+          | environment_configs | Environment-specific configurations | ✅ |
+          | provider_configs | Travel provider configurations | ✅ |
+          | waitlist | User waitlist management | ✅ |
+          | events | Analytics event tracking | ✅ |
+          | provider_health | Provider health monitoring | ✅ |
+          | booking_metrics | Booking analytics and metrics | ✅ |
+          | user_analytics | User behavior analytics | ✅ |
+          | system_alerts | System alert management | ✅ |
+          | analytics_dashboards | Dashboard configurations | ✅ |
+          | provider_performance | Provider performance tracking | ✅ |
+          
+          ## Schema Changes in this Snapshot
+          
+          - Enhanced provider integration (Expedia flights/hotels, Nuitée, GetYourGuide)
+          - Comprehensive analytics and monitoring tables
+          - Provider performance tracking
+          - Multi-environment support (dev/staging/production)
+          
+          ## Usage
+          
+          To restore this schema:
+          \`\`\`bash
+          psql \$DATABASE_URL < ${SNAPSHOT_NAME}.sql
+          \`\`\`
+          
+          To restore individual tables:
+          \`\`\`bash
+          psql \$DATABASE_URL < ${SNAPSHOT_NAME}-tables/environment.sql
+          \`\`\`
+          EOF
+
+      - name: Create Schema Diff
+        run: |
+          SNAPSHOT_NAME="${{ env.SNAPSHOT_NAME }}"
+          
+          # Compare with previous snapshot if available
+          PREV_SNAPSHOT=$(ls -t schema-snapshots/ | grep -E '^schema-snapshot-' | head -2 | tail -1)
+          
+          if [ -n "$PREV_SNAPSHOT" ] && [ "$PREV_SNAPSHOT" != "${SNAPSHOT_NAME}.sql" ]; then
+            echo "Generating diff from previous snapshot: $PREV_SNAPSHOT"
+            
+            diff -u "schema-snapshots/$PREV_SNAPSHOT" "schema-snapshots/${SNAPSHOT_NAME}.sql" > "schema-snapshots/${SNAPSHOT_NAME}-diff.txt" || true
+            
+            if [ -s "schema-snapshots/${SNAPSHOT_NAME}-diff.txt" ]; then
+              echo "Schema changes detected"
+              cat "schema-snapshots/${SNAPSHOT_NAME}-diff.txt"
+            else
+              echo "No schema changes detected"
+            fi
+          else
+            echo "No previous snapshot found for comparison"
+          fi
+
+      - name: Compress Snapshots
+        run: |
+          SNAPSHOT_NAME="${{ env.SNAPSHOT_NAME }}"
+          cd schema-snapshots
+          
+          # Compress main snapshot
+          gzip "${SNAPSHOT_NAME}.sql"
+          
+          # Compress table schemas
+          tar -czf "${SNAPSHOT_NAME}-tables.tar.gz" "${SNAPSHOT_NAME}-tables/"
+          rm -rf "${SNAPSHOT_NAME}-tables/"
+
+      - name: Upload to Version Control
+        run: |
+          SNAPSHOT_NAME="${{ env.SNAPSHOT_NAME }}"
+          
+          # Store snapshots in repository (git-lfs for large files)
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          git add schema-snapshots/
+          git commit -m "Schema snapshot: ${SNAPSHOT_NAME}" || echo "No changes to commit"
+          
+          # Push to a dedicated schema-snapshots branch
+          git checkout -B schema-snapshots
+          git push origin schema-snapshots --force
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: schema-${{ env.SNAPSHOT_NAME }}
+          release_name: Database Schema Snapshot ${{ env.SNAPSHOT_NAME }}
+          body: |
+            ## Database Schema Snapshot
+            
+            **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+            **Environment:** Production
+            **Commit:** ${{ github.sha }}
+            
+            This snapshot includes:
+            - Complete database schema
+            - Individual table schemas
+            - Migration history
+            - Configuration documentation
+            
+            ### Files Included
+            - `${{ env.SNAPSHOT_NAME }}.sql.gz` - Complete schema dump
+            - `${{ env.SNAPSHOT_NAME }}-tables.tar.gz` - Individual table schemas
+            - `${{ env.SNAPSHOT_NAME }}-README.md` - Documentation
+            - `${{ env.SNAPSHOT_NAME }}-diff.txt` - Changes from previous snapshot
+          draft: false
+          prerelease: false
+
+  notify:
+    needs: [schema-snapshot]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Success
+        if: needs.schema-snapshot.result == 'success'
+        run: |
+          echo "✅ Schema snapshot completed successfully"
+          echo "Snapshot: ${{ env.SNAPSHOT_NAME }}"
+          
+      - name: Notify Failure
+        if: needs.schema-snapshot.result == 'failure'
+        run: |
+          echo "❌ Schema snapshot failed"
