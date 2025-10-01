@@ -4410,6 +4410,270 @@ async def get_system_alerts(severity: str = None, unresolved: bool = False, limi
         logger.error(f"Alerts retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve alerts")
 
+# Enhanced Provider Search Endpoints
+@api_router.post("/providers/search/flights")
+async def enhanced_flight_search(request: Dict[str, Any]):
+    """Enhanced flight search across multiple providers"""
+    try:
+        orchestrator = await get_orchestrator()
+        
+        # Convert request to SearchRequest
+        from enhanced_providers import SearchRequest
+        search_request = SearchRequest(
+            origin=request.get("origin", ""),
+            destination=request.get("destination", ""),
+            departure_date=request.get("departure_date", ""),
+            return_date=request.get("return_date"),
+            adults=request.get("adults", 1),
+            children=request.get("children", 0),
+            cabin_class=request.get("cabin_class", "economy"),
+            currency=request.get("currency", "USD")
+        )
+        
+        # Search across flight providers
+        responses = await orchestrator.search_flights(search_request)
+        
+        return {
+            "success": True,
+            "search_id": str(uuid.uuid4()),
+            "providers_searched": len(responses),
+            "total_results": sum(r.total_results for r in responses),
+            "responses": [
+                {
+                    "provider_id": r.provider_id,
+                    "provider_name": r.provider_name,
+                    "success": r.success,
+                    "results": r.data,
+                    "total_results": r.total_results,
+                    "response_time_ms": r.response_time_ms,
+                    "error": r.error_message
+                }
+                for r in responses
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Enhanced flight search failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/providers/search/hotels")
+async def enhanced_hotel_search(request: Dict[str, Any]):
+    """Enhanced hotel search across multiple providers"""
+    try:
+        orchestrator = await get_orchestrator()
+        
+        # Convert request to SearchRequest
+        from enhanced_providers import SearchRequest
+        search_request = SearchRequest(
+            destination=request.get("destination", ""),
+            checkin_date=request.get("checkin_date", ""),
+            checkout_date=request.get("checkout_date", ""),
+            adults=request.get("adults", 2),
+            children=request.get("children", 0),
+            rooms=request.get("rooms", 1),
+            currency=request.get("currency", "USD")
+        )
+        
+        # Search across hotel providers (Expedia Hotels + Nuitée)
+        responses = await orchestrator.search_hotels(search_request)
+        
+        return {
+            "success": True,
+            "search_id": str(uuid.uuid4()),
+            "providers_searched": len(responses),
+            "total_results": sum(r.total_results for r in responses),
+            "responses": [
+                {
+                    "provider_id": r.provider_id,
+                    "provider_name": r.provider_name,
+                    "success": r.success,
+                    "results": r.data,
+                    "total_results": r.total_results,
+                    "response_time_ms": r.response_time_ms,
+                    "error": r.error_message
+                }
+                for r in responses
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Enhanced hotel search failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/providers/search/activities")
+async def enhanced_activity_search(request: Dict[str, Any]):
+    """Enhanced activity search across multiple providers"""
+    try:
+        orchestrator = await get_orchestrator()
+        
+        # Convert request to SearchRequest
+        from enhanced_providers import SearchRequest
+        search_request = SearchRequest(
+            destination=request.get("destination", ""),
+            departure_date=request.get("date", ""),
+            adults=request.get("participants", 2),
+            currency=request.get("currency", "USD")
+        )
+        
+        # Search across activity providers (GetYourGuide + Viator)
+        responses = await orchestrator.search_activities(search_request)
+        
+        return {
+            "success": True,
+            "search_id": str(uuid.uuid4()),
+            "providers_searched": len(responses),
+            "total_results": sum(r.total_results for r in responses),
+            "responses": [
+                {
+                    "provider_id": r.provider_id,
+                    "provider_name": r.provider_name,
+                    "success": r.success,
+                    "results": r.data,
+                    "total_results": r.total_results,
+                    "response_time_ms": r.response_time_ms,
+                    "error": r.error_message
+                }
+                for r in responses
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Enhanced activity search failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Multi-Backend AI Assistant Endpoints
+@api_router.post("/ai/chat")
+async def ai_chat(
+    prompt: str,
+    context: Dict[str, Any] = None,
+    system_prompt: str = None,
+    prefer_free: bool = None,
+    user_id: str = None,
+    session_id: str = None
+):
+    """Multi-backend AI chat with intelligent provider selection"""
+    try:
+        assistant = await get_ai_assistant()
+        
+        # Create AI request
+        ai_request = AIRequest(
+            prompt=prompt,
+            context=context or {},
+            system_prompt=system_prompt or "You are a helpful travel assistant for Maku.Travel.",
+            user_id=user_id,
+            session_id=session_id
+        )
+        
+        # Generate response
+        response = await assistant.generate_response(ai_request, prefer_free)
+        
+        return {
+            "success": True,
+            "response": {
+                "content": response.content,
+                "provider": response.provider,
+                "model": response.model,
+                "response_time_ms": response.response_time_ms,
+                "tokens_used": response.tokens_used,
+                "cost_estimate": response.cost_estimate,
+                "metadata": response.metadata
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"AI chat failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/ai/providers/status")
+async def get_ai_providers_status():
+    """Get status of all AI providers"""
+    try:
+        assistant = await get_ai_assistant()
+        status = await assistant.get_provider_status()
+        
+        return {
+            "success": True,
+            "providers": status,
+            "total_providers": len(status),
+            "available_providers": len([p for p in status.values() if p["is_available"]]),
+            "free_providers": len([p for p in status.values() if p["is_free"]])
+        }
+        
+    except Exception as e:
+        logger.error(f"AI provider status failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/ai/cost-optimization")
+async def get_ai_cost_optimization():
+    """Get AI cost optimization analysis"""
+    try:
+        assistant = await get_ai_assistant()
+        optimization = await assistant.optimize_costs()
+        
+        return {
+            "success": True,
+            "optimization": optimization
+        }
+        
+    except Exception as e:
+        logger.error(f"AI cost optimization failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Provider Health and Management Endpoints
+@api_router.get("/providers/health")
+async def get_providers_health():
+    """Get health status of all travel providers"""
+    try:
+        orchestrator = await get_orchestrator()
+        health_report = await orchestrator.get_provider_health()
+        
+        return {
+            "success": True,
+            "providers": health_report,
+            "summary": {
+                "total_providers": len(health_report),
+                "healthy_providers": len([p for p in health_report.values() if p["is_healthy"]]),
+                "unhealthy_providers": len([p for p in health_report.values() if not p["is_healthy"]])
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Provider health check failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/providers/health-check")
+async def run_provider_health_check():
+    """Run comprehensive health check on all providers"""
+    try:
+        orchestrator = await get_orchestrator()
+        health_results = await orchestrator.run_health_check()
+        
+        return {
+            "success": True,
+            "health_check": health_results,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Provider health check failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/providers/credentials/{provider_id}")
+async def validate_provider_credentials(provider_id: str):
+    """Validate credentials for a specific provider"""
+    try:
+        orchestrator = await get_orchestrator()
+        validation_result = await orchestrator.validate_provider_credentials(provider_id)
+        
+        return {
+            "success": True,
+            "validation": validation_result
+        }
+        
+    except Exception as e:
+        logger.error(f"Credential validation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Include the routers
 app.include_router(api_router)
 app.include_router(nft_router)
