@@ -5,6 +5,7 @@ Manages multi-provider integration with rotation, failover, and performance moni
 
 import asyncio
 import time
+import os
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 import random
