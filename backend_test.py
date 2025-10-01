@@ -1075,6 +1075,7 @@ class MakuTravelBackendTester:
             "origin": "NYC",
             "destination": "LAX", 
             "departure_date": "2024-12-01",
+            "return_date": "2024-12-08",  # Add return date to fix validation error
             "adults": 1,
             "currency": "USD"
         }
