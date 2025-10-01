@@ -1,0 +1,253 @@
+name: Deploy Maku.Travel
+
+on:
+  push:
+    branches: [main, staging, develop]
+  pull_request:
+    branches: [main, staging]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          yarn install --frozen-lockfile
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          yarn test --run
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          python -m pytest backend_test.py -v
+
+      - name: Lint frontend
+        run: |
+          cd frontend
+          yarn lint
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          yarn build
+
+  determine-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      is-production: ${{ steps.env.outputs.is-production }}
+    steps:
+      - name: Determine Environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=development" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${{ steps.env.outputs.environment }}" == "production" ]]; then
+            echo "is-production=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-production=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-frontend:
+    needs: [test, determine-environment]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          yarn install --frozen-lockfile
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          yarn build
+        env:
+          VITE_ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_REACT_APP_BACKEND_URL: ${{ secrets.VITE_REACT_APP_BACKEND_URL }}
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: './frontend/dist'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy ${{ needs.determine-environment.outputs.environment }} from ${{ github.sha }}"
+          enable-pull-request-comment: true
+          enable-commit-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  deploy-supabase:
+    needs: [test, determine-environment]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase Project
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run Database Migrations
+        run: |
+          cd frontend
+          supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions
+        run: |
+          cd frontend
+          supabase functions deploy --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Validate Environment Configuration
+        run: |
+          curl -X GET "${{ secrets.SUPABASE_URL }}/functions/v1/environment-validation?environment=${{ needs.determine-environment.outputs.environment }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+
+  deploy-backend:
+    needs: [test, determine-environment, deploy-supabase]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    if: needs.determine-environment.outputs.environment != 'development'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Deploy to Cloud Platform
+        run: |
+          echo "Backend deployment would happen here"
+          echo "Environment: ${{ needs.determine-environment.outputs.environment }}"
+          echo "Target: ${{ secrets.BACKEND_DEPLOY_TARGET }}"
+          # This would be replaced with actual deployment commands
+          # e.g., Railway, Heroku, DigitalOcean, etc.
+
+  post-deploy-validation:
+    needs: [deploy-frontend, deploy-supabase, deploy-backend]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Validate Frontend Deployment
+        run: |
+          FRONTEND_URL="${{ secrets.FRONTEND_URL }}"
+          if curl -f -s "$FRONTEND_URL" > /dev/null; then
+            echo "✅ Frontend deployment successful"
+          else
+            echo "❌ Frontend deployment failed"
+            exit 1
+          fi
+
+      - name: Validate Backend Deployment  
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_URL }}"
+          if curl -f -s "$BACKEND_URL/api/health" > /dev/null; then
+            echo "✅ Backend deployment successful"
+          else
+            echo "❌ Backend deployment failed" 
+            exit 1
+          fi
+
+      - name: Test Provider Connections
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_URL }}"
+          curl -X POST "$BACKEND_URL/api/config/test-connections" \
+            -H "Content-Type: application/json"
+
+      - name: Validate Configuration
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_URL }}"
+          curl -X GET "$BACKEND_URL/api/config/validate" \
+            -H "Content-Type: application/json"
+
+  notify:
+    needs: [post-deploy-validation]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Success
+        if: needs.post-deploy-validation.result == 'success'
+        run: |
+          echo "🎉 Deployment successful to ${{ needs.determine-environment.outputs.environment }}"
+          
+      - name: Notify Failure
+        if: needs.post-deploy-validation.result == 'failure'
+        run: |
+          echo "❌ Deployment failed to ${{ needs.determine-environment.outputs.environment }}"
+          exit 1
