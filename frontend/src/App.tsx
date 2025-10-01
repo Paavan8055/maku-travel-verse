@@ -168,6 +168,7 @@ const App = () => (
                                         <Route path="/partner-portal" element={<PartnerPortal />} />
                                         <Route path="/deals" element={<Deals />} />
                                         <Route path="/partners" element={<Partners />} />
+                                        <Route path="/enhanced-providers" element={<EnhancedProviders />} />
                                         <Route path="/gift-cards" element={<GiftCards />} />
                                         <Route path="/help" element={<Help />} />
                                         <Route path="/roadmap" element={<Roadmap />} />
