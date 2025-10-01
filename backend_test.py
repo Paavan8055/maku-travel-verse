@@ -7019,15 +7019,72 @@ class MakuTravelBackendTester:
         
         return passed, total
 
+    def run_enhanced_provider_tests(self):
+        """Run Enhanced Provider Integration tests"""
+        print("\n🔗 ENHANCED PROVIDER INTEGRATION TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_enhanced_flight_search,
+            self.test_enhanced_hotel_search,
+            self.test_enhanced_activity_search,
+            self.test_providers_health_status,
+            self.test_providers_health_check,
+            self.test_provider_credentials_validation
+        ]
+        
+        passed = 0
+        for test in tests:
+            try:
+                if test():
+                    passed += 1
+            except Exception as e:
+                print(f"❌ {test.__name__} failed with exception: {e}")
+        
+        print(f"\n✅ Enhanced Provider Integration: {passed}/{len(tests)} tests passed")
+        return passed, len(tests)
+
+    def run_multi_backend_ai_tests(self):
+        """Run Multi-Backend AI Assistant tests"""
+        print("\n🤖 MULTI-BACKEND AI ASSISTANT TESTS")
+        print("=" * 60)
+        
+        tests = [
+            self.test_ai_chat_with_provider_selection,
+            self.test_ai_providers_status,
+            self.test_ai_cost_optimization
+        ]
+        
+        passed = 0
+        for test in tests:
+            try:
+                if test():
+                    passed += 1
+            except Exception as e:
+                print(f"❌ {test.__name__} failed with exception: {e}")
+        
+        print(f"\n✅ Multi-Backend AI Assistant: {passed}/{len(tests)} tests passed")
+        return passed, len(tests)
+
     def run_all_tests(self):
-        """Run comprehensive test suite with focus on Analytics and Monitoring System"""
+        """Run comprehensive test suite with focus on Enhanced Provider Integration and Multi-Backend AI"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
         print("=" * 80)
         
         total_passed = 0
         total_tests = 0
         
-        # Run Analytics and Monitoring System Tests (Primary Focus)
+        # Run Enhanced Provider Integration Tests (Primary Focus)
+        provider_passed, provider_total = self.run_enhanced_provider_tests()
+        total_passed += provider_passed
+        total_tests += provider_total
+        
+        # Run Multi-Backend AI Assistant Tests (Primary Focus)
+        ai_multi_passed, ai_multi_total = self.run_multi_backend_ai_tests()
+        total_passed += ai_multi_passed
+        total_tests += ai_multi_total
+        
+        # Run Analytics and Monitoring System Tests
         analytics_passed, analytics_total = self.run_analytics_tests()
         total_passed += analytics_passed
         total_tests += analytics_total
@@ -7067,6 +7124,8 @@ class MakuTravelBackendTester:
         print("=" * 80)
         print("🎯 FINAL TEST SUMMARY")
         print("=" * 80)
+        print(f"🔗 Enhanced Provider Integration: {provider_passed}/{provider_total} ({(provider_passed/provider_total)*100:.1f}%)")
+        print(f"🤖 Multi-Backend AI Assistant: {ai_multi_passed}/{ai_multi_total} ({(ai_multi_passed/ai_multi_total)*100:.1f}%)")
         print(f"📊 Analytics & Monitoring System: {analytics_passed}/{analytics_total} ({(analytics_passed/analytics_total)*100:.1f}%)")
         print(f"📧 Waitlist System: {waitlist_passed}/{waitlist_total} ({(waitlist_passed/waitlist_total)*100:.1f}%)")
         print(f"🔧 Supabase Configuration System: {config_passed}/{config_total} ({(config_passed/config_total)*100:.1f}%)")
