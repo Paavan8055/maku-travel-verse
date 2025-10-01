@@ -42,6 +42,10 @@ from free_ai_provider import free_ai_provider
 # Import centralized configuration
 from supabase_config import get_config_instance, get_secret, get_provider_config, validate_configuration
 
+# Import enhanced provider system
+from provider_orchestrator import get_orchestrator
+from multi_backend_ai import get_ai_assistant, AIRequest
+
 # Create the main app without a prefix
 app = FastAPI(
     title="Maku Travel API - Blockchain Ready",
