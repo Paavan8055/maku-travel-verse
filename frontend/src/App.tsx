@@ -37,6 +37,7 @@ const Integrations = createLazyRoute(() => import("./pages/Integrations"));
 const PartnerPortal = createLazyRoute(() => import("./pages/PartnerPortal"));
 const Deals = createLazyRoute(() => import("./pages/Deals"));
 const Partners = createLazyRoute(() => import("./pages/Partners"));
+const EnhancedProviders = createLazyRoute(() => import("./pages/EnhancedProviders"));
 const GiftCards = createLazyRoute(() => import("./pages/GiftCards"));
 const Help = createLazyRoute(() => import("./pages/Help"));
 const Roadmap = createLazyRoute(() => import("./pages/Roadmap"));
