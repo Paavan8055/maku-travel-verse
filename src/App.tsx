@@ -19,6 +19,13 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { UniversalAIProvider } from "@/features/universal-ai/context/UniversalAIContext";
 import "./App.css";
+import { initializeSentry } from "@/lib/sentryConfig";
+ininitializeSentry({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+});
+
+
 
 // Lazy load pages for better performance
 const Index = createLazyRoute(() => import("./pages/Index"));
