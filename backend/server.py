@@ -4674,6 +4674,121 @@ async def validate_provider_credentials(provider_id: str):
         logger.error(f"Credential validation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Mem0 Integration Endpoints
+@api_router.get("/memories/{user_id}")
+async def get_user_memories(user_id: str):
+    """Get user memories from Mem0 integration"""
+    try:
+        # Mock memories data (in production, this would query Supabase user_memories table)
+        mock_memories = [
+            {
+                "id": str(uuid.uuid4()),
+                "mem0_id": "mem0_001",
+                "user_id": user_id,
+                "memory_content": "User prefers luxury hotels with spa amenities in Europe",
+                "memory_type": "hotel_preference",
+                "created_at": datetime.utcnow().isoformat(),
+                "metadata": {
+                    "destinations": ["Paris", "Rome", "Barcelona"],
+                    "hotel_category": "luxury",
+                    "amenities": ["spa", "pool", "concierge"]
+                }
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "mem0_id": "mem0_002", 
+                "user_id": user_id,
+                "memory_content": "Prefers direct flights and business class for long-haul travel",
+                "memory_type": "flight_preference",
+                "created_at": (datetime.utcnow() - timedelta(days=5)).isoformat(),
+                "metadata": {
+                    "cabin_class": "business",
+                    "flight_type": "direct",
+                    "long_haul": True
+                }
+            }
+        ]
+        
+        return {
+            "success": True,
+            "memories": mock_memories,
+            "total_memories": len(mock_memories),
+            "user_id": user_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get user memories: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve user memories")
+
+@api_router.get("/memories/{user_id}/preferences")
+async def get_user_travel_preferences(user_id: str):
+    """Get extracted travel preferences for user"""
+    try:
+        # Mock preferences extracted from memories
+        mock_preferences = {
+            "user_id": user_id,
+            "preferences": {
+                "hotel_category": "luxury",
+                "hotel_amenities": ["spa", "pool", "concierge", "room_service"],
+                "cabin_class": "business",
+                "flight_type": "direct",
+                "interested_destinations": ["Paris", "Rome", "Barcelona", "Tokyo"],
+                "budget_range": 2500,
+                "travel_style": "luxury",
+                "preferred_providers": ["expedia_hotels", "amadeus"]
+            },
+            "last_memory_update": datetime.utcnow().isoformat(),
+            "memory_count": 15,
+            "preference_confidence": 0.89
+        }
+        
+        return {
+            "success": True,
+            "preferences": mock_preferences,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get user preferences: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve user preferences")
+
+@api_router.post("/memories/webhook/test")
+async def test_mem0_webhook():
+    """Test Mem0 webhook integration"""
+    try:
+        # Create a test webhook payload
+        test_payload = {
+            "event": "memory.add",
+            "data": {
+                "id": "test_memory_" + str(uuid.uuid4()),
+                "user_id": "test_user_123",
+                "memory": "User loves staying in boutique hotels near historic districts",
+                "metadata": {
+                    "test_mode": True,
+                    "created_via": "maku_travel_test"
+                }
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        logger.info(f"Testing Mem0 webhook with payload: {test_payload}")
+        
+        return {
+            "success": True,
+            "message": "Webhook test payload created",
+            "test_payload": test_payload,
+            "webhook_url": "https://iomeddeasarntjhqzndu.supabase.co/functions/v1/mem0-webhook",
+            "instructions": [
+                "Use this payload to test the webhook endpoint",
+                "Verify the webhook is registered in your Mem0 project",
+                "Check that memory events are being processed correctly"
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Webhook test failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create webhook test")
+
 # Include the routers
 app.include_router(api_router)
 app.include_router(nft_router)
