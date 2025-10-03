@@ -7335,6 +7335,26 @@ class MakuTravelBackendTester:
         print(f"\n✅ Multi-Backend AI Assistant: {passed}/{len(tests)} tests passed")
         return passed, len(tests)
 
+    def run_mem0_integration_tests(self):
+        """Run Mem0 Integration Tests"""
+        print("🧠 TESTING MEM0 INTEGRATION SYSTEM")
+        print("-" * 50)
+        
+        tests = [
+            self.test_user_memories,
+            self.test_user_travel_preferences,
+            self.test_mem0_webhook_test
+        ]
+        
+        passed = 0
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print(f"🧠 Mem0 Integration Tests: {passed}/{len(tests)} passed")
+        print()
+        return passed, len(tests)
+
     def run_all_tests(self):
         """Run comprehensive test suite with focus on Enhanced Provider Integration and Multi-Backend AI"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
@@ -7342,6 +7362,11 @@ class MakuTravelBackendTester:
         
         total_passed = 0
         total_tests = 0
+        
+        # Run Mem0 Integration Tests (Primary Focus for this review)
+        mem0_passed, mem0_total = self.run_mem0_integration_tests()
+        total_passed += mem0_passed
+        total_tests += mem0_total
         
         # Run Enhanced Provider Integration Tests (Primary Focus)
         provider_passed, provider_total = self.run_enhanced_provider_tests()
