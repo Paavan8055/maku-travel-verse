@@ -3188,6 +3188,274 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # MEM0 INTEGRATION TESTS
+    # =====================================================
+    
+    def test_user_memories(self):
+        """Test GET /api/memories/{user_id} - User Memories Endpoint"""
+        print("🧠 Testing User Memories Endpoint...")
+        
+        test_user_id = "test_user_123"
+        url = f"{BASE_URL}/memories/{test_user_id}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("User Memories", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'memories', 'total_memories', 'user_id']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("User Memories", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("User Memories", False, "Request was not successful", response_time)
+                    return False
+                
+                # Validate memories structure
+                memories = data.get('memories', [])
+                if not isinstance(memories, list):
+                    self.log_test("User Memories", False, "Memories is not a list", response_time)
+                    return False
+                
+                if len(memories) == 0:
+                    self.log_test("User Memories", False, "No memories returned", response_time)
+                    return False
+                
+                # Validate first memory structure
+                memory = memories[0]
+                memory_required = ['id', 'mem0_id', 'user_id', 'memory_content', 'memory_type', 'metadata']
+                memory_missing = [field for field in memory_required if field not in memory]
+                
+                if memory_missing:
+                    self.log_test("User Memories", False, f"Missing memory fields: {memory_missing}", response_time)
+                    return False
+                
+                # Validate memory types are properly categorized
+                memory_types = [m.get('memory_type') for m in memories]
+                expected_types = ['hotel_preference', 'flight_preference']
+                found_types = [t for t in expected_types if t in memory_types]
+                
+                if not found_types:
+                    self.log_test("User Memories", False, f"No expected memory types found. Got: {memory_types}", response_time)
+                    return False
+                
+                # Validate metadata structure
+                metadata = memory.get('metadata', {})
+                if not isinstance(metadata, dict):
+                    self.log_test("User Memories", False, "Memory metadata is not a dictionary", response_time)
+                    return False
+                
+                # Check for proper categorization based on content analysis
+                hotel_memories = [m for m in memories if m.get('memory_type') == 'hotel_preference']
+                flight_memories = [m for m in memories if m.get('memory_type') == 'flight_preference']
+                
+                if len(hotel_memories) == 0 or len(flight_memories) == 0:
+                    self.log_test("User Memories", False, f"Missing memory categories. Hotel: {len(hotel_memories)}, Flight: {len(flight_memories)}", response_time)
+                    return False
+                
+                self.log_test("User Memories", True, f"Got {len(memories)} memories, types: {found_types}, user: {data['user_id']}", response_time)
+                return True
+                
+            else:
+                self.log_test("User Memories", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("User Memories", False, f"Exception: {str(e)}")
+            return False
+
+    def test_user_travel_preferences(self):
+        """Test GET /api/memories/{user_id}/preferences - User Travel Preferences"""
+        print("🎯 Testing User Travel Preferences...")
+        
+        test_user_id = "test_user_123"
+        url = f"{BASE_URL}/memories/{test_user_id}/preferences"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("User Travel Preferences", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'preferences', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("User Travel Preferences", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("User Travel Preferences", False, "Request was not successful", response_time)
+                    return False
+                
+                # Validate preferences structure
+                preferences_data = data.get('preferences', {})
+                if not isinstance(preferences_data, dict):
+                    self.log_test("User Travel Preferences", False, "Preferences is not a dictionary", response_time)
+                    return False
+                
+                # Validate preference categories
+                preferences = preferences_data.get('preferences', {})
+                expected_categories = ['hotel_category', 'cabin_class', 'interested_destinations']
+                found_categories = [cat for cat in expected_categories if cat in preferences]
+                
+                if len(found_categories) < 2:
+                    self.log_test("User Travel Preferences", False, f"Missing preference categories. Found: {found_categories}", response_time)
+                    return False
+                
+                # Validate specific preference values
+                hotel_category = preferences.get('hotel_category')
+                cabin_class = preferences.get('cabin_class')
+                destinations = preferences.get('interested_destinations', [])
+                
+                if not hotel_category:
+                    self.log_test("User Travel Preferences", False, "Missing hotel_category preference", response_time)
+                    return False
+                
+                if not cabin_class:
+                    self.log_test("User Travel Preferences", False, "Missing cabin_class preference", response_time)
+                    return False
+                
+                if not isinstance(destinations, list) or len(destinations) == 0:
+                    self.log_test("User Travel Preferences", False, "Missing or invalid interested_destinations", response_time)
+                    return False
+                
+                # Validate confidence scores
+                confidence = preferences_data.get('preference_confidence', 0)
+                if not isinstance(confidence, (int, float)) or confidence <= 0 or confidence > 1:
+                    self.log_test("User Travel Preferences", False, f"Invalid confidence score: {confidence}", response_time)
+                    return False
+                
+                # Validate memory count
+                memory_count = preferences_data.get('memory_count', 0)
+                if not isinstance(memory_count, int) or memory_count <= 0:
+                    self.log_test("User Travel Preferences", False, f"Invalid memory count: {memory_count}", response_time)
+                    return False
+                
+                self.log_test("User Travel Preferences", True, f"Hotel: {hotel_category}, Flight: {cabin_class}, Destinations: {len(destinations)}, Confidence: {confidence:.2f}", response_time)
+                return True
+                
+            else:
+                self.log_test("User Travel Preferences", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("User Travel Preferences", False, f"Exception: {str(e)}")
+            return False
+
+    def test_mem0_webhook_test(self):
+        """Test POST /api/memories/webhook/test - Webhook Test Endpoint"""
+        print("🔗 Testing Mem0 Webhook Test Endpoint...")
+        
+        url = f"{BASE_URL}/memories/webhook/test"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Mem0 Webhook Test", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'message', 'test_payload', 'webhook_url', 'instructions']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Mem0 Webhook Test", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Mem0 Webhook Test", False, "Request was not successful", response_time)
+                    return False
+                
+                # Validate test payload structure (Mem0 webhook event format)
+                test_payload = data.get('test_payload', {})
+                if not isinstance(test_payload, dict):
+                    self.log_test("Mem0 Webhook Test", False, "Test payload is not a dictionary", response_time)
+                    return False
+                
+                # Validate Mem0 event structure
+                payload_required = ['event', 'data', 'timestamp']
+                payload_missing = [field for field in payload_required if field not in test_payload]
+                
+                if payload_missing:
+                    self.log_test("Mem0 Webhook Test", False, f"Missing payload fields: {payload_missing}", response_time)
+                    return False
+                
+                # Validate event type
+                event_type = test_payload.get('event')
+                if event_type != 'memory.add':
+                    self.log_test("Mem0 Webhook Test", False, f"Invalid event type: {event_type} (expected: memory.add)", response_time)
+                    return False
+                
+                # Validate event data structure
+                event_data = test_payload.get('data', {})
+                data_required = ['id', 'user_id', 'memory', 'metadata']
+                data_missing = [field for field in data_required if field not in event_data]
+                
+                if data_missing:
+                    self.log_test("Mem0 Webhook Test", False, f"Missing event data fields: {data_missing}", response_time)
+                    return False
+                
+                # Validate webhook URL
+                webhook_url = data.get('webhook_url', '')
+                if not webhook_url or not webhook_url.startswith('https://'):
+                    self.log_test("Mem0 Webhook Test", False, f"Invalid webhook URL: {webhook_url}", response_time)
+                    return False
+                
+                # Validate instructions
+                instructions = data.get('instructions', [])
+                if not isinstance(instructions, list) or len(instructions) == 0:
+                    self.log_test("Mem0 Webhook Test", False, "Missing or invalid instructions", response_time)
+                    return False
+                
+                # Validate test user ID
+                test_user_id = event_data.get('user_id')
+                if test_user_id != 'test_user_123':
+                    self.log_test("Mem0 Webhook Test", False, f"Unexpected test user ID: {test_user_id}", response_time)
+                    return False
+                
+                # Validate metadata includes test mode
+                metadata = event_data.get('metadata', {})
+                if not metadata.get('test_mode'):
+                    self.log_test("Mem0 Webhook Test", False, "Test mode not enabled in metadata", response_time)
+                    return False
+                
+                self.log_test("Mem0 Webhook Test", True, f"Event: {event_type}, User: {test_user_id}, Instructions: {len(instructions)}", response_time)
+                return True
+                
+            else:
+                self.log_test("Mem0 Webhook Test", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Mem0 Webhook Test", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # AI INTELLIGENCE LAYER TESTS
     # =====================================================
     
