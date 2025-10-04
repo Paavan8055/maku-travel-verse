@@ -20,7 +20,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { UniversalAIProvider } from "@/features/universal-ai/context/UniversalAIContext";
 import "./App.css";
 import { initializeSentry } from "@/lib/sentryConfig";
-ininitializeSentry({
+initializeSentry({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
 });
