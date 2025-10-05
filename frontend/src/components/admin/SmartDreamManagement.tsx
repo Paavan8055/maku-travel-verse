@@ -200,7 +200,7 @@ export const SmartDreamManagement = () => {
     try {
       setProvidersLoading(true);
       
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:8000';
       if (!backendUrl) {
         throw new Error('Backend URL not configured');
       }
@@ -228,7 +228,7 @@ export const SmartDreamManagement = () => {
 
   const fetchProviderAnalytics = async () => {
     try {
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:8000';
       if (!backendUrl) {
         throw new Error('Backend URL not configured');
       }
@@ -254,7 +254,7 @@ export const SmartDreamManagement = () => {
     try {
       setDiscoveryInProgress(true);
       
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:8000';
       if (!backendUrl) {
         throw new Error('Backend URL not configured');
       }
@@ -288,7 +288,7 @@ export const SmartDreamManagement = () => {
 
   const performHealthCheck = async (providerId: string) => {
     try {
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:8000';
       if (!backendUrl) {
         throw new Error('Backend URL not configured');
       }
@@ -318,7 +318,7 @@ export const SmartDreamManagement = () => {
 
   const activateProvider = async (providerId: string) => {
     try {
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:8000';
       if (!backendUrl) {
         throw new Error('Backend URL not configured');
       }
