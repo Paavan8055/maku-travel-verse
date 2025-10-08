@@ -1,0 +1,56 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with border -->
+  <circle cx="60" cy="60" r="55" fill="#ffffff" stroke="#FF6B35" stroke-width="4"/>
+  
+  <!-- Sun in background -->
+  <circle cx="85" cy="25" r="12" fill="#FFD700"/>
+  
+  <!-- Tricolor arc (background) -->
+  <path d="M 20 60 Q 60 25 100 60" stroke="#FF6B35" stroke-width="4" fill="none"/>
+  <path d="M 22 62 Q 60 30 98 62" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+  <path d="M 24 64 Q 60 35 96 64" stroke="#4CAF50" stroke-width="3" fill="none"/>
+  
+  <!-- Dog head -->
+  <circle cx="60" cy="55" r="18" fill="#FFFFFF" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- Dog ears -->
+  <ellipse cx="48" cy="45" rx="6" ry="10" fill="#8B4513" transform="rotate(-25 48 45)"/>
+  <ellipse cx="72" cy="45" rx="6" ry="10" fill="#8B4513" transform="rotate(25 72 45)"/>
+  
+  <!-- Dog eyes -->
+  <circle cx="55" cy="50" r="2" fill="#000000"/>
+  <circle cx="65" cy="50" r="2" fill="#000000"/>
+  <circle cx="55.5" cy="49.5" r="0.5" fill="#FFFFFF"/>
+  <circle cx="65.5" cy="49.5" r="0.5" fill="#FFFFFF"/>
+  
+  <!-- Dog nose -->
+  <ellipse cx="60" cy="58" rx="1.5" ry="1" fill="#000000"/>
+  
+  <!-- Dog mouth -->
+  <path d="M 60 60 Q 57 62 55 60.5" stroke="#000000" stroke-width="0.5" fill="none"/>
+  <path d="M 60 60 Q 63 62 65 60.5" stroke="#000000" stroke-width="0.5" fill="none"/>
+  
+  <!-- Dog hat (brown explorer hat) -->
+  <ellipse cx="60" cy="38" rx="22" ry="6" fill="#8B4513"/>
+  <circle cx="60" cy="40" r="14" fill="#8B4513"/>
+  <circle cx="60" cy="40" r="12" fill="#A0522D"/>
+  
+  <!-- Hat band -->
+  <ellipse cx="60" cy="46" rx="16" ry="2" fill="#654321"/>
+  
+  <!-- Sunglasses -->
+  <ellipse cx="55" cy="50" rx="4" ry="3" fill="#000000" opacity="0.7"/>
+  <ellipse cx="65" cy="50" rx="4" ry="3" fill="#000000" opacity="0.7"/>
+  <rect x="59" y="49" width="2" height="1" fill="#000000"/>
+  
+  <!-- Red bandana/neckerchief -->
+  <path d="M 48 65 Q 60 68 72 65 Q 65 75 60 72 Q 55 75 48 65" fill="#DC143C"/>
+  <polygon points="48,65 51,68 55,72 50,76 44,68" fill="#B22222"/>
+  
+  <!-- Airplane (small, green) -->
+  <path d="M 90 35 L 100 38 L 102 36 L 105 38 L 103 40 L 100 41 L 95 39 L 92 41 L 90 40 L 88 38 L 90 35" fill="#4CAF50"/>
+  
+  <!-- Text -->
+  <text x="60" y="95" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="14" font-weight="bold" fill="#FF6B35">Maku</text>
+  <text x="60" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#4CAF50">Travel</text>
+</svg>
