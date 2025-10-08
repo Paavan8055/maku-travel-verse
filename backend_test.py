@@ -7965,6 +7965,68 @@ class MakuTravelBackendTester:
         print(f"\n✅ Multi-Backend AI Assistant: {passed}/{len(tests)} tests passed")
         return passed, len(tests)
 
+    def run_smart_dreams_provider_tests(self):
+        """Run Smart Dreams Provider Management Tests"""
+        print("🌟 TESTING SMART DREAMS PROVIDER MANAGEMENT SYSTEM")
+        print("-" * 60)
+        
+        tests = [
+            self.test_smart_dreams_provider_registry,
+            self.test_smart_dreams_provider_discovery,
+            self.test_smart_dreams_provider_analytics,
+            self.test_smart_dreams_provider_health_check
+        ]
+        
+        passed = 0
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print(f"🌟 Smart Dreams Provider Tests: {passed}/{len(tests)} passed")
+        print()
+        return passed, len(tests)
+
+    def run_nft_airdrop_tests(self):
+        """Run NFT and Airdrop Integration Tests"""
+        print("🎨 TESTING NFT AND AIRDROP INTEGRATION SYSTEM")
+        print("-" * 60)
+        
+        tests = [
+            self.test_nft_collection,
+            self.test_airdrop_eligibility,
+            self.test_nft_quest_system,
+            self.test_booking_reward_integration,
+            self.test_nft_minting
+        ]
+        
+        passed = 0
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print(f"🎨 NFT & Airdrop Tests: {passed}/{len(tests)} passed")
+        print()
+        return passed, len(tests)
+
+    def run_expedia_integration_tests(self):
+        """Run Expedia Group API Integration Tests"""
+        print("🏨 TESTING EXPEDIA GROUP API INTEGRATION")
+        print("-" * 60)
+        
+        tests = [
+            self.test_expedia_health_check,
+            self.test_expedia_hotel_search
+        ]
+        
+        passed = 0
+        for test in tests:
+            if test():
+                passed += 1
+        
+        print(f"🏨 Expedia Integration Tests: {passed}/{len(tests)} passed")
+        print()
+        return passed, len(tests)
+
     def run_mem0_integration_tests(self):
         """Run Mem0 Integration Tests"""
         print("🧠 TESTING MEM0 INTEGRATION SYSTEM")
