@@ -105,3 +105,6 @@ Run the Vitest suite with:
 ```
 npm test
 ```
+
+## Git workflow tips
+- Keep long-running branches current by following the rebase checklist in [docs/GIT_CONFLICT_RESOLUTION.md](docs/GIT_CONFLICT_RESOLUTION.md).
