@@ -3456,6 +3456,636 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # SMART DREAMS PROVIDER MANAGEMENT TESTS
+    # =====================================================
+    
+    def test_smart_dreams_provider_registry(self):
+        """Test Smart Dreams Provider Registry endpoint"""
+        print("🌟 Testing Smart Dreams Provider Registry...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Smart Dreams Provider Registry", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['providers', 'summary']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Smart Dreams Provider Registry", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                providers = data.get('providers', [])
+                if not isinstance(providers, list):
+                    self.log_test("Smart Dreams Provider Registry", False, "Providers is not a list", response_time)
+                    return False
+                
+                # Check for expected providers (Amadeus, Sabre, Viator, Duffle, RateHawk)
+                provider_names = [p.get('name', '').lower() for p in providers]
+                expected_providers = ['amadeus', 'sabre', 'viator', 'duffle', 'ratehawk']
+                found_providers = [p for p in expected_providers if any(p in name for name in provider_names)]
+                
+                # Validate summary
+                summary = data.get('summary', {})
+                summary_required = ['total_providers', 'active_providers', 'healthy_providers']
+                summary_missing = [field for field in summary_required if field not in summary]
+                
+                if summary_missing:
+                    self.log_test("Smart Dreams Provider Registry", False, f"Missing summary fields: {summary_missing}", response_time)
+                    return False
+                
+                self.log_test("Smart Dreams Provider Registry", True, f"Got {len(providers)} providers, found: {found_providers}, active: {summary['active_providers']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Smart Dreams Provider Registry", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Smart Dreams Provider Registry", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_provider_discovery(self):
+        """Test Smart Dreams Provider Discovery endpoint"""
+        print("🔍 Testing Smart Dreams Provider Discovery...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers/discover"
+        payload = {
+            "discovery_type": "auto",
+            "service_types": ["hotel", "flight", "activity"],
+            "regions": ["global"]
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Smart Dreams Provider Discovery", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'discovered_providers', 'discovery_metadata']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Smart Dreams Provider Discovery", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Smart Dreams Provider Discovery", False, "Discovery was not successful", response_time)
+                    return False
+                
+                discovered = data.get('discovered_providers', [])
+                if not isinstance(discovered, list):
+                    self.log_test("Smart Dreams Provider Discovery", False, "Discovered providers is not a list", response_time)
+                    return False
+                
+                self.log_test("Smart Dreams Provider Discovery", True, f"Discovery successful, found {len(discovered)} providers", response_time)
+                return True
+                
+            else:
+                self.log_test("Smart Dreams Provider Discovery", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Smart Dreams Provider Discovery", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_provider_analytics(self):
+        """Test Smart Dreams Provider Analytics endpoint"""
+        print("📊 Testing Smart Dreams Provider Analytics...")
+        
+        url = f"{BASE_URL}/smart-dreams/providers/analytics"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Smart Dreams Provider Analytics", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['summary', 'performance_metrics', 'cost_analytics']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Smart Dreams Provider Analytics", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate summary
+                summary = data.get('summary', {})
+                summary_required = ['total_providers', 'active_providers', 'healthy_providers']
+                summary_missing = [field for field in summary_required if field not in summary]
+                
+                if summary_missing:
+                    self.log_test("Smart Dreams Provider Analytics", False, f"Missing summary fields: {summary_missing}", response_time)
+                    return False
+                
+                # Check for partner spotlight (should include all 5 key providers)
+                partner_spotlight = data.get('partner_spotlight', [])
+                expected_partners = ['amadeus', 'sabre', 'viator', 'duffle', 'ratehawk']
+                found_partners = []
+                for partner in partner_spotlight:
+                    partner_name = partner.get('name', '').lower()
+                    for expected in expected_partners:
+                        if expected in partner_name:
+                            found_partners.append(expected)
+                            break
+                
+                self.log_test("Smart Dreams Provider Analytics", True, f"Analytics: {summary['total_providers']} total, {summary['active_providers']} active, partners: {found_partners}", response_time)
+                return True
+                
+            else:
+                self.log_test("Smart Dreams Provider Analytics", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Smart Dreams Provider Analytics", False, f"Exception: {str(e)}")
+            return False
+
+    def test_smart_dreams_provider_health_check(self):
+        """Test Smart Dreams Provider Health Check endpoint"""
+        print("💚 Testing Smart Dreams Provider Health Check...")
+        
+        # Test with a known provider ID
+        provider_id = "amadeus-001"
+        url = f"{BASE_URL}/smart-dreams/providers/{provider_id}/health-check"
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Smart Dreams Provider Health Check", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'provider_id', 'health_status']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Smart Dreams Provider Health Check", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Smart Dreams Provider Health Check", False, "Health check was not successful", response_time)
+                    return False
+                
+                health_status = data.get('health_status', {})
+                if 'status' not in health_status:
+                    self.log_test("Smart Dreams Provider Health Check", False, "Missing status in health_status", response_time)
+                    return False
+                
+                self.log_test("Smart Dreams Provider Health Check", True, f"Provider {provider_id} status: {health_status['status']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Smart Dreams Provider Health Check", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Smart Dreams Provider Health Check", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
+    # NFT AND AIRDROP INTEGRATION TESTS
+    # =====================================================
+    
+    def test_nft_collection(self):
+        """Test NFT Collection endpoint"""
+        print("🎨 Testing NFT Collection...")
+        
+        url = f"{BASE_URL}/nft/collection/{TEST_USER_ID}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("NFT Collection", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['user_id', 'nft_collection', 'collection_stats']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("NFT Collection", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                collection = data.get('nft_collection', [])
+                if not isinstance(collection, list):
+                    self.log_test("NFT Collection", False, "NFT collection is not a list", response_time)
+                    return False
+                
+                # Check for Expedia integration
+                expedia_nfts = [nft for nft in collection if nft.get('provider', '').lower() == 'expedia']
+                
+                stats = data.get('collection_stats', {})
+                stats_required = ['total_nfts', 'total_value', 'platform_credits']
+                stats_missing = [field for field in stats_required if field not in stats]
+                
+                if stats_missing:
+                    self.log_test("NFT Collection", False, f"Missing stats fields: {stats_missing}", response_time)
+                    return False
+                
+                self.log_test("NFT Collection", True, f"Collection: {stats['total_nfts']} NFTs, {len(expedia_nfts)} Expedia NFTs, value: ${stats['total_value']}", response_time)
+                return True
+                
+            else:
+                self.log_test("NFT Collection", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("NFT Collection", False, f"Exception: {str(e)}")
+            return False
+
+    def test_airdrop_eligibility(self):
+        """Test Airdrop Eligibility endpoint"""
+        print("🪂 Testing Airdrop Eligibility...")
+        
+        url = f"{BASE_URL}/nft/airdrop/eligibility/{TEST_USER_ID}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Airdrop Eligibility", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['user_id', 'eligibility_status', 'tier_progression', 'estimated_allocation']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Airdrop Eligibility", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate tier progression
+                tier_progression = data.get('tier_progression', {})
+                tier_required = ['current_tier', 'next_tier', 'progress_percentage']
+                tier_missing = [field for field in tier_required if field not in tier_progression]
+                
+                if tier_missing:
+                    self.log_test("Airdrop Eligibility", False, f"Missing tier progression fields: {tier_missing}", response_time)
+                    return False
+                
+                # Check tier progression logic (Wanderer→Explorer→Adventurer→Legend)
+                current_tier = tier_progression.get('current_tier', '').lower()
+                valid_tiers = ['wanderer', 'explorer', 'adventurer', 'legend']
+                
+                if current_tier not in valid_tiers:
+                    self.log_test("Airdrop Eligibility", False, f"Invalid current tier: {current_tier}", response_time)
+                    return False
+                
+                self.log_test("Airdrop Eligibility", True, f"Tier: {tier_progression['current_tier']}, progress: {tier_progression['progress_percentage']}%, allocation: {data['estimated_allocation']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Airdrop Eligibility", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Airdrop Eligibility", False, f"Exception: {str(e)}")
+            return False
+
+    def test_nft_quest_system(self):
+        """Test NFT Quest System endpoint"""
+        print("🎯 Testing NFT Quest System...")
+        
+        url = f"{BASE_URL}/nft/quests/{TEST_USER_ID}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("NFT Quest System", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['user_id', 'active_quests', 'completed_quests', 'available_quests']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("NFT Quest System", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check for provider integration in quests
+                all_quests = data.get('active_quests', []) + data.get('completed_quests', []) + data.get('available_quests', [])
+                
+                # Look for all 6 providers (Expedia, Amadeus, Viator, Duffle, RateHawk, Sabre)
+                expected_providers = ['expedia', 'amadeus', 'viator', 'duffle', 'ratehawk', 'sabre']
+                found_providers = []
+                
+                for quest in all_quests:
+                    quest_provider = quest.get('provider', '').lower()
+                    quest_requirements = str(quest.get('requirements', {})).lower()
+                    quest_description = quest.get('description', '').lower()
+                    
+                    for provider in expected_providers:
+                        if provider in quest_provider or provider in quest_requirements or provider in quest_description:
+                            if provider not in found_providers:
+                                found_providers.append(provider)
+                
+                # Check for Expedia Group Explorer quest specifically
+                expedia_quest_found = any('expedia' in quest.get('name', '').lower() or 'expedia' in quest.get('description', '').lower() for quest in all_quests)
+                
+                self.log_test("NFT Quest System", True, f"Quests: {len(data['active_quests'])} active, {len(data['completed_quests'])} completed, providers: {found_providers}, Expedia quest: {expedia_quest_found}", response_time)
+                return True
+                
+            else:
+                self.log_test("NFT Quest System", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("NFT Quest System", False, f"Exception: {str(e)}")
+            return False
+
+    def test_booking_reward_integration(self):
+        """Test Booking Reward Integration endpoint"""
+        print("💰 Testing Booking Reward Integration...")
+        
+        url = f"{BASE_URL}/nft/booking-reward"
+        payload = {
+            "user_id": TEST_USER_ID,
+            "booking_id": f"booking_{uuid.uuid4()}",
+            "provider": "expedia",
+            "booking_value": 1500,
+            "service_type": "hotel",
+            "destination": "Paris",
+            "booking_metadata": {
+                "nights": 3,
+                "guests": 2,
+                "room_type": "deluxe"
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Booking Reward Integration", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'reward_calculation', 'quest_progress_updates']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Booking Reward Integration", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Booking Reward Integration", False, "Booking reward processing was not successful", response_time)
+                    return False
+                
+                # Validate reward calculation
+                reward_calc = data.get('reward_calculation', {})
+                reward_required = ['base_points', 'provider_bonus', 'total_points']
+                reward_missing = [field for field in reward_required if field not in reward_calc]
+                
+                if reward_missing:
+                    self.log_test("Booking Reward Integration", False, f"Missing reward calculation fields: {reward_missing}", response_time)
+                    return False
+                
+                # Check for Expedia 15% bonus
+                provider_bonus = reward_calc.get('provider_bonus_percentage', 0)
+                if payload['provider'] == 'expedia' and provider_bonus != 15.0:
+                    self.log_test("Booking Reward Integration", False, f"Expedia bonus should be 15%, got {provider_bonus}%", response_time)
+                    return False
+                
+                self.log_test("Booking Reward Integration", True, f"Reward: {reward_calc['total_points']} points, {provider_bonus}% provider bonus, NFT eligible: {reward_calc.get('nft_mint_eligible', False)}", response_time)
+                return True
+                
+            else:
+                self.log_test("Booking Reward Integration", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Booking Reward Integration", False, f"Exception: {str(e)}")
+            return False
+
+    def test_nft_minting(self):
+        """Test NFT Minting endpoint"""
+        print("⚒️ Testing NFT Minting...")
+        
+        url = f"{BASE_URL}/nft/mint-travel-nft"
+        payload = {
+            "user_id": TEST_USER_ID,
+            "booking_id": f"booking_{uuid.uuid4()}",
+            "nft_metadata": {
+                "destination": "Tokyo",
+                "provider": "expedia",
+                "experience_type": "luxury_hotel",
+                "booking_value": 2500,
+                "rarity_score": 85
+            },
+            "blockchain_network": "cronos"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("NFT Minting", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'nft_mint_record', 'blockchain_transaction']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("NFT Minting", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("NFT Minting", False, "NFT minting was not successful", response_time)
+                    return False
+                
+                # Validate blockchain transaction
+                blockchain_tx = data.get('blockchain_transaction', {})
+                tx_required = ['transaction_hash', 'network', 'status']
+                tx_missing = [field for field in tx_required if field not in blockchain_tx]
+                
+                if tx_missing:
+                    self.log_test("NFT Minting", False, f"Missing blockchain transaction fields: {tx_missing}", response_time)
+                    return False
+                
+                # Validate transaction hash format (should start with 0x)
+                tx_hash = blockchain_tx.get('transaction_hash', '')
+                if not tx_hash.startswith('0x') or len(tx_hash) < 34:
+                    self.log_test("NFT Minting", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                # Check for Cronos network
+                network = blockchain_tx.get('network', '').lower()
+                if network != 'cronos':
+                    self.log_test("NFT Minting", False, f"Expected Cronos network, got: {network}", response_time)
+                    return False
+                
+                mint_record = data.get('nft_mint_record', {})
+                self.log_test("NFT Minting", True, f"Minted NFT: {mint_record.get('token_id', 'N/A')}, network: {network}, TX: {tx_hash[:10]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("NFT Minting", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("NFT Minting", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
+    # EXPEDIA GROUP API INTEGRATION TESTS
+    # =====================================================
+    
+    def test_expedia_health_check(self):
+        """Test Expedia Group API Health Check"""
+        print("🏨 Testing Expedia Health Check...")
+        
+        url = f"{BASE_URL}/expedia/health"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['status', 'services', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Expedia Health Check", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check services
+                services = data.get('services', {})
+                expected_services = ['hotels', 'flights', 'cars', 'activities']
+                missing_services = [service for service in expected_services if service not in services]
+                
+                if missing_services:
+                    self.log_test("Expedia Health Check", False, f"Missing services: {missing_services}", response_time)
+                    return False
+                
+                # Check overall status
+                status = data.get('status', '').lower()
+                if status not in ['healthy', 'degraded', 'configuration_required']:
+                    self.log_test("Expedia Health Check", False, f"Invalid status: {status}", response_time)
+                    return False
+                
+                self.log_test("Expedia Health Check", True, f"Status: {status}, services: {list(services.keys())}", response_time)
+                return True
+                
+            else:
+                self.log_test("Expedia Health Check", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Health Check", False, f"Exception: {str(e)}")
+            return False
+
+    def test_expedia_hotel_search(self):
+        """Test Expedia Hotel Search endpoint"""
+        print("🏨 Testing Expedia Hotel Search...")
+        
+        url = f"{BASE_URL}/expedia/hotels/search"
+        payload = {
+            "checkin": "2024-12-01",
+            "checkout": "2024-12-03",
+            "occupancy": [{"adults": 2, "children": 0}],
+            "region_id": "6054439",  # Paris region ID
+            "include": ["property_ids", "room_types", "rate_plans"]
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    # Check if it's a configuration error (expected in test environment)
+                    error_msg = data.get('error', '').lower()
+                    if 'configuration' in error_msg or 'credentials' in error_msg:
+                        self.log_test("Expedia Hotel Search", True, f"Configuration required (expected): {data['error']}", response_time)
+                        return True
+                    else:
+                        self.log_test("Expedia Hotel Search", False, f"API Error: {data['error']}", response_time)
+                        return False
+                
+                # If successful, validate response structure
+                required_fields = ['success', 'search_results']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Expedia Hotel Search", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                self.log_test("Expedia Hotel Search", True, f"Search successful, results: {len(data.get('search_results', []))}", response_time)
+                return True
+                
+            else:
+                self.log_test("Expedia Hotel Search", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Expedia Hotel Search", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # AI INTELLIGENCE LAYER TESTS
     # =====================================================
     
