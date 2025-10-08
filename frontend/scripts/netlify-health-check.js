@@ -254,22 +254,20 @@ async function runHealthCheck(deploymentUrl) {
 }
 
 // Main execution
-if (require.main === module) {
-  const deploymentUrl = process.argv[2];
-  
-  if (!deploymentUrl) {
-    console.error('❌ Usage: node netlify-health-check.js <deployment-url>');
-    console.error('   Example: node netlify-health-check.js https://maku.travel');
-    process.exit(1);
-  }
-  
-  // Ensure URL format
-  const url = deploymentUrl.startsWith('http') ? deploymentUrl : `https://${deploymentUrl}`;
-  
-  runHealthCheck(url).catch((error) => {
-    console.error(`❌ Health check failed: ${error.message}`);
-    process.exit(1);
-  });
+const deploymentUrl = process.argv[2];
+
+if (!deploymentUrl) {
+  console.error('❌ Usage: node netlify-health-check.js <deployment-url>');
+  console.error('   Example: node netlify-health-check.js https://maku.travel');
+  process.exit(1);
 }
 
-module.exports = { runHealthCheck, checkEndpoint, validateSecurityHeaders, checkMakuFeatures };
+// Ensure URL format
+const url = deploymentUrl.startsWith('http') ? deploymentUrl : `https://${deploymentUrl}`;
+
+runHealthCheck(url).catch((error) => {
+  console.error(`❌ Health check failed: ${error.message}`);
+  process.exit(1);
+});
+
+export { runHealthCheck, checkEndpoint, validateSecurityHeaders, checkMakuFeatures };
