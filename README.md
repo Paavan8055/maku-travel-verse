@@ -105,3 +105,7 @@ Run the Vitest suite with:
 ```
 npm test
 ```
+
+## Git workflow tips
+- Keep long-running branches current by following the rebase checklist in [docs/GIT_CONFLICT_RESOLUTION.md](docs/GIT_CONFLICT_RESOLUTION.md).
+- Check the status of every GitHub pull request from the terminal with `npm run pr:list -- --repo <owner/name>` (requires internet access and an optional `GITHUB_TOKEN` for private repositories).
