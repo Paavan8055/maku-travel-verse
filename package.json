@@ -10,8 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run && deno test --allow-env supabase/functions/**/index.test.ts",
-    "check:supabase-version": "node scripts/check-supabase-version.mjs",
-    "pr:list": "node scripts/check-open-prs.mjs"
+    "check:supabase-version": "node scripts/check-supabase-version.mjs"
   },
   "dependencies": {
     "@google/gemini-cli": "^0.4.1",
@@ -83,12 +82,14 @@
     "recharts": "^2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7",
+        "tailwindcss-animate": "^1.0.7",
+
     "uuid": "^11.1.0",
     "vaul": "^0.9.9",
     "zod": "^3.25.76",
     "@sentry/react": "^7.89.0",
     "zustand": "^5.0.8"
+          
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
