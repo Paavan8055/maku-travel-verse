@@ -5,17 +5,17 @@
       "description": "Original state with current features and implementations",
       "backend_url": "https://journey-planner-137.preview.emergentagent.com",
       "source": "lovable",
-      "active": true
+      "active": false
     },
     "emergent": {
       "name": "Emergent State",
       "description": "Enhanced state with CTO recommendations and improvements",
       "backend_url": "https://journey-planner-137.preview.emergentagent.com",
       "source": "emergent",
-      "active": false
+      "active": true
     }
   },
-  "current_environment": "lovable",
+  "current_environment": "emergent",
   "switch_mode": "manual",
-  "last_updated": "2025-09-19T11:51:59.537Z"
+  "last_updated": "2025-10-08T13:46:56.190Z"
 }
