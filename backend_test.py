@@ -8070,6 +8070,36 @@ class MakuTravelBackendTester:
         total_passed += ai_multi_passed
         total_tests += ai_multi_total
         
+        # Run Analytics and Monitoring Tests (Primary Focus)
+        analytics_passed, analytics_total = self.run_analytics_monitoring_tests()
+        total_passed += analytics_passed
+        total_tests += analytics_total
+        
+        # Run Waitlist System Tests
+        waitlist_passed, waitlist_total = self.run_waitlist_tests()
+        total_passed += waitlist_passed
+        total_tests += waitlist_total
+        
+        # Run Supabase Configuration Tests
+        supabase_passed, supabase_total = self.run_supabase_config_tests()
+        total_passed += supabase_passed
+        total_tests += supabase_total
+        
+        # Run Smart Dreams Provider Management Tests (NEW)
+        smart_dreams_passed, smart_dreams_total = self.run_smart_dreams_provider_tests()
+        total_passed += smart_dreams_passed
+        total_tests += smart_dreams_total
+        
+        # Run NFT and Airdrop Integration Tests (NEW)
+        nft_passed, nft_total = self.run_nft_airdrop_tests()
+        total_passed += nft_passed
+        total_tests += nft_total
+        
+        # Run Expedia Group API Integration Tests (NEW)
+        expedia_passed, expedia_total = self.run_expedia_integration_tests()
+        total_passed += expedia_passed
+        total_tests += expedia_total
+        
         # Run Analytics and Monitoring System Tests
         analytics_passed, analytics_total = self.run_analytics_tests()
         total_passed += analytics_passed
