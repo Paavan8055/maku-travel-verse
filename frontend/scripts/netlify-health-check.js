@@ -5,8 +5,8 @@
  * Validates deployment status and core functionality
  */
 
-const https = require('https');
-const { performance } = require('perf_hooks');
+import https from 'https';
+import { performance } from 'perf_hooks';
 
 const TIMEOUT = 30000; // 30 seconds
 const RETRIES = 3;
