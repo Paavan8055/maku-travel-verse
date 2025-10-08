@@ -66,7 +66,7 @@ Finally, open the GitHub pull request and confirm:
 
 - The branch reports "This branch has no conflicts".
 - Required status checks (Netlify, Supabase, Vercel, etc.) are green.
-- The PR conversation shows the new commits and no pending review threads.
+- The PR conversation shows the new commits and no pending review threads. You can also run `npm run pr:list -- --repo <owner/name>` to double-check all open PRs from the terminal (set `GITHUB_TOKEN` if the repository is private).
 
 If any checks fail, address them locally and push additional fixes to the same branch.
 
