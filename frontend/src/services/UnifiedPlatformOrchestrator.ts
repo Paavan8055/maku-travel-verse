@@ -244,7 +244,7 @@ export class UnifiedPlatformOrchestrator {
    * Update specific module based on cross-module trigger
    */
   private async updateModule(moduleName: string, update: CrossModuleUpdate): Promise<UpdateResult> {
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://travel-dna.preview.emergentagent.com';
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://journey-planner-137.preview.emergentagent.com';
 
     switch (moduleName) {
       case 'nft':
