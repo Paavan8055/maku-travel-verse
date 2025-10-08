@@ -8071,7 +8071,7 @@ class MakuTravelBackendTester:
         total_tests += ai_multi_total
         
         # Run Analytics and Monitoring Tests (Primary Focus)
-        analytics_passed, analytics_total = self.run_analytics_monitoring_tests()
+        analytics_passed, analytics_total = self.run_analytics_tests()
         total_passed += analytics_passed
         total_tests += analytics_total
         
