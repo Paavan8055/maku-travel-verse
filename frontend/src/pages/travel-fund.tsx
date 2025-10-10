@@ -554,6 +554,30 @@ const TravelFundPage: React.FC = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Phase 2: Gamification Dashboard */}
+            <FundGamificationDashboard 
+              funds={funds}
+              onViewAchievements={() => navigate('/nft')}
+              onClaimReward={(achievementId) => {
+                toast({
+                  title: "Achievement unlocked! 🎉",
+                  description: "Your NFT reward is being minted",
+                });
+              }}
+            />
+
+            {/* Phase 3: NFT Rewards Manager */}
+            <FundNFTManager
+              funds={funds}
+              onNFTClaimed={(nftId) => {
+                toast({
+                  title: "NFT claimed successfully!",
+                  description: "Check your collection to see your new NFT",
+                });
+              }}
+              onViewCollection={() => navigate('/nft')}
+            />
           </TabsContent>
 
           {/* Create Fund Tab */}
