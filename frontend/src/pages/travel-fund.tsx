@@ -277,27 +277,35 @@ const TravelFundPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Preview Benefits */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <Card className="border-primary/20">
-              <CardContent className="p-6 text-center">
-                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Collaborative Saving</h3>
-                <p className="text-muted-foreground">Pool funds with family and friends for shared travel experiences</p>
+          {/* Enhanced Preview Benefits with Maku Brand Colors */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-orange-700">Collaborative Saving</h3>
+                <p className="text-orange-600">Pool funds with family and friends for shared travel experiences. Start with just $10!</p>
               </CardContent>
             </Card>
-            <Card className="border-secondary/20">
-              <CardContent className="p-6 text-center">
-                <Target className="h-12 w-12 text-secondary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Goal Tracking</h3>
-                <p className="text-muted-foreground">Set targets and watch your progress with visual indicators</p>
+            
+            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                  <Target className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-green-700">Goal Tracking</h3>
+                <p className="text-green-600">Set targets and watch your progress with visual indicators and milestone celebrations</p>
               </CardContent>
             </Card>
-            <Card className="border-accent/20">
-              <CardContent className="p-6 text-center">
-                <TrendingUp className="h-12 w-12 text-accent mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Smart Analytics</h3>
-                <p className="text-muted-foreground">Get insights on savings patterns and fund performance</p>
+            
+            <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <TrendingUp className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-purple-700">Smart Analytics</h3>
+                <p className="text-purple-600">Get insights on savings patterns and fund performance with AI-powered recommendations</p>
               </CardContent>
             </Card>
           </div>
