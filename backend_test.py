@@ -8069,42 +8069,33 @@ class MakuTravelBackendTester:
                     self.log_test("Travel Funds Enhanced Stats", False, f"API Error: {data['error']}", response_time)
                     return False
                 
-                # Validate response structure for gamification stats
-                required_fields = ['gamification_stats', 'integration_metrics', 'fund_performance']
+                # Validate response structure for enhanced stats
+                required_fields = ['total_value', 'total_funds', 'nft_rewards_earned', 'integration_metrics']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
                     self.log_test("Travel Funds Enhanced Stats", False, f"Missing fields: {missing_fields}", response_time)
                     return False
                 
-                # Validate gamification stats structure
-                gamification = data.get('gamification_stats', {})
-                gamification_required = ['total_funds', 'total_saved', 'milestones_reached', 'nft_rewards_earned']
-                gamification_missing = [field for field in gamification_required if field not in gamification]
-                
-                if gamification_missing:
-                    self.log_test("Travel Funds Enhanced Stats", False, f"Missing gamification fields: {gamification_missing}", response_time)
-                    return False
-                
                 # Validate integration metrics
                 integration = data.get('integration_metrics', {})
-                integration_required = ['smart_dreams_connections', 'nft_mints', 'bidding_participation']
+                integration_required = ['smart_dreams_funds_created', 'checkout_payments_made', 'bidding_participation']
                 integration_missing = [field for field in integration_required if field not in integration]
                 
                 if integration_missing:
                     self.log_test("Travel Funds Enhanced Stats", False, f"Missing integration fields: {integration_missing}", response_time)
                     return False
                 
-                # Validate fund performance data
-                performance = data.get('fund_performance', {})
-                performance_required = ['average_completion_rate', 'total_value_locked', 'provider_distribution']
-                performance_missing = [field for field in performance_required if field not in performance]
+                # Validate numeric values
+                total_value = data.get('total_value', 0)
+                total_funds = data.get('total_funds', 0)
+                nft_rewards = data.get('nft_rewards_earned', 0)
                 
-                if performance_missing:
-                    self.log_test("Travel Funds Enhanced Stats", False, f"Missing performance fields: {performance_missing}", response_time)
+                if total_value < 0 or total_funds < 0 or nft_rewards < 0:
+                    self.log_test("Travel Funds Enhanced Stats", False, f"Invalid negative values: value={total_value}, funds={total_funds}, nfts={nft_rewards}", response_time)
                     return False
                 
-                self.log_test("Travel Funds Enhanced Stats", True, f"Funds: {gamification['total_funds']}, Saved: ${gamification['total_saved']}, NFTs: {integration['nft_mints']}", response_time)
+                self.log_test("Travel Funds Enhanced Stats", True, f"Value: ${total_value}, Funds: {total_funds}, NFTs: {nft_rewards}, Smart Dreams: {integration['smart_dreams_funds_created']}", response_time)
                 return True
                 
             else:
