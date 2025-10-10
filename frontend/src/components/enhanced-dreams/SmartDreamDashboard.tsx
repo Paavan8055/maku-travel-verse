@@ -463,8 +463,75 @@ export const SmartDreamDashboard: React.FC = () => {
                         <div className="text-sm text-green-700 font-medium">Excitement Level</div>
                       </div>
                     </div>
+
+                    {/* Travel Fund Creation Integration */}
+                    <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 mt-6">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                              <Coins className="h-5 w-5 text-purple-600" />
+                              Turn Your Dream Into Savings Goal
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Create a travel fund to make this ${currentJourney.totalBudget} journey a reality
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => setShowFundCreation(true)}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                          >
+                            <PlusCircle className="h-4 w-4 mr-2" />
+                            Create Fund
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div>
+                            <p className="text-sm text-gray-600">Monthly Goal</p>
+                            <p className="text-lg font-bold text-purple-600">
+                              ${Math.round(currentJourney.totalBudget / 12)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Est. Timeline</p>
+                            <p className="text-lg font-bold text-green-600">12 months</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">NFT Rewards</p>
+                            <p className="text-lg font-bold text-yellow-600">4+ NFTs</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </CardContent>
                 </Card>
+
+                {/* Smart Dreams Fund Integration Dialog */}
+                <SmartDreamsFundIntegration
+                  dreamData={{
+                    destination: currentJourney.destinations[0]?.name || 'Dream Destination',
+                    travelStyle: selectedCompanion?.type || 'adventure',
+                    duration: currentJourney.totalDays,
+                    companions: selectedCompanion?.type === 'solo' ? 0 : 1,
+                    budget: currentJourney.totalBudget,
+                    dreamName: journeyName || currentJourney.title,
+                    travelDates: {
+                      start: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+                      end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 + currentJourney.totalDays * 24 * 60 * 60 * 1000)
+                    }
+                  }}
+                  open={showFundCreation}
+                  onOpenChange={setShowFundCreation}
+                  onFundCreated={(fundId) => {
+                    toast({
+                      title: "Dream fund created!",
+                      description: "Your savings journey begins now. Start contributing today!",
+                    });
+                    // Navigate to the fund or close dialog
+                    navigate(`/travel-fund`);
+                  }}
+                />
 
                 {currentJourney.destinations.length > 0 && (
                   <Card className="bg-black/40 backdrop-blur-xl border-white/10">
