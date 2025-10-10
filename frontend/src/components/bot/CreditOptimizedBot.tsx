@@ -208,7 +208,7 @@ const CreditOptimizedBot: React.FC<CreditOptimizedBotProps> = ({ userContext }) 
 
   const callOptimizedAI = async (input: string) => {
     // Simplified AI call for complex queries only
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://journey-planner-137.preview.emergentagent.com';
+    const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://api.maku.travel';
     
     try {
       // Use shorter, more efficient AI calls
