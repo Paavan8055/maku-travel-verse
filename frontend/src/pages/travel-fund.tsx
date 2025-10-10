@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { ShareFundDialog } from '@/components/travel-fund/ShareFundDialog';
 import { MakuEnhancedFundCard } from '@/components/travel-fund/MakuEnhancedFundCard';
+import { FundGamificationDashboard } from '@/components/travel-fund/FundGamificationDashboard';
+import { FundNFTManager } from '@/components/travel-fund/FundNFTManager';
 import { useToast } from '@/hooks/use-toast';
 import { useTravelFunds } from '@/hooks/useTravelFunds';
 import { travelFundClient } from '@/lib/travelFundClient';
