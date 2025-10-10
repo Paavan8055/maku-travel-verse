@@ -38,7 +38,7 @@ Your repository implements a sophisticated **dual-preview environment system**:
 #### Lovable Environment:
 - **Purpose**: Original baseline with current production features
 - **Source**: `lovable`
-- **Backend URL**: `https://journey-planner-137.preview.emergentagent.com`
+- **Backend URL**: `https://maku-fund.preview.emergentagent.com`
 - **Status**: Currently marked as active in preview-config.json
 - **Deployment**: Original Vercel-based pipeline
 

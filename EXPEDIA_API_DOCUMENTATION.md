@@ -11,7 +11,7 @@ All Expedia API endpoints use OAuth2 authentication with automatic token managem
 ## Base URL
 
 ```
-Production: https://journey-planner-137.preview.emergentagent.com/api/expedia
+Production: https://maku-fund.preview.emergentagent.com/api/expedia
 Development: http://localhost:8001/api/expedia
 ```
 

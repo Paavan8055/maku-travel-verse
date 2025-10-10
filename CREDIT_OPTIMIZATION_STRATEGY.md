@@ -523,7 +523,7 @@ def is_simple_query(query: str) -> bool:
 ```tsx
 // Update WorkingTravelBot to use optimized endpoint
 const generateOptimizedResponse = async (input: string, userContext: any) => {
-  const backendUrl = 'https://journey-planner-137.preview.emergentagent.com';
+  const backendUrl = 'https://maku-fund.preview.emergentagent.com';
   
   try {
     const response = await fetch(`${backendUrl}/api/ai/chat-efficient/demo_user`, {

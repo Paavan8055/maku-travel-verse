@@ -423,7 +423,7 @@ DELIVERABLES:
 ### **Current Deployment Gap**
 ```
 IDENTIFIED ISSUE:
-- Development environment: https://journey-planner-137.preview.emergentagent.com
+- Development environment: https://maku-fund.preview.emergentagent.com
 - Production website: https://maku.travel/ (Netlify)
 - NO AUTOMATIC SYNC: Changes in dev environment don't deploy to live site
 

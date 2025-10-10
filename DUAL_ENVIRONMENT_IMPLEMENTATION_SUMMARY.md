@@ -32,13 +32,13 @@ The dual preview environment management system for Maku.Travel has been successf
 1. **Lovable State**
    - Original application state
    - Current features and implementations  
-   - URL: `https://journey-planner-137.preview.emergentagent.com`
+   - URL: `https://maku-fund.preview.emergentagent.com`
    - Source: `lovable`
 
 2. **Emergent State**
    - Enhanced with CTO recommendations
    - Performance optimizations planned
-   - URL: `https://journey-planner-137.preview.emergentagent.com`
+   - URL: `https://maku-fund.preview.emergentagent.com`
    - Source: `emergent`
 
 ### Visual Interface Features
@@ -126,10 +126,10 @@ node scripts/switch-environment.js emergent
 ### API Endpoints
 ```bash
 # Get configuration
-curl https://journey-planner-137.preview.emergentagent.com/api/environment/config
+curl https://maku-fund.preview.emergentagent.com/api/environment/config
 
 # Switch environment
-curl -X POST https://journey-planner-137.preview.emergentagent.com/api/environment/switch \
+curl -X POST https://maku-fund.preview.emergentagent.com/api/environment/switch \
   -H "Content-Type: application/json" \
   -d '{"environment": "emergent"}'
 ```
