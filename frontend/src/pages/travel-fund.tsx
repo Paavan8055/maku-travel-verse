@@ -23,7 +23,7 @@ const TravelFundPage: React.FC = () => {
   const { user } = useAuth();
   const { funds, loading, createFund, refetch } = useTravelFunds();
   
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('create');
   
   // Form states
   const [fundName, setFundName] = useState('');
