@@ -37,7 +37,7 @@ export default function Airdrop() {
 
   const airdropSchedule = [
     {
-      name: 'Summer 2024 Travel Rewards',
+      name: 'Summer 2025 Travel Rewards',
       status: 'Active',
       allocation: '4,000,000 tokens',
       participants: '8,500+',
