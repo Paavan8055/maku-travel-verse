@@ -8047,6 +8047,698 @@ class MakuTravelBackendTester:
         print()
         return passed, len(tests)
 
+    # =====================================================
+    # TRAVEL FUND MANAGER INTEGRATION TESTS
+    # =====================================================
+    
+    def test_travel_funds_enhanced_stats(self):
+        """Test Enhanced Stats API - Phase 1 & 2 Core Enhanced Endpoints"""
+        print("💰 Testing Travel Funds Enhanced Stats...")
+        
+        url = f"{BASE_URL}/travel-funds/enhanced-stats"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds Enhanced Stats", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for gamification stats
+                required_fields = ['gamification_stats', 'integration_metrics', 'fund_performance']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds Enhanced Stats", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate gamification stats structure
+                gamification = data.get('gamification_stats', {})
+                gamification_required = ['total_funds', 'total_saved', 'milestones_reached', 'nft_rewards_earned']
+                gamification_missing = [field for field in gamification_required if field not in gamification]
+                
+                if gamification_missing:
+                    self.log_test("Travel Funds Enhanced Stats", False, f"Missing gamification fields: {gamification_missing}", response_time)
+                    return False
+                
+                # Validate integration metrics
+                integration = data.get('integration_metrics', {})
+                integration_required = ['smart_dreams_connections', 'nft_mints', 'bidding_participation']
+                integration_missing = [field for field in integration_required if field not in integration]
+                
+                if integration_missing:
+                    self.log_test("Travel Funds Enhanced Stats", False, f"Missing integration fields: {integration_missing}", response_time)
+                    return False
+                
+                # Validate fund performance data
+                performance = data.get('fund_performance', {})
+                performance_required = ['average_completion_rate', 'total_value_locked', 'provider_distribution']
+                performance_missing = [field for field in performance_required if field not in performance]
+                
+                if performance_missing:
+                    self.log_test("Travel Funds Enhanced Stats", False, f"Missing performance fields: {performance_missing}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Enhanced Stats", True, f"Funds: {gamification['total_funds']}, Saved: ${gamification['total_saved']}, NFTs: {integration['nft_mints']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds Enhanced Stats", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds Enhanced Stats", False, f"Exception: {str(e)}")
+            return False
+
+    def test_travel_funds_integration_data(self):
+        """Test Integration Data API - Phase 1 & 2 Core Enhanced Endpoints"""
+        print("🔗 Testing Travel Funds Integration Data...")
+        
+        url = f"{BASE_URL}/travel-funds/integration-data"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds Integration Data", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for integration connections
+                required_fields = ['smart_dreams_connections', 'nft_rewards', 'bidding_history', 'checkout_usage']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds Integration Data", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate Smart Dreams connections
+                smart_dreams = data.get('smart_dreams_connections', {})
+                dreams_required = ['connected_funds', 'ai_recommendations', 'dream_to_fund_conversions']
+                dreams_missing = [field for field in dreams_required if field not in smart_dreams]
+                
+                if dreams_missing:
+                    self.log_test("Travel Funds Integration Data", False, f"Missing Smart Dreams fields: {dreams_missing}", response_time)
+                    return False
+                
+                # Validate NFT rewards structure
+                nft_rewards = data.get('nft_rewards', {})
+                nft_required = ['milestone_nfts', 'rarity_distribution', 'blockchain_metadata']
+                nft_missing = [field for field in nft_required if field not in nft_rewards]
+                
+                if nft_missing:
+                    self.log_test("Travel Funds Integration Data", False, f"Missing NFT rewards fields: {nft_missing}", response_time)
+                    return False
+                
+                # Validate bidding history
+                bidding = data.get('bidding_history', {})
+                bidding_required = ['total_bids', 'successful_bids', 'funds_locked', 'average_savings']
+                bidding_missing = [field for field in bidding_required if field not in bidding]
+                
+                if bidding_missing:
+                    self.log_test("Travel Funds Integration Data", False, f"Missing bidding fields: {bidding_missing}", response_time)
+                    return False
+                
+                # Validate checkout usage
+                checkout = data.get('checkout_usage', {})
+                checkout_required = ['fund_payments', 'smart_suggestions', 'conversion_rate']
+                checkout_missing = [field for field in checkout_required if field not in checkout]
+                
+                if checkout_missing:
+                    self.log_test("Travel Funds Integration Data", False, f"Missing checkout fields: {checkout_missing}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Integration Data", True, f"Dreams: {smart_dreams['connected_funds']}, NFTs: {nft_rewards['milestone_nfts']}, Bids: {bidding['total_bids']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds Integration Data", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds Integration Data", False, f"Exception: {str(e)}")
+            return False
+
+    def test_travel_funds_nft_mint_milestone(self):
+        """Test Milestone NFT Minting - Phase 3 NFT Integration APIs"""
+        print("🎨 Testing Travel Funds NFT Milestone Minting...")
+        
+        test_fund_id = "fund_test_12345"
+        url = f"{BASE_URL}/travel-funds/{test_fund_id}/nft/mint-milestone"
+        payload = {
+            "milestone_type": "50_percent_milestone",
+            "fund_data": {
+                "name": "Tokyo Adventure Fund",
+                "current_amount": 2500,
+                "target_amount": 5000,
+                "destination": "Tokyo, Japan"
+            },
+            "user_data": {
+                "user_id": TEST_USER_ID,
+                "tier": "explorer",
+                "total_funds": 3
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=20)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for NFT minting
+                required_fields = ['success', 'nft_data', 'blockchain_metadata', 'rarity_info']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Minting failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate NFT data structure
+                nft_data = data.get('nft_data', {})
+                nft_required = ['nft_id', 'milestone_type', 'fund_id', 'minted_at']
+                nft_missing = [field for field in nft_required if field not in nft_data]
+                
+                if nft_missing:
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Missing NFT data fields: {nft_missing}", response_time)
+                    return False
+                
+                # Validate blockchain metadata
+                blockchain = data.get('blockchain_metadata', {})
+                blockchain_required = ['transaction_hash', 'block_number', 'network', 'contract_address']
+                blockchain_missing = [field for field in blockchain_required if field not in blockchain]
+                
+                if blockchain_missing:
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Missing blockchain fields: {blockchain_missing}", response_time)
+                    return False
+                
+                # Validate rarity information
+                rarity = data.get('rarity_info', {})
+                rarity_required = ['rarity_tier', 'rarity_score', 'special_attributes']
+                rarity_missing = [field for field in rarity_required if field not in rarity]
+                
+                if rarity_missing:
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Missing rarity fields: {rarity_missing}", response_time)
+                    return False
+                
+                # Validate transaction hash format
+                tx_hash = blockchain.get('transaction_hash', '')
+                if not tx_hash or not tx_hash.startswith('0x') or len(tx_hash) < 34:
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Invalid transaction hash: {tx_hash}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds NFT Milestone Minting", True, f"NFT: {nft_data['nft_id']}, Rarity: {rarity['rarity_tier']}, TX: {tx_hash[:10]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds NFT Milestone Minting", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds NFT Milestone Minting", False, f"Exception: {str(e)}")
+            return False
+
+    def test_travel_funds_integration_status(self):
+        """Test Integration Status - Phase 3 NFT Integration APIs"""
+        print("📊 Testing Travel Funds Integration Status...")
+        
+        test_fund_id = "fund_test_12345"
+        url = f"{BASE_URL}/travel-funds/{test_fund_id}/integration-status"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds Integration Status", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for complete integration status
+                required_fields = ['fund_id', 'smart_dreams_integration', 'nft_integration', 'bidding_integration', 'checkout_integration']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds Integration Status", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate Smart Dreams integration status
+                smart_dreams = data.get('smart_dreams_integration', {})
+                dreams_required = ['connected', 'ai_recommendations_active', 'dream_sync_status']
+                dreams_missing = [field for field in dreams_required if field not in smart_dreams]
+                
+                if dreams_missing:
+                    self.log_test("Travel Funds Integration Status", False, f"Missing Smart Dreams integration fields: {dreams_missing}", response_time)
+                    return False
+                
+                # Validate NFT integration status
+                nft_integration = data.get('nft_integration', {})
+                nft_required = ['milestone_tracking', 'auto_minting_enabled', 'nft_count', 'next_milestone']
+                nft_missing = [field for field in nft_required if field not in nft_integration]
+                
+                if nft_missing:
+                    self.log_test("Travel Funds Integration Status", False, f"Missing NFT integration fields: {nft_missing}", response_time)
+                    return False
+                
+                # Validate bidding integration status
+                bidding = data.get('bidding_integration', {})
+                bidding_required = ['bidding_enabled', 'locked_amount', 'active_bids', 'bid_history_count']
+                bidding_missing = [field for field in bidding_required if field not in bidding]
+                
+                if bidding_missing:
+                    self.log_test("Travel Funds Integration Status", False, f"Missing bidding integration fields: {bidding_missing}", response_time)
+                    return False
+                
+                # Validate checkout integration status
+                checkout = data.get('checkout_integration', {})
+                checkout_required = ['payment_method_active', 'smart_suggestions_enabled', 'usage_count']
+                checkout_missing = [field for field in checkout_required if field not in checkout]
+                
+                if checkout_missing:
+                    self.log_test("Travel Funds Integration Status", False, f"Missing checkout integration fields: {checkout_missing}", response_time)
+                    return False
+                
+                # Count active integrations
+                active_integrations = sum([
+                    smart_dreams.get('connected', False),
+                    nft_integration.get('milestone_tracking', False),
+                    bidding.get('bidding_enabled', False),
+                    checkout.get('payment_method_active', False)
+                ])
+                
+                self.log_test("Travel Funds Integration Status", True, f"Fund: {data['fund_id']}, Active integrations: {active_integrations}/4, NFTs: {nft_integration['nft_count']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds Integration Status", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds Integration Status", False, f"Exception: {str(e)}")
+            return False
+
+    def test_travel_funds_smart_dreams_create(self):
+        """Test Smart Dreams Fund Creation - Phase 4 Cross-Platform Integration APIs"""
+        print("🌟 Testing Travel Funds Smart Dreams Creation...")
+        
+        url = f"{BASE_URL}/travel-funds/smart-dreams/create"
+        payload = {
+            "dream_data": {
+                "destination": "Bali, Indonesia",
+                "dream_name": "Tropical Paradise Escape",
+                "estimated_cost": 3500,
+                "travel_dates": {
+                    "start": "2024-08-15",
+                    "end": "2024-08-25"
+                },
+                "companions": 1,
+                "experience_type": "relaxation"
+            },
+            "ai_budget_estimation": {
+                "flights": 1200,
+                "accommodation": 1500,
+                "activities": 500,
+                "food": 300,
+                "contingency": 200
+            },
+            "user_preferences": {
+                "budget_range": "mid_range",
+                "travel_style": "balanced",
+                "priority_categories": ["accommodation", "activities"]
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=20)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for Smart Dreams fund creation
+                required_fields = ['success', 'fund_data', 'ai_budget_breakdown', 'timeline_recommendations']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Creation failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate fund data structure
+                fund_data = data.get('fund_data', {})
+                fund_required = ['fund_id', 'name', 'target_amount', 'destination', 'smart_dreams_integration']
+                fund_missing = [field for field in fund_required if field not in fund_data]
+                
+                if fund_missing:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing fund data fields: {fund_missing}", response_time)
+                    return False
+                
+                # Validate AI budget breakdown
+                budget_breakdown = data.get('ai_budget_breakdown', {})
+                budget_required = ['total_estimated', 'category_breakdown', 'confidence_score', 'optimization_suggestions']
+                budget_missing = [field for field in budget_required if field not in budget_breakdown]
+                
+                if budget_missing:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing budget breakdown fields: {budget_missing}", response_time)
+                    return False
+                
+                # Validate timeline recommendations
+                timeline = data.get('timeline_recommendations', {})
+                timeline_required = ['optimal_booking_windows', 'milestone_schedule', 'savings_plan']
+                timeline_missing = [field for field in timeline_required if field not in timeline]
+                
+                if timeline_missing:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing timeline fields: {timeline_missing}", response_time)
+                    return False
+                
+                # Validate Smart Dreams integration data
+                integration = fund_data.get('smart_dreams_integration', {})
+                integration_required = ['source', 'dream_data', 'ai_generated']
+                integration_missing = [field for field in integration_required if field not in integration]
+                
+                if integration_missing:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing integration fields: {integration_missing}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Smart Dreams Creation", True, f"Fund: {fund_data['fund_id']}, Target: ${fund_data['target_amount']}, Confidence: {budget_breakdown['confidence_score']}%", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds Smart Dreams Creation", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds Smart Dreams Creation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_travel_funds_bidding_lock(self):
+        """Test Bidding Fund Lock - Phase 4 Cross-Platform Integration APIs"""
+        print("🔒 Testing Travel Funds Bidding Lock...")
+        
+        test_fund_id = "fund_test_12345"
+        url = f"{BASE_URL}/travel-funds/{test_fund_id}/bidding/lock"
+        payload = {
+            "bid_amount": 1500,
+            "deal_id": "deal_tokyo_hotel_001",
+            "lock_duration": 3600,  # 1 hour in seconds
+            "bidding_context": {
+                "property_type": "hotel",
+                "destination": "Tokyo, Japan",
+                "original_price": 2000,
+                "current_bid": 1600,
+                "bid_deadline": "2024-12-01T15:00:00Z"
+            },
+            "fund_allocation": {
+                "amount_to_lock": 1500,
+                "remaining_balance": 1000
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds Bidding Lock", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for bidding fund lock
+                required_fields = ['success', 'lock_data', 'fund_status', 'bidding_details']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds Bidding Lock", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Travel Funds Bidding Lock", False, f"Lock failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate lock data structure
+                lock_data = data.get('lock_data', {})
+                lock_required = ['lock_id', 'fund_id', 'locked_amount', 'lock_expires_at', 'deal_id']
+                lock_missing = [field for field in lock_required if field not in lock_data]
+                
+                if lock_missing:
+                    self.log_test("Travel Funds Bidding Lock", False, f"Missing lock data fields: {lock_missing}", response_time)
+                    return False
+                
+                # Validate fund status after lock
+                fund_status = data.get('fund_status', {})
+                status_required = ['available_balance', 'locked_balance', 'total_balance', 'lock_count']
+                status_missing = [field for field in status_required if field not in fund_status]
+                
+                if status_missing:
+                    self.log_test("Travel Funds Bidding Lock", False, f"Missing fund status fields: {status_missing}", response_time)
+                    return False
+                
+                # Validate bidding details
+                bidding = data.get('bidding_details', {})
+                bidding_required = ['bid_amount', 'competitive_position', 'estimated_win_probability']
+                bidding_missing = [field for field in bidding_required if field not in bidding]
+                
+                if bidding_missing:
+                    self.log_test("Travel Funds Bidding Lock", False, f"Missing bidding details fields: {bidding_missing}", response_time)
+                    return False
+                
+                # Validate locked amount matches request
+                locked_amount = lock_data.get('locked_amount', 0)
+                if locked_amount != payload['bid_amount']:
+                    self.log_test("Travel Funds Bidding Lock", False, f"Locked amount mismatch: {locked_amount} vs {payload['bid_amount']}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Bidding Lock", True, f"Lock: {lock_data['lock_id']}, Amount: ${locked_amount}, Deal: {lock_data['deal_id']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds Bidding Lock", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds Bidding Lock", False, f"Exception: {str(e)}")
+            return False
+
+    def test_travel_funds_bidding_release(self):
+        """Test Bidding Fund Release - Phase 4 Cross-Platform Integration APIs"""
+        print("🔓 Testing Travel Funds Bidding Release...")
+        
+        test_fund_id = "fund_test_12345"
+        url = f"{BASE_URL}/travel-funds/{test_fund_id}/bidding/release"
+        payload = {
+            "lock_id": "lock_tokyo_hotel_001",
+            "release_reason": "bid_unsuccessful",
+            "final_bid_result": {
+                "won": False,
+                "final_price": 1450,
+                "winning_bid": 1400,
+                "our_bid": 1500
+            },
+            "release_type": "full_release"  # or "partial_release"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds Bidding Release", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for bidding fund release
+                required_fields = ['success', 'release_data', 'fund_status', 'transaction_summary']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds Bidding Release", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Travel Funds Bidding Release", False, f"Release failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate release data structure
+                release_data = data.get('release_data', {})
+                release_required = ['lock_id', 'fund_id', 'released_amount', 'release_timestamp', 'release_reason']
+                release_missing = [field for field in release_required if field not in release_data]
+                
+                if release_missing:
+                    self.log_test("Travel Funds Bidding Release", False, f"Missing release data fields: {release_missing}", response_time)
+                    return False
+                
+                # Validate fund status after release
+                fund_status = data.get('fund_status', {})
+                status_required = ['available_balance', 'locked_balance', 'total_balance', 'active_locks']
+                status_missing = [field for field in status_required if field not in fund_status]
+                
+                if status_missing:
+                    self.log_test("Travel Funds Bidding Release", False, f"Missing fund status fields: {status_missing}", response_time)
+                    return False
+                
+                # Validate transaction summary
+                transaction = data.get('transaction_summary', {})
+                transaction_required = ['bid_outcome', 'amount_released', 'fees_applied', 'net_amount']
+                transaction_missing = [field for field in transaction_required if field not in transaction]
+                
+                if transaction_missing:
+                    self.log_test("Travel Funds Bidding Release", False, f"Missing transaction fields: {transaction_missing}", response_time)
+                    return False
+                
+                # Validate release reason matches request
+                release_reason = release_data.get('release_reason', '')
+                if release_reason != payload['release_reason']:
+                    self.log_test("Travel Funds Bidding Release", False, f"Release reason mismatch: {release_reason} vs {payload['release_reason']}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Bidding Release", True, f"Released: ${release_data['released_amount']}, Reason: {release_reason}, Outcome: {transaction['bid_outcome']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds Bidding Release", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds Bidding Release", False, f"Exception: {str(e)}")
+            return False
+
+    def test_travel_funds_checkout_suggestions(self):
+        """Test Checkout Suggestions - Phase 4 Cross-Platform Integration APIs"""
+        print("💳 Testing Travel Funds Checkout Suggestions...")
+        
+        url = f"{BASE_URL}/travel-funds/checkout/suggestions"
+        payload = {
+            "booking_details": {
+                "destination": "Paris, France",
+                "total_amount": 2800,
+                "booking_type": "hotel_package",
+                "travel_dates": {
+                    "start": "2024-07-10",
+                    "end": "2024-07-17"
+                },
+                "travelers": 2
+            },
+            "user_context": {
+                "user_id": TEST_USER_ID,
+                "preferred_payment_methods": ["travel_funds", "credit_card"],
+                "budget_flexibility": "moderate"
+            },
+            "matching_criteria": {
+                "destination_match": True,
+                "amount_threshold": 0.25,  # 25% minimum coverage
+                "date_proximity": 30  # days
+            }
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Travel Funds Checkout Suggestions", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure for checkout suggestions
+                required_fields = ['success', 'fund_suggestions', 'payment_options', 'optimization_recommendations']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Travel Funds Checkout Suggestions", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Travel Funds Checkout Suggestions", False, f"Suggestions failed: {data.get('message', 'Unknown error')}", response_time)
+                    return False
+                
+                # Validate fund suggestions structure
+                suggestions = data.get('fund_suggestions', [])
+                if not isinstance(suggestions, list):
+                    self.log_test("Travel Funds Checkout Suggestions", False, "Fund suggestions is not a list", response_time)
+                    return False
+                
+                # If suggestions exist, validate first suggestion structure
+                if len(suggestions) > 0:
+                    suggestion = suggestions[0]
+                    suggestion_required = ['fund_id', 'fund_name', 'available_amount', 'match_score', 'coverage_percentage']
+                    suggestion_missing = [field for field in suggestion_required if field not in suggestion]
+                    
+                    if suggestion_missing:
+                        self.log_test("Travel Funds Checkout Suggestions", False, f"Missing suggestion fields: {suggestion_missing}", response_time)
+                        return False
+                
+                # Validate payment options
+                payment_options = data.get('payment_options', {})
+                payment_required = ['fund_coverage', 'remaining_amount', 'recommended_split', 'total_savings']
+                payment_missing = [field for field in payment_required if field not in payment_options]
+                
+                if payment_missing:
+                    self.log_test("Travel Funds Checkout Suggestions", False, f"Missing payment options fields: {payment_missing}", response_time)
+                    return False
+                
+                # Validate optimization recommendations
+                optimization = data.get('optimization_recommendations', {})
+                optimization_required = ['smart_fund_matching', 'destination_alignment', 'savings_potential']
+                optimization_missing = [field for field in optimization_required if field not in optimization]
+                
+                if optimization_missing:
+                    self.log_test("Travel Funds Checkout Suggestions", False, f"Missing optimization fields: {optimization_missing}", response_time)
+                    return False
+                
+                # Calculate total suggested coverage
+                total_coverage = sum(s.get('available_amount', 0) for s in suggestions)
+                coverage_percentage = (total_coverage / payload['booking_details']['total_amount']) * 100
+                
+                self.log_test("Travel Funds Checkout Suggestions", True, f"Suggestions: {len(suggestions)}, Coverage: ${total_coverage} ({coverage_percentage:.1f}%), Savings: ${payment_options['total_savings']}", response_time)
+                return True
+                
+            else:
+                self.log_test("Travel Funds Checkout Suggestions", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Travel Funds Checkout Suggestions", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run comprehensive test suite with focus on Enhanced Provider Integration and Multi-Backend AI"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
