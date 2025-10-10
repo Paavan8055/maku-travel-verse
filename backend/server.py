@@ -5075,6 +5075,76 @@ async def get_fund_integration_status(fund_id: str):
         logger.error(f"Integration status check failed: {e}")
         raise HTTPException(status_code=500, detail=f"Status check failed: {str(e)}")
 
+@api_router.get("/travel-funds/integration-data")
+async def get_travel_funds_integration_data():
+    """Get integration data for travel funds dashboard"""
+    try:
+        integration_data = {
+            "smartDreamsIntegration": {
+                "connectedDreams": [
+                    {
+                        "dream_id": "dream_001",
+                        "destination": "Bali, Indonesia",
+                        "estimated_cost": 3500,
+                        "fund_created": True,
+                        "fund_id": "fund_001"
+                    }
+                ],
+                "autoCreatedFunds": 1
+            },
+            "nftRewards": {
+                "availableRewards": [
+                    {
+                        "id": "nft_001",
+                        "title": "Dream Starter NFT",
+                        "rarity": "common",
+                        "unlocked": True,
+                        "claimed": False
+                    }
+                ],
+                "claimedRewards": [],
+                "milestones": [
+                    {"percentage": 25, "reached": True, "nft_minted": True},
+                    {"percentage": 50, "reached": False, "nft_minted": False}
+                ]
+            },
+            "biddingIntegration": {
+                "lockedFunds": [],
+                "activeBids": [],
+                "bidHistory": [
+                    {
+                        "bid_id": "bid_001",
+                        "amount": 1200,
+                        "status": "won",
+                        "deal_type": "flash"
+                    }
+                ]
+            },
+            "checkoutIntegration": {
+                "recentUsage": [
+                    {
+                        "booking_id": "booking_001",
+                        "amount_used": 450,
+                        "booking_type": "hotel",
+                        "date": "2025-10-05"
+                    }
+                ],
+                "smartSuggestions": [
+                    {
+                        "fund_name": "Bali Adventure Fund",
+                        "match_score": 95,
+                        "available_balance": 1250
+                    }
+                ]
+            }
+        }
+        
+        return integration_data
+        
+    except Exception as e:
+        logger.error(f"Integration data retrieval failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Integration data failed: {str(e)}")
+
 @api_router.get("/travel-funds/enhanced-stats")
 async def get_enhanced_fund_stats():
     """Get enhanced statistics for travel funds with gamification and NFT data"""
