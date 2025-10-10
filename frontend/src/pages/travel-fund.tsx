@@ -556,28 +556,52 @@ const TravelFundPage: React.FC = () => {
             )}
 
             {/* Phase 2: Safe Gamification Dashboard */}
-            <SafeFundGamification 
-              funds={funds}
-              onViewAchievements={() => navigate('/nft')}
-              onClaimReward={(achievementId) => {
-                toast({
-                  title: "Achievement unlocked! 🎉",
-                  description: "Your NFT reward is being minted",
-                });
-              }}
-            />
+            <TravelFundErrorBoundary
+              componentName="Gamification Dashboard"
+              fallback={
+                <SafeFallbackCard
+                  title="Achievement System"
+                  description="Track your savings progress and earn rewards"
+                  actionText="View Achievements"
+                  onAction={() => navigate('/nft')}
+                />
+              }
+            >
+              <SafeFundGamification 
+                funds={funds}
+                onViewAchievements={() => navigate('/nft')}
+                onClaimReward={(achievementId) => {
+                  toast({
+                    title: "Achievement unlocked! 🎉",
+                    description: "Your NFT reward is being minted",
+                  });
+                }}
+              />
+            </TravelFundErrorBoundary>
 
             {/* Phase 3: Safe NFT Rewards Manager */}
-            <SafeNFTManager
-              funds={funds}
-              onNFTClaimed={(nftId) => {
-                toast({
-                  title: "NFT claimed successfully!",
-                  description: "Check your collection to see your new NFT",
-                });
-              }}
-              onViewCollection={() => navigate('/nft')}
-            />
+            <TravelFundErrorBoundary
+              componentName="NFT Rewards"
+              fallback={
+                <SafeFallbackCard
+                  title="NFT Milestone Rewards"
+                  description="Earn NFT rewards by reaching fund milestones"
+                  actionText="View Collection"
+                  onAction={() => navigate('/nft')}
+                />
+              }
+            >
+              <SafeNFTManager
+                funds={funds}
+                onNFTClaimed={(nftId) => {
+                  toast({
+                    title: "NFT claimed successfully!",
+                    description: "Check your collection to see your new NFT",
+                  });
+                }}
+                onViewCollection={() => navigate('/nft')}
+              />
+            </TravelFundErrorBoundary>
           </TabsContent>
 
           {/* Enhanced Create Fund Tab */}
