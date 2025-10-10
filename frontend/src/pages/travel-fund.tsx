@@ -394,7 +394,7 @@ const TravelFundPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Main Content - Stable Version */}
+        {/* Main Content - Production Stable Version */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="create">Create Fund</TabsTrigger>
@@ -403,7 +403,7 @@ const TravelFundPage: React.FC = () => {
             <TabsTrigger value="join">Join Fund</TabsTrigger>
           </TabsList>
 
-          {/* Create Fund Tab - Restored Original */}
+          {/* Create Fund Tab */}
           <TabsContent value="create" className="space-y-6">
             <Card>
               <CardHeader>
