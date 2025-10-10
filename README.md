@@ -62,42 +62,14 @@ supabase functions deploy <function> --project-ref YOUR_REF
 ```
 
 ### Netlify
+MAKU.Travel is deployed exclusively on Netlify.
+
 1. Connect this repository in the Netlify dashboard.
 2. Set build command to `npm run build` and publish directory to `dist`.
 3. Configure the same environment variables used locally (Supabase keys, provider API keys, Stripe keys, etc.).
 4. Deploy via the Netlify UI or `netlify deploy --prod`.
 
-### Vercel
-
-MAKU.Travel uses advanced Vercel Git integration with automated deployments, multi-environment strategy, and comprehensive monitoring.
-
-#### Quick Setup
-1. Connect this repository in the Vercel dashboard
-2. Configure GitHub Actions secrets:
-   - `VERCEL_TOKEN`: Your Vercel account token
-   - `VERCEL_ORG_ID`: Your organization ID  
-   - `VERCEL_PROJECT_ID`: Your project ID
-3. Set environment variables for each environment (Production/Staging/Preview)
-
-#### Deployment Strategy
-- **Production**: `main` branch → https://maku.travel
-- **Staging**: `develop` branch → staging environment
-- **Preview**: Pull requests → automatic preview URLs
-
-#### Environment Variables
-Set these in **Project Settings → Environment Variables**:
-- `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
-- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`
-- Provider API keys (Amadeus, HotelBeds, Sabre)
-- `STRIPE_SECRET_KEY`
-
-#### Advanced Features
-- Automated health checks and rollback
-- Security headers and performance optimization
-- Multi-regional deployment (Sydney region)
-- Asset caching and edge function optimization
-
-For detailed setup instructions, see [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md)
+For a deeper walkthrough, see [docs/NETLIFY_DEPLOYMENT.md](docs/NETLIFY_DEPLOYMENT.md).
 
 ## Tests
 Run the Vitest suite with:
