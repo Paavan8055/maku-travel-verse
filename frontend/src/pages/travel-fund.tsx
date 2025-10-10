@@ -580,13 +580,43 @@ const TravelFundPage: React.FC = () => {
             />
           </TabsContent>
 
-          {/* Create Fund Tab */}
+          {/* Enhanced Create Fund Tab with Smart Dreams Integration */}
           <TabsContent value="create" className="space-y-6">
-            <Card>
+            {/* Smart Dreams Integration Banner */}
+            <Card className="bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 border-purple-200 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                      <Brain className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">AI-Powered Fund Creation</h3>
+                      <p className="text-sm text-gray-600">
+                        Create funds directly from your Smart Dreams with AI budget estimation
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => navigate('/smart-dreams')}
+                    variant="outline"
+                    className="border-purple-500 text-purple-600 hover:bg-purple-50"
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Use Smart Dreams
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Create New Travel Fund</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-orange-500" />
+                  Create New Travel Fund
+                </CardTitle>
                 <CardDescription>
-                  Set up a collaborative savings goal for your next adventure
+                  Set up a collaborative savings goal for your next adventure with enhanced features
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
