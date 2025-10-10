@@ -58,6 +58,9 @@ function CheckoutInner() {
   const [bookingData, setBookingData] = useState<any>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [showFundDialog, setShowFundDialog] = useState(false);
+  const [selectedFunds, setSelectedFunds] = useState<Array<{ fundId: string; amount: number; }>>([]);
+  const [fundPaymentAmount, setFundPaymentAmount] = useState(0);
 
   // Extract parameters
   const hotelId = searchParams.get("hotelId")!;
