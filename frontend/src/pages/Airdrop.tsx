@@ -41,7 +41,7 @@ export default function Airdrop() {
       status: 'Active',
       allocation: '4,000,000 tokens',
       participants: '8,500+',
-      endDate: 'July 31, 2024',
+      endDate: 'July 31, 2025',
       eligibility: 'All tiers eligible',
       featured: true
     },
