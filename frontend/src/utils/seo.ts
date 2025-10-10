@@ -22,7 +22,7 @@ export const generateSEOMetadata = (page: string, data?: any): SEOMetadata => {
   const seoConfigs: Record<string, SEOMetadata> = {
     home: {
       title: 'MAKU.Travel - Book Flights, Hotels & Activities | Best Travel Deals',
-      description: 'Discover amazing travel deals on flights, hotels, and activities worldwide. Book your next adventure with MAKU.Travel - your trusted travel companion since 2024.',
+      description: 'Discover amazing travel deals on flights, hotels, and activities worldwide. Book your next adventure with MAKU.Travel - your trusted travel companion since 2025.',
       keywords: ['travel booking', 'flights', 'hotels', 'activities', 'vacation deals', 'travel planning'],
       canonical: baseUrl,
       ogTitle: 'MAKU.Travel - Your Gateway to Amazing Travel Experiences',
