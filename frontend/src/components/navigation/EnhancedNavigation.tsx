@@ -125,7 +125,7 @@ const RewardsDropdown: React.FC<RewardsDropdownProps> = ({
             <Calendar className="w-4 h-4 mr-3 text-orange-600" />
             <div className="flex-1">
               <p className="font-medium">Upcoming Events</p>
-              <p className="text-xs text-gray-600">Summer 2024 airdrop active</p>
+              <p className="text-xs text-gray-600">Summer 2025 airdrop active</p>
             </div>
             <Badge variant="secondary" className="bg-orange-100 text-orange-800">
               Live
