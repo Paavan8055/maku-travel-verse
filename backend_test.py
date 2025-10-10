@@ -8872,6 +8872,7 @@ class MakuTravelBackendTester:
         print("=" * 80)
         print("🎯 FINAL TEST SUMMARY")
         print("=" * 80)
+        print(f"💰 Travel Fund Manager Integration: {travel_fund_passed}/{travel_fund_total} ({(travel_fund_passed/travel_fund_total)*100:.1f}%)")
         print(f"🧠 Mem0 Integration System: {mem0_passed}/{mem0_total} ({(mem0_passed/mem0_total)*100:.1f}%)")
         print(f"🔗 Enhanced Provider Integration: {provider_passed}/{provider_total} ({(provider_passed/provider_total)*100:.1f}%)")
         print(f"🤖 Multi-Backend AI Assistant: {ai_multi_passed}/{ai_multi_total} ({(ai_multi_passed/ai_multi_total)*100:.1f}%)")
