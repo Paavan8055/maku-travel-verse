@@ -82,14 +82,12 @@
     "recharts": "^2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
-        "tailwindcss-animate": "^1.0.7",
-
+    "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "vaul": "^0.9.9",
     "zod": "^3.25.76",
     "@sentry/react": "^7.89.0",
     "zustand": "^5.0.8"
-          
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
@@ -114,5 +112,5 @@
     "vite": "^5.4.19",
     "vitest": "^3.2.4"
   },
-  "packageManager": "npm@10.2.0"
+  "packageManager": "yarn@1.22.22"
 }

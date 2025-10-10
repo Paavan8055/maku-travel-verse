@@ -1,8 +1,8 @@
 {
-  "buildCommand": "npm run build:dev",
+  "buildCommand": "yarn build:dev",
   "outputDirectory": "dist",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install --legacy-peer-deps",
+  "devCommand": "yarn dev",
+  "installCommand": "yarn install --frozen-lockfile",
   "framework": "vite",
   "regions": ["syd1"],
   "functions": {

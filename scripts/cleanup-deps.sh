@@ -5,23 +5,23 @@
 
 echo "🧹 Starting dependency cleanup process..."
 
-echo "1. Clearing npm cache..."
-npm cache clean --force
+echo "1. Clearing Yarn cache..."
+yarn cache clean
 
-echo "2. Removing duplicate packages..."
-npm dedupe
+echo "2. Reinstalling dependencies with the lockfile..."
+yarn install --frozen-lockfile
 
-echo "3. Pruning unused packages..."
-npm prune
+echo "3. Validating production dependency tree..."
+YARN_PRODUCTION=true yarn install --frozen-lockfile --ignore-optional
 
 echo "4. Running production security audit..."
-npm audit --production
+yarn audit --groups dependencies
 
 echo "5. Verifying TypeScript compilation..."
-npx tsc --noEmit
+yarn tsc --noEmit
 
 echo "6. Testing build process..."
-npm run build
+yarn build
 
 echo "✅ Dependency cleanup completed successfully!"
 echo "📊 Production bundle size optimization: Testing libraries excluded from production builds"
