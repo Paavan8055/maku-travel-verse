@@ -1,0 +1,21 @@
+{
+  "environments": {
+    "lovable": {
+      "name": "Lovable State",
+      "description": "Original state with current features and implementations",
+      "backend_url": "https://journey-planner-137.preview.emergentagent.com",
+      "source": "lovable",
+      "active": false
+    },
+    "emergent": {
+      "name": "Emergent State", 
+      "description": "Enhanced state with CTO recommendations and improvements",
+      "backend_url": "https://journey-planner-137.preview.emergentagent.com",
+      "source": "emergent",
+      "active": true
+    }
+  },
+  "current_environment": "emergent",
+  "switch_mode": "manual",
+  "last_updated": "2025-10-08T17:28:33.091213+00:00Z"
+}
