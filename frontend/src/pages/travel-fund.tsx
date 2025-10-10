@@ -721,7 +721,7 @@ const TravelFundPage: React.FC = () => {
                 {funds.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {funds.map((fund) => (
-                      <MakuEnhancedFundCard
+                      <SafeEnhancedFundCard
                         key={fund.id}
                         fund={fund}
                         onContribute={(fundId) => {
