@@ -351,13 +351,35 @@ function CheckoutInner() {
                 )}
                 
                 {bookingData && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">Total Amount:</span>
-                      <span className="font-bold text-lg">
-                        {bookingData.currency} {bookingData.total_amount?.toFixed(2)}
-                      </span>
+                  <div className="space-y-4">
+                    <div className="bg-muted p-4 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Total Amount:</span>
+                        <span className="font-bold text-lg">
+                          {bookingData.currency} {((bookingData.total_amount || 0) - fundPaymentAmount).toFixed(2)}
+                        </span>
+                      </div>
+                      {fundPaymentAmount > 0 && (
+                        <div className="flex justify-between items-center mt-2 text-sm">
+                          <span className="text-green-600">Travel Fund Payment:</span>
+                          <span className="text-green-600 font-medium">
+                            -{bookingData.currency} {fundPaymentAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Travel Fund Payment Option */}
+                    {funds.length > 0 && (
+                      <Button
+                        onClick={() => setShowFundDialog(true)}
+                        variant="outline"
+                        className="w-full border-orange-500 text-orange-600 hover:bg-orange-50"
+                      >
+                        <Wallet className="h-4 w-4 mr-2" />
+                        Use Travel Funds
+                      </Button>
+                    )}
                   </div>
                 )}
 
