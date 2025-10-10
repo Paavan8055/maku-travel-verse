@@ -404,23 +404,21 @@ const TravelFundPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Enhanced Travel Fund Interface */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <Trophy className="h-4 w-4" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="create">
-                <PlusCircle className="h-4 w-4 mr-1" />
-                Create Fund
-              </TabsTrigger>
-              <TabsTrigger value="existing">My Funds</TabsTrigger>
-              <TabsTrigger value="add-money">Add Money</TabsTrigger>
-              <TabsTrigger value="join">Join Fund</TabsTrigger>
-            </TabsList>
+        {/* Enhanced Travel Fund Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="create">
+              <PlusCircle className="h-4 w-4 mr-1" />
+              Create Fund
+            </TabsTrigger>
+            <TabsTrigger value="existing">My Funds</TabsTrigger>
+            <TabsTrigger value="add-money">Add Money</TabsTrigger>
+            <TabsTrigger value="join">Join Fund</TabsTrigger>
+          </TabsList>
 
             {/* Enhanced Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
