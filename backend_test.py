@@ -8739,6 +8739,41 @@ class MakuTravelBackendTester:
             self.log_test("Travel Funds Checkout Suggestions", False, f"Exception: {str(e)}")
             return False
 
+    def run_travel_fund_manager_tests(self):
+        """Run Travel Fund Manager Integration API tests"""
+        print("\n" + "=" * 80)
+        print("💰 TRAVEL FUND MANAGER INTEGRATION API TESTING")
+        print("=" * 80)
+        
+        tests = [
+            # Phase 1 & 2 - Core Enhanced Endpoints
+            ("Enhanced Stats API", self.test_travel_funds_enhanced_stats),
+            ("Integration Data API", self.test_travel_funds_integration_data),
+            
+            # Phase 3 - NFT Integration APIs
+            ("Milestone NFT Minting", self.test_travel_funds_nft_mint_milestone),
+            ("Integration Status", self.test_travel_funds_integration_status),
+            
+            # Phase 4 - Cross-Platform Integration APIs
+            ("Smart Dreams Fund Creation", self.test_travel_funds_smart_dreams_create),
+            ("Bidding Fund Lock", self.test_travel_funds_bidding_lock),
+            ("Bidding Fund Release", self.test_travel_funds_bidding_release),
+            ("Checkout Suggestions", self.test_travel_funds_checkout_suggestions),
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test_name, test_func in tests:
+            try:
+                if test_func():
+                    passed += 1
+            except Exception as e:
+                print(f"❌ FAIL {test_name} - Exception: {str(e)}")
+        
+        print(f"\n💰 Travel Fund Manager Integration: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
+        return passed, total
+
     def run_all_tests(self):
         """Run comprehensive test suite with focus on Enhanced Provider Integration and Multi-Backend AI"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
