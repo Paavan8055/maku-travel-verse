@@ -115,7 +115,7 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
       
       // Commented out API call to avoid loading issues for now
       /*
-      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || "https://journey-planner-137.preview.emergentagent.com";
+      const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || "https://api.maku.travel";
       const response = await fetch(`${backendUrl}/api/smart-dreams/providers`);
       const data = await response.json();
       
