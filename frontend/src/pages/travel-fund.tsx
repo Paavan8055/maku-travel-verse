@@ -554,8 +554,8 @@ const TravelFundPage: React.FC = () => {
               </Card>
             )}
 
-            {/* Phase 2: Gamification Dashboard */}
-            <FundGamificationDashboard 
+            {/* Phase 2: Safe Gamification Dashboard */}
+            <SafeFundGamification 
               funds={funds}
               onViewAchievements={() => navigate('/nft')}
               onClaimReward={(achievementId) => {
@@ -566,8 +566,8 @@ const TravelFundPage: React.FC = () => {
               }}
             />
 
-            {/* Phase 3: NFT Rewards Manager */}
-            <FundNFTManager
+            {/* Phase 3: Safe NFT Rewards Manager */}
+            <SafeNFTManager
               funds={funds}
               onNFTClaimed={(nftId) => {
                 toast({
