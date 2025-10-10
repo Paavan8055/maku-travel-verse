@@ -10,15 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { ShareFundDialog } from '@/components/travel-fund/ShareFundDialog';
-import { MakuEnhancedFundCard } from '@/components/travel-fund/MakuEnhancedFundCard';
-import { FundGamificationDashboard } from '@/components/travel-fund/FundGamificationDashboard';
-import { FundNFTManager } from '@/components/travel-fund/FundNFTManager';
 import { useToast } from '@/hooks/use-toast';
 import { useTravelFunds } from '@/hooks/useTravelFunds';
 import { travelFundClient } from '@/lib/travelFundClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { AnimatedLoadingState } from '@/components/ux/EnhancedUserExperience';
-import { Users, Target, Calendar, TrendingUp, PlusCircle, Coins, Copy, Share2, UserPlus, Eye, EyeOff, Sparkles, Brain, Zap, Trophy } from 'lucide-react';
+import { Users, Target, Calendar, TrendingUp, PlusCircle, Coins, Copy, Share2, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 const TravelFundPage: React.FC = () => {
   const navigate = useNavigate();
