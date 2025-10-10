@@ -718,93 +718,34 @@ const TravelFundPage: React.FC = () => {
             {loading ? (
               <AnimatedLoadingState />
             ) : (
-              <div className="grid gap-6">
+              <div className="space-y-6">
                 {funds.length > 0 ? (
-                  funds.map((fund) => {
-                    const progress = (fund.target_amount && fund.target_amount > 0) ? 
-                      (fund.balance / fund.target_amount) * 100 : 0;
-                    
-                    return (
-                      <Card key={fund.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-                        <CardHeader className="pb-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-xl">{fund.name || 'Unnamed Fund'}</CardTitle>
-                              <CardDescription className="mt-1 capitalize">
-                                {fund.fund_type?.replace('_', ' ') || 'Personal'} Fund
-                                {fund.destination && ` • ${fund.destination}`}
-                              </CardDescription>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Balance</p>
-                              <p className="text-2xl font-bold text-primary">${fund.balance.toLocaleString()}</p>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        
-                        <CardContent className="space-y-4">
-                          {fund.target_amount && (
-                            <div>
-                              <div className="flex justify-between text-sm mb-2">
-                                <span>${fund.balance.toLocaleString()} saved</span>
-                                <span>${fund.target_amount.toLocaleString()} goal</span>
-                              </div>
-                              <Progress value={Math.min(progress, 100)} className="h-3" />
-                            </div>
-                          )}
-                          
-                          {fund.fund_code && (
-                            <div className="bg-muted/50 rounded-lg p-3">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm text-muted-foreground">Fund Code</p>
-                                  <p className="font-mono font-semibold">
-                                    {showFundCodes[fund.id] ? fund.fund_code : '••••••••••'}
-                                  </p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => toggleFundCodeVisibility(fund.id)}
-                                  >
-                                    {showFundCodes[fund.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => copyFundCode(fund.fund_code!)}
-                                  >
-                                    <Copy className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="flex gap-2">
-                            <Button 
-                              className="flex-1"
-                              onClick={() => {
-                                setSelectedFundId(fund.id);
-                                setActiveTab('add-money');
-                              }}
-                            >
-                              Add Money
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              className="flex-1"
-                              onClick={() => setShareFundId(fund.id)}
-                            >
-                              <Share2 className="mr-2 h-4 w-4" />
-                              Share
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {funds.map((fund) => (
+                      <MakuEnhancedFundCard
+                        key={fund.id}
+                        fund={fund}
+                        onContribute={(fundId) => {
+                          setSelectedFundId(fundId);
+                          setActiveTab('add-money');
+                          toast({
+                            title: "Ready to contribute",
+                            description: `Adding money to ${fund.name}`,
+                          });
+                        }}
+                        onShare={(fundId) => {
+                          setShareFundId(fundId);
+                          toast({
+                            title: "Sharing fund",
+                            description: "Invite others to join your savings goal",
+                          });
+                        }}
+                        onViewDetails={(fundId) => {
+                          navigate(`/travel-fund/${fundId}`);
+                        }}
+                      />
+                    ))}
+                  </div>
                 ) : (
                   <Card>
                     <CardContent className="text-center py-12">
