@@ -498,6 +498,36 @@ function CheckoutInner() {
           </div>
         </div>
       </div>
+
+      {/* Enhanced Checkout Integration Dialog */}
+      <EnhancedCheckoutIntegration
+        bookingData={{
+          destination: hotelName || 'Hotel Booking',
+          amount: bookingData?.total_amount || 0,
+          type: 'hotel',
+          dates: { checkIn, checkOut }
+        }}
+        biddingData={{
+          enabled: false, // Can be enhanced later with hotel bidding
+          currentBid: 0,
+          minimumBid: 0,
+          originalPrice: bookingData?.total_amount || 0,
+          timeRemaining: 0,
+          dealType: 'negotiation'
+        }}
+        open={showFundDialog}
+        onOpenChange={setShowFundDialog}
+        onPaymentMethodSelected={(paymentMethod) => {
+          setSelectedFunds(paymentMethod.fundUsage);
+          setFundPaymentAmount(paymentMethod.fundUsage.reduce((total, fund) => total + fund.amount, 0));
+          setShowFundDialog(false);
+          
+          toast({
+            title: "Payment method updated",
+            description: `Using $${paymentMethod.fundUsage.reduce((total, fund) => total + fund.amount, 0)} from travel funds`,
+          });
+        }}
+      />
       </div>
     </ErrorBoundary>
   );
