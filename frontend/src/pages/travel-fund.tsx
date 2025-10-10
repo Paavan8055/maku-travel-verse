@@ -395,14 +395,163 @@ const TravelFundPage: React.FC = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="create">Create Fund</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="create">
+              <PlusCircle className="h-4 w-4 mr-1" />
+              Create Fund
+            </TabsTrigger>
             <TabsTrigger value="existing">My Funds ({funds.length})</TabsTrigger>
             <TabsTrigger value="add-money">Add Money</TabsTrigger>
             <TabsTrigger value="join">Join Fund</TabsTrigger>
           </TabsList>
 
-          {/* Enhanced Overview Tab removed */}
+          {/* Phase 1: Enhanced Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Enhanced Stats Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-orange-600 font-medium">Total Saved</p>
+                      <p className="text-2xl font-bold text-orange-700">
+                        ${funds.reduce((total, fund) => total + fund.balance, 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                      <Coins className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-green-600 font-medium">Active Funds</p>
+                      <p className="text-2xl font-bold text-green-700">{funds.length}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                      <Target className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-purple-600 font-medium">Achievements</p>
+                      <p className="text-2xl font-bold text-purple-700">
+                        {funds.filter(fund => (fund.balance / fund.target_amount) >= 0.25).length}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                      <Trophy className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-blue-600 font-medium">Success Rate</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        {funds.length > 0 ? Math.round((funds.filter(fund => (fund.balance / fund.target_amount) >= 1).length / funds.length) * 100) : 0}%
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                      <TrendingUp className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Enhanced Fund Cards Grid */}
+            {funds.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent">
+                    Your Travel Funds
+                  </h3>
+                  <Button 
+                    onClick={() => setActiveTab('create')}
+                    className="bg-gradient-to-r from-orange-500 to-green-500 hover:from-orange-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Create New Fund
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {funds.map((fund) => (
+                    <MakuEnhancedFundCard
+                      key={fund.id}
+                      fund={fund}
+                      onContribute={(fundId) => {
+                        setSelectedFundId(fundId);
+                        setActiveTab('add-money');
+                      }}
+                      onShare={(fundId) => setShareFundId(fundId)}
+                      onViewDetails={(fundId) => {
+                        // Navigate to detailed fund view
+                        navigate(`/travel-fund/${fundId}`);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Card className="text-center p-12 bg-gradient-to-br from-orange-50 via-yellow-50 to-green-50 border-2 border-orange-200 rounded-2xl shadow-xl">
+                <CardContent>
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-orange-500 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent">
+                    Start Your Savings Journey
+                  </h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto text-lg">
+                    Create your first travel fund and turn your dream destinations into achievable goals. 
+                    Earn NFT rewards as you progress!
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-8">
+                    <div className="text-center p-6 bg-white rounded-xl border border-orange-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <Brain className="h-10 w-10 mx-auto mb-3 text-purple-500" />
+                      <h4 className="font-semibold mb-2">Smart Dreams</h4>
+                      <p className="text-sm text-gray-600">AI-powered budget planning</p>
+                    </div>
+                    <div className="text-center p-6 bg-white rounded-xl border border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <Trophy className="h-10 w-10 mx-auto mb-3 text-yellow-500" />
+                      <h4 className="font-semibold mb-2">NFT Rewards</h4>
+                      <p className="text-sm text-gray-600">Milestone achievements</p>
+                    </div>
+                    <div className="text-center p-6 bg-white rounded-xl border border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <Zap className="h-10 w-10 mx-auto mb-3 text-blue-500" />
+                      <h4 className="font-semibold mb-2">Smart Bidding</h4>
+                      <p className="text-sm text-gray-600">Use funds for deals</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => setActiveTab('create')}
+                    size="lg"
+                    className="bg-gradient-to-r from-orange-500 to-green-500 hover:from-orange-600 hover:to-green-600 text-white px-12 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <PlusCircle className="h-6 w-6 mr-3" />
+                    Create Your First Fund
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           {/* Create Fund Tab */}
           <TabsContent value="create" className="space-y-6">
