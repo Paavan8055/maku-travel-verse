@@ -676,7 +676,7 @@ export default function Airdrop() {
               {[
                 {
                   question: "When will the main airdrop happen?",
-                  answer: "The main airdrop is scheduled for Summer 2024 as part of our official roadmap. We build responsibly without false promises or artificial hype."
+                  answer: "The main airdrop is scheduled for Summer 2025 as part of our official roadmap. We build responsibly without false promises or artificial hype."
                 },
                 {
                   question: "How are airdrop allocations calculated?",
