@@ -49,10 +49,8 @@ export const HotelDetails = () => {
     return /^\d+$/.test(id);
   };
 
-  // If this is a HotelBeds hotel, use the HotelBeds component
-  if (provider === 'hotelbeds' || (hotelId && isHotelBedsHotelId(hotelId))) {
-    return <HotelBedsDetails />;
-  }
+  const isHotelBedsHotel =
+    provider === "hotelbeds" || (hotelId && isHotelBedsHotelId(hotelId));
 
   // State for hotel details from Amadeus
   const [hotel, setHotel] = useState<any>(null);
@@ -63,7 +61,7 @@ export const HotelDetails = () => {
   // Fetch hotel details and offers from Amadeus
   useEffect(() => {
     const fetchHotelDetails = async () => {
-      if (!hotelId || !checkIn || !checkOut) return;
+      if (!hotelId || !checkIn || !checkOut || isHotelBedsHotel) return;
 
       setLoading(true);
       setError(null);
@@ -111,6 +109,10 @@ export const HotelDetails = () => {
 
     fetchHotelDetails();
   }, [hotelId, checkIn, checkOut, adults, children, rooms]);
+
+  if (isHotelBedsHotel) {
+    return <HotelBedsDetails />;
+  }
 
   // Validation and error handling
   if (!hotelId || !checkIn || !checkOut) {

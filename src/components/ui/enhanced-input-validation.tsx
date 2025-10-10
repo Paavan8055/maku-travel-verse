@@ -206,7 +206,7 @@ function isValidEmail(email: string): boolean {
 
 function isValidPhone(phone: string): boolean {
   // Basic phone validation - adjust regex based on requirements
-  return /^[\+]?[1-9][\d]{0,15}$/.test(phone.replace(/[\s\-\(\)]/g, ''));
+  return /^\+?[1-9]\d{0,15}$/.test(phone.replace(/[\s()-]/g, ''));
 }
 
 // Pre-configured input components for common travel use cases

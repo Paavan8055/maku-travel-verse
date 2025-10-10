@@ -15,7 +15,7 @@ const mockBookingRow = {
   updated_at: new Date().toISOString()
 };
 
-var invokeMock: any;
+let invokeMock: ReturnType<typeof vi.fn>;
 
 vi.mock('@/integrations/supabase/client', () => {
   invokeMock = vi.fn(async (fn: string, _args: any) => {

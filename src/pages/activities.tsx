@@ -137,7 +137,7 @@ const ActivitiesPage = () => {
             id: activity.id || activity.activityId || Math.random().toString(),
             name: activity.name || activity.title || 'Unknown Activity',
             description: activity.description || activity.shortDescription || '',
-            source: activity.source || 'unified' || 'unknown',
+            source: activity.source ?? 'unified',
             searchId
           }));
           

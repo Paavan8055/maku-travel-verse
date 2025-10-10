@@ -22,9 +22,13 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Run postinstall scripts
+        run: npm run postinstall --if-present
 
       - name: Run Supabase Security Linter
         env:

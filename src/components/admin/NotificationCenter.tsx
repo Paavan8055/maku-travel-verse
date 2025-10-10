@@ -24,11 +24,13 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+type NotificationType = 'info' | 'warning' | 'error' | 'success';
+
 interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type: NotificationType;
   priority: 'low' | 'medium' | 'high' | 'critical';
   source: string;
   timestamp: Date;
@@ -58,6 +60,40 @@ interface EscalationRule {
 }
 
 export const NotificationCenter: React.FC = () => {
+  const mapSeverityToType = (severity: string): NotificationType => {
+    switch (severity) {
+      case 'critical':
+        return 'error';
+      case 'high':
+        return 'warning';
+      case 'success':
+        return 'success';
+      default:
+        return 'info';
+    }
+  };
+
+  const mapSeverityToPriority = (
+    severity: string,
+  ): Notification['priority'] => {
+    switch (severity) {
+      case 'critical':
+      case 'high':
+      case 'medium':
+      case 'low':
+        return severity;
+      default:
+        return 'low';
+    }
+  };
+
+  const mapLogLevelToType = (level: string): NotificationType =>
+    level === 'error' ? 'error' : 'warning';
+
+  const mapLogLevelToPriority = (
+    level: string,
+  ): Notification['priority'] => (level === 'error' ? 'high' : 'medium');
+
   const [activeTab, setActiveTab] = useState('notifications');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [alertRules, setAlertRules] = useState<AlertRule[]>([]);
@@ -88,9 +124,8 @@ export const NotificationCenter: React.FC = () => {
           id: alert.id,
           title: alert.alert_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
           message: alert.message,
-          type: alert.severity === 'critical' ? 'error' as const : 
-                alert.severity === 'high' ? 'warning' as const : 'info' as const,
-          priority: alert.severity as 'low' | 'medium' | 'high' | 'critical',
+          type: mapSeverityToType(alert.severity),
+          priority: mapSeverityToPriority(alert.severity),
           source: 'Alert System',
           timestamp: new Date(alert.created_at),
           acknowledged: alert.resolved,
@@ -104,8 +139,8 @@ export const NotificationCenter: React.FC = () => {
           id: `log-${log.id}`,
           title: `${log.service_name} ${log.log_level.toUpperCase()}`,
           message: log.message,
-          type: log.log_level === 'error' ? 'error' as const : 'warning' as const,
-          priority: log.log_level === 'error' ? 'high' as 'high' : 'medium' as 'medium',
+          type: mapLogLevelToType(log.log_level),
+          priority: mapLogLevelToPriority(log.log_level),
           source: log.service_name,
           timestamp: new Date(log.created_at),
           acknowledged: false,

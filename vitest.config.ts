@@ -2,13 +2,18 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
+const includePatterns =
+  process.env.VITEST_SUITE === 'smoke'
+    ? ['src/__tests__/smoke.test.ts']
+    : ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'];
+
 export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/__tests__/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: includePatterns,
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

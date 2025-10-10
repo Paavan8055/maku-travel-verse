@@ -7,8 +7,8 @@ export interface RetryOptions {
   maxDelay?: number;
   backoffFactor?: number;
   jitter?: boolean;
-  retryCondition?: (error: any, attempt: number) => boolean;
-  onRetry?: (error: any, attempt: number) => void;
+  retryCondition?: (error: unknown, attempt: number) => boolean;
+  onRetry?: (error: unknown, attempt: number) => void;
 }
 
 const defaultOptions: Required<RetryOptions> = {
@@ -17,7 +17,7 @@ const defaultOptions: Required<RetryOptions> = {
   maxDelay: 30000,
   backoffFactor: 2,
   jitter: true,
-  retryCondition: (error: any) => {
+  retryCondition: (error: unknown) => {
     // Retry on network errors, timeouts, and 5xx server errors
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
@@ -60,14 +60,14 @@ export const useRetryWithBackoff = (options: RetryOptions = {}) => {
     context?: string
   ): Promise<T> => {
     const operationId = context || Math.random().toString(36).substr(2, 9);
-    
+
     // Prevent multiple concurrent retries of the same operation
     if (isRetrying.current.has(operationId)) {
       throw new Error(`Operation ${operationId} is already being retried`);
     }
 
-    let lastError: any;
-    
+    let lastError: unknown;
+
     for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
       try {
         isRetrying.current.add(operationId);
@@ -117,7 +117,7 @@ export const useRetryWithBackoff = (options: RetryOptions = {}) => {
   }, [config, calculateDelay, sleep, handleError]);
 
   // Utility for wrapping promises with retry logic
-  const wrapWithRetry = useCallback(<T extends any[], R>(
+  const wrapWithRetry = useCallback(<T extends unknown[], R>(
     fn: (...args: T) => Promise<R>,
     context?: string
   ) => {
@@ -127,7 +127,7 @@ export const useRetryWithBackoff = (options: RetryOptions = {}) => {
   }, [retry]);
 
   // Circuit breaker pattern
-  const createCircuitBreaker = useCallback(<T extends any[], R>(
+  const createCircuitBreaker = useCallback(<T extends unknown[], R>(
     fn: (...args: T) => Promise<R>,
     options: {
       failureThreshold?: number;
@@ -196,30 +196,30 @@ export const useRetryWithBackoff = (options: RetryOptions = {}) => {
   }, []);
 
   // Rate limiter
-  const createRateLimiter = useCallback(<T extends any[], R>(
+  const createRateLimiter = useCallback(<T extends unknown[], R>(
     fn: (...args: T) => Promise<R>,
     requestsPerSecond: number = 10
   ) => {
-    const tokens = useRef(requestsPerSecond);
-    const lastRefill = useRef(Date.now());
+    let tokens = requestsPerSecond;
+    let lastRefill = Date.now();
 
     return async (...args: T): Promise<R> => {
       const now = Date.now();
-      const timePassed = (now - lastRefill.current) / 1000;
-      
-      // Refill tokens
-      tokens.current = Math.min(
-        requestsPerSecond,
-        tokens.current + timePassed * requestsPerSecond
-      );
-      lastRefill.current = now;
+      const timePassed = (now - lastRefill) / 1000;
 
-      if (tokens.current < 1) {
-        const waitTime = (1 - tokens.current) / requestsPerSecond * 1000;
+      // Refill tokens
+      tokens = Math.min(
+        requestsPerSecond,
+        tokens + timePassed * requestsPerSecond
+      );
+      lastRefill = now;
+
+      if (tokens < 1) {
+        const waitTime = ((1 - tokens) / requestsPerSecond) * 1000;
         await sleep(waitTime);
-        tokens.current = 0;
+        tokens = 0;
       } else {
-        tokens.current -= 1;
+        tokens -= 1;
       }
 
       return fn(...args);

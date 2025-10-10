@@ -292,7 +292,7 @@ export class UnifiedSearchOrchestrator {
   }
 
   private enhanceParamsWithDependencies(params: any, dependencyResults: { [key: string]: any }): any {
-    let enhanced = { ...params };
+    const enhanced = { ...params };
     
     // Enhance hotel search with flight arrival/departure times
     for (const [depId, depResult] of Object.entries(dependencyResults)) {

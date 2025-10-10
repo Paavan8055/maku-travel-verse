@@ -23,9 +23,9 @@ class SecureLogger {
     /pk_test_[a-zA-Z0-9]+/g, // Stripe publishable test keys
     /pk_live_[a-zA-Z0-9]+/g, // Stripe publishable live keys
     /client_secret_[a-zA-Z0-9]+/g, // Stripe client secrets
-    /Bearer\s+[a-zA-Z0-9\-\._~\+\/]+=*/g, // Bearer tokens
+    /Bearer\s+[-._~+/A-Za-z0-9]+=*/g, // Bearer tokens
     /password["\s]*[:=]["\s]*[^"\s]+/gi, // Password fields
-    /email["\s]*[:=]["\s]*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, // Email addresses
+    /email["\s]*[:=]["\s]*[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gi, // Email addresses
     /\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}/g, // Credit card numbers
   ];
 
