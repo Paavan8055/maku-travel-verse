@@ -414,7 +414,7 @@ async function generateStableResponse(
   userContext?: any
 ): Promise<{content: string; suggestions?: string[]; source: string; creditsUsed?: number}> {
   
-  const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://journey-planner-137.preview.emergentagent.com';
+  const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://api.maku.travel';
   
   try {
     // Handle file attachments
