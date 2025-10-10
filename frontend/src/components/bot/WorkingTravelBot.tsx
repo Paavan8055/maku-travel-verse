@@ -401,7 +401,7 @@ async function generateBotResponse(
   
   try {
     // Use existing AI endpoints that are already working
-    const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://journey-planner-137.preview.emergentagent.com';
+    const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://api.maku.travel';
     console.log('🤖 WorkingTravelBot: Using backend URL:', backendUrl);
     
     // Handle file attachments with intelligent analysis
