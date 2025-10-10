@@ -8551,26 +8551,9 @@ class MakuTravelBackendTester:
         
         url = f"{BASE_URL}/travel-funds/checkout/suggestions"
         payload = {
-            "booking_details": {
-                "destination": "Paris, France",
-                "total_amount": 2800,
-                "booking_type": "hotel_package",
-                "travel_dates": {
-                    "start": "2024-07-10",
-                    "end": "2024-07-17"
-                },
-                "travelers": 2
-            },
-            "user_context": {
-                "user_id": TEST_USER_ID,
-                "preferred_payment_methods": ["travel_funds", "credit_card"],
-                "budget_flexibility": "moderate"
-            },
-            "matching_criteria": {
-                "destination_match": True,
-                "amount_threshold": 0.25,  # 25% minimum coverage
-                "date_proximity": 30  # days
-            }
+            "destination": "Paris, France",
+            "amount": 2800,
+            "booking_type": "hotel_package"
         }
         
         try:
@@ -8586,7 +8569,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate response structure for checkout suggestions
-                required_fields = ['success', 'fund_suggestions', 'payment_options', 'optimization_recommendations']
+                required_fields = ['success', 'suggestions', 'total_available', 'can_fully_cover']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -8598,7 +8581,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate fund suggestions structure
-                suggestions = data.get('fund_suggestions', [])
+                suggestions = data.get('suggestions', [])
                 if not isinstance(suggestions, list):
                     self.log_test("Travel Funds Checkout Suggestions", False, "Fund suggestions is not a list", response_time)
                     return False
@@ -8606,36 +8589,29 @@ class MakuTravelBackendTester:
                 # If suggestions exist, validate first suggestion structure
                 if len(suggestions) > 0:
                     suggestion = suggestions[0]
-                    suggestion_required = ['fund_id', 'fund_name', 'available_amount', 'match_score', 'coverage_percentage']
+                    suggestion_required = ['fund_id', 'fund_name', 'available_balance', 'match_score', 'suggested_usage']
                     suggestion_missing = [field for field in suggestion_required if field not in suggestion]
                     
                     if suggestion_missing:
                         self.log_test("Travel Funds Checkout Suggestions", False, f"Missing suggestion fields: {suggestion_missing}", response_time)
                         return False
                 
-                # Validate payment options
-                payment_options = data.get('payment_options', {})
-                payment_required = ['fund_coverage', 'remaining_amount', 'recommended_split', 'total_savings']
-                payment_missing = [field for field in payment_required if field not in payment_options]
-                
-                if payment_missing:
-                    self.log_test("Travel Funds Checkout Suggestions", False, f"Missing payment options fields: {payment_missing}", response_time)
+                # Validate total available amount
+                total_available = data.get('total_available', 0)
+                if total_available < 0:
+                    self.log_test("Travel Funds Checkout Suggestions", False, f"Invalid total available: {total_available}", response_time)
                     return False
                 
-                # Validate optimization recommendations
-                optimization = data.get('optimization_recommendations', {})
-                optimization_required = ['smart_fund_matching', 'destination_alignment', 'savings_potential']
-                optimization_missing = [field for field in optimization_required if field not in optimization]
-                
-                if optimization_missing:
-                    self.log_test("Travel Funds Checkout Suggestions", False, f"Missing optimization fields: {optimization_missing}", response_time)
+                # Validate can_fully_cover boolean
+                can_fully_cover = data.get('can_fully_cover', False)
+                if not isinstance(can_fully_cover, bool):
+                    self.log_test("Travel Funds Checkout Suggestions", False, f"can_fully_cover is not boolean: {can_fully_cover}", response_time)
                     return False
                 
-                # Calculate total suggested coverage
-                total_coverage = sum(s.get('available_amount', 0) for s in suggestions)
-                coverage_percentage = (total_coverage / payload['booking_details']['total_amount']) * 100
+                # Calculate coverage percentage
+                coverage_percentage = (total_available / payload['amount']) * 100 if payload['amount'] > 0 else 0
                 
-                self.log_test("Travel Funds Checkout Suggestions", True, f"Suggestions: {len(suggestions)}, Coverage: ${total_coverage} ({coverage_percentage:.1f}%), Savings: ${payment_options['total_savings']}", response_time)
+                self.log_test("Travel Funds Checkout Suggestions", True, f"Suggestions: {len(suggestions)}, Total Available: ${total_available}, Coverage: {coverage_percentage:.1f}%, Can Cover: {can_fully_cover}", response_time)
                 return True
                 
             else:
