@@ -8338,29 +8338,15 @@ class MakuTravelBackendTester:
         
         url = f"{BASE_URL}/travel-funds/smart-dreams/create"
         payload = {
-            "dream_data": {
-                "destination": "Bali, Indonesia",
-                "dream_name": "Tropical Paradise Escape",
-                "estimated_cost": 3500,
-                "travel_dates": {
-                    "start": "2024-08-15",
-                    "end": "2024-08-25"
-                },
-                "companions": 1,
-                "experience_type": "relaxation"
+            "destination": "Bali, Indonesia",
+            "dream_name": "Tropical Paradise Escape",
+            "estimated_cost": 3500,
+            "companions": 1,
+            "travel_dates": {
+                "start": "2024-08-15",
+                "end": "2024-08-25"
             },
-            "ai_budget_estimation": {
-                "flights": 1200,
-                "accommodation": 1500,
-                "activities": 500,
-                "food": 300,
-                "contingency": 200
-            },
-            "user_preferences": {
-                "budget_range": "mid_range",
-                "travel_style": "balanced",
-                "priority_categories": ["accommodation", "activities"]
-            }
+            "travel_style": "relaxation"
         }
         
         try:
@@ -8376,7 +8362,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate response structure for Smart Dreams fund creation
-                required_fields = ['success', 'fund_data', 'ai_budget_breakdown', 'timeline_recommendations']
+                required_fields = ['success', 'fund_id', 'fund_data', 'ai_recommendations']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -8389,41 +8375,38 @@ class MakuTravelBackendTester:
                 
                 # Validate fund data structure
                 fund_data = data.get('fund_data', {})
-                fund_required = ['fund_id', 'name', 'target_amount', 'destination', 'smart_dreams_integration']
+                fund_required = ['id', 'name', 'destination', 'target_amount', 'smart_dreams_integration']
                 fund_missing = [field for field in fund_required if field not in fund_data]
                 
                 if fund_missing:
                     self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing fund data fields: {fund_missing}", response_time)
                     return False
                 
-                # Validate AI budget breakdown
-                budget_breakdown = data.get('ai_budget_breakdown', {})
-                budget_required = ['total_estimated', 'category_breakdown', 'confidence_score', 'optimization_suggestions']
-                budget_missing = [field for field in budget_required if field not in budget_breakdown]
+                # Validate AI recommendations
+                ai_recommendations = data.get('ai_recommendations', {})
+                ai_required = ['monthly_contribution', 'timeline_months', 'success_probability']
+                ai_missing = [field for field in ai_required if field not in ai_recommendations]
                 
-                if budget_missing:
-                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing budget breakdown fields: {budget_missing}", response_time)
-                    return False
-                
-                # Validate timeline recommendations
-                timeline = data.get('timeline_recommendations', {})
-                timeline_required = ['optimal_booking_windows', 'milestone_schedule', 'savings_plan']
-                timeline_missing = [field for field in timeline_required if field not in timeline]
-                
-                if timeline_missing:
-                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing timeline fields: {timeline_missing}", response_time)
+                if ai_missing:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing AI recommendation fields: {ai_missing}", response_time)
                     return False
                 
                 # Validate Smart Dreams integration data
                 integration = fund_data.get('smart_dreams_integration', {})
-                integration_required = ['source', 'dream_data', 'ai_generated']
+                integration_required = ['source', 'ai_generated', 'budget_confidence']
                 integration_missing = [field for field in integration_required if field not in integration]
                 
                 if integration_missing:
                     self.log_test("Travel Funds Smart Dreams Creation", False, f"Missing integration fields: {integration_missing}", response_time)
                     return False
                 
-                self.log_test("Travel Funds Smart Dreams Creation", True, f"Fund: {fund_data['fund_id']}, Target: ${fund_data['target_amount']}, Confidence: {budget_breakdown['confidence_score']}%", response_time)
+                # Validate target amount matches request
+                target_amount = fund_data.get('target_amount', 0)
+                if target_amount != payload['estimated_cost']:
+                    self.log_test("Travel Funds Smart Dreams Creation", False, f"Target amount mismatch: {target_amount} vs {payload['estimated_cost']}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Smart Dreams Creation", True, f"Fund: {data['fund_id']}, Target: ${target_amount}, Timeline: {ai_recommendations['timeline_months']} months, Confidence: {integration['budget_confidence']}", response_time)
                 return True
                 
             else:
