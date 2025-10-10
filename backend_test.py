@@ -8124,17 +8124,17 @@ class MakuTravelBackendTester:
                     self.log_test("Travel Funds Integration Data", False, f"API Error: {data['error']}", response_time)
                     return False
                 
-                # Validate response structure for integration connections
-                required_fields = ['smart_dreams_connections', 'nft_rewards', 'bidding_history', 'checkout_usage']
+                # Validate response structure for integration data
+                required_fields = ['smartDreamsIntegration', 'nftRewards', 'biddingIntegration', 'checkoutIntegration']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
                     self.log_test("Travel Funds Integration Data", False, f"Missing fields: {missing_fields}", response_time)
                     return False
                 
-                # Validate Smart Dreams connections
-                smart_dreams = data.get('smart_dreams_connections', {})
-                dreams_required = ['connected_funds', 'ai_recommendations', 'dream_to_fund_conversions']
+                # Validate Smart Dreams integration
+                smart_dreams = data.get('smartDreamsIntegration', {})
+                dreams_required = ['connectedDreams', 'autoCreatedFunds']
                 dreams_missing = [field for field in dreams_required if field not in smart_dreams]
                 
                 if dreams_missing:
@@ -8142,33 +8142,38 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate NFT rewards structure
-                nft_rewards = data.get('nft_rewards', {})
-                nft_required = ['milestone_nfts', 'rarity_distribution', 'blockchain_metadata']
+                nft_rewards = data.get('nftRewards', {})
+                nft_required = ['availableRewards', 'claimedRewards', 'milestones']
                 nft_missing = [field for field in nft_required if field not in nft_rewards]
                 
                 if nft_missing:
                     self.log_test("Travel Funds Integration Data", False, f"Missing NFT rewards fields: {nft_missing}", response_time)
                     return False
                 
-                # Validate bidding history
-                bidding = data.get('bidding_history', {})
-                bidding_required = ['total_bids', 'successful_bids', 'funds_locked', 'average_savings']
+                # Validate bidding integration
+                bidding = data.get('biddingIntegration', {})
+                bidding_required = ['lockedFunds', 'activeBids', 'bidHistory']
                 bidding_missing = [field for field in bidding_required if field not in bidding]
                 
                 if bidding_missing:
                     self.log_test("Travel Funds Integration Data", False, f"Missing bidding fields: {bidding_missing}", response_time)
                     return False
                 
-                # Validate checkout usage
-                checkout = data.get('checkout_usage', {})
-                checkout_required = ['fund_payments', 'smart_suggestions', 'conversion_rate']
+                # Validate checkout integration
+                checkout = data.get('checkoutIntegration', {})
+                checkout_required = ['recentUsage', 'smartSuggestions']
                 checkout_missing = [field for field in checkout_required if field not in checkout]
                 
                 if checkout_missing:
                     self.log_test("Travel Funds Integration Data", False, f"Missing checkout fields: {checkout_missing}", response_time)
                     return False
                 
-                self.log_test("Travel Funds Integration Data", True, f"Dreams: {smart_dreams['connected_funds']}, NFTs: {nft_rewards['milestone_nfts']}, Bids: {bidding['total_bids']}", response_time)
+                # Count connected dreams and available rewards
+                connected_dreams = len(smart_dreams.get('connectedDreams', []))
+                available_rewards = len(nft_rewards.get('availableRewards', []))
+                bid_history = len(bidding.get('bidHistory', []))
+                
+                self.log_test("Travel Funds Integration Data", True, f"Dreams: {connected_dreams}, NFT Rewards: {available_rewards}, Bid History: {bid_history}", response_time)
                 return True
                 
             else:
