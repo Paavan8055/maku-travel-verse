@@ -2,7 +2,7 @@
   "buildCommand": "yarn build:dev",
   "outputDirectory": "dist",
   "devCommand": "yarn dev",
-  "installCommand": "yarn install --frozen-lockfile",
+  "installCommand": "yarn install --frozen-lockfile --ignore-optional",
   "framework": "vite",
   "regions": ["syd1"],
   "functions": {
