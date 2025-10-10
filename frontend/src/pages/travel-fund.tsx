@@ -310,28 +310,82 @@ const TravelFundPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Authentication Card */}
-          <Card className="max-w-lg mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Start Your Travel Journey</CardTitle>
-              <CardDescription>
-                Join thousands of travelers who are making their dreams come true through collaborative saving
+          {/* Enhanced Authentication Card with Maku Branding */}
+          <Card className="max-w-2xl mx-auto border-2 border-orange-200 bg-gradient-to-br from-orange-50 via-white to-green-50 shadow-2xl">
+            <CardHeader className="text-center pb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-orange-500 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+                <Sparkles className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent">
+                Start Your Travel Journey
+              </CardTitle>
+              <CardDescription className="text-lg text-gray-600 mt-2">
+                Join thousands of travelers who are making their dreams come true through collaborative saving with 
+                <span className="font-semibold text-orange-600"> Maku.Travel</span>
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Button onClick={() => navigate('/auth?tab=signup')} className="w-full">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Sign Up
+            
+            <CardContent className="space-y-6 pb-8">
+              {/* Enhanced Stats Preview */}
+              <div className="grid grid-cols-3 gap-4 text-center py-4 bg-gradient-to-r from-orange-50 to-green-50 rounded-lg border border-orange-200">
+                <div>
+                  <p className="text-2xl font-bold text-orange-600">10,000+</p>
+                  <p className="text-sm text-orange-700">Active Savers</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-green-600">$2.5M+</p>
+                  <p className="text-sm text-green-700">Funds Raised</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-purple-600">95%</p>
+                  <p className="text-sm text-purple-700">Success Rate</p>
+                </div>
+              </div>
+              
+              {/* Enhanced Action Buttons */}
+              <div className="space-y-4">
+                <Button 
+                  onClick={() => navigate('/auth?tab=signup')} 
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-orange-500 to-green-500 hover:from-orange-600 hover:to-green-600 text-white font-semibold py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <UserPlus className="mr-3 h-6 w-6" />
+                  Start Saving Today - Sign Up Free
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/auth')} className="w-full">
-                  Log In
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-white px-4 text-gray-500">Already have an account?</span>
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/auth')} 
+                  size="lg"
+                  className="w-full border-2 border-orange-500 text-orange-600 hover:bg-orange-50 font-semibold py-4 text-lg transition-all duration-300"
+                >
+                  Log In to Your Funds
                 </Button>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Already have an account? <button onClick={() => navigate('/auth')} className="text-primary hover:underline">Sign in here</button>
-                </p>
+              
+              {/* Trust Indicators */}
+              <div className="flex justify-center items-center gap-6 text-sm text-gray-500 pt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span>Secure Platform</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <span>NFT Rewards</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                  <span>AI-Powered</span>
+                </div>
               </div>
             </CardContent>
           </Card>
