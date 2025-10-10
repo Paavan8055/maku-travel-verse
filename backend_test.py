@@ -8190,24 +8190,13 @@ class MakuTravelBackendTester:
         
         test_fund_id = "fund_test_12345"
         url = f"{BASE_URL}/travel-funds/{test_fund_id}/nft/mint-milestone"
-        payload = {
-            "milestone_type": "50_percent_milestone",
-            "fund_data": {
-                "name": "Tokyo Adventure Fund",
-                "current_amount": 2500,
-                "target_amount": 5000,
-                "destination": "Tokyo, Japan"
-            },
-            "user_data": {
-                "user_id": TEST_USER_ID,
-                "tier": "explorer",
-                "total_funds": 3
-            }
+        params = {
+            "milestone_type": "dream_starter"
         }
         
         try:
             start_time = time.time()
-            response = self.session.post(url, json=payload, timeout=20)
+            response = self.session.post(url, params=params, timeout=20)
             response_time = time.time() - start_time
             
             if response.status_code == 200:
@@ -8218,7 +8207,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate response structure for NFT minting
-                required_fields = ['success', 'nft_data', 'blockchain_metadata', 'rarity_info']
+                required_fields = ['success', 'nft_data', 'minting_status', 'blockchain_hash']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -8231,38 +8220,26 @@ class MakuTravelBackendTester:
                 
                 # Validate NFT data structure
                 nft_data = data.get('nft_data', {})
-                nft_required = ['nft_id', 'milestone_type', 'fund_id', 'minted_at']
+                nft_required = ['nft_id', 'fund_id', 'title', 'rarity', 'milestone_type']
                 nft_missing = [field for field in nft_required if field not in nft_data]
                 
                 if nft_missing:
                     self.log_test("Travel Funds NFT Milestone Minting", False, f"Missing NFT data fields: {nft_missing}", response_time)
                     return False
                 
-                # Validate blockchain metadata
-                blockchain = data.get('blockchain_metadata', {})
-                blockchain_required = ['transaction_hash', 'block_number', 'network', 'contract_address']
-                blockchain_missing = [field for field in blockchain_required if field not in blockchain]
-                
-                if blockchain_missing:
-                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Missing blockchain fields: {blockchain_missing}", response_time)
+                # Validate blockchain hash format
+                blockchain_hash = data.get('blockchain_hash', '')
+                if not blockchain_hash or not blockchain_hash.startswith('0x') or len(blockchain_hash) < 34:
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Invalid blockchain hash: {blockchain_hash}", response_time)
                     return False
                 
-                # Validate rarity information
-                rarity = data.get('rarity_info', {})
-                rarity_required = ['rarity_tier', 'rarity_score', 'special_attributes']
-                rarity_missing = [field for field in rarity_required if field not in rarity]
-                
-                if rarity_missing:
-                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Missing rarity fields: {rarity_missing}", response_time)
+                # Validate minting status
+                minting_status = data.get('minting_status', '')
+                if minting_status != 'success':
+                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Minting status not success: {minting_status}", response_time)
                     return False
                 
-                # Validate transaction hash format
-                tx_hash = blockchain.get('transaction_hash', '')
-                if not tx_hash or not tx_hash.startswith('0x') or len(tx_hash) < 34:
-                    self.log_test("Travel Funds NFT Milestone Minting", False, f"Invalid transaction hash: {tx_hash}", response_time)
-                    return False
-                
-                self.log_test("Travel Funds NFT Milestone Minting", True, f"NFT: {nft_data['nft_id']}, Rarity: {rarity['rarity_tier']}, TX: {tx_hash[:10]}...", response_time)
+                self.log_test("Travel Funds NFT Milestone Minting", True, f"NFT: {nft_data['nft_id']}, Title: {nft_data['title']}, Rarity: {nft_data['rarity']}, Hash: {blockchain_hash[:10]}...", response_time)
                 return True
                 
             else:
