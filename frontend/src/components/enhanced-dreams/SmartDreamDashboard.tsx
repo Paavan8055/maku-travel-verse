@@ -5,6 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { SmartDreamsFundIntegration } from '@/components/travel-fund/SmartDreamsFundIntegration';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { 
   Heart,
   Users,
@@ -23,7 +26,9 @@ import {
   Target,
   Sparkles,
   TrendingUp,
-  Zap
+  Zap,
+  Coins,
+  PlusCircle
 } from 'lucide-react';
 
 import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
