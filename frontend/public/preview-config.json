@@ -17,5 +17,8 @@
   },
   "current_environment": "emergent",
   "switch_mode": "manual",
-  "last_updated": "2025-10-08T17:28:33.091213+00:00Z"
+  "last_updated": "2025-10-11T01:02:34+11:00",
+  "timezone": "Australia/Sydney",
+  "deployment_ready": true,
+  "deployment_date": "2025-10-11"
 }
