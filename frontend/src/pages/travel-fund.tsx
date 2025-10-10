@@ -393,9 +393,7 @@ const TravelFundPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Simplified Stable Travel Fund Interface */}
+        {/* Main Content - Production Stable Version */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="create">Create Fund</TabsTrigger>
@@ -403,6 +401,16 @@ const TravelFundPage: React.FC = () => {
             <TabsTrigger value="add-money">Add Money</TabsTrigger>
             <TabsTrigger value="join">Join Fund</TabsTrigger>
           </TabsList>
+
+          {/* Create Fund Tab */}
+          <TabsContent value="create" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Create New Travel Fund</CardTitle>
+                <CardDescription>
+                  Set up a collaborative savings goal for your next adventure
+                </CardDescription>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
