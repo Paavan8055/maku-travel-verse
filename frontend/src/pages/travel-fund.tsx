@@ -421,7 +421,7 @@ const TravelFundPage: React.FC = () => {
                       id="fundName"
                       value={fundName}
                       onChange={(e) => setFundName(e.target.value)}
-                      placeholder="e.g., Bali Adventure 2024"
+                      placeholder="e.g., Bali Adventure 2025"
                       className="mt-1"
                     />
                   </div>
