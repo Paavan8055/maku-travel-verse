@@ -49,6 +49,7 @@ function CheckoutInner() {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
+  const { funds, getCheckoutSuggestions } = useEnhancedTravelFunds();
 
   const [guestValid, setGuestValid] = useState(false);
   const [guest, setGuest] = useState<HotelGuestFormData | null>(null);
