@@ -50,7 +50,7 @@ export default function Airdrop() {
       status: 'Ongoing',
       allocation: '1,500,000 tokens',
       participants: '12,300+',
-      endDate: 'December 31, 2024',
+      endDate: 'December 31, 2025',
       eligibility: 'Multi-provider users',
       featured: false
     },
