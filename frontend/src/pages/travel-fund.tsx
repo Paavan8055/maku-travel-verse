@@ -250,14 +250,31 @@ const TravelFundPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          {/* Hero Section for Unauthenticated Users */}
+          {/* Enhanced Hero Section with Stronger Maku Branding */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-orange-500 to-green-500 rounded-full flex items-center justify-center shadow-xl">
+              <Coins className="h-12 w-12 text-white" />
+            </div>
+            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-green-500 bg-clip-text text-transparent">
               Travel Fund Manager
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Create collaborative savings goals, track contributions, and make your dream destinations a reality together.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Create collaborative savings goals, track contributions, and make your dream destinations a reality together with 
+              <span className="font-semibold text-orange-600"> Maku.Travel's</span> intelligent fund management system.
             </p>
+            
+            {/* Enhanced Feature Preview */}
+            <div className="flex justify-center gap-4 mb-8">
+              <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 text-sm font-medium">
+                🏆 NFT Rewards
+              </Badge>
+              <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-4 py-2 text-sm font-medium">
+                🧠 Smart Dreams
+              </Badge>
+              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 text-sm font-medium">
+                ⚡ Smart Bidding
+              </Badge>
+            </div>
           </div>
 
           {/* Preview Benefits */}
