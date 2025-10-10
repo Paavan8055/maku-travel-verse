@@ -8782,6 +8782,11 @@ class MakuTravelBackendTester:
         total_passed = 0
         total_tests = 0
         
+        # Run Travel Fund Manager Integration Tests (NEW - PRIMARY FOCUS)
+        travel_fund_passed, travel_fund_total = self.run_travel_fund_manager_tests()
+        total_passed += travel_fund_passed
+        total_tests += travel_fund_total
+        
         # Run Mem0 Integration Tests (Primary Focus for this review)
         mem0_passed, mem0_total = self.run_mem0_integration_tests()
         total_passed += mem0_passed
