@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { ShareFundDialog } from '@/components/travel-fund/ShareFundDialog';
+import { MakuEnhancedFundCard } from '@/components/travel-fund/MakuEnhancedFundCard';
 import { useToast } from '@/hooks/use-toast';
 import { useTravelFunds } from '@/hooks/useTravelFunds';
 import { travelFundClient } from '@/lib/travelFundClient';
