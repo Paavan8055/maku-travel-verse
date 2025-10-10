@@ -13,6 +13,7 @@ import { ShareFundDialog } from '@/components/travel-fund/ShareFundDialog';
 import { SafeEnhancedFundCard } from '@/components/travel-fund/SafeEnhancedFundCard';
 import { SafeFundGamification } from '@/components/travel-fund/SafeFundGamification';
 import { SafeNFTManager } from '@/components/travel-fund/SafeNFTManager';
+import { TravelFundErrorBoundary, SafeFallbackCard } from '@/components/travel-fund/TravelFundErrorBoundary';
 import { useToast } from '@/hooks/use-toast';
 import { useTravelFunds } from '@/hooks/useTravelFunds';
 import { travelFundClient } from '@/lib/travelFundClient';
