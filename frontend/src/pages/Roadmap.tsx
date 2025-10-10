@@ -283,7 +283,7 @@ const RoadmapPage = () => {
           <Tabs value={selectedYear} onValueChange={setSelectedYear} className="w-full lg:w-auto">
             <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 h-12">
               <TabsTrigger value="all" className="px-6">All Years</TabsTrigger>
-              <TabsTrigger value="2024" className="px-6">2024</TabsTrigger>
+              <TabsTrigger value="2025" className="px-6">2025</TabsTrigger>
               <TabsTrigger value="2025" className="px-6">2025</TabsTrigger>
               <TabsTrigger value="2026" className="px-6">2026</TabsTrigger>
             </TabsList>
