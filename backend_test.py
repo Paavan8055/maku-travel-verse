@@ -8424,20 +8424,9 @@ class MakuTravelBackendTester:
         test_fund_id = "fund_test_12345"
         url = f"{BASE_URL}/travel-funds/{test_fund_id}/bidding/lock"
         payload = {
-            "bid_amount": 1500,
-            "deal_id": "deal_tokyo_hotel_001",
-            "lock_duration": 3600,  # 1 hour in seconds
-            "bidding_context": {
-                "property_type": "hotel",
-                "destination": "Tokyo, Japan",
-                "original_price": 2000,
-                "current_bid": 1600,
-                "bid_deadline": "2024-12-01T15:00:00Z"
-            },
-            "fund_allocation": {
-                "amount_to_lock": 1500,
-                "remaining_balance": 1000
-            }
+            "amount": 1500,
+            "bid_id": "deal_tokyo_hotel_001",
+            "lock_duration": 3600
         }
         
         try:
@@ -8453,7 +8442,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate response structure for bidding fund lock
-                required_fields = ['success', 'lock_data', 'fund_status', 'bidding_details']
+                required_fields = ['success', 'lock_id', 'locked_amount', 'lock_expiry', 'status']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -8464,40 +8453,25 @@ class MakuTravelBackendTester:
                     self.log_test("Travel Funds Bidding Lock", False, f"Lock failed: {data.get('message', 'Unknown error')}", response_time)
                     return False
                 
-                # Validate lock data structure
-                lock_data = data.get('lock_data', {})
-                lock_required = ['lock_id', 'fund_id', 'locked_amount', 'lock_expires_at', 'deal_id']
-                lock_missing = [field for field in lock_required if field not in lock_data]
-                
-                if lock_missing:
-                    self.log_test("Travel Funds Bidding Lock", False, f"Missing lock data fields: {lock_missing}", response_time)
-                    return False
-                
-                # Validate fund status after lock
-                fund_status = data.get('fund_status', {})
-                status_required = ['available_balance', 'locked_balance', 'total_balance', 'lock_count']
-                status_missing = [field for field in status_required if field not in fund_status]
-                
-                if status_missing:
-                    self.log_test("Travel Funds Bidding Lock", False, f"Missing fund status fields: {status_missing}", response_time)
-                    return False
-                
-                # Validate bidding details
-                bidding = data.get('bidding_details', {})
-                bidding_required = ['bid_amount', 'competitive_position', 'estimated_win_probability']
-                bidding_missing = [field for field in bidding_required if field not in bidding]
-                
-                if bidding_missing:
-                    self.log_test("Travel Funds Bidding Lock", False, f"Missing bidding details fields: {bidding_missing}", response_time)
-                    return False
-                
                 # Validate locked amount matches request
-                locked_amount = lock_data.get('locked_amount', 0)
-                if locked_amount != payload['bid_amount']:
-                    self.log_test("Travel Funds Bidding Lock", False, f"Locked amount mismatch: {locked_amount} vs {payload['bid_amount']}", response_time)
+                locked_amount = data.get('locked_amount', 0)
+                if locked_amount != payload['amount']:
+                    self.log_test("Travel Funds Bidding Lock", False, f"Locked amount mismatch: {locked_amount} vs {payload['amount']}", response_time)
                     return False
                 
-                self.log_test("Travel Funds Bidding Lock", True, f"Lock: {lock_data['lock_id']}, Amount: ${locked_amount}, Deal: {lock_data['deal_id']}", response_time)
+                # Validate status is locked
+                status = data.get('status', '')
+                if status != 'locked':
+                    self.log_test("Travel Funds Bidding Lock", False, f"Status not locked: {status}", response_time)
+                    return False
+                
+                # Validate lock_id format (should be UUID)
+                lock_id = data.get('lock_id', '')
+                if not lock_id or len(lock_id) < 32:
+                    self.log_test("Travel Funds Bidding Lock", False, f"Invalid lock_id format: {lock_id}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Bidding Lock", True, f"Lock: {lock_id[:8]}..., Amount: ${locked_amount}, Status: {status}", response_time)
                 return True
                 
             else:
