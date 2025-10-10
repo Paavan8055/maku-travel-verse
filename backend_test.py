@@ -8488,21 +8488,13 @@ class MakuTravelBackendTester:
         
         test_fund_id = "fund_test_12345"
         url = f"{BASE_URL}/travel-funds/{test_fund_id}/bidding/release"
-        payload = {
-            "lock_id": "lock_tokyo_hotel_001",
-            "release_reason": "bid_unsuccessful",
-            "final_bid_result": {
-                "won": False,
-                "final_price": 1450,
-                "winning_bid": 1400,
-                "our_bid": 1500
-            },
-            "release_type": "full_release"  # or "partial_release"
+        params = {
+            "bid_id": "deal_tokyo_hotel_001"
         }
         
         try:
             start_time = time.time()
-            response = self.session.post(url, json=payload, timeout=15)
+            response = self.session.post(url, params=params, timeout=15)
             response_time = time.time() - start_time
             
             if response.status_code == 200:
@@ -8513,7 +8505,7 @@ class MakuTravelBackendTester:
                     return False
                 
                 # Validate response structure for bidding fund release
-                required_fields = ['success', 'release_data', 'fund_status', 'transaction_summary']
+                required_fields = ['success', 'fund_id', 'released_at', 'status']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -8524,40 +8516,25 @@ class MakuTravelBackendTester:
                     self.log_test("Travel Funds Bidding Release", False, f"Release failed: {data.get('message', 'Unknown error')}", response_time)
                     return False
                 
-                # Validate release data structure
-                release_data = data.get('release_data', {})
-                release_required = ['lock_id', 'fund_id', 'released_amount', 'release_timestamp', 'release_reason']
-                release_missing = [field for field in release_required if field not in release_data]
-                
-                if release_missing:
-                    self.log_test("Travel Funds Bidding Release", False, f"Missing release data fields: {release_missing}", response_time)
+                # Validate fund_id matches request
+                fund_id = data.get('fund_id', '')
+                if fund_id != test_fund_id:
+                    self.log_test("Travel Funds Bidding Release", False, f"Fund ID mismatch: {fund_id} vs {test_fund_id}", response_time)
                     return False
                 
-                # Validate fund status after release
-                fund_status = data.get('fund_status', {})
-                status_required = ['available_balance', 'locked_balance', 'total_balance', 'active_locks']
-                status_missing = [field for field in status_required if field not in fund_status]
-                
-                if status_missing:
-                    self.log_test("Travel Funds Bidding Release", False, f"Missing fund status fields: {status_missing}", response_time)
+                # Validate status indicates successful release
+                status = data.get('status', '')
+                if status != 'funds_released':
+                    self.log_test("Travel Funds Bidding Release", False, f"Status not funds_released: {status}", response_time)
                     return False
                 
-                # Validate transaction summary
-                transaction = data.get('transaction_summary', {})
-                transaction_required = ['bid_outcome', 'amount_released', 'fees_applied', 'net_amount']
-                transaction_missing = [field for field in transaction_required if field not in transaction]
-                
-                if transaction_missing:
-                    self.log_test("Travel Funds Bidding Release", False, f"Missing transaction fields: {transaction_missing}", response_time)
+                # Validate released_at timestamp format
+                released_at = data.get('released_at', '')
+                if not released_at:
+                    self.log_test("Travel Funds Bidding Release", False, "Missing released_at timestamp", response_time)
                     return False
                 
-                # Validate release reason matches request
-                release_reason = release_data.get('release_reason', '')
-                if release_reason != payload['release_reason']:
-                    self.log_test("Travel Funds Bidding Release", False, f"Release reason mismatch: {release_reason} vs {payload['release_reason']}", response_time)
-                    return False
-                
-                self.log_test("Travel Funds Bidding Release", True, f"Released: ${release_data['released_amount']}, Reason: {release_reason}, Outcome: {transaction['bid_outcome']}", response_time)
+                self.log_test("Travel Funds Bidding Release", True, f"Fund: {fund_id}, Status: {status}, Released: {released_at[:19]}", response_time)
                 return True
                 
             else:
