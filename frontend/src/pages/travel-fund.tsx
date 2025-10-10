@@ -26,7 +26,15 @@ const TravelFundPage: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { funds, loading, createFund, refetch } = useTravelFunds();
-  const [activeTab, setActiveTab] = useState('create');
+  const { 
+    enhancedStats, 
+    integrationData, 
+    createFundFromDream,
+    mintMilestoneNFT,
+    getCheckoutSuggestions 
+  } = useEnhancedTravelFunds();
+  
+  const [activeTab, setActiveTab] = useState('overview');
   
   // Form states
   const [fundName, setFundName] = useState('');
