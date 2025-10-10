@@ -393,18 +393,11 @@ const TravelFundPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Enhanced Travel Fund Interface */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="create">
-              <PlusCircle className="h-4 w-4 mr-1" />
-              Create Fund
-            </TabsTrigger>
-            <TabsTrigger value="existing">My Funds</TabsTrigger>
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="create">Create Fund</TabsTrigger>
+            <TabsTrigger value="existing">My Funds ({funds.length})</TabsTrigger>
             <TabsTrigger value="add-money">Add Money</TabsTrigger>
             <TabsTrigger value="join">Join Fund</TabsTrigger>
           </TabsList>
