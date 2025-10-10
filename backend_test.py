@@ -8269,59 +8269,74 @@ class MakuTravelBackendTester:
                     self.log_test("Travel Funds Integration Status", False, f"API Error: {data['error']}", response_time)
                     return False
                 
-                # Validate response structure for complete integration status
-                required_fields = ['fund_id', 'smart_dreams_integration', 'nft_integration', 'bidding_integration', 'checkout_integration']
+                # Validate response structure for integration status
+                required_fields = ['fund_id', 'integrations', 'overall_integration_score', 'status']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
                     self.log_test("Travel Funds Integration Status", False, f"Missing fields: {missing_fields}", response_time)
                     return False
                 
-                # Validate Smart Dreams integration status
-                smart_dreams = data.get('smart_dreams_integration', {})
-                dreams_required = ['connected', 'ai_recommendations_active', 'dream_sync_status']
+                # Validate integrations structure
+                integrations = data.get('integrations', {})
+                integration_required = ['smart_dreams', 'checkout_system', 'nft_rewards', 'bidding_system', 'gamification']
+                integration_missing = [field for field in integration_required if field not in integrations]
+                
+                if integration_missing:
+                    self.log_test("Travel Funds Integration Status", False, f"Missing integration types: {integration_missing}", response_time)
+                    return False
+                
+                # Validate Smart Dreams integration
+                smart_dreams = integrations.get('smart_dreams', {})
+                dreams_required = ['connected', 'ai_budget_analysis']
                 dreams_missing = [field for field in dreams_required if field not in smart_dreams]
                 
                 if dreams_missing:
-                    self.log_test("Travel Funds Integration Status", False, f"Missing Smart Dreams integration fields: {dreams_missing}", response_time)
+                    self.log_test("Travel Funds Integration Status", False, f"Missing Smart Dreams fields: {dreams_missing}", response_time)
                     return False
                 
-                # Validate NFT integration status
-                nft_integration = data.get('nft_integration', {})
-                nft_required = ['milestone_tracking', 'auto_minting_enabled', 'nft_count', 'next_milestone']
-                nft_missing = [field for field in nft_required if field not in nft_integration]
+                # Validate NFT rewards integration
+                nft_rewards = integrations.get('nft_rewards', {})
+                nft_required = ['enabled', 'milestones_earned', 'available_rewards']
+                nft_missing = [field for field in nft_required if field not in nft_rewards]
                 
                 if nft_missing:
-                    self.log_test("Travel Funds Integration Status", False, f"Missing NFT integration fields: {nft_missing}", response_time)
+                    self.log_test("Travel Funds Integration Status", False, f"Missing NFT rewards fields: {nft_missing}", response_time)
                     return False
                 
-                # Validate bidding integration status
-                bidding = data.get('bidding_integration', {})
-                bidding_required = ['bidding_enabled', 'locked_amount', 'active_bids', 'bid_history_count']
+                # Validate bidding system integration
+                bidding = integrations.get('bidding_system', {})
+                bidding_required = ['bidding_enabled', 'current_locks', 'successful_bids']
                 bidding_missing = [field for field in bidding_required if field not in bidding]
                 
                 if bidding_missing:
-                    self.log_test("Travel Funds Integration Status", False, f"Missing bidding integration fields: {bidding_missing}", response_time)
+                    self.log_test("Travel Funds Integration Status", False, f"Missing bidding system fields: {bidding_missing}", response_time)
                     return False
                 
-                # Validate checkout integration status
-                checkout = data.get('checkout_integration', {})
-                checkout_required = ['payment_method_active', 'smart_suggestions_enabled', 'usage_count']
+                # Validate checkout system integration
+                checkout = integrations.get('checkout_system', {})
+                checkout_required = ['available_for_payments', 'recent_usage_count']
                 checkout_missing = [field for field in checkout_required if field not in checkout]
                 
                 if checkout_missing:
-                    self.log_test("Travel Funds Integration Status", False, f"Missing checkout integration fields: {checkout_missing}", response_time)
+                    self.log_test("Travel Funds Integration Status", False, f"Missing checkout system fields: {checkout_missing}", response_time)
                     return False
                 
                 # Count active integrations
                 active_integrations = sum([
                     smart_dreams.get('connected', False),
-                    nft_integration.get('milestone_tracking', False),
+                    nft_rewards.get('enabled', False),
                     bidding.get('bidding_enabled', False),
-                    checkout.get('payment_method_active', False)
+                    checkout.get('available_for_payments', False)
                 ])
                 
-                self.log_test("Travel Funds Integration Status", True, f"Fund: {data['fund_id']}, Active integrations: {active_integrations}/4, NFTs: {nft_integration['nft_count']}", response_time)
+                # Validate overall integration score
+                overall_score = data.get('overall_integration_score', 0)
+                if not isinstance(overall_score, (int, float)) or overall_score < 0 or overall_score > 100:
+                    self.log_test("Travel Funds Integration Status", False, f"Invalid integration score: {overall_score}", response_time)
+                    return False
+                
+                self.log_test("Travel Funds Integration Status", True, f"Fund: {data['fund_id']}, Active: {active_integrations}/4, Score: {overall_score}%, NFT Milestones: {nft_rewards['milestones_earned']}", response_time)
                 return True
                 
             else:
