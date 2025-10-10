@@ -128,7 +128,7 @@ const HotelsPage = () => {
               images: photos.length > 0 ? photos : (hotel.images || []),
               amenities: hotel.amenities || [],
               distance: hotel.distance || null,
-              source: hotel.source || 'unified' || 'unknown',
+              source: hotel.source ?? 'unified',
               searchId
             };
           }));

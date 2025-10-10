@@ -141,7 +141,7 @@ export const VoiceSearchInterface: React.FC<VoiceSearchInterfaceProps> = ({
       if (toMatch) parameters.destination = toMatch[1].trim();
       
       // Extract dates
-      const dateMatch = lowercaseInput.match(/\b(today|tomorrow|next week|this weekend|\d{1,2}[\/\-]\d{1,2})\b/);
+      const dateMatch = lowercaseInput.match(/\b(today|tomorrow|next week|this weekend|\d{1,2}[/-]\d{1,2})\b/);
       if (dateMatch) parameters.departureDate = dateMatch[1];
     }
     

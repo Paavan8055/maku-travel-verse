@@ -13,7 +13,7 @@ const mockBooking = {
   booking_type: 'hotel'
 };
 
-var invokeMock: any;
+let invokeMock: ReturnType<typeof vi.fn>;
 
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }));
 

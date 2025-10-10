@@ -189,7 +189,7 @@ export const injectSEOMetadata = (metadata: SEOMetadata) => {
 
   // Schema.org structured data
   if (metadata.schemaOrg) {
-    let schemaScript = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement;
+    const schemaScript = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement;
     if (schemaScript) {
       schemaScript.textContent = JSON.stringify(metadata.schemaOrg);
     } else {

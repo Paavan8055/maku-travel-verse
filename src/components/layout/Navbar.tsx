@@ -17,8 +17,11 @@ export const Navbar: React.FC = () => {
   ) || location.pathname.startsWith('/search');
   
   // Only call provider health hook when on search routes
-  const providerHealthHook = isSearchRoute ? useProviderHealth() : null;
-  const { providerHealth = [], isLoading = false, getOverallHealth = () => 'unknown' } = providerHealthHook || {};
+  const {
+    providerHealth = [],
+    isLoading = false,
+    getOverallHealth = () => 'unknown',
+  } = useProviderHealth({ enabled: isSearchRoute });
 
   const navigationItems = [
     { path: '/flights', label: 'Flights', icon: Plane },

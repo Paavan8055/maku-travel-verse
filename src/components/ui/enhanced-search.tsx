@@ -185,7 +185,7 @@ export function EnhancedSearch<T extends Record<string, any>>({
   };
 
   const resultsCount = useMemo(() => {
-    let count = data.length;
+    const count = data.length;
     if (searchQuery.trim() || activeFilters.length > 0) {
       // This would be calculated in processData, but for display we'll estimate
       return count;

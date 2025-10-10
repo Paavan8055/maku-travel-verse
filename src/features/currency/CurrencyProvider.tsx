@@ -47,7 +47,7 @@ function detectCurrency(): string {
   }
 }
 
-export const CurrencyProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const CurrencyProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [selectedCurrency, setSelectedCurrency] = useState<string>(detectCurrency());
   const [rates, setRates] = useState<Rates>({ USD: 1 });
 

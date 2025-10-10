@@ -9,9 +9,29 @@ interface ProviderHealth {
   errorCount: number;
 }
 
-export const useProviderHealth = () => {
+interface UseProviderHealthOptions {
+  enabled?: boolean;
+}
+
+export const useProviderHealth = (options: UseProviderHealthOptions = {}) => {
   const [providerHealth, setProviderHealth] = useState<ProviderHealth[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { enabled = true } = options;
+
+  const getHealthStatus = (
+    status: string | null | undefined,
+    responseTime: number | null | undefined,
+    errorCount: number | null | undefined
+  ): 'healthy' | 'degraded' | 'unhealthy' | 'unknown' => {
+    const safeStatus = status || 'unknown';
+    const safeResponseTime = responseTime || 0;
+    const safeErrorCount = errorCount || 0;
+
+    if (safeStatus === 'unhealthy' || safeErrorCount > 5) return 'unhealthy';
+    if (safeResponseTime > 5000 || safeErrorCount > 2) return 'degraded';
+    if (safeStatus === 'healthy' && safeResponseTime < 3000) return 'healthy';
+    return 'unknown';
+  };
 
   const fetchProviderHealth = async () => {
     try {
@@ -45,21 +65,6 @@ export const useProviderHealth = () => {
     }
   };
 
-  const getHealthStatus = (
-    status: string | null | undefined, 
-    responseTime: number | null | undefined, 
-    errorCount: number | null | undefined
-  ): 'healthy' | 'degraded' | 'unhealthy' | 'unknown' => {
-    const safeStatus = status || 'unknown';
-    const safeResponseTime = responseTime || 0;
-    const safeErrorCount = errorCount || 0;
-    
-    if (safeStatus === 'unhealthy' || safeErrorCount > 5) return 'unhealthy';
-    if (safeResponseTime > 5000 || safeErrorCount > 2) return 'degraded';
-    if (safeStatus === 'healthy' && safeResponseTime < 3000) return 'healthy';
-    return 'unknown';
-  };
-
   const getProvidersByType = (searchType: 'flight' | 'hotel' | 'activity') => {
     const providerMap = {
       flight: ['sabre-flight', 'amadeus-flight'],
@@ -84,13 +89,20 @@ export const useProviderHealth = () => {
   };
 
   useEffect(() => {
+    if (!enabled) {
+      setProviderHealth([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     fetchProviderHealth();
-    
+
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchProviderHealth, 30000);
-    
+
     return () => clearInterval(interval);
-  }, []);
+  }, [enabled]);
 
   return {
     providerHealth,

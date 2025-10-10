@@ -172,7 +172,7 @@ export class IntelligentRouter {
 
   private async scoreAgent(agent: SimpleAgent, context: TaskContext, type: 'gpt_bot' | 'internal_agent') {
     let score = 0;
-    let reasoning = [];
+    const reasoning: string[] = [];
 
     // Performance score (40%)
     const successRate = type === 'gpt_bot' ? 0.95 : 0.98;

@@ -244,7 +244,9 @@ export const AgentTestingSuite: React.FC = () => {
                     onChange={(e) => {
                       try {
                         setNewTest(prev => ({ ...prev, params: JSON.parse(e.target.value) }));
-                      } catch {}
+                      } catch (error) {
+                        console.error("Invalid JSON provided for test parameters", error);
+                      }
                     }}
                     placeholder="{}"
                   />

@@ -100,7 +100,7 @@ export class ContextManager {
 
   async getConversationContext(contextId: string): Promise<ConversationContext | null> {
     // Check memory first
-    let context = this.conversationContexts.get(contextId);
+    const context = this.conversationContexts.get(contextId);
     
     // Use memory-only storage for now
     // if (!context) {
