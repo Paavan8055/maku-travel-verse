@@ -68,6 +68,9 @@ export const SmartDreamDashboard: React.FC = () => {
   const [excitementLevel, setExcitementLevel] = useState(85);
   const [journeyName, setJourneyName] = useState('');
   const [aiEnabled, setAiEnabled] = useState(true);
+  const [showFundCreation, setShowFundCreation] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const {
     destinations,
