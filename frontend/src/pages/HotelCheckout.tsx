@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { ChevronLeft, Shield, AlertCircle } from "lucide-react";
+import { ChevronLeft, Shield, AlertCircle, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -10,7 +10,9 @@ import Navbar from "@/components/Navbar";
 import HotelGuestForm, { HotelGuestFormData } from "@/features/booking/components/HotelGuestForm";
 import { BookingProgressIndicator } from "@/components/booking/BookingProgressIndicator";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { EnhancedCheckoutIntegration } from "@/components/travel-fund/EnhancedCheckoutIntegration";
 import { useToast } from "@/hooks/use-toast";
+import { useEnhancedTravelFunds } from "@/hooks/useEnhancedTravelFunds";
 import { supabase } from "@/integrations/supabase/client";
 import logger from "@/utils/logger";
 
