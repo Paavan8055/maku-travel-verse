@@ -5376,6 +5376,7 @@ app.include_router(nft_router)
 app.include_router(admin_nft_router)
 app.include_router(unified_ai_router)
 app.include_router(optimized_ai_router)
+app.include_router(offseason_router)  # Off-Season Occupancy Engine
 
 app.add_middleware(
     CORSMiddleware,
