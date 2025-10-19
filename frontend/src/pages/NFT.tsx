@@ -212,7 +212,7 @@ export default function NFT() {
               NFT rewards, givebacks, bonuses & more
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Save up to 25% on every travel booking. Plus, build a valuable NFT collection that grows with your adventures.
+              Save up to 10% MAKU cashback on every travel booking (Platinum tier). Plus, build a valuable NFT collection that grows with your adventures.
             </p>
           </div>
 
