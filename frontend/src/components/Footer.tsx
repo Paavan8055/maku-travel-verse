@@ -211,6 +211,21 @@ return <footer className="bg-primary text-primary-foreground">
               </ul>
             </div>
 
+            {/* Rewards - New Section */}
+            <div className="relative">
+              <h4 className="font-semibold text-lg mb-4 bg-gradient-to-r from-green-200 to-orange-200 bg-clip-text text-transparent">Rewards</h4>
+              <ul className="space-y-3">
+                {footerLinks.rewards.map(link => (
+                  <li key={link.name}>
+                    <Link to={link.href} className="story-link text-primary-foreground/80 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2 group">
+                      <link.icon className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {/* Smart Travel - New Section */}
             <div className="relative">
               <h4 className="font-semibold text-lg mb-4 bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">Smart Travel</h4>
