@@ -160,6 +160,7 @@ const App = () => (
                                         <Route path="/about" element={<About />} />
                                         <Route path="/nft" element={<NFT />} />
                                         <Route path="/blockchain" element={<BlockchainPage />} />
+                                        <Route path="/collaborative-planning" element={<CollaborativePlanningPage />} />
                                         <Route path="/airdrop" element={<Airdrop />} />
                                         <Route path="/careers" element={<Careers />} />
                                         <Route path="/press" element={<Press />} />
