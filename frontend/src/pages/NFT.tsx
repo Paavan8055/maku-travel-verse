@@ -404,7 +404,7 @@ export default function NFT() {
                       <div className="flex justify-between text-sm border-l-4 border-green-500 pl-4">
                         <span className="flex items-center text-green-700">
                           <Star className="w-4 h-4 mr-2" />
-                          Explorer Member Discount
+                          Silver Member Cashback
                         </span>
                         <span className="font-semibold text-green-600">-$100.00</span>
                       </div>
