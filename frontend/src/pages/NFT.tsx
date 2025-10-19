@@ -192,8 +192,8 @@ export default function NFT() {
                 <div className="text-sm text-orange-100 font-medium">NFT Collectors</div>
               </div>
               <div>
-                <div className="text-3xl md:text-4xl font-bold text-yellow-300">Up to 25%</div>
-                <div className="text-sm text-orange-100 font-medium">Rewards Back</div>
+                <div className="text-3xl md:text-4xl font-bold text-purple-300">Up to 10%</div>
+                <div className="text-sm text-orange-100 font-medium">MAKU Cashback</div>
               </div>
               <div>
                 <div className="text-3xl md:text-4xl font-bold text-yellow-300">4</div>
