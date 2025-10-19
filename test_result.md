@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Enhanced Maku.Travel platform transformation: (1) Fix Smart Dreams AI DNA loading for fast results, (2) Ensure Achievements accuracy (no duplicates/placeholders), (3) UI/UX consistency (white backgrounds, visible fonts), (4) Collaborative planning feature, (5) MAKU token rewards with 1-10% cashback calculator, (6) NFT tiered rewards (Bronze 1%, Silver 3%, Gold 6%, Platinum 10%) with VIP perks (invitation-only stays, Free Hugging Face LLM). Blockchain integration (Polygon), wallet (MetaMask), and monetization strategy implementation."
+user_problem_statement: "MAKU.Travel Off-Season Occupancy Engine ('Zero Empty Beds') - Implement complete off-season booking system with partner campaigns, Smart Dreams integration, LAXMI wallet, yield optimizer, and admin dashboards. User confirmed: (1) Use existing Supabase credentials from environment, (2) Implement all phases sequentially, (3) Test backend connectivity after schema creation, (4) Audit existing codebase first for overlaps. Previous work: Enhanced Maku.Travel platform with Smart Dreams AI, Achievements, UI/UX consistency, Collaborative planning, MAKU token rewards (1-10% cashback calculator), NFT tiered rewards (Bronze 1%, Silver 3%, Gold 6%, Platinum 10%), Blockchain integration (Polygon), wallet (MetaMask)."
 
 backend:
   - task: "Phase 1.1: Smart Dreams AI Performance Optimization"
