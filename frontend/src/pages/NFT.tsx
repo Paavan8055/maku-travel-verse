@@ -27,19 +27,22 @@ import {
 } from 'lucide-react';
 
 export default function NFT() {
-  const [selectedTier, setSelectedTier] = useState('explorer');
+  const [selectedTier, setSelectedTier] = useState('silver');
 
   const tierComparison = [
     {
-      id: 'wanderer',
-      name: 'Wanderer',
+      id: 'bronze',
+      name: 'Bronze',
       icon: <MapPin className="w-6 h-6" />,
       price: 'FREE',
+      priceNumeric: 0,
       description: 'Start your journey',
+      cashback: '1%',
+      bookingsRequired: 1,
       benefits: [
+        { name: 'MAKU Cashback', value: '1% on all bookings', included: true },
         { name: 'Travel NFTs', value: 'Basic collection', included: true },
-        { name: 'Platform Credits', value: '5% back', included: true },
-        { name: 'Airdrop Eligibility', value: 'Standard rate', included: true },
+        { name: 'Airdrop Eligibility', value: 'Standard rate (1x)', included: true },
         { name: 'Provider Bonuses', value: 'Base rates', included: true },
         { name: 'Priority Support', value: 'Standard', included: false },
         { name: 'Exclusive NFTs', value: 'Rare collections', included: false },
@@ -47,17 +50,20 @@ export default function NFT() {
       ],
       highlight: false,
       buttonText: 'Start Free',
-      gradient: 'from-gray-100 to-gray-200'
+      gradient: 'from-amber-100 to-amber-200'
     },
     {
-      id: 'explorer',
-      name: 'Explorer',
+      id: 'silver',
+      name: 'Silver',
       icon: <Star className="w-6 h-6" />,
-      price: '200+ points',
+      price: '$99',
+      priceNumeric: 99,
       description: 'Popular choice',
+      cashback: '3%',
+      bookingsRequired: 10,
       benefits: [
+        { name: 'MAKU Cashback', value: '3% on all bookings', included: true },
         { name: 'Travel NFTs', value: 'Enhanced collection', included: true },
-        { name: 'Platform Credits', value: '10% back', included: true },
         { name: 'Airdrop Eligibility', value: '1.5x multiplier', included: true },
         { name: 'Provider Bonuses', value: 'All providers', included: true },
         { name: 'Priority Support', value: '24/7 chat', included: true },
@@ -66,45 +72,51 @@ export default function NFT() {
       ],
       highlight: true,
       buttonText: 'Most Popular',
-      gradient: 'from-blue-100 to-cyan-200'
+      gradient: 'from-slate-100 to-slate-200'
     },
     {
-      id: 'adventurer',
-      name: 'Adventurer',
+      id: 'gold',
+      name: 'Gold',
       icon: <Trophy className="w-6 h-6" />,
-      price: '500+ points',
+      price: '$299',
+      priceNumeric: 299,
       description: 'For frequent travelers',
+      cashback: '6%',
+      bookingsRequired: 50,
       benefits: [
+        { name: 'MAKU Cashback', value: '6% on all bookings', included: true },
         { name: 'Travel NFTs', value: 'Premium collection', included: true },
-        { name: 'Platform Credits', value: '15% back', included: true },
         { name: 'Airdrop Eligibility', value: '2x multiplier', included: true },
         { name: 'Provider Bonuses', value: 'Enhanced rates', included: true },
         { name: 'Priority Support', value: 'Phone + chat', included: true },
         { name: 'Exclusive NFTs', value: 'Epic collection', included: true },
-        { name: 'VIP Access', value: 'Early features', included: false }
+        { name: 'VIP Access', value: 'Early features', included: true }
       ],
       highlight: false,
       buttonText: 'Level Up',
-      gradient: 'from-purple-100 to-pink-200'
+      gradient: 'from-yellow-100 to-yellow-200'
     },
     {
-      id: 'legend',
-      name: 'Legend',
+      id: 'platinum',
+      name: 'Platinum',
       icon: <Crown className="w-6 h-6" />,
-      price: '1000+ points',
+      price: '$999',
+      priceNumeric: 999,
       description: 'Ultimate rewards',
+      cashback: '10%',
+      bookingsRequired: 100,
       benefits: [
+        { name: 'MAKU Cashback', value: '10% on all bookings', included: true },
         { name: 'Travel NFTs', value: 'Legendary collection', included: true },
-        { name: 'Platform Credits', value: '25% back', included: true },
         { name: 'Airdrop Eligibility', value: '2.5x multiplier', included: true },
         { name: 'Provider Bonuses', value: 'Maximum rates', included: true },
         { name: 'Priority Support', value: 'Dedicated agent', included: true },
         { name: 'Exclusive NFTs', value: 'All collections', included: true },
-        { name: 'VIP Access', value: 'Full platform', included: true }
+        { name: 'VIP Access', value: 'Invitation-only stays + Free Hugging Face LLM', included: true }
       ],
       highlight: false,
       buttonText: 'Exclusive',
-      gradient: 'from-yellow-100 to-orange-200'
+      gradient: 'from-purple-100 to-purple-200'
     }
   ];
 
