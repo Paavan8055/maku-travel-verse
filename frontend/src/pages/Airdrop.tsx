@@ -203,7 +203,7 @@ export default function Airdrop() {
                 </div>
                 <Progress value={userProgress.progress} className="h-3 bg-white/20" />
                 <p className="text-center text-green-100 mt-2">
-                  {userProgress.nextTierPoints - userProgress.points} points to Adventurer tier
+                  {userProgress.nextTierPoints - userProgress.points} points to Gold tier
                 </p>
               </CardContent>
             </Card>
