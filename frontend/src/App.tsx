@@ -214,6 +214,16 @@ const App = () => (
                                         <Route path="/ai-intelligence" element={<AIIntelligenceHub />} />
                                         <Route path="/ai-demo" element={<AIDemoPage />} />
                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
+                                        
+                                        {/* Off-Season Occupancy Engine Routes (Feature Flagged) */}
+                                        {import.meta.env.VITE_OFFSEASON_FEATURES === 'true' && (
+                                          <>
+                                            <Route path="/offseason-partners" element={<OffseasonPartnersPage />} />
+                                            <Route path="/dashboard/partners" element={<OffseasonPartnerDashboardPage />} />
+                                            <Route path="/admin/offseason" element={<OffseasonAdminDashboardPage />} />
+                                          </>
+                                        )}
+                                        
                                         <Route path="/admin" element={<AdminAuth />} />
                                        <Route path="/admin/*" element={
                                          <AdminGuard>
