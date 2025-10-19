@@ -122,21 +122,21 @@ export default function NFT() {
 
   const testimonials = [
     {
-      quote: "I've earned over $2,400 in NFT rewards from my bookings this year. The Expedia integration alone saved me 15% on my Maldives trip!",
+      quote: "I've earned over $2,400 in MAKU cashback from my bookings this year. The 10% Platinum tier cashback on my Maldives trip was incredible!",
       author: "Sarah M.",
-      tier: "Legend Member",
+      tier: "Platinum Member",
       avatar: "/api/placeholder/64/64"
     },
     {
-      quote: "The multi-provider system is genius. I get rewards whether I book through Amadeus for business trips or Viator for weekend activities.",
+      quote: "The 6% Gold tier cashback is genius. I get amazing rewards whether I book through Expedia for business trips or Viator for weekend activities.",
       author: "Michael R.", 
-      tier: "Adventurer Member",
+      tier: "Gold Member",
       avatar: "/api/placeholder/64/64"
     },
     {
-      quote: "Started as a Wanderer, now I'm an Explorer with 15 unique travel NFTs. Each one represents an amazing memory and earns ongoing rewards.",
+      quote: "Started as Bronze, now I'm Silver with 15 unique travel NFTs. The 3% cashback on every booking adds up fast and each NFT represents an amazing memory!",
       author: "Emma L.",
-      tier: "Explorer Member", 
+      tier: "Silver Member", 
       avatar: "/api/placeholder/64/64"
     }
   ];
