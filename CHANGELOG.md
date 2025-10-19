@@ -1,5 +1,74 @@
 # CHANGELOG.md
 
+## [v0.1.0-offseason] - 2025-01-08
+
+### 🎯 Added - Off-Season Occupancy Engine ("Zero Empty Beds" Initiative)
+
+#### Phase 1: Database Schema + RLS + Documentation
+
+**New Supabase Migration**: `20250101000000_offseason_occupancy_engine.sql`
+- **Extended existing `partners` table** (no duplication) with off-season specific columns:
+  - `offseason_enabled` (BOOLEAN): Partner participation flag
+  - `offseason_allocation` (JSONB): Min/max room allocation + seasonal windows
+  - `offseason_discount_range` (JSONB): Configurable discount ranges
+  - `blackout_dates` (JSONB): Excluded dates within campaigns
+  - Index: `idx_partners_offseason_enabled` for performance
+
+- **Created 5 new tables**:
+  1. `offseason_campaigns`: Partner-defined inventory windows with date ranges, allocations, discounts, audience targeting
+  2. `dream_intents`: User travel desires with destination, budget, preferences, flexible dates
+  3. `wallet_accounts`: LAXMI wallet system (separate from blockchain wallet) with tier management
+  4. `wallet_txns`: Transaction ledger for wallet operations with balance snapshots
+  5. `deal_candidates`: AI-scored matches between dreams and campaigns (0-100 scoring)
+
+- **Created RPC function**: `get_offseason_deals(user_uuid)` returning top 10 scored deals
+- **Implemented comprehensive RLS policies**: Partner-scoped access, user privacy, admin overrides
+- **Created 15+ indexes**: Optimized for date ranges, status queries, GIN on array columns
+- **Added auto-update triggers**: Automated `updated_at` timestamps on all tables
+
+**Complete Documentation**: `/app/docs/offseason.md` (800+ lines)
+- Data model with table relationships and ERD
+- API endpoint specifications (9 REST endpoints)
+- Feature flag usage (`OFFSEASON_FEATURES`)
+- Manual deployment runbook (Supabase → Railway → Netlify)
+- KPI snapshot metrics (6 primary KPIs: occupancy uplift, rooms filled, wallet activations, revenue, avg discount, dream match rate)
+- Yield optimizer v1 logic with scoring formula breakdown
+- Email templates (3 notification types)
+- Security considerations and RLS policy documentation
+- Testing strategy (schema, backend, frontend)
+
+**Connectivity Test**: `/app/test_supabase_connectivity.py`
+- Validates Supabase connection
+- Checks table existence post-migration
+- Tests RPC function availability
+- Auto-loads environment variables from backend/.env
+
+#### Architecture Decisions
+1. **No Duplication**: Extended existing `partners` table instead of creating new partner management
+2. **Separation of Concerns**: LAXMI wallet (`wallet_accounts`) separate from blockchain wallet (`user_wallets`)
+3. **Backward Compatible**: All new features behind feature flag, no breaking changes to existing booking flows
+4. **Performance First**: Strategic indexes on high-query columns (dates, status, tags)
+5. **Security by Default**: RLS policies enforce partner/user data isolation
+
+#### Next Steps (Pending)
+- **Phase 2**: Backend FastAPI endpoints (9 API routes)
+- **Phase 3**: Frontend React components (3 pages, feature-flagged)
+- **Phase 4**: Yield optimizer implementation (scoring algorithm)
+- **Phase 5**: Email nudges + admin KPI dashboard
+
+#### Environment Requirements
+```bash
+# Backend .env
+SUPABASE_URL=https://iomeddeasarntjhqzndu.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<update_with_valid_key>
+OFFSEASON_FEATURES=true  # Enable for staging
+
+# Frontend .env
+VITE_OFFSEASON_FEATURES=true  # Enable for staging
+```
+
+---
+
 ## [Unreleased] - 2025-01-08
 
 ### Removed
