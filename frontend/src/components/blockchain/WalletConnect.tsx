@@ -235,32 +235,32 @@ export const WalletConnect: React.FC = () => {
 
   if (!connected) {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="w-6 h-6 text-orange-500" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
             Connect Your Wallet
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 leading-relaxed">
             Connect your wallet to access MAKU token rewards, NFT memberships, and cashback features.
           </p>
           
           {!isMetaMaskInstalled() && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-yellow-900">MetaMask Required</p>
+                  <p className="text-sm font-medium text-yellow-900">Optional: MetaMask</p>
                   <p className="text-xs text-yellow-700 mt-1">
-                    Please install MetaMask browser extension to continue.
+                    You can use a mock wallet for testing, or install MetaMask for real blockchain connection.
                   </p>
                   <a 
                     href="https://metamask.io/download/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-xs text-orange-600 hover:text-orange-700 mt-2 inline-flex items-center gap-1"
+                    className="text-xs text-orange-600 hover:text-orange-700 mt-2 inline-flex items-center gap-1 font-medium"
                   >
                     Download MetaMask <ExternalLink className="w-3 h-3" />
                   </a>
@@ -271,8 +271,8 @@ export const WalletConnect: React.FC = () => {
 
           <Button 
             onClick={connectWallet}
-            disabled={connecting || !isMetaMaskInstalled()}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+            disabled={connecting}
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-6 text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             {connecting ? (
               <>
@@ -282,7 +282,7 @@ export const WalletConnect: React.FC = () => {
             ) : (
               <>
                 <Wallet className="w-4 h-4 mr-2" />
-                Connect MetaMask
+                {isMetaMaskInstalled() ? 'Connect Wallet' : 'Use Mock Wallet'}
               </>
             )}
           </Button>
