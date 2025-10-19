@@ -103,41 +103,45 @@ export default function Airdrop() {
 
   const tierBenefits = [
     {
-      tier: 'Wanderer',
+      tier: 'Bronze',
       icon: <Target className="w-8 h-8" />,
       points: '0-199',
       multiplier: '1.0x',
-      benefits: ['Basic airdrop eligibility', '5% platform credits', 'Standard NFT access'],
-      color: 'from-gray-100 to-gray-200',
-      textColor: 'text-gray-700'
+      cashback: '1%',
+      benefits: ['Basic airdrop eligibility', '1% MAKU cashback', 'Standard NFT access', 'FREE membership'],
+      color: 'from-amber-100 to-amber-200',
+      textColor: 'text-amber-700'
     },
     {
-      tier: 'Explorer',
+      tier: 'Silver',
       icon: <Star className="w-8 h-8" />,
       points: '200-499',
       multiplier: '1.5x',
-      benefits: ['Enhanced airdrop weight', '10% platform credits', 'Rare NFT access', 'Priority support'],
-      color: 'from-blue-100 to-cyan-200',
-      textColor: 'text-blue-800',
+      cashback: '3%',
+      benefits: ['Enhanced airdrop weight', '3% MAKU cashback', 'Rare NFT access', 'Priority support'],
+      color: 'from-slate-100 to-slate-200',
+      textColor: 'text-slate-800',
       current: true
     },
     {
-      tier: 'Adventurer',
+      tier: 'Gold',
       icon: <Trophy className="w-8 h-8" />,
       points: '500-999', 
       multiplier: '2.0x',
-      benefits: ['High airdrop multiplier', '15% platform credits', 'Epic NFT access', 'Exclusive offers'],
-      color: 'from-purple-100 to-pink-200',
-      textColor: 'text-purple-800'
+      cashback: '6%',
+      benefits: ['High airdrop multiplier', '6% MAKU cashback', 'Epic NFT access', 'Exclusive offers'],
+      color: 'from-yellow-100 to-yellow-200',
+      textColor: 'text-yellow-800'
     },
     {
-      tier: 'Legend',
+      tier: 'Platinum',
       icon: <Crown className="w-8 h-8" />,
       points: '1000+',
       multiplier: '2.5x',
-      benefits: ['Maximum airdrop allocation', '25% platform credits', 'Legendary NFT access', 'VIP treatment'],
-      color: 'from-yellow-100 to-orange-200',
-      textColor: 'text-orange-800'
+      cashback: '10%',
+      benefits: ['Maximum airdrop allocation', '10% MAKU cashback', 'Legendary NFT access', 'VIP treatment + Free Hugging Face LLM'],
+      color: 'from-purple-100 to-purple-200',
+      textColor: 'text-purple-800'
     }
   ];
 
