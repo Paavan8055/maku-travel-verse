@@ -340,13 +340,13 @@ export const WalletConnect: React.FC = () => {
             </div>
 
             {/* Balances */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2 mb-2">
-                  <Coins className="w-5 h-5 text-orange-600" />
+                  <Coins className="w-5 h-5 text-orange-600 flex-shrink-0" />
                   <span className="text-sm font-medium text-orange-900">MAKU Balance</span>
                 </div>
-                <p className="text-2xl font-bold text-orange-700">
+                <p className="text-2xl sm:text-3xl font-bold text-orange-700">
                   {walletData.wallet.maku_balance.toFixed(2)}
                 </p>
                 <p className="text-xs text-orange-600 mt-1">
@@ -354,12 +354,12 @@ export const WalletConnect: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+              <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2 mb-2">
-                  <Wallet className="w-5 h-5 text-purple-600" />
+                  <Wallet className="w-5 h-5 text-purple-600 flex-shrink-0" />
                   <span className="text-sm font-medium text-purple-900">MATIC Balance</span>
                 </div>
-                <p className="text-2xl font-bold text-purple-700">
+                <p className="text-2xl sm:text-3xl font-bold text-purple-700">
                   {walletData.wallet.matic_balance.toFixed(4)}
                 </p>
                 <p className="text-xs text-purple-600 mt-1">Mumbai Testnet</p>
