@@ -972,23 +972,34 @@ export const SmartDreamDashboard: React.FC = () => {
           <TabsContent value="planner" className="space-y-8 mt-8">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-4">Plan Together</h2>
-              <p className="text-purple-200">Collaborate with friends, family, or your partner</p>
+              <p className="text-purple-200">Collaborate with friends, family, or your travel companions</p>
             </div>
 
             <Card className="bg-black/40 backdrop-blur-xl border-white/10">
               <CardContent className="p-8 text-center">
-                <Calendar className="h-24 w-24 mx-auto mb-6 text-purple-400" />
-                <h3 className="text-2xl font-bold text-white mb-4">Collaborative Planning</h3>
+                <Users className="h-24 w-24 mx-auto mb-6 text-purple-400" />
+                <h3 className="text-2xl font-bold text-white mb-4">Collaborative Travel Planning</h3>
                 <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                  Invite your travel companions to vote on destinations, share ideas, and build your dream journey together.
+                  Invite your travel companions to vote on destinations, pool budgets with Travel Fund, 
+                  share Smart Dreams, and build your perfect journey together.
                 </p>
-                <Button 
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 text-lg"
-                  onClick={() => alert('Collaborative planning feature coming soon! 🚀')}
-                >
-                  <Users className="h-5 w-5 mr-2" />
-                  Start Planning Together
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button 
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 text-lg"
+                    onClick={() => navigate('/collaborative-planning')}
+                  >
+                    <Users className="h-5 w-5 mr-2" />
+                    Start Planning Together
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="border-white/20 text-white hover:bg-white/10 px-8 py-3 text-lg"
+                    onClick={() => navigate('/travel-fund')}
+                  >
+                    <Coins className="h-5 w-5 mr-2" />
+                    Pool Budgets in Travel Fund
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
