@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Navbar } from '@/components/Navbar';
+import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Hotel, Wallet, DollarSign, Percent, Target, Download, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
