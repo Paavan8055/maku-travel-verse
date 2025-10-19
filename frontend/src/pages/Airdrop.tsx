@@ -160,7 +160,7 @@ export default function Airdrop() {
             </h1>
             
             <p className="text-xl md:text-2xl text-green-100 mb-8 font-light">
-              The travel loyalty revolution for explorers who architect their own futures.
+              The travel loyalty revolution with tiered MAKU cashback rewards (1-10%) and NFT memberships.
             </p>
             
             <p className="text-lg text-white/90 mb-12 max-w-2xl mx-auto">
