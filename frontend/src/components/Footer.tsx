@@ -56,8 +56,26 @@ const Footer = () => {
       name: "Travel Fund",
       href: "/travel-fund"
     }, {
+      name: "Plan Together",
+      href: "/collaborative-planning",
+      icon: UsersIcon,
+      isNew: true
+    }, {
       name: "Gift Cards",
       href: "/gift-cards"
+    }],
+    rewards: [{
+      name: "NFT Memberships",
+      href: "/nft",
+      icon: Trophy
+    }, {
+      name: "Airdrop Program",
+      href: "/airdrop",
+      icon: Coins
+    }, {
+      name: "Blockchain Rewards",
+      href: "/blockchain",
+      icon: Zap
     }],
     smartTravel: [{
       name: "Dream Destinations",
@@ -68,13 +86,14 @@ const Footer = () => {
       href: "/smart-dreams?tab=ai-dna",
       icon: Brain
     }, {
-      name: "Personal Journey",
-      href: "/smart-dreams?tab=journey",
-      icon: MapPin
-    }, {
-      name: "Journey Planner",
+      name: "Plan Together",
       href: "/smart-dreams?tab=planner",
       icon: Calendar
+    }, {
+      name: "Off-Season Deals",
+      href: "/offseason-partners",
+      icon: Sparkles,
+      isNew: true
     }],
     technology: [{
       name: "Maku AI Assistant",
