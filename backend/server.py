@@ -42,6 +42,9 @@ from free_ai_provider import free_ai_provider
 # Import off-season occupancy engine
 from offseason_endpoints import offseason_router
 
+# Import email system
+from email_system import email_router
+
 # Import centralized configuration
 from supabase_config import get_config_instance, get_secret, get_provider_config, validate_configuration
 
