@@ -160,8 +160,8 @@ export default function NFT() {
             </p>
             
             <p className="text-lg text-white/90 mb-12 max-w-2xl mx-auto">
-              Earn unique NFTs for every booking. Get up to <span className="font-bold text-yellow-300">25% back in rewards</span> 
-              across 6 global providers. Build your digital travel legacy.
+              Earn unique NFTs for every booking. Get up to <span className="font-bold text-purple-300">10% MAKU cashback</span> 
+              with tiered rewards through Polygon blockchain.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
