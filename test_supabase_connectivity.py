@@ -4,7 +4,11 @@ Tests connection to Supabase and validates schema after migration
 """
 import os
 import sys
+from dotenv import load_dotenv
 from supabase import create_client, Client
+
+# Load environment variables from backend .env
+load_dotenv('/app/backend/.env')
 
 def test_supabase_connection():
     """Test basic Supabase connectivity"""
