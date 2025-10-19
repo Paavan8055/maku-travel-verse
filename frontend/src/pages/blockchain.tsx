@@ -94,7 +94,7 @@ export default function BlockchainPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {[
                     { name: 'Bronze', rate: '1%', price: 'FREE', color: 'orange' },
                     { name: 'Silver', rate: '3%', price: '$99', color: 'gray' },
