@@ -608,7 +608,7 @@ export default function Airdrop() {
               {
                 quote: "The airdrop system is transparent and fair. I can see exactly how my travel activities translate to future token rewards.",
                 author: "Maria S.",
-                tier: "Explorer • 456 points", 
+                tier: "Silver • 456 points", 
                 avatar: "/api/placeholder/64/64"
               },
               {
