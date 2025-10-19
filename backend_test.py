@@ -9240,6 +9240,36 @@ class MakuTravelBackendTester:
         print(f"\n💰 Travel Fund Manager Integration: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
         return passed, total
 
+    def run_blockchain_integration_tests(self):
+        """Run blockchain integration tests for Phase 2 & 3"""
+        print("\n⛓️ BLOCKCHAIN INTEGRATION TESTS - PHASE 2 & 3")
+        print("=" * 60)
+        
+        tests = [
+            self.test_blockchain_network_info,
+            self.test_blockchain_wallet_info,
+            self.test_blockchain_add_cashback,
+            self.test_blockchain_claim_cashback,
+            self.test_blockchain_get_nfts,
+            self.test_blockchain_mint_nft,
+            self.test_blockchain_purchase_nft,
+            self.test_blockchain_get_tiers,
+            self.test_blockchain_gas_estimate
+        ]
+        
+        passed = 0
+        total = len(tests)
+        
+        for test in tests:
+            try:
+                if test():
+                    passed += 1
+            except Exception as e:
+                print(f"❌ EXCEPTION in {test.__name__}: {str(e)}")
+        
+        print(f"\n⛓️ Blockchain Integration: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
+        return passed, total
+
     def run_all_tests(self):
         """Run comprehensive test suite with focus on Enhanced Provider Integration and Multi-Backend AI"""
         print("🚀 STARTING COMPREHENSIVE BACKEND API TESTING")
