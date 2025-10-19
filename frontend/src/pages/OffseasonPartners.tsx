@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { Hotel, TrendingUp, Wallet, Calendar, Users, DollarSign } from 'lucide-react';
 
 export default function OffseasonPartnersPage() {
