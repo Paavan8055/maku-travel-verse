@@ -329,6 +329,16 @@ const Navbar = () => {
                 <Coins className="h-4 w-4" aria-hidden="true" />
                 <span>Travel Fund</span>
               </Button>
+              
+              <Button variant="ghost" className="text-foreground hover:text-primary hover:bg-orange-50 transition-all duration-200 flex items-center space-x-1" onClick={() => navigate('/blockchain')} role="menuitem">
+                <Zap className="h-4 w-4" aria-hidden="true" />
+                <span>Rewards</span>
+              </Button>
+              
+              <Button variant="ghost" className="text-foreground hover:text-primary hover:bg-orange-50 transition-all duration-200 flex items-center space-x-1" onClick={() => navigate('/collaborative-planning')} role="menuitem">
+                <UsersIcon className="h-4 w-4" aria-hidden="true" />
+                <span>Plan Together</span>
+              </Button>
             </div>
           </div>
 
