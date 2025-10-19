@@ -574,6 +574,22 @@ const Navbar = () => {
                   <Coins className="mr-2 h-4 w-4" />
                   Travel Fund
                 </Button>
+                
+                <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
+                  navigate('/blockchain');
+                  setIsMenuOpen(false);
+                }}>
+                  <Zap className="mr-2 h-4 w-4" />
+                  Blockchain Rewards
+                </Button>
+                
+                <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
+                  navigate('/collaborative-planning');
+                  setIsMenuOpen(false);
+                }}>
+                  <UsersIcon className="mr-2 h-4 w-4" />
+                  Plan Together
+                </Button>
               </div>
               
               {/* Secondary Navigation */}
