@@ -684,7 +684,7 @@ export default function Airdrop() {
                 },
                 {
                   question: "How are airdrop allocations calculated?",
-                  answer: "Your allocation is based on total points earned × tier multiplier × quest completion bonuses. Explorer tier gets 1.5x, Adventurer gets 2x, Legend gets 2.5x the base allocation."
+                  answer: "Your allocation is based on total points earned × tier multiplier × quest completion bonuses. Silver tier gets 1.5x (3% cashback), Gold gets 2x (6% cashback), Platinum gets 2.5x (10% cashback) the base allocation."
                 },
                 {
                   question: "Can I earn points without buying tokens?",
