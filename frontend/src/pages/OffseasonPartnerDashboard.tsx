@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Navbar } from '@/components/Navbar';
+import Navbar from '@/components/Navbar';
 import { Plus, Calendar, TrendingUp, DollarSign, Users, Edit, Trash2, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
