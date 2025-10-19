@@ -45,7 +45,17 @@ class MockBlockchainService:
         """Validate Ethereum address format"""
         if not address or not isinstance(address, str):
             return False
-        return address.startswith('0x') and len(address) == 42
+        # Check starts with 0x and is 42 characters (0x + 40 hex chars)
+        if not address.startswith('0x'):
+            return False
+        if len(address) != 42:
+            return False
+        # Check all characters after 0x are valid hex
+        try:
+            int(address[2:], 16)
+            return True
+        except ValueError:
+            return False
     
     def get_wallet_balance(self, address: str) -> Dict:
         """Get mock MATIC and MAKU token balance"""
