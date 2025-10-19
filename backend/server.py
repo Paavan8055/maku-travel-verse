@@ -5178,6 +5178,196 @@ async def get_enhanced_fund_stats():
         logger.error(f"Enhanced stats retrieval failed: {e}")
         raise HTTPException(status_code=500, detail=f"Stats retrieval failed: {str(e)}")
 
+# ==================== BLOCKCHAIN API ENDPOINTS ====================
+# Mock Mode for Frontend Testing (Phase 2)
+
+# Import blockchain service (mock or real based on env)
+BLOCKCHAIN_MODE = os.environ.get('BLOCKCHAIN_MODE', 'mock')
+if BLOCKCHAIN_MODE == 'mock':
+    from mock_blockchain_service import get_mock_blockchain_service as get_blockchain_service
+    logger.info("🎭 Using MOCK blockchain service for frontend testing")
+else:
+    from blockchain_service import get_blockchain_service
+    logger.info("⛓️  Using REAL blockchain service")
+
+@api_router.get("/blockchain/network-info")
+async def get_blockchain_network_info():
+    """Get blockchain network information"""
+    try:
+        blockchain = get_blockchain_service()
+        return blockchain.get_network_info()
+    except Exception as e:
+        logger.error(f"Error getting network info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/blockchain/wallet/{address}")
+async def get_wallet_info(address: str):
+    """Get wallet balance and info"""
+    try:
+        blockchain = get_blockchain_service()
+        
+        if not blockchain.validate_wallet_address(address):
+            raise HTTPException(status_code=400, detail="Invalid wallet address")
+        
+        balance = blockchain.get_wallet_balance(address)
+        pending_cashback = blockchain.get_pending_cashback(address)
+        nfts = blockchain.get_user_nfts(address)
+        
+        return {
+            'wallet': balance,
+            'pending_cashback': pending_cashback,
+            'nfts': nfts,
+            'nft_count': len(nfts),
+            'highest_cashback_rate': blockchain.get_highest_cashback_rate(address)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting wallet info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/blockchain/cashback/add")
+async def add_cashback_for_booking(request_data: dict):
+    """Add cashback for completed booking (backend only)"""
+    try:
+        blockchain = get_blockchain_service()
+        
+        user_address = request_data.get('user_address')
+        booking_amount = request_data.get('booking_amount')
+        
+        if not user_address or not booking_amount:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+        
+        result = blockchain.add_cashback(user_address, booking_amount)
+        
+        if 'error' in result:
+            raise HTTPException(status_code=400, detail=result['error'])
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error adding cashback: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/blockchain/cashback/claim")
+async def claim_pending_cashback(request_data: dict):
+    """Claim pending cashback (user action)"""
+    try:
+        blockchain = get_blockchain_service()
+        
+        user_address = request_data.get('user_address')
+        
+        if not user_address:
+            raise HTTPException(status_code=400, detail="Wallet address required")
+        
+        result = blockchain.claim_cashback(user_address)
+        
+        if 'error' in result:
+            raise HTTPException(status_code=400, detail=result['error'])
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error claiming cashback: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/blockchain/nfts/{address}")
+async def get_user_nfts_endpoint(address: str):
+    """Get all NFTs owned by user"""
+    try:
+        blockchain = get_blockchain_service()
+        
+        if not blockchain.validate_wallet_address(address):
+            raise HTTPException(status_code=400, detail="Invalid wallet address")
+        
+        nfts = blockchain.get_user_nfts(address)
+        
+        return {
+            'address': address,
+            'nfts': nfts,
+            'count': len(nfts),
+            'highest_tier': max([nft['tier'] for nft in nfts], default='None')
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting NFTs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/blockchain/nft/mint")
+async def mint_nft_endpoint(request_data: dict):
+    """Mint NFT for user (earned through bookings)"""
+    try:
+        blockchain = get_blockchain_service()
+        
+        user_address = request_data.get('user_address')
+        tier = request_data.get('tier', 0)  # 0=Bronze, 1=Silver, 2=Gold, 3=Platinum
+        metadata_uri = request_data.get('metadata_uri', f'ipfs://mock_{uuid.uuid4().hex[:20]}')
+        
+        if not user_address:
+            raise HTTPException(status_code=400, detail="Wallet address required")
+        
+        result = blockchain.mint_nft_for_user(user_address, tier, metadata_uri)
+        
+        if 'error' in result:
+            raise HTTPException(status_code=400, detail=result['error'])
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error minting NFT: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/blockchain/nft/purchase")
+async def purchase_nft_endpoint(request_data: dict):
+    """Purchase NFT with MATIC"""
+    try:
+        blockchain = get_blockchain_service()
+        
+        user_address = request_data.get('user_address')
+        tier = request_data.get('tier')
+        payment_amount = request_data.get('payment_amount', 0)
+        
+        if not user_address or tier is None:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+        
+        result = blockchain.purchase_nft(user_address, tier, payment_amount)
+        
+        if 'error' in result:
+            raise HTTPException(status_code=400, detail=result['error'])
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error purchasing NFT: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/blockchain/tiers")
+async def get_tier_information():
+    """Get all tier information"""
+    try:
+        blockchain = get_blockchain_service()
+        return blockchain.get_tier_info()
+    except Exception as e:
+        logger.error(f"Error getting tier info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/blockchain/gas-estimate/{transaction_type}")
+async def estimate_gas_cost(transaction_type: str):
+    """Estimate gas cost for transaction"""
+    try:
+        blockchain = get_blockchain_service()
+        return blockchain.estimate_gas(transaction_type)
+    except Exception as e:
+        logger.error(f"Error estimating gas: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ==================== END BLOCKCHAIN ENDPOINTS ====================
+
 app.include_router(api_router)
 app.include_router(nft_router)
 app.include_router(admin_nft_router)
