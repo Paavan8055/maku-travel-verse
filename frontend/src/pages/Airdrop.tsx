@@ -614,7 +614,7 @@ export default function Airdrop() {
               {
                 quote: "Love how I earn points whether I book through Expedia, Amadeus, or any other provider. True travel freedom with rewards.",
                 author: "David R.",
-                tier: "Legend • 1,203 points",
+                tier: "Platinum • 1,203 points",
                 avatar: "/api/placeholder/64/64"
               }
             ].map((testimonial, index) => (
