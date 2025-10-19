@@ -377,7 +377,7 @@ export default function NFT() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                How you save up to 25% with <span className="text-orange-600">EXPLORER NFT</span>
+                How you save up to 10% with <span className="text-orange-600">PLATINUM NFT</span>
               </h2>
               <p className="text-lg text-gray-600">
                 See real savings on a $1,000 Tokyo cultural experience
