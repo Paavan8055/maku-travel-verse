@@ -1063,6 +1063,574 @@ class MakuTravelBackendTester:
             return False
 
     # =====================================================
+    # BLOCKCHAIN INTEGRATION TESTS - PHASE 2 & 3
+    # =====================================================
+    
+    def test_blockchain_network_info(self):
+        """Test blockchain network info endpoint"""
+        print("⛓️ Testing Blockchain Network Info...")
+        
+        url = f"{BASE_URL}/blockchain/network-info"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Network Info", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['network', 'chain_id', 'mock_mode']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Network Info", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Check Mumbai testnet details
+                if data.get('chain_id') != 80001:
+                    self.log_test("Blockchain Network Info", False, f"Expected chain_id 80001, got {data.get('chain_id')}", response_time)
+                    return False
+                
+                if data.get('network') != 'mumbai':
+                    self.log_test("Blockchain Network Info", False, f"Expected mumbai network, got {data.get('network')}", response_time)
+                    return False
+                
+                if not data.get('mock_mode'):
+                    self.log_test("Blockchain Network Info", False, "Expected mock_mode to be true", response_time)
+                    return False
+                
+                self.log_test("Blockchain Network Info", True, f"Mumbai testnet (chain_id: {data['chain_id']}, mock_mode: {data['mock_mode']})", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Network Info", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Network Info", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_wallet_info(self):
+        """Test blockchain wallet info endpoint"""
+        print("💰 Testing Blockchain Wallet Info...")
+        
+        test_address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
+        url = f"{BASE_URL}/blockchain/wallet/{test_address}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Wallet Info", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['wallet', 'pending_cashback', 'nfts', 'highest_cashback_rate']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Wallet Info", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate wallet structure
+                wallet = data['wallet']
+                wallet_required = ['address', 'matic_balance', 'maku_balance', 'mock_mode']
+                wallet_missing = [field for field in wallet_required if field not in wallet]
+                
+                if wallet_missing:
+                    self.log_test("Blockchain Wallet Info", False, f"Missing wallet fields: {wallet_missing}", response_time)
+                    return False
+                
+                # Check balances are numeric
+                matic_balance = wallet.get('matic_balance', 0)
+                maku_balance = wallet.get('maku_balance', 0)
+                pending_cashback = data.get('pending_cashback', 0)
+                
+                if not isinstance(matic_balance, (int, float)) or matic_balance < 0:
+                    self.log_test("Blockchain Wallet Info", False, f"Invalid MATIC balance: {matic_balance}", response_time)
+                    return False
+                
+                if not isinstance(maku_balance, (int, float)) or maku_balance < 0:
+                    self.log_test("Blockchain Wallet Info", False, f"Invalid MAKU balance: {maku_balance}", response_time)
+                    return False
+                
+                nft_count = data.get('nft_count', 0)
+                highest_rate = data.get('highest_cashback_rate', 0)
+                
+                self.log_test("Blockchain Wallet Info", True, f"MATIC: {matic_balance}, MAKU: {maku_balance}, Pending: {pending_cashback}, NFTs: {nft_count}, Rate: {highest_rate}%", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Wallet Info", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Wallet Info", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_add_cashback(self):
+        """Test blockchain add cashback endpoint"""
+        print("💸 Testing Blockchain Add Cashback...")
+        
+        url = f"{BASE_URL}/blockchain/cashback/add"
+        payload = {
+            "user_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+            "booking_amount": 500
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Add Cashback", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'transaction_hash', 'cashback_amount', 'mock_mode']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Add Cashback", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Blockchain Add Cashback", False, "Operation was not successful", response_time)
+                    return False
+                
+                # Validate transaction hash format
+                tx_hash = data.get('transaction_hash', '')
+                if not tx_hash.startswith('0x') or len(tx_hash) < 34:
+                    self.log_test("Blockchain Add Cashback", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                cashback_amount = data.get('cashback_amount', 0)
+                booking_amount = data.get('booking_amount', 0)
+                
+                self.log_test("Blockchain Add Cashback", True, f"Added ${cashback_amount} cashback for ${booking_amount} booking, TX: {tx_hash[:10]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Add Cashback", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Add Cashback", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_claim_cashback(self):
+        """Test blockchain claim cashback endpoint"""
+        print("🎁 Testing Blockchain Claim Cashback...")
+        
+        url = f"{BASE_URL}/blockchain/cashback/claim"
+        payload = {
+            "user_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    # This might be expected if no pending cashback
+                    if 'No pending cashback' in data['error']:
+                        self.log_test("Blockchain Claim Cashback", True, "No pending cashback to claim (expected)", response_time)
+                        return True
+                    else:
+                        self.log_test("Blockchain Claim Cashback", False, f"API Error: {data['error']}", response_time)
+                        return False
+                
+                # Validate response structure for successful claim
+                required_fields = ['success', 'transaction_hash', 'amount_claimed', 'mock_mode']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Claim Cashback", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Blockchain Claim Cashback", False, "Operation was not successful", response_time)
+                    return False
+                
+                # Validate transaction hash format
+                tx_hash = data.get('transaction_hash', '')
+                if not tx_hash.startswith('0x') or len(tx_hash) < 34:
+                    self.log_test("Blockchain Claim Cashback", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                amount_claimed = data.get('amount_claimed', 0)
+                new_balance = data.get('new_balance', 0)
+                
+                self.log_test("Blockchain Claim Cashback", True, f"Claimed ${amount_claimed}, new balance: ${new_balance}, TX: {tx_hash[:10]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Claim Cashback", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Claim Cashback", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_get_nfts(self):
+        """Test blockchain get NFTs endpoint"""
+        print("🎨 Testing Blockchain Get NFTs...")
+        
+        test_address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
+        url = f"{BASE_URL}/blockchain/nfts/{test_address}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Get NFTs", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['address', 'nfts', 'count', 'highest_tier']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Get NFTs", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate NFTs structure
+                nfts = data.get('nfts', [])
+                if not isinstance(nfts, list):
+                    self.log_test("Blockchain Get NFTs", False, "NFTs is not a list", response_time)
+                    return False
+                
+                count = data.get('count', 0)
+                if count != len(nfts):
+                    self.log_test("Blockchain Get NFTs", False, f"Count mismatch: {count} vs {len(nfts)}", response_time)
+                    return False
+                
+                # If NFTs exist, validate structure
+                if len(nfts) > 0:
+                    nft = nfts[0]
+                    nft_required = ['token_id', 'tier', 'cashback_rate', 'mock_mode']
+                    nft_missing = [field for field in nft_required if field not in nft]
+                    
+                    if nft_missing:
+                        self.log_test("Blockchain Get NFTs", False, f"Missing NFT fields: {nft_missing}", response_time)
+                        return False
+                
+                highest_tier = data.get('highest_tier', 'None')
+                
+                self.log_test("Blockchain Get NFTs", True, f"Found {count} NFTs, highest tier: {highest_tier}", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Get NFTs", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Get NFTs", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_mint_nft(self):
+        """Test blockchain mint NFT endpoint"""
+        print("🔨 Testing Blockchain Mint NFT...")
+        
+        url = f"{BASE_URL}/blockchain/nft/mint"
+        payload = {
+            "user_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+            "tier": 1,  # Silver tier
+            "metadata_uri": "ipfs://test"
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Mint NFT", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'transaction_hash', 'token_id', 'tier', 'cashback_rate', 'mock_mode']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Mint NFT", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Blockchain Mint NFT", False, "Minting was not successful", response_time)
+                    return False
+                
+                # Validate transaction hash format
+                tx_hash = data.get('transaction_hash', '')
+                if not tx_hash.startswith('0x') or len(tx_hash) < 34:
+                    self.log_test("Blockchain Mint NFT", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                # Check Silver tier (tier 1) has 3% cashback
+                tier = data.get('tier', '')
+                cashback_rate = data.get('cashback_rate', 0)
+                token_id = data.get('token_id', 0)
+                
+                if tier != 'Silver':
+                    self.log_test("Blockchain Mint NFT", False, f"Expected Silver tier, got {tier}", response_time)
+                    return False
+                
+                if cashback_rate != 3.0:
+                    self.log_test("Blockchain Mint NFT", False, f"Expected 3% cashback for Silver, got {cashback_rate}%", response_time)
+                    return False
+                
+                self.log_test("Blockchain Mint NFT", True, f"Minted {tier} NFT (ID: {token_id}, {cashback_rate}% cashback), TX: {tx_hash[:10]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Mint NFT", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Mint NFT", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_purchase_nft(self):
+        """Test blockchain purchase NFT endpoint"""
+        print("💳 Testing Blockchain Purchase NFT...")
+        
+        url = f"{BASE_URL}/blockchain/nft/purchase"
+        payload = {
+            "user_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+            "tier": 2,  # Gold tier
+            "payment_amount": 0.03
+        }
+        
+        try:
+            start_time = time.time()
+            response = self.session.post(url, json=payload, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Purchase NFT", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['success', 'transaction_hash', 'token_id', 'tier', 'cashback_rate', 'purchase_price', 'mock_mode']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Purchase NFT", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                if not data.get('success'):
+                    self.log_test("Blockchain Purchase NFT", False, "Purchase was not successful", response_time)
+                    return False
+                
+                # Validate transaction hash format
+                tx_hash = data.get('transaction_hash', '')
+                if not tx_hash.startswith('0x') or len(tx_hash) < 34:
+                    self.log_test("Blockchain Purchase NFT", False, f"Invalid transaction hash format: {tx_hash}", response_time)
+                    return False
+                
+                # Check Gold tier (tier 2) has 6% cashback
+                tier = data.get('tier', '')
+                cashback_rate = data.get('cashback_rate', 0)
+                purchase_price = data.get('purchase_price', 0)
+                token_id = data.get('token_id', 0)
+                
+                if tier != 'Gold':
+                    self.log_test("Blockchain Purchase NFT", False, f"Expected Gold tier, got {tier}", response_time)
+                    return False
+                
+                if cashback_rate != 6.0:
+                    self.log_test("Blockchain Purchase NFT", False, f"Expected 6% cashback for Gold, got {cashback_rate}%", response_time)
+                    return False
+                
+                if purchase_price != 0.03:
+                    self.log_test("Blockchain Purchase NFT", False, f"Expected 0.03 MATIC price, got {purchase_price}", response_time)
+                    return False
+                
+                self.log_test("Blockchain Purchase NFT", True, f"Purchased {tier} NFT (ID: {token_id}, {cashback_rate}% cashback, {purchase_price} MATIC), TX: {tx_hash[:10]}...", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Purchase NFT", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Purchase NFT", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_get_tiers(self):
+        """Test blockchain get tiers endpoint"""
+        print("🏆 Testing Blockchain Get Tiers...")
+        
+        url = f"{BASE_URL}/blockchain/tiers"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Get Tiers", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                if 'tiers' not in data:
+                    self.log_test("Blockchain Get Tiers", False, "Missing tiers field", response_time)
+                    return False
+                
+                tiers = data['tiers']
+                if not isinstance(tiers, list):
+                    self.log_test("Blockchain Get Tiers", False, "Tiers is not a list", response_time)
+                    return False
+                
+                # Should have 4 tiers
+                if len(tiers) != 4:
+                    self.log_test("Blockchain Get Tiers", False, f"Expected 4 tiers, got {len(tiers)}", response_time)
+                    return False
+                
+                # Validate tier structure and expected values
+                expected_tiers = [
+                    {'name': 'Bronze', 'cashback_rate': 1.0, 'price_usd': 0},
+                    {'name': 'Silver', 'cashback_rate': 3.0, 'price_usd': 99},
+                    {'name': 'Gold', 'cashback_rate': 6.0, 'price_usd': 299},
+                    {'name': 'Platinum', 'cashback_rate': 10.0, 'price_usd': 999}
+                ]
+                
+                for i, tier in enumerate(tiers):
+                    expected = expected_tiers[i]
+                    
+                    # Check required fields
+                    tier_required = ['name', 'cashback_rate', 'price_usd']
+                    tier_missing = [field for field in tier_required if field not in tier]
+                    
+                    if tier_missing:
+                        self.log_test("Blockchain Get Tiers", False, f"Missing tier fields in {tier.get('name', 'unknown')}: {tier_missing}", response_time)
+                        return False
+                    
+                    # Check values
+                    if tier['name'] != expected['name']:
+                        self.log_test("Blockchain Get Tiers", False, f"Tier {i} name mismatch: expected {expected['name']}, got {tier['name']}", response_time)
+                        return False
+                    
+                    if tier['cashback_rate'] != expected['cashback_rate']:
+                        self.log_test("Blockchain Get Tiers", False, f"Tier {tier['name']} cashback mismatch: expected {expected['cashback_rate']}%, got {tier['cashback_rate']}%", response_time)
+                        return False
+                    
+                    if tier['price_usd'] != expected['price_usd']:
+                        self.log_test("Blockchain Get Tiers", False, f"Tier {tier['name']} price mismatch: expected ${expected['price_usd']}, got ${tier['price_usd']}", response_time)
+                        return False
+                
+                tier_names = [t['name'] for t in tiers]
+                cashback_rates = [f"{t['cashback_rate']}%" for t in tiers]
+                
+                self.log_test("Blockchain Get Tiers", True, f"4 tiers: {', '.join(tier_names)}, rates: {', '.join(cashback_rates)}", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Get Tiers", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Get Tiers", False, f"Exception: {str(e)}")
+            return False
+
+    def test_blockchain_gas_estimate(self):
+        """Test blockchain gas estimate endpoint"""
+        print("⛽ Testing Blockchain Gas Estimate...")
+        
+        transaction_type = "mint_nft"
+        url = f"{BASE_URL}/blockchain/gas-estimate/{transaction_type}"
+        
+        try:
+            start_time = time.time()
+            response = self.session.get(url, timeout=15)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'error' in data:
+                    self.log_test("Blockchain Gas Estimate", False, f"API Error: {data['error']}", response_time)
+                    return False
+                
+                # Validate response structure
+                required_fields = ['transaction_type', 'estimated_gas', 'gas_price_gwei', 'estimated_cost_matic', 'estimated_cost_usd', 'mock_mode']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Blockchain Gas Estimate", False, f"Missing fields: {missing_fields}", response_time)
+                    return False
+                
+                # Validate values are reasonable
+                estimated_gas = data.get('estimated_gas', 0)
+                gas_price_gwei = data.get('gas_price_gwei', 0)
+                cost_matic = data.get('estimated_cost_matic', 0)
+                cost_usd = data.get('estimated_cost_usd', 0)
+                
+                if not isinstance(estimated_gas, int) or estimated_gas <= 0:
+                    self.log_test("Blockchain Gas Estimate", False, f"Invalid estimated_gas: {estimated_gas}", response_time)
+                    return False
+                
+                if not isinstance(gas_price_gwei, (int, float)) or gas_price_gwei <= 0:
+                    self.log_test("Blockchain Gas Estimate", False, f"Invalid gas_price_gwei: {gas_price_gwei}", response_time)
+                    return False
+                
+                if not isinstance(cost_matic, (int, float)) or cost_matic <= 0:
+                    self.log_test("Blockchain Gas Estimate", False, f"Invalid cost_matic: {cost_matic}", response_time)
+                    return False
+                
+                if not isinstance(cost_usd, (int, float)) or cost_usd <= 0:
+                    self.log_test("Blockchain Gas Estimate", False, f"Invalid cost_usd: {cost_usd}", response_time)
+                    return False
+                
+                if data.get('transaction_type') != transaction_type:
+                    self.log_test("Blockchain Gas Estimate", False, f"Transaction type mismatch: expected {transaction_type}, got {data.get('transaction_type')}", response_time)
+                    return False
+                
+                self.log_test("Blockchain Gas Estimate", True, f"{transaction_type}: {estimated_gas} gas, {gas_price_gwei} gwei, {cost_matic} MATIC, ${cost_usd} USD", response_time)
+                return True
+                
+            else:
+                self.log_test("Blockchain Gas Estimate", False, f"HTTP {response.status_code}: {response.text}", response_time)
+                return False
+                
+        except Exception as e:
+            self.log_test("Blockchain Gas Estimate", False, f"Exception: {str(e)}")
+            return False
+
+    # =====================================================
     # ENHANCED PROVIDER INTEGRATION TESTS
     # =====================================================
     
