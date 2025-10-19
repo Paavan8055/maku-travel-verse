@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Enhanced Maku.Travel platform with official logo implementation, comprehensive partner provider integration (Amadeus, Sabre, Viator, Duffle, RateHawk), and scalable testing protocols for multi-provider ecosystem management."
+user_problem_statement: "Enhanced Maku.Travel platform transformation: (1) Fix Smart Dreams AI DNA loading for fast results, (2) Ensure Achievements accuracy (no duplicates/placeholders), (3) UI/UX consistency (white backgrounds, visible fonts), (4) Collaborative planning feature, (5) MAKU token rewards with 1-10% cashback calculator, (6) NFT tiered rewards (Bronze 1%, Silver 3%, Gold 6%, Platinum 10%) with VIP perks (invitation-only stays, Free Hugging Face LLM). Blockchain integration (Polygon), wallet (MetaMask), and monetization strategy implementation."
 
 backend:
   - task: "Travel Fund Manager Integration APIs - All 4 Phases"
