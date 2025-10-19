@@ -383,30 +383,28 @@ class OffSeasonTester:
         print("🎨 Testing Email Render...")
         
         url = f"{BASE_URL}/emails/test-render"
+        params = {"template": "dream_match"}
         payload = {
-            "template": "dream_match",
-            "data": {
-                "first_name": "Jane",
-                "destination": "Paris",
-                "hotel_name": "Le Grand Hotel",
-                "start_date": "Sep 1",
-                "end_date": "Sep 10",
-                "price": "1200",
-                "discount": "35",
-                "savings": "650",
-                "score": "92",
-                "perks_1": "Breakfast",
-                "perks_2": "City Tour",
-                "perks_3": "Museum Pass",
-                "booking_url": "https://test.com/book",
-                "all_deals_url": "https://test.com/deals",
-                "help_url": "https://test.com/help"
-            }
+            "first_name": "Jane",
+            "destination": "Paris",
+            "hotel_name": "Le Grand Hotel",
+            "start_date": "Sep 1",
+            "end_date": "Sep 10",
+            "price": "1200",
+            "discount": "35",
+            "savings": "650",
+            "score": "92",
+            "perks_1": "Breakfast",
+            "perks_2": "City Tour",
+            "perks_3": "Museum Pass",
+            "booking_url": "https://test.com/book",
+            "all_deals_url": "https://test.com/deals",
+            "help_url": "https://test.com/help"
         }
         
         try:
             start = time.time()
-            response = self.session.post(url, json=payload, timeout=15)
+            response = self.session.post(url, params=params, json=payload, timeout=15)
             elapsed = time.time() - start
             
             if response.status_code == 200:
