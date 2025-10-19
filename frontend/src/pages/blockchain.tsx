@@ -25,14 +25,14 @@ export default function BlockchainPage() {
           </Badge>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
           {/* Wallet Connect - Left Column */}
-          <div className="md:col-span-1">
+          <div className="lg:col-span-1 order-1">
             <WalletConnect />
           </div>
 
           {/* Features - Right Columns */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 order-2">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
