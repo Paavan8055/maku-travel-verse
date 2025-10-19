@@ -579,14 +579,6 @@ const Navbar = () => {
                 </Button>
                 
                 <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
-                  navigate('/blockchain');
-                  setIsMenuOpen(false);
-                }}>
-                  <Zap className="mr-2 h-4 w-4" />
-                  Blockchain Rewards
-                </Button>
-                
-                <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
                   navigate('/collaborative-planning');
                   setIsMenuOpen(false);
                 }}>
@@ -618,6 +610,15 @@ const Navbar = () => {
                   <UsersIcon className="mr-2 h-4 w-4" />
                   Partners
                 </Button>
+                {import.meta.env.VITE_OFFSEASON_FEATURES === 'true' && (
+                  <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                    navigate('/offseason-partners');
+                    setIsMenuOpen(false);
+                  }}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Off-Season Deals
+                  </Button>
+                )}
                 <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
                   navigate('/help');
                   setIsMenuOpen(false);
@@ -625,23 +626,24 @@ const Navbar = () => {
                   Help
                 </Button>
                 
-                {/* Admin/Dev Tools */}
-                <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
-                  navigate('/environment-manager');
-                  setIsMenuOpen(false);
-                }}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Environment
-                </Button>
-
+                {/* Admin/Dev Tools - ADMIN ONLY */}
                 {isAdmin && (
-                  <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
-                    navigate('/admin');
-                    setIsMenuOpen(false);
-                  }}>
-                    <Shield className="mr-2 h-4 w-4" />
-                    Admin
-                  </Button>
+                  <>
+                    <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                      navigate('/environment-manager');
+                      setIsMenuOpen(false);
+                    }}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Environment
+                    </Button>
+                    <Button variant="ghost" className="w-full justify-start text-sm" onClick={() => {
+                      navigate('/admin');
+                      setIsMenuOpen(false);
+                    }}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
