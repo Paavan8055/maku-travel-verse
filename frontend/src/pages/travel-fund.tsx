@@ -264,7 +264,7 @@ const TravelFundPage: React.FC = () => {
             </p>
             
             {/* Enhanced Feature Preview */}
-            <div className="flex justify-center gap-4 mb-8">
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
               <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 text-sm font-medium">
                 🏆 NFT Rewards
               </Badge>
@@ -274,6 +274,28 @@ const TravelFundPage: React.FC = () => {
               <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 text-sm font-medium">
                 ⚡ Smart Bidding
               </Badge>
+              <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 text-sm font-medium cursor-pointer hover:scale-105 transition-transform" onClick={() => navigate('/collaborative-planning')}>
+                👥 Plan Together
+              </Badge>
+            </div>
+            
+            {/* Quick Action Buttons */}
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <Button 
+                onClick={() => navigate('/collaborative-planning')}
+                className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite Friends to Plan Together
+              </Button>
+              <Button 
+                onClick={() => navigate('/smart-dreams')}
+                variant="outline"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+              >
+                <Brain className="h-4 w-4 mr-2" />
+                Create from Smart Dreams
+              </Button>
             </div>
           </div>
 
