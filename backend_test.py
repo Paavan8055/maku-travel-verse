@@ -9278,6 +9278,11 @@ class MakuTravelBackendTester:
         total_passed = 0
         total_tests = 0
         
+        # Run Blockchain Integration Tests (NEW - PRIMARY FOCUS FOR PHASE 2 & 3)
+        blockchain_passed, blockchain_total = self.run_blockchain_integration_tests()
+        total_passed += blockchain_passed
+        total_tests += blockchain_total
+        
         # Run Travel Fund Manager Integration Tests (NEW - PRIMARY FOCUS)
         travel_fund_passed, travel_fund_total = self.run_travel_fund_manager_tests()
         total_passed += travel_fund_passed
