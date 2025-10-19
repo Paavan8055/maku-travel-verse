@@ -602,7 +602,7 @@ export default function Airdrop() {
               {
                 quote: "Started with 50 points as Bronze, now I'm Gold with 847 points. The multi-provider quests and 6% cashback make earning so rewarding!",
                 author: "Alex K.",
-                tier: "Adventurer • 847 points",
+                tier: "Gold • 847 points",
                 avatar: "/api/placeholder/64/64"
               },
               {
