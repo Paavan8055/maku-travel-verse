@@ -110,6 +110,11 @@ const SmartDreamHub = createLazyRoute(() => import("./pages/smart-dream-hub"));
 const AIIntelligenceHub = createLazyRoute(() => import("./pages/ai-intelligence-hub"));
 const AIDemoPage = createLazyRoute(() => import("./pages/ai-demo"));
 
+// Off-Season Occupancy Engine Routes (Feature Flagged)
+const OffseasonPartnersPage = createLazyRoute(() => import("./pages/OffseasonPartners"));
+const OffseasonPartnerDashboardPage = createLazyRoute(() => import("./pages/OffseasonPartnerDashboard"));
+const OffseasonAdminDashboardPage = createLazyRoute(() => import("./pages/OffseasonAdminDashboard"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
