@@ -28,7 +28,7 @@ import {
 
 export default function Airdrop() {
   const [userProgress] = useState({
-    currentTier: 'Explorer',
+    currentTier: 'Silver',
     points: 485,
     nextTierPoints: 500,
     progress: 97,
