@@ -39,6 +39,7 @@ const Deals = createLazyRoute(() => import("./pages/Deals"));
 const Partners = createLazyRoute(() => import("./pages/Partners"));
 const EnhancedProviders = createLazyRoute(() => import("./pages/EnhancedProviders"));
 const BlockchainPage = createLazyRoute(() => import("./pages/blockchain"));
+const CollaborativePlanningPage = createLazyRoute(() => import("./pages/collaborative-planning"));
 const GiftCards = createLazyRoute(() => import("./pages/GiftCards"));
 const Help = createLazyRoute(() => import("./pages/Help"));
 const Roadmap = createLazyRoute(() => import("./pages/Roadmap"));
