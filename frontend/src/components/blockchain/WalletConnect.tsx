@@ -368,23 +368,30 @@ export const WalletConnect: React.FC = () => {
 
             {/* Pending Cashback */}
             {walletData.pending_cashback > 0 && (
-              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-900">Pending Cashback</p>
-                    <p className="text-2xl font-bold text-green-700 mt-1">
-                      {walletData.pending_cashback.toFixed(2)} MAKU
+              <div className="p-4 sm:p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg shadow-lg">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-900 mb-1">🎉 Pending Cashback Ready!</p>
+                    <p className="text-3xl sm:text-4xl font-bold text-green-700">
+                      {walletData.pending_cashback.toFixed(2)} <span className="text-xl">MAKU</span>
                     </p>
+                    <p className="text-xs text-green-600 mt-1">Click to claim and add to your balance</p>
                   </div>
                   <Button
                     onClick={claimCashback}
                     disabled={loading}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                    size="lg"
+                    className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                   >
                     {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Claiming...
+                      </>
                     ) : (
-                      <>Claim Now</>
+                      <>
+                        Claim Now 💰
+                      </>
                     )}
                   </Button>
                 </div>
