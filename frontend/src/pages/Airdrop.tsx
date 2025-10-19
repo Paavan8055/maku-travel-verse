@@ -517,7 +517,7 @@ export default function Airdrop() {
                         <span className="font-semibold">525</span>
                       </div>
                       <div className="flex justify-between text-lg">
-                        <span className="text-gray-600">Explorer Multiplier</span>
+                        <span className="text-gray-600">Silver Multiplier</span>
                         <span className="font-semibold text-blue-600">× 1.5</span>
                       </div>
                       <div className="flex justify-between text-lg">
