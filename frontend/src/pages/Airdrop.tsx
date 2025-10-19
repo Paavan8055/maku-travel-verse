@@ -600,7 +600,7 @@ export default function Airdrop() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                quote: "Started with 50 points as a Wanderer, now I'm an Adventurer with 847 points. The multi-provider quests make earning so much fun!",
+                quote: "Started with 50 points as Bronze, now I'm Gold with 847 points. The multi-provider quests and 6% cashback make earning so rewarding!",
                 author: "Alex K.",
                 tier: "Adventurer • 847 points",
                 avatar: "/api/placeholder/64/64"
