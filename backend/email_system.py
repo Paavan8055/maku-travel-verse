@@ -290,6 +290,10 @@ async def queue_email(request: EmailQueueRequest):
         # Render template (validates data completeness)
         try:
             html_content = render_template(request.template, request.data)
+            # In production, this would call:
+            # await sendgrid_client.send(to=request.recipient_email, html=html_content)
+            # For now, we just validate and log
+            logger.debug(f"Rendered HTML length: {len(html_content)} characters")
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         
@@ -298,10 +302,6 @@ async def queue_email(request: EmailQueueRequest):
         logger.info(log_entry)
         logger.info(f"Email ID: {email_id}")
         logger.info(f"Data keys: {list(request.data.keys())}")
-        
-        # In production, this would call:
-        # await sendgrid_client.send(to=request.recipient_email, html=html_content)
-        # For now, we just log
         
         return EmailQueueResponse(
             queued=True,
