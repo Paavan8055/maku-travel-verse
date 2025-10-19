@@ -362,16 +362,24 @@ const Navbar = () => {
                     <UsersIcon className="mr-2 h-4 w-4" />
                     Partners
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/environment-manager')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Environment
-                  </DropdownMenuItem>
-                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Shield className="mr-2 h-4 w-4" />
-                      Admin
+                  {import.meta.env.VITE_OFFSEASON_FEATURES === 'true' && (
+                    <DropdownMenuItem onClick={() => navigate('/offseason-partners')}>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Off-Season Deals
                     </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/environment-manager')}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Environment
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin
+                      </DropdownMenuItem>
+                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
