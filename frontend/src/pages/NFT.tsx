@@ -676,7 +676,7 @@ export default function NFT() {
               {[
                 {
                   question: "How much value do I get with NFT rewards?",
-                  answer: "You can earn up to 25% back on travel bookings through combined NFT rewards, platform credits, provider bonuses, and tier multipliers. Plus ongoing benefits from your NFT collection."
+                  answer: "You can earn up to 10% MAKU cashback on travel bookings at Platinum tier. Bronze tier starts at 1%, Silver at 3%, Gold at 6%, and Platinum at 10%. Plus NFT multiplier bonuses and provider-specific rewards."
                 },
                 {
                   question: "What makes Maku NFTs unique?", 
