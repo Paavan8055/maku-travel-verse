@@ -259,14 +259,14 @@ if __name__ == "__main__":
     
     # Test calculations
     test_cases = [
-        {"amount": 500, "tier": "bronze", "provider": None},
-        {"amount": 500, "tier": "silver", "provider": "amadeus"},
-        {"amount": 1000, "tier": "gold", "provider": "expedia"},
-        {"amount": 2000, "tier": "platinum", "provider": "expedia", "nft_multiplier": 1.3},
+        {"booking_amount": 500, "user_tier": "bronze", "provider": None},
+        {"booking_amount": 500, "user_tier": "silver", "provider": "amadeus"},
+        {"booking_amount": 1000, "user_tier": "gold", "provider": "expedia"},
+        {"booking_amount": 2000, "user_tier": "platinum", "provider": "expedia", "nft_multiplier": 1.3},
     ]
     
     for test in test_cases:
-        print(f"\nTest: ${test['amount']} booking - {test['tier'].upper()} tier")
+        print(f"\nTest: ${test['booking_amount']} booking - {test['user_tier'].upper()} tier")
         result = calculate_booking_cashback(**test)
         print(f"Cashback: ${result['cashback_amount']} ({result['cashback_rate']}%)")
         print(f"Breakdown: Base=${result['breakdown']['base_cashback']}, "
