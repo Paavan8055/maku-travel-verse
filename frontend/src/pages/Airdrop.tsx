@@ -481,7 +481,7 @@ export default function Airdrop() {
             <Card className="shadow-2xl border-0">
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">
-                  Example: Explorer Tier Airdrop Calculation
+                  Example: Silver Tier Airdrop Calculation
                 </h3>
                 
                 <div className="grid md:grid-cols-2 gap-8">
