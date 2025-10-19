@@ -39,6 +39,9 @@ from unified_ai_orchestrator import unified_ai_router
 from credit_optimization import optimized_ai_router
 from free_ai_provider import free_ai_provider
 
+# Import off-season occupancy engine
+from offseason_endpoints import offseason_router
+
 # Import centralized configuration
 from supabase_config import get_config_instance, get_secret, get_provider_config, validate_configuration
 
