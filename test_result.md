@@ -141,6 +141,18 @@ backend:
           agent: "main"
           comment: "✅ PHASE 1.3 CASHBACK CALCULATOR IMPLEMENTED: Created comprehensive CashbackCalculator class with tiered rewards (Bronze 1%, Silver 3%, Gold 6%, Platinum 10%). Key features: (1) Accurate cashback calculation with tier-based rates, (2) NFT multiplier support (up to 1.5x bonus), (3) Provider-specific bonuses (Expedia +5%, Amadeus/Viator +3%, others +2%), (4) 10% maximum cap enforcement, (5) Detailed breakdown showing base_cashback, nft_bonus, provider_bonus, and cap_reduction. Test results verified: $500 Bronze booking = $5 (1%), $500 Silver + Amadeus = $30 (6%), $1000 Gold + Expedia = $100 (10% capped), $2000 Platinum + Expedia + 1.3x NFT = $200 (10% capped from $360). Calculator includes tier progression tracking, requirements display, and annual cashback estimation. Demo data from NFT endpoints identified and ready for replacement with real calculator integration. Next: Integrate calculator into /api/nft/* endpoints to replace mock data."
 
+  - task: "Phase 2: Blockchain Integration - Polygon Mumbai Testnet"
+    implemented: true
+    working: false
+    file: "blockchain/contracts/, backend/blockchain_service.py, supabase/migrations/"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "🚀 PHASE 2 BLOCKCHAIN INTEGRATION - IN PROGRESS: User confirmed Polygon blockchain, purchasable NFTs, Mumbai testnet usage, and Supabase integration. ✅ COMPLETED STEPS: (1) Installed blockchain dependencies (web3==6.11.3, eth-account==0.10.0, cryptography==41.0.7) added to requirements.txt ✓ (2) Created smart contracts - MAKUToken.sol (ERC-20 with 1-10% cashback system, addCashback/claimCashback functions, owner-controlled rate setting) and MAKUMembership.sol (ERC-721 with 4 tiers Bronze/Silver/Gold/Platinum, purchaseMembership payable function, tier prices 0/0.01/0.03/0.1 ETH, booking requirements 1/10/50/100, tierCashbackRates in basis points 100/300/600/1000) ✓ (3) Created Supabase schema migration (20251019000000_blockchain_integration.sql) with tables: user_wallets (wallet_address, chain_id 80001, verified status), maku_transactions (tx_hash, amount, type, status, gas tracking), nft_memberships (token_id, tier, cashback_rate, purchase_type, purchase_price), cashback_history (booking_id, amounts, tier, provider, nft_multiplier, status), blockchain_config (Mumbai testnet config), user_tier_progression (current_tier, bookings, cashback_earned, nfts_owned) with RLS policies and automatic triggers for tier updates ✓ (4) Created BlockchainService (blockchain_service.py) with Polygon Mumbai RPC connection (https://rpc-mumbai.maticvigil.com, chain_id 80001), wallet validation, balance queries (MATIC/MAKU), pending cashback retrieval, addCashback transaction building, NFT minting, gas estimation, and simplified contract ABIs ✓. ⏳ REMAINING STEPS: (1) Deploy smart contracts to Mumbai testnet (requires Mumbai MATIC from faucet), (2) Update .env with contract addresses (MAKU_TOKEN_ADDRESS, MAKU_NFT_ADDRESS, BLOCKCHAIN_PRIVATE_KEY), (3) Create API endpoints for wallet connection, NFT purchase, cashback operations, (4) Implement frontend wallet integration (MetaMask connection), (5) Test complete flow on testnet. NEXT ACTION: Deploy contracts to Mumbai testnet and configure environment variables."
+
   - task: "Travel Fund Manager Integration APIs - All 4 Phases"
     implemented: true
     working: true
