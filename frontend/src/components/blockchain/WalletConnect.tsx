@@ -50,57 +50,79 @@ export const WalletConnect: React.FC = () => {
 
   // Check if MetaMask is installed
   const isMetaMaskInstalled = () => {
-    return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
+    return typeof window !== 'undefined' && typeof (window as any).ethereum !== 'undefined';
   };
 
-  // Connect to MetaMask
-  const connectWallet = async () => {
-    if (!isMetaMaskInstalled()) {
-      toast({
-        title: "MetaMask Not Found",
-        description: "Please install MetaMask to connect your wallet.",
-        variant: "destructive"
-      });
-      return;
+  // Generate mock wallet address for testing
+  const generateMockWalletAddress = () => {
+    const chars = '0123456789abcdef';
+    let address = '0x';
+    for (let i = 0; i < 40; i++) {
+      address += chars[Math.floor(Math.random() * chars.length)];
     }
+    return address;
+  };
 
+  // Connect to MetaMask or use mock wallet
+  const connectWallet = async () => {
     setConnecting(true);
+    
     try {
-      // Request account access
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
+      let address: string;
 
-      if (!accounts || accounts.length === 0) {
-        throw new Error('No accounts found');
-      }
+      // Try MetaMask if available
+      if (isMetaMaskInstalled()) {
+        try {
+          const accounts = await (window as any).ethereum.request({
+            method: 'eth_requestAccounts'
+          });
 
-      const address = accounts[0];
+          if (!accounts || accounts.length === 0) {
+            throw new Error('No accounts found');
+          }
 
-      // Switch to Polygon Mumbai testnet
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x13881' }], // 80001 in hex
-        });
-      } catch (switchError: any) {
-        // Chain not added, add it
-        if (switchError.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x13881',
-              chainName: 'Polygon Mumbai Testnet',
-              nativeCurrency: {
-                name: 'MATIC',
-                symbol: 'MATIC',
-                decimals: 18
-              },
-              rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
-              blockExplorerUrls: ['https://mumbai.polygonscan.com']
-            }]
+          address = accounts[0];
+
+          // Try to switch to Mumbai testnet
+          try {
+            await (window as any).ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x13881' }], // 80001 in hex
+            });
+          } catch (switchError: any) {
+            if (switchError.code === 4902) {
+              await (window as any).ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x13881',
+                  chainName: 'Polygon Mumbai Testnet',
+                  nativeCurrency: {
+                    name: 'MATIC',
+                    symbol: 'MATIC',
+                    decimals: 18
+                  },
+                  rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
+                  blockExplorerUrls: ['https://mumbai.polygonscan.com']
+                }]
+              });
+            }
+          }
+        } catch (metaMaskError) {
+          console.log('MetaMask connection failed, using mock wallet:', metaMaskError);
+          // Fall back to mock wallet
+          address = generateMockWalletAddress();
+          toast({
+            title: "Using Mock Wallet",
+            description: "MetaMask connection failed. Using test wallet for demonstration.",
           });
         }
+      } else {
+        // No MetaMask, use mock wallet
+        address = generateMockWalletAddress();
+        toast({
+          title: "Mock Wallet Connected",
+          description: "Using test wallet for demonstration. Install MetaMask for real wallet.",
+        });
       }
 
       // Fetch wallet data from backend
