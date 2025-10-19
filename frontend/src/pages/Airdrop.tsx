@@ -462,7 +462,7 @@ export default function Airdrop() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Advance Tiers</h3>
                 <p className="text-gray-600">
-                  Progress through Wanderer, Explorer, Adventurer, and Legend tiers for higher multipliers.
+                  Progress through Bronze, Silver, Gold, and Platinum tiers for higher multipliers and cashback rates (1%, 3%, 6%, 10%).
                 </p>
               </div>
 
