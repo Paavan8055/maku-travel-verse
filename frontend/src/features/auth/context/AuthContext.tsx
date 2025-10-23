@@ -90,14 +90,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         
         if (error) {
-          console.error('Error checking admin status:', error);
+          // Gracefully handle missing RPC function
+          console.warn('Admin check skipped (RPC not available):', error.message);
           setIsAdmin(false);
         } else {
           setIsAdmin(data || false);
         }
-      } catch (err) {
-        console.error('Admin check error:', err);
+      } catch (err: any) {
+        // Prevent infinite loops from admin check errors
+        console.warn('Admin check failed gracefully:', err?.message);
         setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
       } finally {
         setCheckingAdmin(false);
       }
