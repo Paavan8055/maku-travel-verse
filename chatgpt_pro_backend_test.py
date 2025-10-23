@@ -721,10 +721,14 @@ class ComprehensiveBackendTester:
         params = {'template': 'cashback'}
         payload = {
             "first_name": "Jane",
-            "amount": "$50.00",
+            "destination": "Bali",
+            "cashback_amount": "$50.00",
+            "cashback_percentage": "3%",
             "wallet_balance": "$150.50",
             "tier": "Silver",
-            "tier_cashback": "3%"
+            "total_earned": "$250.00",
+            "wallet_url": "https://example.com/wallet",
+            "browse_deals_url": "https://example.com/deals"
         }
         
         try:
