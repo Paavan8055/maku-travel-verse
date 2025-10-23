@@ -276,6 +276,30 @@ export const PriceAlertManager: React.FC = () => {
     );
   }
 
+  // If service is not available, show coming soon message
+  if (!serviceAvailable) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Price Alerts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Coming Soon</h3>
+            <p className="text-muted-foreground mb-4">
+              Price alert monitoring is currently being set up. This feature will be available soon!
+            </p>
+            <Badge variant="secondary">In Development</Badge>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
