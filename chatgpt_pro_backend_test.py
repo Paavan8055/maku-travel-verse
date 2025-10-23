@@ -849,9 +849,10 @@ class ComprehensiveBackendTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check if it's a list of tiers
-                if isinstance(data, list) and len(data) == 4:
-                    tier_names = [tier.get('name', '') for tier in data]
+                # Check if it's a dict with 'tiers' key
+                if 'tiers' in data and isinstance(data['tiers'], list) and len(data['tiers']) == 4:
+                    tiers = data['tiers']
+                    tier_names = [tier.get('name', '') for tier in tiers]
                     expected_tiers = ['Bronze', 'Silver', 'Gold', 'Platinum']
                     
                     # Check tier names
@@ -859,8 +860,8 @@ class ComprehensiveBackendTester:
                     
                     if has_all_tiers:
                         # Check cashback rates
-                        cashback_rates = {tier.get('name'): tier.get('cashback_rate', 0) for tier in data}
-                        expected_rates = {'Bronze': 1, 'Silver': 3, 'Gold': 6, 'Platinum': 10}
+                        cashback_rates = {tier.get('name'): tier.get('cashback_rate', 0) for tier in tiers}
+                        expected_rates = {'Bronze': 1.0, 'Silver': 3.0, 'Gold': 6.0, 'Platinum': 10.0}
                         
                         rates_match = all(
                             cashback_rates.get(name, 0) == rate 
@@ -882,7 +883,7 @@ class ComprehensiveBackendTester:
                         return False
                 else:
                     self.log_test("Blockchain Tiers", False, 
-                                f"Expected 4 tiers, got {len(data) if isinstance(data, list) else 'not a list'}", 
+                                f"Expected 'tiers' key with 4 items, got: {list(data.keys())}", 
                                 response_time)
                     return False
             else:
