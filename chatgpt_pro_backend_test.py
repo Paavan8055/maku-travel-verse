@@ -269,7 +269,7 @@ class ComprehensiveBackendTester:
         
         try:
             start_time = time.time()
-            response = self.session.post(url, json=payload, timeout=30)
+            response = self.session.post(url, json=payload, timeout=45)  # Increased timeout for o1 model
             response_time = time.time() - start_time
             
             if response.status_code == 200:
