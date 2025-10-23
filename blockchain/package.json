@@ -1,0 +1,27 @@
+{
+  "name": "maku-blockchain",
+  "version": "1.0.0",
+  "description": "MAKU Travel Smart Contracts",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:mumbai": "hardhat run scripts/deploy-mumbai.js --network mumbai",
+    "deploy:local": "hardhat run scripts/deploy-mumbai.js --network localhost",
+    "verify:mumbai": "hardhat verify --network mumbai",
+    "test": "hardhat test",
+    "node": "hardhat node"
+  },
+  "keywords": ["blockchain", "ethereum", "polygon", "nft", "travel"],
+  "author": "MAKU Travel",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^5.7.2"
+  }
+}
