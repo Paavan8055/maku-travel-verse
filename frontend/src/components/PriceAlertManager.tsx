@@ -167,6 +167,8 @@ export const PriceAlertManager: React.FC = () => {
   };
 
   const toggleAlert = async (alertId: string, isActive: boolean) => {
+    if (!serviceAvailable) return;
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -181,12 +183,8 @@ export const PriceAlertManager: React.FC = () => {
       });
 
       if (error) {
-        console.error('Failed to update alert:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update alert status",
-          variant: "destructive"
-        });
+        console.warn('Failed to update alert:', error.message);
+        // Silently fail
       } else {
         toast({
           title: isActive ? "Alert Activated" : "Alert Paused",
@@ -194,12 +192,15 @@ export const PriceAlertManager: React.FC = () => {
         });
         loadUserAlerts();
       }
-    } catch (error) {
-      console.error('Alert toggle error:', error);
+    } catch (error: any) {
+      console.warn('Alert toggle error:', error?.message);
+      // Silently fail
     }
   };
 
   const deleteAlert = async (alertId: string) => {
+    if (!serviceAvailable) return;
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -210,12 +211,8 @@ export const PriceAlertManager: React.FC = () => {
       });
 
       if (error) {
-        console.error('Failed to delete alert:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete price alert",
-          variant: "destructive"
-        });
+        console.warn('Failed to delete alert:', error.message);
+        // Silently fail
       } else {
         toast({
           title: "Alert Deleted",
@@ -223,8 +220,9 @@ export const PriceAlertManager: React.FC = () => {
         });
         loadUserAlerts();
       }
-    } catch (error) {
-      console.error('Alert deletion error:', error);
+    } catch (error: any) {
+      console.warn('Alert deletion error:', error?.message);
+      // Silently fail
     }
   };
 
