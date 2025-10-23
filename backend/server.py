@@ -5394,6 +5394,13 @@ app.include_router(optimized_ai_router)
 app.include_router(offseason_router)  # Off-Season Occupancy Engine
 app.include_router(email_router)  # Email System
 
+# Register OpenAI ChatGPT Pro router if available
+if OPENAI_ENABLED:
+    app.include_router(openai_router)  # ChatGPT Pro Integration
+    logger.info("✅ OpenAI ChatGPT Pro endpoints registered")
+else:
+    logger.warning("⚠️  OpenAI ChatGPT Pro endpoints not available")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
