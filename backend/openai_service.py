@@ -166,6 +166,189 @@ Budget Range: ${user_data.get('min_budget', 0)} - ${user_data.get('max_budget', 
 Provide comprehensive Travel DNA analysis in JSON format.
 """
             
+    
+    async def get_recommendations(
+        self,
+        user_id: str,
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Fast destination recommendations
+        Uses GPT-4o-mini for cost-effective speed
+        """
+        if not self.enabled:
+            return {"error": "OpenAI service not configured"}
+        
+        model = os.getenv('RECOMMENDATIONS_MODEL', 'gpt-4o-mini')
+        
+        system_message = """
+You provide quick, relevant travel destination recommendations.
+
+Output JSON array of 5 destinations:
+[
+  {
+    "destination": "city, country",
+    "match_score": 0-100,
+    "reason": "why it matches",
+    "estimated_cost": "budget range",
+    "best_time": "season"
+  }
+]
+"""
+        
+        try:
+            chat = self.create_chat_session(system_message, model)
+            
+            prompt = f"""
+Recommend destinations for:
+- Budget: ${context.get('budget', 2000)}
+- Interests: {', '.join(context.get('interests', ['general']))}
+- Duration: {context.get('duration', '7')} days
+- Travel style: {context.get('travel_style', 'balanced')}
+"""
+            
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
+            
+            try:
+                recommendations = json.loads(response)
+            except:
+                recommendations = []
+            
+            return {
+                "recommendations": recommendations,
+                "model_used": model,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Recommendations error: {e}")
+            return {"error": str(e)}
+    
+    async def optimize_journey(
+        self,
+        destination: str,
+        duration_days: int,
+        budget: float,
+        interests: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Complex journey optimization
+        Uses o1 for deep reasoning about itinerary
+        """
+        if not self.enabled:
+            return {"error": "OpenAI service not configured"}
+        
+        model = os.getenv('JOURNEY_OPTIMIZER_MODEL', 'o1')
+        
+        system_message = """
+You are an expert travel planner optimizing multi-day itineraries.
+
+Optimize for:
+1. Logical flow (minimize backtracking)
+2. Budget allocation (accommodation, food, activities)
+3. Time management (avoid over-scheduling)
+4. Interest matching
+5. Local insights
+
+Provide day-by-day itinerary with:
+- Morning/afternoon/evening activities
+- Transportation between locations
+- Cost breakdown per day
+- Pro tips for each location
+"""
+        
+        try:
+            chat = self.create_chat_session(system_message, model)
+            
+            prompt = f"""
+Optimize {duration_days}-day itinerary for {destination}:
+
+Budget: ${budget}
+Interests: {', '.join(interests)}
+
+Provide JSON:
+{{
+  "daily_plan": [
+    {{
+      "day": 1,
+      "morning": {{"activity": "", "cost": 0}},
+      "afternoon": {{"activity": "", "cost": 0}},
+      "evening": {{"activity": "", "cost": 0}},
+      "accommodation": {{"name": "", "cost": 0}},
+      "daily_total": 0
+    }}
+  ],
+  "total_cost": 0,
+  "savings_tips": [],
+  "must_book_advance": []
+}}
+"""
+            
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
+            
+            try:
+                journey_plan = json.loads(response)
+            except:
+                journey_plan = {"raw_plan": response}
+            
+            return {
+                "journey_plan": journey_plan,
+                "model_used": model,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Journey optimization error: {e}")
+            return {"error": str(e)}
+    
+    async def customer_support_chat(
+        self,
+        user_message: str,
+        conversation_history: List[Dict],
+        user_context: Dict[str, Any]
+    ) -> str:
+        """
+        Conversational customer support
+        Uses GPT-4o for natural dialogue
+        """
+        if not self.enabled:
+            return "Customer support AI is currently unavailable."
+        
+        model = os.getenv('CUSTOMER_SUPPORT_MODEL', 'gpt-4o')
+        
+        system_message = f"""
+You are Maku Travel's customer support assistant.
+
+User Info:
+- User ID: {user_context.get('user_id', 'guest')}
+- NFT Tier: {user_context.get('nft_tier', 'Bronze')}
+- Active Bookings: {user_context.get('active_bookings', 0)}
+- Wallet Balance: ${user_context.get('wallet_balance', 0)}
+
+You can help with:
+1. Booking questions
+2. Cashback inquiries
+3. NFT membership info
+4. Travel recommendations
+5. Platform navigation
+6. Technical issues
+
+Be friendly, helpful, and professional.
+Always offer to escalate to human support if needed.
+"""
+        
+        try:
+            session_id = user_context.get('session_id', str(uuid.uuid4()))
+            chat = self.create_chat_session(system_message, model, session_id)
+            
+            user_msg = UserMessage(text=user_message)
+            response = await chat.send_message(user_msg)
+            
+            return response
+        except Exception as e:
+            logger.error(f"Customer support error: {e}")
+            return f"I apologize, but I'm experiencing technical difficulties. Please try again or contact support@maku.travel for immediate assistance."
+
             user_message = UserMessage(text=analysis_prompt)
             response = await chat.send_message(user_message)
             
