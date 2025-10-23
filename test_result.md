@@ -807,21 +807,15 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Phase 1: Quick Wins (AI + Achievements + Cashback)" # COMPLETED ✅
-    - "Phase 2: Blockchain Infrastructure (Smart Contracts + API + Mock)" # COMPLETED ✅
-    - "Phase 3: Frontend Wallet Integration (WalletConnect + UI)" # COMPLETED ✅
-    - "Phase 3.5: UI/UX Fixes (Buttons + Responsive Design)" # COMPLETED ✅
-    - "Phase 5: Collaborative Planning Feature" # COMPLETED ✅
-    - "Phase 4: UI/UX Standardization (Gray to White)" # REMAINING
-    - "Mem0 Integration Endpoints" # COMPLETED - All tests passed
-    - "Enhanced Partner Provider Integration - Duffle & RateHawk"
-    - "Official Maku.Travel Logo Verification & Implementation"
-    - "Creative Partner Provider Showcase & Equal Highlighting"
-    - "Enhanced Testing Protocol for Multi-Provider Scalability"
-    - "NFT and Airdrop Integration System" # COMPLETED - All tests passed
-    - "WorkingTravelBot Chat and File Upload Implementation" # COMPLETED - All tests passed
-    - "Analytics and Monitoring System Implementation" # COMPLETED - All tests passed (17/17)
-    - "Enhanced Provider Integration and Multi-Backend AI Assistant System" # COMPLETED - All tests passed (9/9)
+    - "Off-Season Occupancy Engine - Frontend Verification (Phase 1)" # CURRENT FOCUS 🎯
+    - "Off-Season Partners Landing Page Testing" # IN PROGRESS
+    - "Off-Season Partner Dashboard Testing" # IN PROGRESS
+    - "Off-Season Admin Dashboard Testing" # IN PROGRESS
+    - "Preview URL Updates for Forked Environment" # PENDING
+    - "Error Tracking Integration (Sentry/LogRocket)" # Phase 2 - PENDING
+    - "Smart Contract Deployment to Mumbai Testnet" # Phase 2 - PENDING
+    - "UI/UX Standardization (Gray to White, WCAG AA)" # Phase 2 - PENDING
+    - "Advanced Integrations (Hugging Face LLM, Real-time features)" # Phase 2 - PENDING
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
