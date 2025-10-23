@@ -166,6 +166,24 @@ Budget Range: ${user_data.get('min_budget', 0)} - ${user_data.get('max_budget', 
 Provide comprehensive Travel DNA analysis in JSON format.
 """
             
+            user_message = UserMessage(text=analysis_prompt)
+            response = await chat.send_message(user_message)
+            
+            # Try to parse JSON response
+            try:
+                dna_data = json.loads(response)
+            except:
+                dna_data = {"raw_analysis": response}
+            
+            return {
+                "dna_profile": dna_data,
+                "model_used": model,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Travel DNA error: {e}")
+            return {"error": str(e)}
+            
     
     async def get_recommendations(
         self,
