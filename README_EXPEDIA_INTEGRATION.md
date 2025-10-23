@@ -26,12 +26,12 @@ The Expedia Group API integration transforms Maku.Travel into a comprehensive tr
 
 2. **Verify Health**:
    ```bash
-   curl -X GET https://maku-wallet.preview.emergentagent.com/api/expedia/health
+   curl -X GET https://yield-optimize.preview.emergentagent.com/api/expedia/health
    ```
 
 3. **Test Search**:
    ```bash
-   curl -X POST https://maku-wallet.preview.emergentagent.com/api/expedia/hotels/search \
+   curl -X POST https://yield-optimize.preview.emergentagent.com/api/expedia/hotels/search \
      -H "Content-Type: application/json" \
      -d '{"checkin": "2024-03-15", "checkout": "2024-03-17", "occupancy": [{"adults": 2}]}'
    ```
@@ -89,7 +89,7 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```env
 VITE_SUPABASE_URL=https://iomeddeasarntjhqzndu.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-REACT_APP_BACKEND_URL=https://maku-wallet.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://yield-optimize.preview.emergentagent.com
 ```
 
 ### Supabase Storage

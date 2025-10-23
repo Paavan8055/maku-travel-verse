@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://maku-wallet.preview.emergentagent.com/api"
+BASE_URL = "https://yield-optimize.preview.emergentagent.com/api"
 
 class OffSeasonTester:
     def __init__(self):

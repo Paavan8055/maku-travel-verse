@@ -15,7 +15,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BASE_URL = "https://maku-wallet.preview.emergentagent.com/api"
+BASE_URL = "https://yield-optimize.preview.emergentagent.com/api"
 TEST_USER_ID = "00000000-0000-0000-0000-000000000001"
 TEST_WALLET_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
 
