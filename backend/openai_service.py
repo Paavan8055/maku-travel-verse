@@ -73,7 +73,8 @@ class OpenAIService:
         self,
         user_input: str,
         user_context: Dict[str, Any],
-        conversation_history: Optional[List[Dict]] = None
+        conversation_history: Optional[List[Dict]] = None,
+        model: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Smart Dreams AI-powered trip planning
@@ -82,7 +83,8 @@ class OpenAIService:
         if not self.enabled:
             return {"error": "OpenAI service not configured"}
         
-        model = os.getenv('SMART_DREAMS_MODEL', 'gpt-4o')
+        # Use specified model or get from env
+        model = model or os.getenv('SMART_DREAMS_MODEL', 'gpt-4o')
         
         system_message = f"""
 You are Maku Travel's Smart Dreams AI assistant specializing in personalized trip planning.
