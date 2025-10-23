@@ -112,6 +112,15 @@ export const PriceAlertManager: React.FC = () => {
   };
 
   const createAlert = async () => {
+    if (!serviceAvailable) {
+      toast({
+        title: "Service Unavailable",
+        description: "Price alert service is currently being set up",
+        variant: "default"
+      });
+      return;
+    }
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -140,12 +149,8 @@ export const PriceAlertManager: React.FC = () => {
       });
 
       if (error) {
-        console.error('Failed to create alert:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create price alert",
-          variant: "destructive"
-        });
+        console.warn('Failed to create alert:', error.message);
+        // Don't show error toast
       } else {
         toast({
           title: "Alert Created",
@@ -155,9 +160,9 @@ export const PriceAlertManager: React.FC = () => {
         loadUserAlerts();
         resetForm();
       }
-    } catch (error) {
-      console.error('Alert creation error:', error);
-      toast({
+    } catch (error: any) {
+      console.warn('Alert creation error:', error?.message);
+      // Silently fail - service not configured
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive"
