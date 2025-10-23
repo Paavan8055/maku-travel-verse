@@ -39,7 +39,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
 
-    // Set up auth state listener FIRST
+    // Function to check admin status - MUST BE DEFINED BEFORE USE
+    const checkAdminStatus = async (userId: string) => {
+      if (!userId) {
+        setIsAdmin(false);
+        setCheckingAdmin(false);
+        return;
+      }
+
+      setCheckingAdmin(true);
+      try {
+        const { data, error } = await supabase.rpc('is_admin', { 
+          user_id_param: userId 
+        });
+        
+        if (error) {
+          // Gracefully handle missing RPC function
+          console.warn('Admin check skipped (RPC not available):', error.message);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(data || false);
+        }
+      } catch (err: any) {
+        // Prevent infinite loops from admin check errors
+        console.warn('Admin check failed gracefully:', err?.message);
+        setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
+
+    // Set up auth state listener AFTER function definition
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!isMounted) return;
@@ -74,10 +104,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     init();
-
-    // Function to check admin status
-    const checkAdminStatus = async (userId: string) => {
-      if (!userId) {
         setIsAdmin(false);
         setCheckingAdmin(false);
         return;
