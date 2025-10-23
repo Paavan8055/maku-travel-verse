@@ -104,32 +104,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     init();
-        setIsAdmin(false);
-        setCheckingAdmin(false);
-        return;
-      }
-
-      setCheckingAdmin(true);
-      try {
-        const { data, error } = await supabase.rpc('is_admin', { 
-          user_id_param: userId 
-        });
-        
-        if (error) {
-          // Gracefully handle missing RPC function
-          console.warn('Admin check skipped (RPC not available):', error.message);
-          setIsAdmin(false);
-        } else {
-          setIsAdmin(data || false);
-        }
-      } catch (err: any) {
-        // Prevent infinite loops from admin check errors
-        console.warn('Admin check failed gracefully:', err?.message);
-        setIsAdmin(false);
-      } finally {
-        setCheckingAdmin(false);
-      }
-    };
 
     return () => {
       isMounted = false;
