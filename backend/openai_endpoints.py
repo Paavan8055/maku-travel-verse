@@ -60,7 +60,7 @@ class CustomerSupportRequest(BaseModel):
 class RolloutConfigUpdate(BaseModel):
     phase: str = Field(..., description="Phase name: admin_only, nft_holders, all_users")
     enabled: bool = True
-    model_config: Optional[Dict[str, str]] = None
+    models_config: Optional[Dict[str, str]] = None  # Renamed from model_config
 
 # ============================================================================
 # Helper Functions
