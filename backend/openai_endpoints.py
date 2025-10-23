@@ -523,7 +523,7 @@ async def update_rollout_config(
         result = rollout_manager.update_phase(
             phase=config.phase,
             enabled=config.enabled,
-            model_config=config.model_config
+            model_config=config.models_config  # Fixed reference
         )
         
         return {
