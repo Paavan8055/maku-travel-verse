@@ -163,10 +163,6 @@ export const PriceAlertManager: React.FC = () => {
     } catch (error: any) {
       console.warn('Alert creation error:', error?.message);
       // Silently fail - service not configured
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive"
-      });
     }
   };
 
