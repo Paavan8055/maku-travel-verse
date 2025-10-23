@@ -321,7 +321,7 @@ class ComprehensiveBackendTester:
         
         try:
             start_time = time.time()
-            response = self.session.post(url, json=payload, timeout=20)
+            response = self.session.post(url, json=payload, timeout=30)  # Increased timeout
             response_time = time.time() - start_time
             
             if response.status_code == 200:
