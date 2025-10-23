@@ -5,17 +5,17 @@
       "description": "Original state with current features and implementations",
       "backend_url": "https://maku-wallet.preview.emergentagent.com",
       "source": "lovable",
-      "active": false
+      "active": true
     },
     "emergent": {
       "name": "Emergent State",
       "description": "Enhanced state with CTO recommendations and improvements",
       "backend_url": "https://maku-wallet.preview.emergentagent.com",
       "source": "emergent",
-      "active": true
+      "active": false
     }
   },
-  "current_environment": "emergent",
+  "current_environment": "lovable",
   "switch_mode": "manual",
-  "last_updated": "2025-10-10T13:35:17.237Z"
+  "last_updated": "2025-10-23T02:49:20.913Z"
 }
