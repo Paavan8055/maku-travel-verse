@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend API Testing Suite for Maku.Travel
-Tests all backend endpoints including Health, Environment, Enhanced Dreams, Gamification, and AI Intelligence
+Comprehensive Backend Stability Testing - Post-Integration Validation
+Tests all backend endpoints after major integration work:
+- Off-Season Occupancy Engine (11 new API endpoints)
+- Email notification system (3 email endpoints)
+- Cross-platform tier synchronization
+- Plan Together integration points
 """
 
 import requests
@@ -12,7 +16,8 @@ import uuid
 
 # Configuration
 BASE_URL = "https://maku-wallet.preview.emergentagent.com/api"
-TEST_USER_ID = "traveler_alex_2024"
+TEST_USER_ID = "00000000-0000-0000-0000-000000000001"
+TEST_WALLET_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
 
 class MakuTravelBackendTester:
     def __init__(self):
