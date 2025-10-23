@@ -34,6 +34,8 @@ export const PriceAlertManager: React.FC = () => {
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [serviceAvailable, setServiceAvailable] = useState(true);
+  const [hasShownError, setHasShownError] = useState(false);
   const [newAlert, setNewAlert] = useState<{
     type: 'flight' | 'hotel' | 'activity';
     destination: string;
@@ -61,7 +63,7 @@ export const PriceAlertManager: React.FC = () => {
 
   useEffect(() => {
     loadUserAlerts();
-  }, []);
+  }, []); // Empty dependency array - runs once
 
   const loadUserAlerts = async () => {
     try {
@@ -69,11 +71,8 @@ export const PriceAlertManager: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to manage price alerts",
-          variant: "destructive"
-        });
+        // Don't show toast if not authenticated - just return silently
+        setLoading(false);
         return;
       }
 
@@ -83,22 +82,30 @@ export const PriceAlertManager: React.FC = () => {
       });
 
       if (error) {
-        console.error('Failed to load alerts:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load your price alerts",
-          variant: "destructive"
-        });
+        console.warn('Price alert service not available:', error.message);
+        setServiceAvailable(false);
+        
+        // Show error toast only once
+        if (!hasShownError) {
+          setHasShownError(true);
+          // Don't show error toast for missing edge function
+          // toast({
+          //   title: "Price Alerts",
+          //   description: "Price alert service is currently unavailable",
+          //   variant: "default"
+          // });
+        }
+        setAlerts([]); // Use empty array as fallback
       } else {
-        setAlerts(data.alerts || []);
+        setServiceAvailable(true);
+        setAlerts(data?.alerts || []);
       }
-    } catch (error) {
-      console.error('Price alert loading error:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive"
-      });
+    } catch (error: any) {
+      console.warn('Price alert feature not configured:', error?.message);
+      setServiceAvailable(false);
+      setAlerts([]); // Use empty array as fallback
+      
+      // Don't spam user with error toasts
     } finally {
       setLoading(false);
     }
