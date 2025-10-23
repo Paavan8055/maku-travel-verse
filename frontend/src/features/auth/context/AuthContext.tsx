@@ -104,10 +104,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setCheckingAdmin(false);
       }
     };
-      } finally {
-        setCheckingAdmin(false);
-      }
-    };
 
     return () => {
       isMounted = false;
