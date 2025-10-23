@@ -49,6 +49,14 @@ from offseason_endpoints import offseason_router
 # Import email system
 from email_system import email_router
 
+# Import OpenAI ChatGPT Pro integration
+try:
+    from openai_endpoints import openai_router
+    OPENAI_ENABLED = True
+except ImportError as e:
+    logger.warning(f"OpenAI endpoints not available: {e}")
+    OPENAI_ENABLED = False
+
 # Import centralized configuration
 from supabase_config import get_config_instance, get_secret, get_provider_config, validate_configuration
 
