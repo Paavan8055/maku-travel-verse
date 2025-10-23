@@ -664,10 +664,18 @@ class ComprehensiveBackendTester:
                 "first_name": "John",
                 "destination": "Paris",
                 "hotel_name": "Le Grand Hotel",
+                "start_date": "2025-07-15",
+                "end_date": "2025-07-22",
                 "price": "$1,200",
                 "discount": "35%",
+                "savings": "$650",
                 "score": "92",
-                "expiry_hours": "48"
+                "perks_1": "Free breakfast",
+                "perks_2": "Spa access",
+                "perks_3": "Late checkout",
+                "booking_url": "https://example.com/book",
+                "all_deals_url": "https://example.com/deals",
+                "help_url": "https://example.com/help"
             }
         }
         
