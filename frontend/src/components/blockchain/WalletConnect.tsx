@@ -325,7 +325,7 @@ export const WalletConnect: React.FC = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Address</label>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-3 py-2 bg-gray-50 rounded-lg text-sm font-mono">
+                <code className="flex-1 px-3 py-2 bg-white rounded-lg text-sm font-mono">
                   {walletData.wallet.address.slice(0, 10)}...{walletData.wallet.address.slice(-8)}
                 </code>
                 <Button variant="outline" size="sm" onClick={copyAddress}>

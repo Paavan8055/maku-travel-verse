@@ -139,7 +139,7 @@ export const SeatSelectionInterface: React.FC<SeatSelectionInterfaceProps> = ({
     if (seat.seatType === 'business') return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
     if (seat.seatType === 'premium') return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
     if (seat.seatType === 'exit_row') return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
-    return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    return 'bg-white text-gray-800 hover:bg-gray-200';
   };
 
   const totalPrice = selectedSeats.reduce((sum, seat) => sum + (seat.price || 0), 0);

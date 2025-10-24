@@ -3,7 +3,7 @@ import { EnvironmentSwitcher } from '../components/EnvironmentSwitcher';
 
 export const EnvironmentManager: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -24,7 +24,7 @@ export const EnvironmentManager: React.FC = () => {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">CLI Commands</h3>
-              <div className="bg-gray-100 rounded p-4 font-mono text-sm">
+              <div className="bg-white rounded p-4 font-mono text-sm">
                 <div className="mb-2"># Switch to lovable environment</div>
                 <div className="text-blue-600 mb-4">node scripts/switch-environment.js lovable</div>
                 
@@ -38,7 +38,7 @@ export const EnvironmentManager: React.FC = () => {
 
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">Deployment Commands</h3>
-              <div className="bg-gray-100 rounded p-4 font-mono text-sm">
+              <div className="bg-white rounded p-4 font-mono text-sm">
                 <div className="mb-2"># Deploy lovable environment</div>
                 <div className="text-green-600 mb-4">./scripts/deploy-environment.sh lovable</div>
                 

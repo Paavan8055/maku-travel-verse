@@ -64,7 +64,7 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
       case "challenging":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-white text-gray-800";
     }
   };
 
@@ -83,7 +83,7 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
       case "water sports":
         return "bg-cyan-100 text-cyan-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-white text-gray-800";
     }
   };
 

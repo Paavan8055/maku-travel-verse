@@ -106,7 +106,7 @@ const BookingDetailsInner: React.FC = () => {
       case 'failed':
         return <Badge className="bg-red-100 text-red-800 border-red-200">Failed</Badge>;
       case 'refunded':
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Refunded</Badge>;
+        return <Badge className="bg-white text-gray-800 border-gray-200">Refunded</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }

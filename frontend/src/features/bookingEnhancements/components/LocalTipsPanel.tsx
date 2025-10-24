@@ -59,7 +59,7 @@ export default function LocalTipsPanel({
       case 'sightseeing':
         return 'bg-green-100 text-green-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-white text-gray-800';
     }
   };
   const getSourceBadge = (source: string) => {

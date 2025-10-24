@@ -83,7 +83,7 @@ export const SystemStatusDashboard: React.FC = () => {
       degraded: 'bg-yellow-100 text-yellow-800',
       down: 'bg-red-100 text-red-800',
       unhealthy: 'bg-red-100 text-red-800',
-      unknown: 'bg-gray-100 text-gray-800'
+      unknown: 'bg-white text-gray-800'
     };
     
     return variants[status as keyof typeof variants] || variants.unknown;

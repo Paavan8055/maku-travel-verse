@@ -134,7 +134,7 @@ const RewardsDropdown: React.FC<RewardsDropdownProps> = ({
         </div>
 
         {/* Quick Actions */}
-        <div className="p-3 border-t border-gray-200 bg-gray-50">
+        <div className="p-3 border-t border-gray-200 bg-white">
           <div className="grid grid-cols-2 gap-2">
             <Button size="sm" variant="outline" className="text-xs">
               <Gift className="w-3 h-3 mr-1" />
@@ -186,7 +186,7 @@ const EnhancedNavigation: React.FC<EnhancedNavigationProps> = ({
             className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
               isActive 
                 ? 'bg-orange-100 text-orange-700' 
-                : 'text-gray-700 hover:bg-gray-100'
+                : 'text-gray-700 hover:bg-white'
             }`}
           >
             <IconComponent className="w-4 h-4" />
