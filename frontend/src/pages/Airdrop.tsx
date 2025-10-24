@@ -81,7 +81,7 @@ export default function Airdrop() {
       title: 'Social & Community',
       description: 'Engage with the Maku community',
       icon: Users,
-      color: 'from-blue-500 to-purple-500',
+      color: 'from-orange-500 to-green-400',
       quests: [
         { name: 'Travel Storyteller', points: 80, progress: 60, description: 'Share 5 travel experiences' },
         { name: 'Community Ambassador', points: 120, progress: 30, description: 'Refer 3 active travelers' },
@@ -92,7 +92,7 @@ export default function Airdrop() {
       title: 'Platform Mastery',
       description: 'Master Maku Travel features',
       icon: Star,
-      color: 'from-purple-500 to-pink-500',
+      color: 'from-orange-400 to-orange-500',
       quests: [
         { name: 'AI Intelligence Expert', points: 100, progress: 85, description: 'Use all AI features' },
         { name: 'Smart Dreams Collector', points: 75, progress: 70, description: 'Add 15 dream destinations' },
@@ -140,8 +140,8 @@ export default function Airdrop() {
       multiplier: '2.5x',
       cashback: '10%',
       benefits: ['Maximum airdrop allocation', '10% MAKU cashback', 'Legendary NFT access', 'VIP treatment + Free Hugging Face LLM'],
-      color: 'from-purple-100 to-purple-200',
-      textColor: 'text-purple-800'
+      color: 'from-orange-50 to-orange-100',
+      textColor: 'text-orange-800'
     }
   ];
 
@@ -151,7 +151,7 @@ export default function Airdrop() {
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-green-500 via-orange-500 to-green-600 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 "></div>
         <div className="relative container mx-auto px-6 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -467,7 +467,7 @@ export default function Airdrop() {
               </div>
 
               <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                   <Coins className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Get Rewards</h3>
@@ -497,9 +497,9 @@ export default function Airdrop() {
                         <span className="text-gray-700">Provider Diversity</span>
                         <span className="font-semibold text-blue-600">+150 points</span>
                       </div>
-                      <div className="flex justify-between p-3 bg-purple-50 rounded-lg">
+                      <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
                         <span className="text-gray-700">Quest Completion</span>
-                        <span className="font-semibold text-purple-600">+100 points</span>
+                        <span className="font-semibold text-orange-600">+100 points</span>
                       </div>
                       <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
                         <span className="text-gray-700">NFT Collection</span>
@@ -557,9 +557,9 @@ export default function Airdrop() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {[
-              { name: 'Expedia', bonus: '15%', featured: true, color: 'from-blue-500 to-purple-500' },
+              { name: 'Expedia', bonus: '15%', featured: true, color: 'from-orange-500 to-green-400' },
               { name: 'Amadeus', bonus: '10%', color: 'from-green-500 to-emerald-600' },
-              { name: 'Viator', bonus: '12%', color: 'from-purple-500 to-pink-500' },
+              { name: 'Viator', bonus: '12%', color: 'from-orange-400 to-orange-500' },
               { name: 'Duffle', bonus: '10%', color: 'from-orange-500 to-red-500' },
               { name: 'RateHawk', bonus: '10%', color: 'from-teal-500 to-cyan-500' },
               { name: 'Sabre', bonus: '10%', color: 'from-indigo-500 to-blue-500' }

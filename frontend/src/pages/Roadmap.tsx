@@ -182,7 +182,7 @@ const categoryConfig = {
   },
   blockchain: {
     icon: Shield,
-    color: 'from-purple-500 to-indigo-600',
+    color: 'from-orange-500 to-orange-600',
     label: 'Blockchain'
   }
 };

@@ -116,7 +116,7 @@ export default function NFT() {
       ],
       highlight: false,
       buttonText: 'Exclusive',
-      gradient: 'from-purple-100 to-purple-200'
+      gradient: 'from-orange-100 to-orange-200'
     }
   ];
 
@@ -147,7 +147,7 @@ export default function NFT() {
 
       {/* Hero Section - Travala Style but Maku Branded */}
       <section className="relative bg-gradient-to-br from-orange-500 via-green-500 to-orange-600 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 "></div>
         <div className="relative container mx-auto px-6 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -160,7 +160,7 @@ export default function NFT() {
             </p>
             
             <p className="text-lg text-white/90 mb-12 max-w-2xl mx-auto">
-              Earn unique NFTs for every booking. Get up to <span className="font-bold text-purple-300">10% MAKU cashback</span> 
+              Earn unique NFTs for every booking. Get up to <span className="font-bold text-orange-300">10% MAKU cashback</span> 
               with tiered rewards through Polygon blockchain.
             </p>
 
@@ -192,7 +192,7 @@ export default function NFT() {
                 <div className="text-sm text-orange-100 font-medium">NFT Collectors</div>
               </div>
               <div>
-                <div className="text-3xl md:text-4xl font-bold text-purple-300">Up to 10%</div>
+                <div className="text-3xl md:text-4xl font-bold text-orange-300">Up to 10%</div>
                 <div className="text-sm text-orange-100 font-medium">MAKU Cashback</div>
               </div>
               <div>
@@ -245,7 +245,7 @@ export default function NFT() {
 
             <Card className="text-center hover:shadow-lg transition-all duration-300 border-orange-200">
               <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Trophy className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Airdrop Multipliers</h3>
@@ -258,7 +258,7 @@ export default function NFT() {
 
             <Card className="text-center hover:shadow-lg transition-all duration-300 border-orange-200">
               <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Camera className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Unique Collection</h3>
@@ -456,7 +456,7 @@ export default function NFT() {
                         className="w-full h-48 object-cover rounded-lg mb-4"
                       />
                       <h4 className="font-bold text-gray-900 mb-2">Tokyo Cultural Master</h4>
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200 mb-3">
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 mb-3">
                         RARE COLLECTION
                       </Badge>
                       <div className="space-y-2 text-sm">
@@ -470,7 +470,7 @@ export default function NFT() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Collection Value</span>
-                          <span className="font-semibold text-purple-600">Growing</span>
+                          <span className="font-semibold text-orange-600">Growing</span>
                         </div>
                       </div>
                     </div>
@@ -481,7 +481,7 @@ export default function NFT() {
                         <span className="text-gray-700">Verified authentic travel experience</span>
                       </div>
                       <div className="flex items-center space-x-3 text-sm">
-                        <Sparkles className="w-4 h-4 text-purple-600" />
+                        <Sparkles className="w-4 h-4 text-orange-600" />
                         <span className="text-gray-700">Ongoing rewards and utility</span>
                       </div>
                       <div className="flex items-center space-x-3 text-sm">
@@ -534,7 +534,7 @@ export default function NFT() {
               </div>
 
               <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-green-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                   <Trophy className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Step 3</h3>
@@ -600,9 +600,9 @@ export default function NFT() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
             {[
-              { name: 'Expedia', bonus: '15%', new: true, color: 'from-blue-500 to-purple-500' },
+              { name: 'Expedia', bonus: '15%', new: true, color: 'from-orange-500 to-green-400' },
               { name: 'Amadeus', bonus: '10%', color: 'from-green-500 to-emerald-600' },
-              { name: 'Viator', bonus: '12%', color: 'from-purple-500 to-pink-500' },
+              { name: 'Viator', bonus: '12%', color: 'from-orange-400 to-orange-500' },
               { name: 'Duffle', bonus: '10%', color: 'from-orange-500 to-red-500' },
               { name: 'RateHawk', bonus: '10%', color: 'from-teal-500 to-cyan-500' },
               { name: 'Sabre', bonus: '10%', color: 'from-indigo-500 to-blue-500' }

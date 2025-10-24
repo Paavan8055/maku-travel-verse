@@ -100,7 +100,7 @@ export default function OffseasonAdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-purple-500">
+          <Card className="border-l-4 border-l-orange-500">
             <CardHeader className="pb-2">
               <CardDescription>Revenue Generated</CardDescription>
             </CardHeader>
