@@ -20,6 +20,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { advancedHotelSearch } from '@/services/advancedSearchApi';
 import { getSmartPrefill } from '@/services/aiPersonalizationApi';
 import { createPriceAlert } from '@/services/realtimeApi';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface HotelResult {
   hotel_id: string;
