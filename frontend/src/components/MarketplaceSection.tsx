@@ -161,8 +161,19 @@ const MarketplaceSection = () => {
                   Travel Fund Manager
                 </h3>
                 <p className="text-xl text-white/90 mb-8 leading-relaxed">
-                  Collaborative savings platform with over AUD 1.2 million deposited by Australian families since January 2025. 
-                  Save together, travel together with milestone rewards and progress tracking.
+                  {travelFundMetrics ? (
+                    <>
+                      Collaborative savings platform with ${travelFundMetrics.total_amount_usd > 0 
+                        ? `$${travelFundMetrics.total_amount_usd.toLocaleString()} USD (AUD $${travelFundMetrics.total_amount_aud.toLocaleString()})` 
+                        : 'secure funds'} deposited by travelers worldwide. 
+                      Save together, travel together with milestone rewards and progress tracking.
+                    </>
+                  ) : (
+                    <>
+                      Collaborative savings platform helping travelers save together for dream destinations. 
+                      Start your travel fund today with milestone rewards and progress tracking.
+                    </>
+                  )}
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -183,20 +194,49 @@ const MarketplaceSection = () => {
                   </Button>
                 </div>
 
-                <div className="flex items-center justify-center mt-8 space-x-8 text-white/80">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">AUD 750</div>
-                    <div className="text-sm">Average fund size</div>
+                {travelFundMetrics && travelFundMetrics.total_savers > 0 ? (
+                  <div className="flex items-center justify-center mt-8 space-x-8 text-white/80">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">
+                        ${travelFundMetrics.avg_fund_size_usd > 0 
+                          ? Math.round(travelFundMetrics.avg_fund_size_usd) 
+                          : '750'}
+                      </div>
+                      <div className="text-sm">Avg fund (USD)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">
+                        {travelFundMetrics.monthly_growth_percent > 0 
+                          ? Math.round(travelFundMetrics.monthly_growth_percent) 
+                          : '25'}%
+                      </div>
+                      <div className="text-sm">Monthly growth</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">
+                        {travelFundMetrics.total_savers > 0 
+                          ? travelFundMetrics.total_savers.toLocaleString() 
+                          : '3,200'}
+                      </div>
+                      <div className="text-sm">Active savers</div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">25%</div>
-                    <div className="text-sm">Monthly growth</div>
+                ) : (
+                  <div className="flex items-center justify-center mt-8 space-x-8 text-white/80">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">$750</div>
+                      <div className="text-sm">Avg fund (USD)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">25%</div>
+                      <div className="text-sm">Monthly growth</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">3,200</div>
+                      <div className="text-sm">Active savers</div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">3,200</div>
-                    <div className="text-sm">Active groups</div>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
