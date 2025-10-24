@@ -358,12 +358,16 @@ const SmartDreamsPage = () => {
 
               {/* CTA */}
               <div className="text-center pt-6 border-t">
-                <Button size="lg" className="px-12 py-6 text-lg bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700">
+                <Button 
+                  size="lg" 
+                  className="px-12 py-6 text-lg bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700"
+                  onClick={handleCreateDream}
+                >
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Create My Dream
+                  Create My Dream & Setup Travel Fund
                 </Button>
                 <p className="text-sm text-gray-600 mt-4">
-                  💡 Once created, hotels & airlines will compete with exclusive offers to fulfill your dream!
+                  💡 Once created, you'll set up your Travel Fund Manager and hotels & airlines will compete with exclusive offers!
                 </p>
               </div>
             </Card>
