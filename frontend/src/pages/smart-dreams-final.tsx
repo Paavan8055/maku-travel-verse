@@ -1,14 +1,15 @@
 /**
  * Reimagined Smart Dreams - Dream Curation & Marketplace Platform
  * Revolutionary approach: Users curate dreams → Providers compete with offers
- * Integrated with: Laxmi Wallet, Plan Together, Gifting, Rewards, Off-Season Engine
+ * Integrated with: Travel Fund Manager (Laxmi), Plan Together, Gifting, Rewards, Off-Season Engine
  */
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Heart, Users, Gift, Wallet, TrendingDown, 
   MapPin, Calendar, DollarSign, Star, Plus, Share2,
-  Image as ImageIcon, Plane, Hotel, Camera, Target
+  Image as ImageIcon, Plane, Hotel, Camera, Target, Check, TestTube2
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Navbar from '@/components/Navbar';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface Dream {
   id: string;
