@@ -93,13 +93,13 @@ def test_unified_metrics_endpoint():
 
 def test_smart_dreams_cache_stats():
     """
-    Test GET /api/smart-dreams/v2/cache-stats
+    Test GET /api/smart-dreams-v2/cache-stats
     Verify cache statistics endpoint
     """
-    print_test_header("Smart Dreams V2 Cache Stats - /api/smart-dreams/v2/cache-stats")
+    print_test_header("Smart Dreams V2 Cache Stats - /api/smart-dreams-v2/cache-stats")
     
     try:
-        response = requests.get(f"{BACKEND_URL}/smart-dreams/v2/cache-stats", timeout=10)
+        response = requests.get(f"{BACKEND_URL}/smart-dreams-v2/cache-stats", timeout=10)
         
         print(f"Status Code: {response.status_code}")
         
