@@ -194,7 +194,8 @@ export const useFeaturedDeals = () => {
           reviews: item.rating?.reviews || Math.floor(Math.random() * 1000) + 200,
           image: `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=192&fit=crop&fm=webp&q=70&sig=${index}`,
           verified: true,
-          badge: isDemo ? 'Demo Data' : ['Best Deal', 'Top Rated', 'Exclusive', 'Limited Time'][index % 4],
+          badge: ['Best Deal', 'Top Rated', 'Exclusive', 'Limited Time'][index % 4],  // Removed "Demo Data"
+          provider: item.provider || 'Amadeus',  // Show actual provider
           marketplace: ['Family', 'Solo', 'Pet', 'Spiritual'][index % 4]
         };
       }
