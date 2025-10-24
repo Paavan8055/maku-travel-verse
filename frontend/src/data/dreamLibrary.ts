@@ -346,6 +346,42 @@ export const dreamLibrary: DreamPackage[] = [
     title: 'Greece Island Hopping',
     tagline: 'Mykonos, Santorini, Crete adventure',
     destination: 'Greek Islands',
+  ,
+  {
+    id: 'dream-11',
+    title: 'Peru Machu Picchu Trek',
+    tagline: 'Inca Trail to lost city',
+    destination: 'Cusco, Machu Picchu, Amazon',
+    country: 'Peru',
+    imageUrl: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800&h=600&fit=crop&q=85',
+    duration: '10 nights',
+    ageGroup: ['young-adults', 'adventurers', 'hikers'],
+    travelStyle: ['adventure', 'cultural', 'hiking'],
+    budget: {
+      base: 2800,
+      premium: 4500,
+      luxury: 8000
+    },
+    itinerary: [
+      {
+        day: 1,
+        title: 'Cusco Acclimatization',
+        activities: ['Arrive Cusco', 'Plaza de Armas', 'Altitude adjustment', 'Pisco sour tasting']
+      }
+    ],
+    hiddenGems: [
+      { name: 'Café Morena', type: 'cafe', description: 'Cusco café rooftop terrace', mustTry: 'Quinoa pancakes & coca tea' }
+    ],
+    included: ['Hotels', 'Inca Trail permits', 'Camping gear', 'Most meals'],
+    upgrades: [
+      { name: 'Amazon Extension', price: 800, description: '3 days jungle lodge' }
+    ],
+    providers: ['Viator Test', 'Amadeus Dev'],
+    seasonality: 'May-Sep',
+    category: 'adventure-cultural'
+  }
+]
+
     country: 'Greece',
     imageUrl: 'https://images.unsplash.com/photo-1748617508605-1b520bfa231d?w=800&h=600&fit=crop&q=85',
     duration: '14 nights',
