@@ -45,6 +45,8 @@ interface ActivityResult {
 const EnhancedActivitiesPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   // Search State
   const [destination, setDestination] = useState(searchParams.get('destination') || '');
