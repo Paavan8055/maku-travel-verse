@@ -197,16 +197,37 @@ export const SmartDreamDashboard: React.FC = () => {
     setCurrentJourney(newJourney);
     setSelectedCompanion(companion);
     
-    // Trigger Smart Dreams Enhanced Provider Search
+    // Trigger Smart Dreams V2 Provider Search with Real AI Scoring
     if (aiEnabled) {
       try {
+        setV2Loading(true);
+        setV2Error(null);
+        
+        const result = await searchProvidersV2({
+          companionType: companion.type === 'partner' ? 'romantic' : companion.type,
+          travelDNA: travelDNA,
+          preferences: companion.perks,
+          destination: journeyName || "Singapore"  // Use journey name as destination hint
+        });
+        
+        setV2Results(result);
+        
+        // Also trigger legacy hook for compatibility
         await searchProviders({
           companionType: companion.type === 'partner' ? 'romantic' : companion.type,
           travelDNA: travelDNA,
           preferences: companion.perks
         });
-      } catch (error) {
-        console.error('Enhanced provider search failed:', error);
+      } catch (error: any) {
+        console.error('Smart Dreams V2 search failed:', error);
+        setV2Error(error?.message || "Search failed");
+        
+        // Show correlation ID in error
+        if (error?.response?.data?.correlation_id) {
+          console.log(`Correlation ID: ${error.response.data.correlation_id}`);
+        }
+      } finally {
+        setV2Loading(false);
       }
     }
     
