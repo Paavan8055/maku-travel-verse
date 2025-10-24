@@ -643,8 +643,8 @@ export const SmartDreamDashboard: React.FC = () => {
                                 name: rec.destination_name,
                                 country: rec.country,
                                 image: dreamDestinations[index % dreamDestinations.length].image,
-                                price: Math.floor(Math.random() * 150) + 80,
-                                days: Math.floor(Math.random() * 7) + 3,
+                                price: rec.estimated_budget || 120,  // Use AI estimated budget, not random
+                                days: rec.recommended_duration || 5,  // Use AI recommended duration, not random
                                 excitement: rec.recommendation_score,
                                 perfectFor: ['AI Recommended', 'Perfect Match']
                               };
