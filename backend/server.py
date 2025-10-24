@@ -158,6 +158,26 @@ async def root():
 async def health():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
+@api_router.get("/metrics/platform")
+async def get_platform_metrics(force_refresh: bool = False):
+    """
+    Platform-wide metrics - SINGLE SOURCE OF TRUTH
+    Used by homepage, Travel Fund page, admin dashboard
+    
+    Query params:
+    - force_refresh: bool (default False) - bypass cache
+    """
+    try:
+        from unified_metrics_service import unified_metrics
+        metrics = await unified_metrics.get_platform_metrics(force_refresh=force_refresh)
+        return {
+            "success": True,
+            **metrics
+        }
+    except Exception as e:
+        logger.error(f"Platform metrics error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/placeholder/{width}/{height}")
 async def placeholder_image(width: int, height: int, text: str = "Placeholder"):
     """Simple placeholder image endpoint - returns SVG"""
