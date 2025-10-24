@@ -53,6 +53,8 @@ from email_system import email_router
 from advanced_search import advanced_search_router
 from ai_personalization import personalization_router
 from analytics_dashboard import analytics_router
+from realtime_features import realtime_router
+from payment_gateway import payment_router
 
 # Import OpenAI ChatGPT Pro integration
 try:
