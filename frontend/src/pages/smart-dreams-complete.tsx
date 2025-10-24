@@ -542,6 +542,90 @@ const SmartDreamsComplete = () => {
                           />
                           <span className="text-sm">{opt}</span>
                         </label>
+
+      {/* Marketplace View - Provider Offers */}
+      {view === 'marketplace' && (
+        <section className="py-12 px-6">
+          <div className="max-w-7xl mx-auto">
+            <Card className="p-8 mb-8 bg-gradient-to-r from-orange-50 to-pink-50 border-2 border-orange-200">
+              <div className="text-center">
+                <Target className="w-12 h-12 text-orange-600 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Provider Marketplace</h2>
+                <p className="text-gray-700">
+                  {dreams.filter(d => d.status === 'offers').length} of your dreams have competing offers from hotels & airlines!
+                </p>
+              </div>
+            </Card>
+
+            {/* Dreams with Offers */}
+            <div className="space-y-6">
+              {dreams.filter(d => d.providerOffers > 0).map((dream) => (
+                <Card key={dream.id} className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <img
+                      src={dream.imageUrl}
+                      alt={dream.title}
+                      className="w-24 h-24 rounded-lg object-cover"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold mb-1">{dream.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{dream.destination}</p>
+                      <Badge className={getStatusColor(dream.status)}>
+                        {dream.providerOffers} Competing Offers
+                      </Badge>
+                    </div>
+                    <Button
+                      onClick={() => handleViewDreamOffers(dream.id)}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600"
+                    >
+                      <Target className="w-4 h-4 mr-2" />
+                      View Offers
+                    </Button>
+                  </div>
+
+                  {/* Sample Offers Preview */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t">
+                    {[
+                      { provider: 'Expedia Sandbox', discount: 25, price: dream.budget.target * 0.75 },
+                      { provider: 'Amadeus Test', discount: 20, price: dream.budget.target * 0.80 },
+                      { provider: 'RateHawk Dev', discount: 30, price: dream.budget.target * 0.70 }
+                    ].slice(0, 3).map((offer, idx) => (
+                      <div key={idx} className="p-4 bg-white border-2 border-gray-100 rounded-lg hover:border-green-300 transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-100 text-blue-700 text-xs">
+                            <TestTube2 className="w-3 h-3 mr-1" />
+                            {offer.provider}
+                          </Badge>
+                          <Badge className="bg-green-100 text-green-700">
+                            {offer.discount}% OFF
+                          </Badge>
+                        </div>
+                        <p className="text-2xl font-bold text-green-600">${offer.price.toFixed(0)}</p>
+                        <p className="text-xs text-gray-500">Complete package</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {dreams.filter(d => d.providerOffers > 0).length === 0 && (
+              <Card className="p-12 text-center">
+                <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No offers yet</h3>
+                <p className="text-gray-600 mb-6">
+                  Create dreams and providers will start competing with exclusive deals!
+                </p>
+                <Button onClick={() => setView('create')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Dream
+                </Button>
+              </Card>
+            )}
+          </div>
+        </section>
+      )}
+
                       ))}
                     </div>
                   </div>
