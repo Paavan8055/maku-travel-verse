@@ -338,9 +338,9 @@ const FeaturedListings = () => {
                               Live
                             </Badge>
                           )}
-                          {isDemoData(activity.id) && (
-                            <Badge variant="secondary" className="bg-blue-500 text-white text-xs">
-                              API Demo
+                          {activity.provider && (
+                            <Badge variant="outline" className="text-xs text-white border-white/30">
+                              {activity.provider}
                             </Badge>
                           )}
                         </div>
