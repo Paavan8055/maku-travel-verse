@@ -143,13 +143,13 @@ def test_smart_dreams_cache_stats():
 
 def test_smart_dreams_rotation_stats():
     """
-    Test GET /api/smart-dreams/v2/rotation-stats
+    Test GET /api/smart-dreams-v2/rotation-stats
     Verify provider rotation statistics
     """
-    print_test_header("Smart Dreams V2 Rotation Stats - /api/smart-dreams/v2/rotation-stats")
+    print_test_header("Smart Dreams V2 Rotation Stats - /api/smart-dreams-v2/rotation-stats")
     
     try:
-        response = requests.get(f"{BACKEND_URL}/smart-dreams/v2/rotation-stats", timeout=10)
+        response = requests.get(f"{BACKEND_URL}/smart-dreams-v2/rotation-stats", timeout=10)
         
         print(f"Status Code: {response.status_code}")
         
