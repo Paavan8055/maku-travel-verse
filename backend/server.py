@@ -49,6 +49,9 @@ from offseason_endpoints import offseason_router
 # Import email system
 from email_system import email_router
 
+# Import advanced search
+from advanced_search import advanced_search_router
+
 # Import OpenAI ChatGPT Pro integration
 try:
     from openai_endpoints import openai_router
