@@ -57,6 +57,14 @@ except ImportError as e:
     logger.warning(f"OpenAI endpoints not available: {e}")
     OPENAI_ENABLED = False
 
+# Import Smart Dreams V2 (AI Scoring + Rotation)
+try:
+    from smart_dreams_endpoints import smart_dreams_router
+    SMART_DREAMS_V2_ENABLED = True
+except ImportError as e:
+    logger.warning(f"Smart Dreams V2 endpoints not available: {e}")
+    SMART_DREAMS_V2_ENABLED = False
+
 # Import centralized configuration
 from supabase_config import get_config_instance, get_secret, get_provider_config, validate_configuration
 
