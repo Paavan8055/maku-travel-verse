@@ -214,7 +214,7 @@ const App = () => (
                                          <Route path="/travel-preferences" element={<TravelPreferencesPage />} />
                                         <Route path="/invite-friends" element={<InviteFriendsPage />} />
                                         <Route path="/environment-manager" element={<EnvironmentManager />} />
-                                        <Route path="/smart-dreams" element={<SmartDreamHub />} />
+                                        <Route path="/smart-dreams" element={<SmartDreamsComplete />} />
                                         <Route path="/ai-intelligence" element={<AIIntelligenceHub />} />
                                         <Route path="/ai-demo" element={<AIDemoPage />} />
                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
