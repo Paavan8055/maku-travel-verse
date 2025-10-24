@@ -347,6 +347,7 @@ async def optimize_journey(
     - Local insights
     
     **Best For:** Multi-day trips, complex planning
+    **Note:** o1 model requires 45-75 seconds processing time
     """
     start_time = datetime.utcnow()
     
@@ -373,7 +374,8 @@ async def optimize_journey(
             "success": True,
             **result,
             "performance": {
-                "response_time_seconds": response_time
+                "response_time_seconds": response_time,
+                "note": "o1 model requires extended processing (45-75s) for deep reasoning"
             }
         }
         
