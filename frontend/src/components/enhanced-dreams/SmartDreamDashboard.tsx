@@ -71,6 +71,13 @@ export const SmartDreamDashboard: React.FC = () => {
   const [journeyName, setJourneyName] = useState('');
   const [aiEnabled, setAiEnabled] = useState(true);
   const [showFundCreation, setShowFundCreation] = useState(false);
+  
+  // Smart Dreams V2 Integration States
+  const [v2Loading, setV2Loading] = useState(false);
+  const [v2Results, setV2Results] = useState<any>(null);
+  const [v2Error, setV2Error] = useState<string | null>(null);
+  const [optimizing, setOptimizing] = useState(false);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
 
