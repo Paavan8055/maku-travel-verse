@@ -380,7 +380,10 @@ const EnhancedActivitiesPage = () => {
                           <p className="text-2xl font-bold text-green-600">${activity.price}</p>
                           <p className="text-xs text-gray-500">per person</p>
                         </div>
-                        <Button className="bg-gradient-to-r from-green-600 to-teal-600">
+                        <Button 
+                          onClick={() => handleActivitySelect(activity)}
+                          className="bg-gradient-to-r from-green-600 to-teal-600"
+                        >
                           Book Now
                         </Button>
                       </div>
