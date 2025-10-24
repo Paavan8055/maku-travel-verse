@@ -3,9 +3,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageOptimizer } from "@/components/media/ImageOptimizer";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const MarketplaceSection = () => {
   const navigate = useNavigate();
+  const [travelFundMetrics, setTravelFundMetrics] = useState<any>(null);
+
+  // Fetch unified metrics on mount
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/metrics/platform`
+        );
+        setTravelFundMetrics(response.data.travel_fund);
+      } catch (error) {
+        console.error('Failed to load platform metrics:', error);
+      }
+    };
+    
+    fetchMetrics();
+  }, []);
 
   const marketplaces = [
     {
