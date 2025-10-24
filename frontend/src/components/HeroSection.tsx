@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAccessibility } from "@/hooks/useAccessibility";
 import { ImageOptimizer } from "@/components/media/ImageOptimizer";
+import { useAuth } from "@/features/auth/context/AuthContext";
+import { detectPersona } from "@/services/aiPersonalizationApi";
 import hero1 from "@/assets/hero-maldives.jpg";
 import hero2 from "@/assets/hero-swiss-alps.jpg";
 import hero3 from "@/assets/hero-tokyo.jpg";
+
 const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { t } = useTranslation();
   const { prefersReducedMotion } = useAccessibility();
+  const { user } = useAuth();
+  const [personalizedMessage, setPersonalizedMessage] = useState<string | null>(null);
+  const [userPersona, setUserPersona] = useState<string | null>(null);
+  
   const heroSlides = [{
     image: hero1,
     title: "Tropical Paradise Awaits",
@@ -27,6 +34,43 @@ const HeroSection = () => {
     subtitle: "City lights, culture, and modern marvels",
     location: "Tokyo"
   }];
+
+  // AI Personalization: Detect user persona and customize hero message
+  useEffect(() => {
+    if (user?.id) {
+      detectUserPersonaAndPersonalize();
+    }
+  }, [user]);
+
+  const detectUserPersonaAndPersonalize = async () => {
+    try {
+      const persona = await detectPersona({
+        user_id: user?.id || 'guest',
+        search_history: [],
+        booking_history: []
+      });
+
+      setUserPersona(persona.persona);
+
+      // Customize message based on persona
+      const personaMessages: Record<string, string> = {
+        luxury_seeker: "Discover exclusive luxury escapes curated just for you",
+        budget_traveler: "Find unbeatable deals on your dream destinations",
+        adventurer: "Thrilling adventures await your next journey",
+        culture_enthusiast: "Immerse yourself in rich cultures and history",
+        family_traveler: "Create unforgettable family memories",
+        business_traveler: "Seamless business travel, perfected",
+        wellness_seeker: "Rejuvenate your mind, body, and soul",
+        foodie: "Taste the world, one destination at a time",
+        digital_nomad: "Work from paradise, live your dream life"
+      };
+
+      setPersonalizedMessage(personaMessages[persona.persona] || null);
+    } catch (error) {
+      console.error('Failed to personalize hero:', error);
+    }
+  };
+
   useEffect(() => {
     // Respect user's motion preferences
     if (prefersReducedMotion()) return;
@@ -36,12 +80,15 @@ const HeroSection = () => {
     }, 5000);
     return () => clearInterval(timer);
   }, [prefersReducedMotion]);
+
   const nextSlide = () => {
     setCurrentSlide(prev => (prev + 1) % heroSlides.length);
   };
+
   const prevSlide = () => {
     setCurrentSlide(prev => (prev - 1 + heroSlides.length) % heroSlides.length);
   };
+
   return <section className="relative h-screen w-full overflow-hidden" role="banner" aria-label="Hero section">
       {/* Hero Carousel */}
       <div className="relative h-full" role="region" aria-label="Image carousel" aria-live="polite">
@@ -116,19 +163,29 @@ const HeroSection = () => {
             </p>
             
             <div className="relative mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 hero-text bg-white bg-clip-text text-transparent font-playfair">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 hero-text bg-white bg-clip-text text-transparent font-playfair">
                 {t('hero.title')}
               </h2>
+              
+              {/* AI Personalized Message */}
+              {personalizedMessage && (
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
+                  <p className="text-lg text-yellow-100 font-medium">
+                    {personalizedMessage}
+                  </p>
+                </div>
+              )}
+              
               <p className="text-lg text-white/80 max-w-xl mx-auto">
                 {t('hero.subtitle')}
               </p>
             </div>
-            
-            
           </div>
 
         </div>
       </div>
     </section>;
 };
+
 export default HeroSection;
