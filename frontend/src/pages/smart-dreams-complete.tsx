@@ -1,7 +1,7 @@
 /**
  * Complete Smart Dreams Platform - Dream Marketplace
  * Revolutionary: Users curate dreams → Providers compete with offers
- * Integrations: Laxmi Wallet, Plan Together, Gifting, Rewards, Off-Season Engine
+ * Integrations: Travel Fund Manager (Laxmi), Plan Together, Gifting, Rewards, Off-Season Engine
  */
 
 import { useState, useEffect } from 'react';
@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { detectPersona } from '@/services/aiPersonalizationApi';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface Dream {
   id: string;
