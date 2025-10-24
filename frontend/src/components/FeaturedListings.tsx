@@ -112,9 +112,9 @@ const FeaturedListings = () => {
                         Live
                       </Badge>
                     )}
-                    {isDemoData(hotel.id) && (
-                      <Badge variant="secondary" className="bg-blue-500 text-white text-xs">
-                        API Demo
+                    {hotel.provider && (
+                      <Badge variant="outline" className="text-xs border-gray-300">
+                        {hotel.provider}
                       </Badge>
                     )}
                   </div>
