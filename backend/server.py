@@ -51,6 +51,7 @@ from email_system import email_router
 
 # Import advanced search
 from advanced_search import advanced_search_router
+from ai_personalization import personalization_router
 
 # Import OpenAI ChatGPT Pro integration
 try:
