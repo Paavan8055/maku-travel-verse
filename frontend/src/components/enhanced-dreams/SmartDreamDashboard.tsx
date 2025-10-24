@@ -688,8 +688,120 @@ export const SmartDreamDashboard: React.FC = () => {
                     )}
                   </div>
                   
-                  {/* Top Hotels from Enhanced Search */}
-                  {getTopRecommendations('hotels', 3).length > 0 && (
+                  {/* Smart Dreams V2 Loading State */}
+                  {v2Loading && (
+                    <div className="flex items-center space-x-3 p-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-xl mb-6">
+                      <Loader2 className="h-5 w-5 animate-spin text-yellow-400" />
+                      <div>
+                        <p className="font-medium text-yellow-100">Finding Best Providers & Scoring with AI...</p>
+                        <p className="text-sm text-yellow-300/80">Using provider rotation + ChatGPT Pro analysis</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Smart Dreams V2 Error State */}
+                  {v2Error && (
+                    <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl mb-6">
+                      <p className="text-sm text-red-300">{v2Error}</p>
+                      {v2Results?.searchMetadata?.correlationId && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          Correlation ID: {v2Results.searchMetadata.correlationId}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Smart Dreams V2 Results - Real AI Scored Hotels */}
+                  {v2Results?.hotels && v2Results.hotels.length > 0 && (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-lg font-semibold text-white flex items-center space-x-2">
+                          <Heart className="h-4 w-4 text-pink-400" />
+                          <span>AI-Scored Hotels</span>
+                        </h4>
+                        <Badge className="bg-green-900/50 text-green-300 border border-green-500/30">
+                          {v2Results.searchMetadata?.providerUsed || 'Provider'} • {v2Results.aggregatedInsights?.aiScoredCount || 0} AI-scored
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {v2Results.hotels.slice(0, 3).map((hotel: any, index: number) => (
+                          <Card key={hotel.id} className="bg-black/40 backdrop-blur-xl border-white/10 hover:border-pink-400/50 transition-all duration-300">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="font-bold text-white text-sm">{hotel.name}</h5>
+                                <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs">
+                                  {Math.min(100, Math.round(hotel.aiConfidenceScore))}% AI Match
+                                </Badge>
+                              </div>
+                              <p className="text-gray-300 text-xs mb-2">{hotel.location}</p>
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-pink-400 font-bold">${hotel.price}/night</span>
+                                <div className="flex items-center">
+                                  <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                                  <span className="text-yellow-400 text-xs ml-1">{hotel.rating || 4.5}</span>
+                                </div>
+                              </div>
+                              <div className="mb-3">
+                                <div className="text-xs text-gray-400 mb-1">
+                                  Companion: {Math.min(100, Math.round(hotel.companionSuitability || 0))}%
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-1">
+                                  <div 
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-1 rounded-full" 
+                                    style={{ width: `${Math.min(100, hotel.companionSuitability || 0)}%` }}
+                                  />
+                                </div>
+                              </div>
+                              {hotel.recommendationReasons && hotel.recommendationReasons.length > 0 && (
+                                <div className="text-xs text-blue-300 mb-3">
+                                  {hotel.recommendationReasons.slice(0, 2).join(' • ')}
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between mb-2">
+                                <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
+                                  From: {hotel.provider}
+                                </Badge>
+                                {hotel.isDreamDestination && (
+                                  <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs">
+                                    <Sparkles className="h-3 w-3 mr-1" />
+                                    Dream
+                                  </Badge>
+                                )}
+                              </div>
+                              <Button 
+                                onClick={() => {
+                                  const hotelDestination = {
+                                    id: hotel.id,
+                                    name: hotel.location,
+                                    country: hotel.location,
+                                    image: dreamDestinations[index % dreamDestinations.length].image,
+                                    price: hotel.price,
+                                    days: 3,
+                                    excitement: hotel.aiConfidenceScore,
+                                    perfectFor: hotel.recommendationReasons || ['Smart Match']
+                                  };
+                                  addDestinationToJourney(hotelDestination);
+                                }}
+                                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-xs"
+                                disabled={!currentJourney}
+                              >
+                                <Heart className="h-3 w-3 mr-1" />
+                                Add to Journey
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                      {v2Results.searchMetadata?.correlationId && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Search ID: {v2Results.searchMetadata.correlationId}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Top Hotels from Enhanced Search (Legacy - keeping for now) */}
+                  {!v2Results && getTopRecommendations('hotels', 3).length > 0 && (
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-white mb-3 flex items-center space-x-2">
                         <Heart className="h-4 w-4 text-pink-400" />
