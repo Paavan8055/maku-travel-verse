@@ -26,6 +26,9 @@ const Index = () => {
           <MarketplacePills />
           <SearchSection />
           
+          {/* Live Booking Activity Feed - OTA Standard Feature */}
+          <LiveBookingFeed />
+          
           {/* Lazy load below-the-fold content */}
           <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
             <MarketplaceSection />
