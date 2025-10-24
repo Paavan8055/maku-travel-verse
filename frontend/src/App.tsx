@@ -110,7 +110,7 @@ const AgentCoordinationPage = createLazyRoute(() => import("./pages/admin/coordi
 const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
 const EnvironmentManager = createLazyRoute(() => import("./pages/EnvironmentManager"));
 const SmartDreamHub = createLazyRoute(() => import("./pages/smart-dream-hub"));
-const SmartDreamsComplete = createLazyRoute(() => import("./pages/smart-dreams-complete"));
+const SmartDreamsComplete = createLazyRoute(() => import("./pages/smart-dreams-final"));
 const AIIntelligenceHub = createLazyRoute(() => import("./pages/ai-intelligence-hub"));
 const AIDemoPage = createLazyRoute(() => import("./pages/ai-demo"));
 
