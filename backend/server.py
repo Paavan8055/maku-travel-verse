@@ -5424,6 +5424,7 @@ app.include_router(unified_ai_router)
 app.include_router(optimized_ai_router)
 app.include_router(offseason_router)  # Off-Season Occupancy Engine
 app.include_router(email_router)  # Email System
+app.include_router(advanced_search_router)  # Advanced Search
 
 # Register OpenAI ChatGPT Pro router if available
 if OPENAI_ENABLED:
