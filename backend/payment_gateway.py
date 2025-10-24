@@ -6,7 +6,7 @@ Supports Stripe, local payment methods, and secure checkout
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any, Literal
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 import logging
 
