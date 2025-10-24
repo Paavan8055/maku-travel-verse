@@ -366,18 +366,35 @@ const TravelFundPage: React.FC = () => {
             </CardHeader>
             
             <CardContent className="space-y-6 pb-8">
-              {/* Enhanced Stats Preview */}
+              {/* Enhanced Stats Preview - Using Unified Metrics */}
               <div className="grid grid-cols-3 gap-4 text-center py-4 bg-gradient-to-r from-orange-50 to-green-50 rounded-lg border border-orange-200">
                 <div>
-                  <p className="text-2xl font-bold text-orange-600">10,000+</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {platformMetrics?.travel_fund?.total_savers > 0 
+                      ? platformMetrics.travel_fund.total_savers.toLocaleString() + '+' 
+                      : '10,000+'}
+                  </p>
                   <p className="text-sm text-orange-700">Active Savers</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600">$2.5M+</p>
-                  <p className="text-sm text-green-700">Funds Raised</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {platformMetrics?.travel_fund?.total_amount_usd > 0 
+                      ? `$${(platformMetrics.travel_fund.total_amount_usd / 1000000).toFixed(1)}M+` 
+                      : '$2.5M+'}
+                  </p>
+                  <p className="text-sm text-green-700">Funds Raised (USD)</p>
+                  {platformMetrics?.travel_fund?.total_amount_aud > 0 && (
+                    <p className="text-xs text-green-600">
+                      AUD ${(platformMetrics.travel_fund.total_amount_aud / 1000000).toFixed(1)}M
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-600">95%</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {platformMetrics?.travel_fund?.success_rate_percent > 0 
+                      ? Math.round(platformMetrics.travel_fund.success_rate_percent) + '%' 
+                      : '95%'}
+                  </p>
                   <p className="text-sm text-purple-700">Success Rate</p>
                 </div>
               </div>
