@@ -28,7 +28,8 @@ import {
   TrendingUp,
   Zap,
   Coins,
-  PlusCircle
+  PlusCircle,
+  Loader2
 } from 'lucide-react';
 
 import { SocialGamificationHub } from '../gamification/SocialGamificationHub';
@@ -39,6 +40,7 @@ import { JourneyOptimizerCard } from '../ai-intelligence/JourneyOptimizerCard';
 import { useEnhancedDreams } from '@/hooks/useEnhancedDreams';
 import { useAIIntelligence } from '@/hooks/useAIIntelligence';
 import { useSmartDreamProviders } from '@/hooks/useSmartDreamProviders';
+import { searchProvidersV2 } from '@/services/smart-dreams-v2-orchestrator';
 
 interface TravelCompanion {
   type: 'solo' | 'partner' | 'friends' | 'family';
