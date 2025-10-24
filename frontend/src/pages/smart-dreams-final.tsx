@@ -59,7 +59,44 @@ const SmartDreamsPage = () => {
   
   // Form state
   const [dreamForm, setDreamForm] = useState({
-    title: '',\n    description: '',\n    destination: '',\n    startDate: '',\n    flexibleDates: false,\n    targetBudget: 0,\n    savedAmount: 0,\n    monthlyGoal: 0,\n    accommodationPrefs: [] as string[],\n    activityPrefs: [] as string[],\n    travelStyle: ''\n  });\n\n  const handleCreateDream = () => {\n    if (!dreamForm.title || !dreamForm.destination || !dreamForm.targetBudget) {\n      toast({\n        title: \"Missing Information\",\n        description: \"Please fill in dream title, destination, and budget\",\n        variant: \"destructive\"\n      });\n      return;\n    }\n\n    const dreamData = {\n      ...dreamForm,\n      userId: user?.id || 'guest',\n      createdAt: new Date().toISOString()\n    };\n\n    sessionStorage.setItem('dreamToFund', JSON.stringify(dreamData));\n\n    toast({\n      title: \"Dream Created! \ud83c\udf89\",\n      description: \"Setting up your Travel Fund Manager to start saving\"\n    });\n\n    navigate('/travel-fund?source=smart-dream');\n  };
+    title: '',
+    description: '',
+    destination: '',
+    startDate: '',
+    flexibleDates: false,
+    targetBudget: 0,
+    savedAmount: 0,
+    monthlyGoal: 0,
+    accommodationPrefs: [] as string[],
+    activityPrefs: [] as string[],
+    travelStyle: ''
+  });
+
+  const handleCreateDream = () => {
+    if (!dreamForm.title || !dreamForm.destination || !dreamForm.targetBudget) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in dream title, destination, and budget",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const dreamData = {
+      ...dreamForm,
+      userId: user?.id || 'guest',
+      createdAt: new Date().toISOString()
+    };
+
+    sessionStorage.setItem('dreamToFund', JSON.stringify(dreamData));
+
+    toast({
+      title: "Dream Created! 🎉",
+      description: "Setting up your Travel Fund Manager to start saving"
+    });
+
+    navigate('/travel-fund?source=smart-dream');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50">
