@@ -256,7 +256,7 @@ export const FundGamification: React.FC<FundGamificationProps> = ({
               </div>
               <Button 
                 onClick={() => setShowCelebration(false)}
-                className="bg-white text-orange-600 hover:bg-gray-100"
+                className="bg-white text-orange-600 hover:bg-white"
               >
                 Amazing!
               </Button>

@@ -251,7 +251,7 @@ const TravelRewardsNFT: React.FC<TravelRewardsNFTProps> = ({ variant = 'full' })
                 </div>
                 <Badge 
                   variant="secondary" 
-                  className={`absolute top-3 left-3 ${reward.unlocked ? 'bg-green-100 text-green-800 border-green-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}
+                  className={`absolute top-3 left-3 ${reward.unlocked ? 'bg-green-100 text-green-800 border-green-200' : 'bg-white text-gray-600 border-gray-200'}`}
                 >
                   {reward.rarity.toUpperCase()}
                 </Badge>

@@ -178,7 +178,7 @@ export const EnhancedCheckoutIntegration: React.FC<EnhancedCheckoutIntegrationPr
           {/* Payment Mode Selection */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Card 
-              className={`cursor-pointer transition-all ${paymentMode === 'funds' ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:bg-gray-50'}`}
+              className={`cursor-pointer transition-all ${paymentMode === 'funds' ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:bg-white'}`}
               onClick={() => setPaymentMode('funds')}
             >
               <CardContent className="p-4 text-center">
@@ -190,7 +190,7 @@ export const EnhancedCheckoutIntegration: React.FC<EnhancedCheckoutIntegrationPr
 
             {biddingData?.enabled && (
               <Card 
-                className={`cursor-pointer transition-all ${paymentMode === 'bidding' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                className={`cursor-pointer transition-all ${paymentMode === 'bidding' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-white'}`}
                 onClick={() => setPaymentMode('bidding')}
               >
                 <CardContent className="p-4 text-center">
@@ -202,7 +202,7 @@ export const EnhancedCheckoutIntegration: React.FC<EnhancedCheckoutIntegrationPr
             )}
 
             <Card 
-              className={`cursor-pointer transition-all ${paymentMode === 'hybrid' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50'}`}
+              className={`cursor-pointer transition-all ${paymentMode === 'hybrid' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-white'}`}
               onClick={() => setPaymentMode('hybrid')}
             >
               <CardContent className="p-4 text-center">
@@ -325,7 +325,7 @@ export const EnhancedCheckoutIntegration: React.FC<EnhancedCheckoutIntegrationPr
           )}
 
           {/* Payment Summary */}
-          <Card className="bg-gray-50">
+          <Card className="bg-white">
             <CardContent className="p-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">

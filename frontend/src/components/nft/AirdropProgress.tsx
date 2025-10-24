@@ -268,7 +268,7 @@ const AirdropProgress: React.FC = () => {
               const categoryColor = getCategoryColor(quest.category);
               
               return (
-                <div key={quest.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div key={quest.id} className="border border-gray-200 rounded-lg p-4 hover:bg-white transition-colors">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start space-x-3">
                       <div className={`w-10 h-10 bg-gradient-to-br ${categoryColor} rounded-lg flex items-center justify-center`}>
@@ -340,7 +340,7 @@ const AirdropProgress: React.FC = () => {
                       ? 'border-blue-500 bg-blue-50 shadow-lg' 
                       : isCompleted 
                         ? 'border-green-300 bg-green-50' 
-                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                        : 'border-gray-200 bg-white hover:bg-white'
                   }`}
                 >
                   <div className="text-center">

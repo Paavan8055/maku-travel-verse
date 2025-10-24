@@ -105,7 +105,7 @@ export default function BlockchainPage() {
                       key={tier.name}
                       className={`p-4 rounded-lg border-2 ${
                         tier.color === 'orange' ? 'border-orange-200 bg-orange-50' :
-                        tier.color === 'gray' ? 'border-gray-300 bg-gray-50' :
+                        tier.color === 'gray' ? 'border-gray-300 bg-white' :
                         tier.color === 'yellow' ? 'border-yellow-300 bg-yellow-50' :
                         'border-purple-300 bg-purple-50'
                       }`}

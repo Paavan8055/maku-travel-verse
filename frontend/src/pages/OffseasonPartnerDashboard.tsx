@@ -76,7 +76,7 @@ export default function OffseasonPartnerDashboard() {
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       active: 'bg-green-100 text-green-700',
-      draft: 'bg-gray-100 text-gray-700',
+      draft: 'bg-white text-gray-700',
       completed: 'bg-blue-100 text-blue-700',
       paused: 'bg-yellow-100 text-yellow-700'
     };
@@ -91,7 +91,7 @@ export default function OffseasonPartnerDashboard() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-16">

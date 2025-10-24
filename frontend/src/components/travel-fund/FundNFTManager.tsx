@@ -242,7 +242,7 @@ export const FundNFTManager: React.FC<FundNFTManagerProps> = ({
             {funds.map((fund) => {
               const progress = (fund.balance / fund.target_amount) * 100;
               return (
-                <div key={fund.id} className="p-4 bg-gray-50 rounded-lg">
+                <div key={fund.id} className="p-4 bg-white rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-gray-900">{fund.name}</h4>
                     <span className="text-sm font-bold text-orange-600">{Math.round(progress)}%</span>

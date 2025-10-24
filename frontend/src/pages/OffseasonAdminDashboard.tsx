@@ -31,7 +31,7 @@ export default function OffseasonAdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
       <div className="container mx-auto px-4 pt-24 pb-16">
@@ -168,7 +168,7 @@ export default function OffseasonAdminDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {recentDeals.map((deal) => (
-                  <div key={deal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={deal.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">{deal.destination}</div>
                       <div className="text-sm text-gray-600">{deal.traveler} • {deal.date}</div>

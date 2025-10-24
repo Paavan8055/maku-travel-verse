@@ -169,7 +169,7 @@ export const MakuEnhancedFundCard: React.FC<FundDisplayProps> = ({
         
         {/* Deadline Information */}
         {fund.deadline && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-gray-600 bg-white p-2 rounded-lg">
             <Calendar className="h-4 w-4 text-gray-500" />
             <span>Target Date: {new Date(fund.deadline).toLocaleDateString()}</span>
           </div>

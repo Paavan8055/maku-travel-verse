@@ -304,7 +304,7 @@ export const BiddingFundIntegration: React.FC<BiddingFundIntegrationProps> = ({
             </div>
             
             {funds.map((fund) => (
-              <div key={fund.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={fund.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
                 <div>
                   <p className="font-medium">{fund.name}</p>
                   <p className="text-sm text-gray-600">Available: ${fund.balance}</p>
@@ -331,7 +331,7 @@ export const BiddingFundIntegration: React.FC<BiddingFundIntegrationProps> = ({
           </div>
 
           {/* Fund Coverage Indicator */}
-          <div className="p-3 bg-gray-50 rounded-lg">
+          <div className="p-3 bg-white rounded-lg">
             <div className="flex justify-between text-sm mb-2">
               <span>Fund Coverage</span>
               <span className="font-semibold">
@@ -430,7 +430,7 @@ export const BiddingFundIntegration: React.FC<BiddingFundIntegrationProps> = ({
           )}
 
           {/* Bid Summary */}
-          <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+          <div className="p-4 bg-white rounded-lg space-y-2">
             <div className="flex justify-between items-center">
               <span className="font-medium">Your Bid:</span>
               <span className="text-xl font-bold text-blue-600">${bidAmount.toLocaleString()}</span>

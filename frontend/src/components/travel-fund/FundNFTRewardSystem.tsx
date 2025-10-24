@@ -252,7 +252,7 @@ export const FundNFTRewardSystem: React.FC<FundNFTRewardSystemProps> = ({
                   <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
                     milestone.reached 
                       ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' 
-                      : 'bg-gray-100 text-gray-400'
+                      : 'bg-white text-gray-400'
                   }`}>
                     <span className="text-2xl">{milestone.nft_reward.icon}</span>
                   </div>

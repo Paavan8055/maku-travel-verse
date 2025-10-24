@@ -221,7 +221,7 @@ const BrowseFirstExperience: React.FC<BrowseFirstExperienceProps> = ({ onConnect
                 size="lg" 
                 variant="outline"
                 onClick={() => setCurrentView('browse')}
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 px-12 py-4 text-lg font-semibold"
+                className="border-gray-300 text-gray-700 hover:bg-white px-12 py-4 text-lg font-semibold"
               >
                 <Eye className="w-5 h-5 mr-2" />
                 BROWSE MORE

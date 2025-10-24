@@ -216,7 +216,7 @@ export const EnhancedFundCard: React.FC<EnhancedFundCardProps> = ({
               ))}
               
               {fund.contributors.length > 6 && (
-                <div className="flex items-center justify-center h-8 w-8 bg-gray-100 rounded-full border-2 border-white text-xs font-medium text-gray-600">
+                <div className="flex items-center justify-center h-8 w-8 bg-white rounded-full border-2 border-white text-xs font-medium text-gray-600">
                   +{fund.contributors.length - 6}
                 </div>
               )}

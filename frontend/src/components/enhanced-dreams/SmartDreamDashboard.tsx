@@ -301,7 +301,7 @@ export const SmartDreamDashboard: React.FC = () => {
                   className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                     aiEnabled 
                       ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-white text-gray-600 hover:bg-gray-200'
                   }`}
                   aria-label={`AI is currently ${aiEnabled ? 'enabled' : 'disabled'}`}
                 >

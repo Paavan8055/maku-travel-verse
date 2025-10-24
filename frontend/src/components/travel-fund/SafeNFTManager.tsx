@@ -68,7 +68,7 @@ export const SafeNFTManager: React.FC<SafeNFTProps> = ({
                     <div className={`w-10 h-10 mx-auto mb-1 rounded-full flex items-center justify-center ${
                       reached 
                         ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' 
-                        : 'bg-gray-100 text-gray-400'
+                        : 'bg-white text-gray-400'
                     }`}>
                       {reached ? '🏆' : '🎯'}
                     </div>

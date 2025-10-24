@@ -145,7 +145,7 @@ export const SafeEnhancedFundCard: React.FC<SafeFundCardProps> = ({
           
           {/* Deadline */}
           {fund.deadline && (
-            <div className="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded">
+            <div className="flex items-center gap-2 text-xs text-gray-600 bg-white p-2 rounded">
               <Calendar className="h-3 w-3" />
               <span>Target: {new Date(fund.deadline).toLocaleDateString()}</span>
             </div>
