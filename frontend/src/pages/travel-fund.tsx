@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { travelFundClient } from '@/lib/travelFundClient';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { AnimatedLoadingState } from '@/components/ux/EnhancedUserExperience';
 import { Users, Target, Calendar, TrendingUp, PlusCircle, Coins, Copy, Share2, UserPlus, Eye, EyeOff, Sparkles, Brain, Zap, Trophy } from 'lucide-react';
+import axios from 'axios';
 
 const TravelFundPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,6 +30,23 @@ const TravelFundPage: React.FC = () => {
   const { funds, loading, createFund, refetch } = useTravelFunds();
   
   const [activeTab, setActiveTab] = useState('overview');
+  const [platformMetrics, setPlatformMetrics] = useState<any>(null);
+  
+  // Fetch unified metrics
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/metrics/platform`
+        );
+        setPlatformMetrics(response.data);
+      } catch (error) {
+        console.error('Failed to load platform metrics:', error);
+      }
+    };
+    
+    fetchMetrics();
+  }, []);
   
   // Form states
   const [fundName, setFundName] = useState('');
