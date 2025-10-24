@@ -3,14 +3,14 @@
     "lovable": {
       "name": "Lovable State",
       "description": "Original state with current features and implementations",
-      "backend_url": "https://yield-optimize.preview.emergentagent.com",
+      "backend_url": "https://travel-ai-platform-2.preview.emergentagent.com",
       "source": "lovable",
       "active": true
     },
     "emergent": {
       "name": "Emergent State",
       "description": "Enhanced state with CTO recommendations and improvements",
-      "backend_url": "https://yield-optimize.preview.emergentagent.com",
+      "backend_url": "https://travel-ai-platform-2.preview.emergentagent.com",
       "source": "emergent",
       "active": false
     }

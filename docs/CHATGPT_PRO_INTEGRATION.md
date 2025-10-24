@@ -656,7 +656,7 @@ sudo supervisorctl status backend
 
 ### Test 1: Health Check
 ```bash
-curl https://yield-optimize.preview.emergentagent.com/api/ai-pro/health
+curl https://travel-ai-platform-2.preview.emergentagent.com/api/ai-pro/health
 
 # Expected:
 {
@@ -669,7 +669,7 @@ curl https://yield-optimize.preview.emergentagent.com/api/ai-pro/health
 
 ### Test 2: Smart Dreams
 ```bash
-curl -X POST https://yield-optimize.preview.emergentagent.com/api/ai-pro/smart-dreams \
+curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/ai-pro/smart-dreams \
   -H "Content-Type: application/json" \
   -d '{
     "user_input": "I want to plan a beach vacation for 7 days under $2000",
@@ -686,7 +686,7 @@ curl -X POST https://yield-optimize.preview.emergentagent.com/api/ai-pro/smart-d
 
 ### Test 3: Travel DNA
 ```bash
-curl -X POST https://yield-optimize.preview.emergentagent.com/api/ai-pro/travel-dna \
+curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/ai-pro/travel-dna \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "test_user_123",

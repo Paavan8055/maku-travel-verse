@@ -1,7 +1,7 @@
 # Phase 2 Implementation Plan: Smart Contracts, Error Tracking & Strategic Features
 **Created:** January 2025
 **Status:** In Progress
-**Preview URL:** https://yield-optimize.preview.emergentagent.com
+**Preview URL:** https://travel-ai-platform-2.preview.emergentagent.com
 
 ## 🎯 Overview
 
@@ -101,7 +101,7 @@ sudo supervisorctl restart backend
 #### 8. Test Deployment (5 minutes)
 ```bash
 # Test minting Bronze NFT (free)
-curl -X POST https://yield-optimize.preview.emergentagent.com/api/blockchain/nft/mint \
+curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/blockchain/nft/mint \
   -H "Content-Type: application/json" \
   -d '{
     "wallet_address": "0x...",
@@ -225,10 +225,10 @@ sudo supervisorctl restart frontend
 #### Backend Test
 ```bash
 # Trigger 404 error
-curl https://yield-optimize.preview.emergentagent.com/api/nonexistent
+curl https://travel-ai-platform-2.preview.emergentagent.com/api/nonexistent
 
 # Trigger 500 error (add test endpoint)
-curl -X POST https://yield-optimize.preview.emergentagent.com/api/test-error
+curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/test-error
 
 # Check Sentry dashboard for errors
 ```

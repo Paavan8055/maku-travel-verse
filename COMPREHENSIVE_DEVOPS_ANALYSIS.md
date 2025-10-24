@@ -38,7 +38,7 @@ Your repository implements a sophisticated **dual-preview environment system**:
 #### Lovable Environment:
 - **Purpose**: Original baseline with current production features
 - **Source**: `lovable`
-- **Backend URL**: `https://yield-optimize.preview.emergentagent.com`
+- **Backend URL**: `https://travel-ai-platform-2.preview.emergentagent.com`
 - **Status**: Currently marked as active in preview-config.json
 - **Deployment**: Original Vercel-based pipeline
 
