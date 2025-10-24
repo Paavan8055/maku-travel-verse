@@ -137,19 +137,6 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
           health_status: 'healthy'
         }
       ]);
-          health_status: 'healthy'
-        },
-        {
-          id: 'expedia-001',
-          name: 'Expedia Group',
-          type: 'comprehensive',
-          performance_score: 96.2,
-          specialties: ['Complete travel ecosystem', 'Hotels & flights', 'Cars & activities', 'Package deals'],
-          features: ['EPS Rapid API', 'Multi-service booking', 'Global inventory', 'Loyalty rewards'],
-          status: 'active',
-          health_status: 'healthy'
-        }
-      ]);
       setLoading(false);
       
       // Commented out API call to avoid loading issues for now
