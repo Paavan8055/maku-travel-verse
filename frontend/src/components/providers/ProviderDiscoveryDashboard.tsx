@@ -181,7 +181,7 @@ export const ProviderDiscoveryDashboard: React.FC = () => {
       marketplace_scan: 'bg-blue-100 text-blue-800',
       endpoint_scan: 'bg-green-100 text-green-800',
       webhook: 'bg-purple-100 text-purple-800',
-      manual: 'bg-gray-100 text-gray-800'
+      manual: 'bg-white text-gray-800'
     };
     return colors[method] || colors.manual;
   };

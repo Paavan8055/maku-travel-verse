@@ -283,7 +283,7 @@ const EnhancedProviderShowcase: React.FC = () => {
                               Found {provider.total_results} result(s)
                             </p>
                             {provider.results.slice(0, 2).map((result, index) => (
-                              <div key={index} className="p-3 bg-gray-50 rounded-lg mb-2">
+                              <div key={index} className="p-3 bg-white rounded-lg mb-2">
                                 {activeSearch === 'flights' && (
                                   <div>
                                     <p className="font-medium">{result.airline || 'Flight'} {result.flight_number}</p>
@@ -450,7 +450,7 @@ const EnhancedProviderShowcase: React.FC = () => {
           <CardContent>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(providerHealth.providers).map(([providerId, provider]: [string, any]) => (
-                <div key={providerId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={providerId} className="flex items-center justify-between p-3 bg-white rounded-lg">
                   <div className="flex items-center space-x-3">
                     {getProviderIcon(providerId)}
                     <div>

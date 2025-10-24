@@ -329,7 +329,7 @@ export const CollaborativePlanning: React.FC = () => {
               {/* Participant List */}
               <div className="space-y-2">
                 {activePlan.participants.map((participant) => (
-                  <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={participant.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
                         {participant.name.charAt(0).toUpperCase()}
@@ -446,7 +446,7 @@ export const CollaborativePlanning: React.FC = () => {
                       return (
                         <div 
                           key={dest.id}
-                          className="p-4 bg-gray-50 rounded-lg border-2 hover:border-blue-300 transition-colors"
+                          className="p-4 bg-white rounded-lg border-2 hover:border-blue-300 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1">
