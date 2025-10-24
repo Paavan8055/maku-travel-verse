@@ -6,6 +6,9 @@ import MarketplacePills from "@/components/MarketplacePills";
 import LiveBookingFeed from "@/components/LiveBookingFeed";
 import TrustSection from "@/components/TrustSection";
 import WhyChooseUsSection from "@/components/WhyChooseUsSection";
+import AuthenticFeaturedHotels from "@/components/AuthenticFeaturedHotels";
+import AuthenticFeaturedFlights from "@/components/AuthenticFeaturedFlights";
+import AuthenticFeaturedActivities from "@/components/AuthenticFeaturedActivities";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
@@ -15,7 +18,6 @@ import { PartnerShowcase } from "@/components/partners/PartnerShowcase";
 const FlashDealsSection = lazy(() => import("@/components/FlashDealsSection"));
 const TrendingDestinationsSection = lazy(() => import("@/components/TrendingDestinationsSection"));
 const MarketplaceSection = lazy(() => import("@/components/MarketplaceSection"));
-const FeaturedListings = lazy(() => import("@/components/FeaturedListings"));
 const FooterCtas = lazy(() => import("@/components/FooterCtas"));
 const Footer = lazy(() => import("@/components/Footer"));
 
