@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { usePerformanceOptimizer } from "@/hooks/usePerformanceOptimizer";
 import { useTranslation } from "react-i18next";
-import { Search, Calendar, Users, MapPin, Plane, Building, Car, Camera } from "lucide-react";
+import { Search, Calendar, Users, MapPin, Plane, Building, Car, Camera, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +15,7 @@ import FlightPassengerSelector from "@/components/search/FlightPassengerSelector
 import MultiCitySegments, { type Segment } from "@/components/search/MultiCitySegments";
 import { ActivitySearchBar } from "@/components/search/ActivitySearchBar";
 import { MobileSearchSheet } from "@/components/MobileSearchSheet";
+import SmartSearchBar from "@/components/SmartSearchBar";
 
 const SearchSection = () => {
   const { t } = useTranslation();
@@ -24,6 +25,8 @@ const SearchSection = () => {
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("2");
   const [activeTab, setActiveTab] = useState("hotels");
+  const [showSmartSearch, setShowSmartSearch] = useState(true);
+  
   // Flights state
   const [flightFrom, setFlightFrom] = useState("");
   const [flightTo, setFlightTo] = useState("");
