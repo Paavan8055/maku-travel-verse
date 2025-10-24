@@ -33,6 +33,22 @@ const Index = () => {
           {/* Live Booking Activity Feed - OTA Standard Feature */}
           <LiveBookingFeed />
           
+          {/* Flash Deals - Time-Sensitive Offers */}
+          <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
+            <FlashDealsSection />
+          </Suspense>
+          
+          {/* Trending Destinations - Popular Choices */}
+          <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
+            <TrendingDestinationsSection />
+          </Suspense>
+          
+          {/* Trust & Social Proof */}
+          <TrustSection />
+          
+          {/* Why Choose Us - Feature Highlights */}
+          <WhyChooseUsSection />
+          
           {/* Lazy load below-the-fold content */}
           <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
             <MarketplaceSection />
