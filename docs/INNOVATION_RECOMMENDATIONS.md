@@ -1,6 +1,6 @@
 # Maku.Travel Innovation Recommendations & Analysis
 **Generated:** January 2025
-**Preview URL:** https://travel-ai-platform-2.preview.emergentagent.com
+**Preview URL:** https://maku-travel-ai.preview.emergentagent.com
 **Status:** Post Off-Season Occupancy Engine Implementation
 
 ## 🎯 Executive Summary
@@ -445,7 +445,7 @@ By combining **AI personalization**, **blockchain rewards**, and **social gamifi
 
 ## 📞 Implementation Support
 
-**Preview Environment:** https://travel-ai-platform-2.preview.emergentagent.com
+**Preview Environment:** https://maku-travel-ai.preview.emergentagent.com
 
 **Key Documentation:**
 - `/app/docs/offseason.md` - Off-Season Engine details

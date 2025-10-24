@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BASE_URL = "https://travel-ai-platform-2.preview.emergentagent.com/api"
+BASE_URL = "https://maku-travel-ai.preview.emergentagent.com/api"
 REAL_USER_ID = "f9208e3b-5612-47d8-b98e-02809b3bc89c"  # Real user ID from review request
 TEST_WALLET_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
 

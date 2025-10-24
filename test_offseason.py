@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://travel-ai-platform-2.preview.emergentagent.com/api"
+BASE_URL = "https://maku-travel-ai.preview.emergentagent.com/api"
 
 class OffSeasonTester:
     def __init__(self):

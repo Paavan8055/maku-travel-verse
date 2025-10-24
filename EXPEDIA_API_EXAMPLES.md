@@ -20,7 +20,7 @@ python setup_expedia.py --check-only --api-key dummy --shared-secret dummy
 ### 2. Manual Setup via API
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/setup \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/setup \
   -H "Content-Type: application/json" \
   -d '{
     "api_key": "your-expedia-api-key",
@@ -34,7 +34,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 ### 1. Health Check
 
 ```bash
-curl -X GET https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/health
+curl -X GET https://maku-travel-ai.preview.emergentagent.com/api/expedia/health
 ```
 
 Response:
@@ -54,7 +54,7 @@ Response:
 #### Basic Hotel Search
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/hotels/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/hotels/search \
   -H "Content-Type: application/json" \
   -d '{
     "checkin": "2024-03-15",
@@ -71,7 +71,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 #### Advanced Hotel Search with Filters
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/hotels/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/hotels/search \
   -H "Content-Type: application/json" \
   -d '{
     "checkin": "2024-03-15",
@@ -92,7 +92,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 #### One-Way Flight
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/flights/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/flights/search \
   -H "Content-Type: application/json" \
   -d '{
     "origin": "LAX",
@@ -110,7 +110,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 #### Round-Trip Flight
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/flights/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/flights/search \
   -H "Content-Type: application/json" \
   -d '{
     "origin": "LAX",
@@ -131,7 +131,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 #### Same Location Pickup/Dropoff
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/cars/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/cars/search \
   -H "Content-Type: application/json" \
   -d '{
     "pickup_location": "LAX",
@@ -144,7 +144,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 #### One-Way Car Rental
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/cars/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/cars/search \
   -H "Content-Type: application/json" \
   -d '{
     "pickup_location": "LAX",
@@ -160,7 +160,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 #### Basic Activity Search
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/activities/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/activities/search \
   -H "Content-Type: application/json" \
   -d '{
     "destination": "New York",
@@ -172,7 +172,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 #### Filtered Activity Search
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/activities/search \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/activities/search \
   -H "Content-Type: application/json" \
   -d '{
     "destination": "Paris",
@@ -187,7 +187,7 @@ curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/
 ### 6. Hotel Booking
 
 ```bash
-curl -X POST https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/hotels/book \
+curl -X POST https://maku-travel-ai.preview.emergentagent.com/api/expedia/hotels/book \
   -H "Content-Type: application/json" \
   -d '{
     "property_id": "123456",
@@ -340,7 +340,7 @@ async def search_expedia_hotels(checkin: date, checkout: date, adults: int = 2):
     
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "https://travel-ai-platform-2.preview.emergentagent.com/api/expedia/hotels/search",
+            "https://maku-travel-ai.preview.emergentagent.com/api/expedia/hotels/search",
             json=search_params,
             timeout=30.0
         )
@@ -419,7 +419,7 @@ class ExpediaAPIError(Exception):
 async def safe_expedia_request(endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
     """Make a safe request to Expedia API with proper error handling"""
     
-    base_url = "https://travel-ai-platform-2.preview.emergentagent.com/api/expedia"
+    base_url = "https://maku-travel-ai.preview.emergentagent.com/api/expedia"
     url = f"{base_url}{endpoint}"
     
     try:
@@ -612,7 +612,7 @@ class ExpediaConfig:
 def get_expedia_config() -> ExpediaConfig:
     """Get Expedia configuration from environment"""
     return ExpediaConfig(
-        base_url=os.getenv('EXPEDIA_BASE_URL', 'https://travel-ai-platform-2.preview.emergentagent.com'),
+        base_url=os.getenv('EXPEDIA_BASE_URL', 'https://maku-travel-ai.preview.emergentagent.com'),
         api_key=os.getenv('EXPEDIA_API_KEY', ''),
         shared_secret=os.getenv('EXPEDIA_SHARED_SECRET', ''),
         test_mode=os.getenv('EXPEDIA_TEST_MODE', 'true').lower() == 'true',

@@ -423,7 +423,7 @@ DELIVERABLES:
 ### **Current Deployment Gap**
 ```
 IDENTIFIED ISSUE:
-- Development environment: https://travel-ai-platform-2.preview.emergentagent.com
+- Development environment: https://maku-travel-ai.preview.emergentagent.com
 - Production website: https://maku.travel/ (Netlify)
 - NO AUTOMATIC SYNC: Changes in dev environment don't deploy to live site
 
