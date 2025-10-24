@@ -59,6 +59,13 @@
 ## agent_communication:
 ##     -agent: "main"  # or "testing" or "user"
 ##     -message: "Communication message between agents"
+##
+## integration_tasks:
+##   - feature: "Feature name"
+##     backend_endpoint: "API endpoint"
+##     frontend_component: "Component file path"
+##     status: "pending"  # or "in_progress" or "completed"
+##     priority: "high"  # or "medium" or "low"
 
 # Protocol Guidelines for Main agent
 #
