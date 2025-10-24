@@ -137,3 +137,4 @@ eth-account==0.10.0
 cryptography==41.0.7
 sentry-sdk[fastapi]==1.39.2
 emergentintegrations
+httpx
