@@ -66,7 +66,7 @@ export default function About() {
           <div className="flex items-center justify-center gap-3 mt-8">
             <Plane className="h-5 w-5" />
             <span className="text-sm opacity-90">
-              Based in Sydney • Launching 23 Oct 2025 (Diwali)
+              Based in Sydney • <span className="font-semibold text-green-400">LIVE NOW</span> • Launched 23 Oct 2025 (Diwali)
             </span>
           </div>
         </div>
