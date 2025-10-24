@@ -115,9 +115,9 @@ const EnhancedFlightsPage = () => {
         return_date: searchType === 'round-trip' ? returnDate : undefined,
         passengers,
         cabin_class: cabinClass as any,
-        price_range: filters.priceRange,
+        price_range: filters.priceRange.min > 0 || filters.priceRange.max < 10000 ? filters.priceRange : undefined,
         max_stops: filters.maxStops ?? undefined,
-        preferred_airlines: filters.preferredAirlines,
+        preferred_airlines: filters.preferredAirlines.length > 0 ? filters.preferredAirlines : undefined,
         sort_by: sortBy,
         sort_order: 'asc',
         page: 1,
@@ -126,12 +126,16 @@ const EnhancedFlightsPage = () => {
 
       if (result.success) {
         setFlights(result.results);
+        if (result.results.length === 0) {
+          setError('No flights found. Try adjusting your search criteria or filters.');
+        }
       } else {
         setError('No flights found. Please try different search criteria.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Flight search error:', error);
-      setError('Search failed. Please try again.');
+      setError(error.response?.data?.detail || 'Search failed. Please try again.');
+      setFlights([]);
     } finally {
       setLoading(false);
     }
@@ -139,8 +143,8 @@ const EnhancedFlightsPage = () => {
 
   const createAlert = async (flight: FlightResult) => {
     try {
-      await createPriceAlert({
-        user_id: 'guest',
+      const alert = await createPriceAlert({
+        user_id: user?.id || 'guest',
         search_criteria: {
           type: 'flight',
           destination: flight.destination,
@@ -149,10 +153,18 @@ const EnhancedFlightsPage = () => {
         target_price: flight.price * 0.9, // Alert at 10% discount
         currency: flight.currency
       });
-      alert('Price alert created! We\'ll notify you of better deals.');
+      
+      alert('✅ Price alert created! We\'ll notify you when prices drop below $' + Math.round(flight.price * 0.9));
     } catch (error) {
       console.error('Price alert failed:', error);
+      alert('⚠️ Unable to create price alert. Please try again.');
     }
+  };
+
+  const handleFlightSelect = (flight: FlightResult) => {
+    // Store flight for booking flow
+    sessionStorage.setItem('selectedFlight', JSON.stringify(flight));
+    navigate(`/flights/review?flightId=${flight.flight_id}`);
   };
 
   const getAirlineLogo = (airline: string) => {
