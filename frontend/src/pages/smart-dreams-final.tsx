@@ -271,7 +271,17 @@ const SmartDreamsPage = () => {
                     <div className="space-y-2">
                       {['Luxury Resort', 'Boutique Hotel', 'Beach Villa', 'Budget Friendly'].map(opt => (
                         <label key={opt} className="flex items-center gap-2">
-                          <input type="checkbox" />
+                          <input 
+                            type="checkbox"
+                            checked={dreamForm.accommodationPrefs.includes(opt)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setDreamForm({...dreamForm, accommodationPrefs: [...dreamForm.accommodationPrefs, opt]});
+                              } else {
+                                setDreamForm({...dreamForm, accommodationPrefs: dreamForm.accommodationPrefs.filter(a => a !== opt)});
+                              }
+                            }}
+                          />
                           <span className="text-sm">{opt}</span>
                         </label>
                       ))}
