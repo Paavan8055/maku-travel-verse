@@ -150,10 +150,14 @@ const SmartDreamsPage = () => {
                 <Input 
                   placeholder="e.g., Romantic Maldives Escape, Family Adventure in Japan..."
                   className="text-lg p-6 mb-4"
+                  value={dreamForm.title}
+                  onChange={(e) => setDreamForm({...dreamForm, title: e.target.value})}
                 />
                 <Textarea 
                   placeholder="Describe your perfect trip... What experiences do you dream of?"
                   className="min-h-[120px] p-4"
+                  value={dreamForm.description}
+                  onChange={(e) => setDreamForm({...dreamForm, description: e.target.value})}
                 />
               </div>
 
@@ -167,6 +171,8 @@ const SmartDreamsPage = () => {
                   <Input 
                     placeholder="Where do you dream of going?"
                     className="p-4"
+                    value={dreamForm.destination}
+                    onChange={(e) => setDreamForm({...dreamForm, destination: e.target.value})}
                   />
                 </div>
                 <div>
@@ -175,9 +181,18 @@ const SmartDreamsPage = () => {
                     When? (Flexible = Better Deals)
                   </h3>
                   <div className="space-y-2">
-                    <Input type="date" className="p-4" />
+                    <Input 
+                      type="date" 
+                      className="p-4"
+                      value={dreamForm.startDate}
+                      onChange={(e) => setDreamForm({...dreamForm, startDate: e.target.value})}
+                    />
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" />
+                      <input 
+                        type="checkbox"
+                        checked={dreamForm.flexibleDates}
+                        onChange={(e) => setDreamForm({...dreamForm, flexibleDates: e.target.checked})}
+                      />
                       <span className="text-sm">I'm flexible with dates for better deals</span>
                     </label>
                   </div>
