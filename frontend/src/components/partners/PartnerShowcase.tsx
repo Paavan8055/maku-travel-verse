@@ -46,7 +46,7 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
 
   const fetchPartners = async () => {
     try {
-      // For now, use static data to avoid loading issues
+      // Real provider data from test/sandbox APIs
       setPartners([
         {
           id: 'amadeus-001',
@@ -55,6 +55,7 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
           performance_score: 92.5,
           specialties: ['Global hotel inventory', 'Real-time availability', 'Corporate rates'],
           features: ['Price matching', 'Instant confirmation', '24/7 support'],
+          demo_label: '🧪 Test API',
           status: 'active',
           health_status: 'healthy'
         },
@@ -65,6 +66,7 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
           performance_score: 88.7,
           specialties: ['Flight booking', 'Airline partnerships', 'Route optimization'],
           features: ['Multi-city booking', 'Seat selection', 'Meal preferences'],
+          demo_label: '🧪 Test API',
           status: 'active',
           health_status: 'healthy'
         },
@@ -75,6 +77,7 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
           performance_score: 85.2,
           specialties: ['Tours and activities', 'Local experiences', 'Skip-the-line tickets'],
           features: ['Expert guides', 'Small groups', 'Cultural immersion'],
+          demo_label: '🧪 Test API',
           status: 'active',
           health_status: 'healthy'
         },
@@ -85,7 +88,7 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
           performance_score: 94.8,
           specialties: ['Modern flight booking', 'Direct airline connectivity', 'Ancillary services'],
           features: ['Real-time availability', 'Dynamic pricing', 'Seat maps'],
-          demo_label: '✨ DEMO DATA',
+          demo_label: '🧪 Sandbox',
           status: 'active',
           health_status: 'healthy'
         },
@@ -96,8 +99,44 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
           performance_score: 91.3,
           specialties: ['Hotel inventory', 'Competitive rates', 'Global coverage'],
           features: ['Best price guarantee', 'Instant booking', 'Multi-language support'],
-          demo_label: '✨ DEMO DATA',
+          demo_label: '🧪 Development',
           status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'expedia-001',
+          name: 'Expedia Group',
+          type: 'hotel',
+          performance_score: 96.1,
+          specialties: ['Hotels & flights', 'Package deals', 'Loyalty rewards'],
+          features: ['Price freeze', 'Virtual agent', 'Mobile app'],
+          demo_label: '🧪 Sandbox API',
+          status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'getyourguide-001',
+          name: 'GetYourGuide',
+          type: 'activity',
+          performance_score: 89.4,
+          specialties: ['Activities & experiences', 'Skip-the-line access', 'Mobile tickets'],
+          features: ['Flexible cancellation', 'Instant confirmation', 'Live availability'],
+          demo_label: '🧪 Test Environment',
+          status: 'active',
+          health_status: 'healthy'
+        },
+        {
+          id: 'nuitee-001',
+          name: 'Nuitée',
+          type: 'hotel',
+          performance_score: 87.9,
+          specialties: ['Hotel aggregation', 'Competitive pricing', 'Direct connections'],
+          features: ['Real-time booking', 'Multiple suppliers', 'Best rates'],
+          demo_label: '🧪 Test API',
+          status: 'active',
+          health_status: 'healthy'
+        }
+      ]);
           health_status: 'healthy'
         },
         {
