@@ -242,9 +242,9 @@ const FeaturedListings = () => {
                           Live
                         </Badge>
                       )}
-                      {isDemoData(flight.id) && (
-                        <Badge variant="secondary" className="bg-blue-500 text-white text-xs">
-                          API Demo
+                      {flight.airline && (
+                        <Badge variant="outline" className="text-xs">
+                          {flight.airline}
                         </Badge>
                       )}
                     </div>
