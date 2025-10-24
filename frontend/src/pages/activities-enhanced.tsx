@@ -92,7 +92,11 @@ const EnhancedActivitiesPage = () => {
 
   const handleSearch = async () => {
     if (!destination || !startDate) {
-      setError('Please fill in destination and date');
+      toast({
+        title: "Missing Information",
+        description: "Please fill in destination and date",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -106,8 +110,8 @@ const EnhancedActivitiesPage = () => {
         participants,
         categories: filters.categories.length > 0 ? filters.categories : undefined,
         activity_types: filters.activityTypes.length > 0 ? filters.activityTypes : undefined,
-        price_range: filters.priceRange,
-        min_rating: filters.minRating || undefined,
+        price_range: filters.priceRange.max < 500 ? filters.priceRange : undefined,
+        min_rating: filters.minRating > 0 ? filters.minRating : undefined,
         sort_by: sortBy,
         sort_order: 'desc',
         page: 1,
@@ -116,15 +120,34 @@ const EnhancedActivitiesPage = () => {
 
       if (result.success) {
         setActivities(result.results);
+        if (result.results.length === 0) {
+          setError('No activities found. Try adjusting your filters.');
+        }
+        toast({
+          title: "Search Complete",
+          description: `Found ${result.results.length} experiences`,
+        });
       } else {
         setError('No activities found. Try different search criteria.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Activity search error:', error);
-      setError('Search failed. Please try again.');
+      setError(error.response?.data?.detail || 'Search failed. Please try again.');
+      setActivities([]);
+      toast({
+        title: "Search Failed",
+        description: "Unable to search activities. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleActivitySelect = (activity: ActivityResult) => {
+    // Store activity for booking flow
+    sessionStorage.setItem('selectedActivity', JSON.stringify(activity));
+    navigate(`/activities/checkout?activityId=${activity.activity_id}`);
   };
 
   const getCategoryIcon = (category: string) => {
