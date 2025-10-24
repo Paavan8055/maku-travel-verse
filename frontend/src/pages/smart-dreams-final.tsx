@@ -313,7 +313,12 @@ const SmartDreamsPage = () => {
                     <div className="space-y-2">
                       {['Romantic', 'Family Fun', 'Adventure', 'Relaxation'].map(opt => (
                         <label key={opt} className="flex items-center gap-2">
-                          <input type="radio" name="style" />
+                          <input 
+                            type="radio" 
+                            name="style"
+                            checked={dreamForm.travelStyle === opt}
+                            onChange={() => setDreamForm({...dreamForm, travelStyle: opt})}
+                          />
                           <span className="text-sm">{opt}</span>
                         </label>
                       ))}
