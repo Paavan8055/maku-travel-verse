@@ -43,6 +43,7 @@ interface FlightResult {
 const EnhancedFlightsPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Search State
   const [searchType, setSearchType] = useState<'one-way' | 'round-trip' | 'multi-city'>('round-trip');
