@@ -188,8 +188,11 @@ const SmartDreamsPage = () => {
               <div className="mb-8">
                 <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-green-600" />
-                  Step 3: Budget & Laxmi Wallet Integration
+                  Step 3: Budget & Travel Fund Manager Integration
                 </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  \ud83d\udca1 We'll set up your Travel Fund Manager (saving wallet) to help you reach your goal
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Dream Budget</label>
@@ -197,14 +200,18 @@ const SmartDreamsPage = () => {
                       type="number" 
                       placeholder="$3,000"
                       className="p-4"
+                      value={dreamForm.targetBudget || ''}
+                      onChange={(e) => setDreamForm({...dreamForm, targetBudget: parseInt(e.target.value) || 0})}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Already Saved (Laxmi)</label>
+                    <label className="text-sm font-medium mb-2 block">Already Saved (Travel Fund)</label>
                     <Input 
                       type="number" 
                       placeholder="$500"
                       className="p-4 bg-green-50"
+                      value={dreamForm.savedAmount || ''}
+                      onChange={(e) => setDreamForm({...dreamForm, savedAmount: parseInt(e.target.value) || 0})}
                     />
                   </div>
                   <div>
@@ -213,16 +220,23 @@ const SmartDreamsPage = () => {
                       type="number" 
                       placeholder="$300"
                       className="p-4"
+                      value={dreamForm.monthlyGoal || ''}
+                      onChange={(e) => setDreamForm({...dreamForm, monthlyGoal: parseInt(e.target.value) || 0})}
                     />
                   </div>
                 </div>
                 <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold">Savings Progress</span>
-                    <span className="text-sm font-bold text-green-600">17%</span>
+                    <span className="text-sm font-semibold">Estimated Savings Progress</span>
+                    <span className="text-sm font-bold text-green-600">
+                      {dreamForm.savedAmount && dreamForm.targetBudget ? Math.round((dreamForm.savedAmount / dreamForm.targetBudget) * 100) : 0}%
+                    </span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 w-[17%]"></div>
+                    <div 
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-500" 
+                      style={{width: `${dreamForm.savedAmount && dreamForm.targetBudget ? Math.round((dreamForm.savedAmount / dreamForm.targetBudget) * 100) : 0}%`}}
+                    ></div>
                   </div>
                   <p className="text-xs text-gray-600 mt-2">
                     💡 Tip: Providers offer better deals when you reach 50% savings!
