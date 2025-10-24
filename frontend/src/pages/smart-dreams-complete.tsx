@@ -386,6 +386,188 @@ const SmartDreamsComplete = () => {
         </section>
       )}
 
+      {/* Create Dream View */}
+      {view === 'create' && (
+        <section className="py-12 px-6">
+          <div className="max-w-4xl mx-auto">
+            <Card className="p-8">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Create Your Dream Journey
+              </h2>
+
+              {/* Step 1: Dream Basics */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-purple-600" />
+                  Step 1: Name Your Dream
+                </h3>
+                <Input 
+                  placeholder="e.g., Romantic Maldives Escape, Family Adventure in Japan..."
+                  className="text-lg p-6 mb-4"
+                  value={dreamForm.title}
+                  onChange={(e) => setDreamForm({...dreamForm, title: e.target.value})}
+                />
+                <Textarea 
+                  placeholder="Describe your perfect trip... What experiences do you dream of?"
+                  className="min-h-[120px] p-4"
+                  value={dreamForm.description}
+                  onChange={(e) => setDreamForm({...dreamForm, description: e.target.value})}
+                />
+              </div>
+
+              {/* Step 2: Destination & Dates */}
+              <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                    Dream Destination
+                  </h3>
+                  <Input 
+                    placeholder="Where do you dream of going?"
+                    className="p-4"
+                    value={dreamForm.destination}
+                    onChange={(e) => setDreamForm({...dreamForm, destination: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-green-600" />
+                    When? (Flexible = Better Deals)
+                  </h3>
+                  <div className="space-y-2">
+                    <Input 
+                      type="date" 
+                      className="p-4"
+                      value={dreamForm.startDate}
+                      onChange={(e) => setDreamForm({...dreamForm, startDate: e.target.value})}
+                    />
+                    <label className="flex items-center gap-2">
+                      <input 
+                        type="checkbox"
+                        checked={dreamForm.flexibleDates}
+                        onChange={(e) => setDreamForm({...dreamForm, flexibleDates: e.target.checked})}
+                      />
+                      <span className="text-sm">I'm flexible with dates for better deals</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Budget & Travel Fund (Laxmi) */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-green-600" />
+                  Step 3: Budget & Travel Fund Integration
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  💡 Your dream will create a Travel Fund (Laxmi wallet) for saving & earning rewards
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Dream Budget ($)</label>
+                    <Input 
+                      type="number" 
+                      placeholder="3000"
+                      className="p-4"
+                      value={dreamForm.targetBudget || ''}
+                      onChange={(e) => setDreamForm({...dreamForm, targetBudget: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Already Saved ($)</label>
+                    <Input 
+                      type="number" 
+                      placeholder="500"
+                      className="p-4 bg-green-50"
+                      value={dreamForm.savedAmount || ''}
+                      onChange={(e) => setDreamForm({...dreamForm, savedAmount: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Monthly Goal ($)</label>
+                    <Input 
+                      type="number" 
+                      placeholder="300"
+                      className="p-4"
+                      value={dreamForm.monthlyGoal || ''}
+                      onChange={(e) => setDreamForm({...dreamForm, monthlyGoal: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4: Preferences */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-600" />
+                  Step 4: Your Preferences
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-sm font-medium mb-3 block">Accommodation Style</label>
+                    <div className="space-y-2">
+                      {['Luxury Resort', 'Boutique Hotel', 'Beach Villa', 'Budget Friendly'].map(opt => (
+                        <label key={opt} className="flex items-center gap-2">
+                          <input 
+                            type="checkbox"
+                            checked={dreamForm.accommodationPrefs.includes(opt)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setDreamForm({...dreamForm, accommodationPrefs: [...dreamForm.accommodationPrefs, opt]});
+                              } else {
+                                setDreamForm({...dreamForm, accommodationPrefs: dreamForm.accommodationPrefs.filter(a => a !== opt)});
+                              }
+                            }}
+                          />
+                          <span className="text-sm">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-3 block">Must-Have Experiences</label>
+                    <div className="space-y-2">
+                      {['Water Sports', 'Cultural Tours', 'Fine Dining', 'Spa & Wellness'].map(opt => (
+                        <label key={opt} className="flex items-center gap-2">
+                          <input 
+                            type="checkbox"
+                            checked={dreamForm.activityPrefs.includes(opt)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setDreamForm({...dreamForm, activityPrefs: [...dreamForm.activityPrefs, opt]});
+                              } else {
+                                setDreamForm({...dreamForm, activityPrefs: dreamForm.activityPrefs.filter(a => a !== opt)});
+                              }
+                            }}
+                          />
+                          <span className="text-sm">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="text-center pt-6 border-t">
+                <Button 
+                  size="lg" 
+                  className="px-12 py-6 text-lg bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700"
+                  onClick={handleCreateDream}
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Create My Dream & Setup Travel Fund
+                </Button>
+                <p className="text-sm text-gray-600 mt-4">
+                  💡 Once created, you'll set up your Travel Fund (Laxmi) and hotels/airlines will compete with offers!
+                </p>
+              </div>
+            </Card>
+          </div>
+        </section>
+      )}
+
+
       {/* How Smart Dreams Works */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
