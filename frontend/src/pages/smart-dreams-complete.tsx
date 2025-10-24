@@ -54,8 +54,25 @@ interface Dream {
 const SmartDreamsComplete = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [view, setView] = useState<'create' | 'myDreams' | 'marketplace'>('myDreams');
   const [userPersona, setUserPersona] = useState<any>(null);
+  
+  // Form state for creating dream
+  const [dreamForm, setDreamForm] = useState({
+    title: '',
+    description: '',
+    destination: '',
+    startDate: '',
+    endDate: '',
+    flexibleDates: false,
+    targetBudget: 0,
+    savedAmount: 0,
+    monthlyGoal: 0,
+    accommodationPrefs: [] as string[],
+    activityPrefs: [] as string[],
+    travelStyle: ''
+  });
   
   // Mock dreams for demonstration
   const [dreams, setDreams] = useState<Dream[]>([
