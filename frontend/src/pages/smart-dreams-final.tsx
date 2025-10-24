@@ -331,24 +331,24 @@ const SmartDreamsPage = () => {
               <div className="mb-8">
                 <h3 className="text-xl font-semibold mb-4">Step 5: Make it Social (Optional)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="p-6 border-2 border-blue-200 hover:border-blue-400 transition-colors cursor-pointer">
+                  <Card className="p-6 border-2 border-blue-200 hover:border-blue-400 transition-colors cursor-pointer" onClick={() => navigate('/collaborative-planning')}>
                     <Users className="w-8 h-8 text-blue-600 mb-2" />
                     <h4 className="font-semibold mb-2">Plan Together</h4>
                     <p className="text-sm text-gray-600 mb-3">
                       Invite friends/family to collaborate, pool budgets, and vote on choices
                     </p>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); navigate('/collaborative-planning'); }}>
                       <Plus className="w-4 h-4 mr-2" />
                       Add Collaborators
                     </Button>
                   </Card>
-                  <Card className="p-6 border-2 border-pink-200 hover:border-pink-400 transition-colors cursor-pointer">
+                  <Card className="p-6 border-2 border-pink-200 hover:border-pink-400 transition-colors cursor-pointer" onClick={() => navigate('/gift-cards')}>
                     <Gift className="w-8 h-8 text-pink-600 mb-2" />
                     <h4 className="font-semibold mb-2">Make it Giftable</h4>
                     <p className="text-sm text-gray-600 mb-3">
                       Friends & family can contribute to your dream as gifts
                     </p>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); navigate('/gift-cards'); }}>
                       <Share2 className="w-4 h-4 mr-2" />
                       Enable Gifting
                     </Button>
