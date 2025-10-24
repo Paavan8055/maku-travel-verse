@@ -94,7 +94,43 @@ const [activityChildren, setActivityChildren] = useState(0);
   return (
     <section className="relative -mt-16 z-30 px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="travel-card bg-white p-8">
+        <div className="travel-card bg-white p-8 shadow-2xl">
+          {/* AI Smart Search Toggle */}
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-900">Search Your Way</h3>
+            </div>
+            <button
+              onClick={() => setShowSmartSearch(!showSmartSearch)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                showSmartSearch 
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {showSmartSearch ? 'AI Smart Search' : 'Classic Search'}
+              </span>
+            </button>
+          </div>
+
+          {/* AI Smart Search Bar */}
+          {showSmartSearch && (
+            <div className="mb-8">
+              <SmartSearchBar />
+            </div>
+          )}
+
+          {/* Divider */}
+          {showSmartSearch && (
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-sm text-gray-500">or use classic search below</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+          )}
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-8">
               {searchTabs.map((tab) => (
