@@ -158,12 +158,6 @@ const PartnerShowcase: React.FC<PartnerShowcaseProps> = ({ variant = 'full', sho
       setLoading(false);
     }
   };
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getProviderIcon = (type: string, name: string) => {
     if (name === 'Expedia Group') return Globe;
