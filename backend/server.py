@@ -5409,6 +5409,13 @@ if OPENAI_ENABLED:
 else:
     logger.warning("⚠️  OpenAI ChatGPT Pro endpoints not available")
 
+# Register Smart Dreams V2 router if available
+if SMART_DREAMS_V2_ENABLED:
+    app.include_router(smart_dreams_router)  # Smart Dreams AI Scoring + Rotation
+    logger.info("✅ Smart Dreams V2 endpoints registered")
+else:
+    logger.warning("⚠️  Smart Dreams V2 endpoints not available")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
