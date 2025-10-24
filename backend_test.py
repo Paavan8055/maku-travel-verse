@@ -183,10 +183,10 @@ def test_smart_dreams_rotation_stats():
 
 def test_smart_dreams_score_destination():
     """
-    Test POST /api/smart-dreams/v2/score-destination
+    Test POST /api/smart-dreams-v2/score-destination
     Verify AI scoring (not Math.random())
     """
-    print_test_header("Smart Dreams V2 Score Destination - /api/smart-dreams/v2/score-destination")
+    print_test_header("Smart Dreams V2 Score Destination - /api/smart-dreams-v2/score-destination")
     
     try:
         # Sample destination data
@@ -215,7 +215,7 @@ def test_smart_dreams_score_destination():
         }
         
         response = requests.post(
-            f"{BACKEND_URL}/smart-dreams/v2/score-destination",
+            f"{BACKEND_URL}/smart-dreams-v2/score-destination",
             json=payload,
             timeout=30
         )
