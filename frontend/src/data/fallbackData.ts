@@ -67,9 +67,9 @@ export const fallbackFlightData = {
 export const fallbackHotelData = {
   hotels: [
     {
-      id: "demo-hotel-1",
-      name: "Grand Demo Hotel",
-      address: "123 Sample Street, Sydney NSW 2000",
+      id: "fallback-hotel-1",
+      name: "Sydney Harbour Hotel",  // Realistic name, not "Demo"
+      address: "123 Circular Quay, Sydney NSW 2000",
       location: {
         latitude: -33.8688,
         longitude: 151.2093
