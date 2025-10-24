@@ -336,18 +336,29 @@ const SmartDreamsComplete = () => {
 
                     {/* Quick Actions */}
                     <div className="grid grid-cols-2 gap-3">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleAddFunds(dream.id)}
+                      >
                         <Wallet className="w-4 h-4 mr-2" />
                         Add Funds
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleInviteCollaborators(dream.id)}
+                      >
                         <Share2 className="w-4 h-4 mr-2" />
                         Invite
                       </Button>
                     </div>
 
                     {dream.status === 'offers' && (
-                      <Button className="w-full mt-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+                      <Button 
+                        className="w-full mt-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                        onClick={() => handleViewDreamOffers(dream.id)}
+                      >
                         <Target className="w-4 h-4 mr-2" />
                         View {dream.providerOffers} Offers
                       </Button>
