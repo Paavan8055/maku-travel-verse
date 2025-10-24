@@ -40,6 +40,15 @@ const Index = () => {
             <FlashDealsSection />
           </Suspense>
           
+          {/* Authentic Featured Hotels - Real Test Data */}
+          <AuthenticFeaturedHotels />
+          
+          {/* Authentic Featured Flights - Real Test Data */}
+          <AuthenticFeaturedFlights />
+          
+          {/* Authentic Featured Activities - Real Test Data */}
+          <AuthenticFeaturedActivities />
+          
           {/* Trending Destinations - Popular Choices */}
           <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
             <TrendingDestinationsSection />
@@ -51,16 +60,12 @@ const Index = () => {
           {/* Why Choose Us - Feature Highlights */}
           <WhyChooseUsSection />
           
-          {/* Lazy load below-the-fold content */}
+          {/* Unified Platform Metrics */}
           <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
             <MarketplaceSection />
           </Suspense>
-          
-          <Suspense fallback={<div className="h-96 bg-muted/50 animate-pulse" />}>
-            <FeaturedListings />
-          </Suspense>
 
-          {/* Partner Showcase */}
+          {/* Partner Showcase - Trusted Providers */}
           <Suspense fallback={<div className="h-64 bg-muted/50 animate-pulse" />}>
             <div className="py-16 bg-gradient-to-br from-orange-50 via-white to-green-50">
               <div className="max-w-7xl mx-auto px-6">
