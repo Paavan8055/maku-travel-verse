@@ -521,7 +521,7 @@ const EnhancedHotelsPage = () => {
                               Alert
                             </Button>
                             <Button
-                              onClick={() => navigate(`/hotels/checkout?hotelId=${hotel.hotel_id}`)}
+                              onClick={() => handleHotelSelect(hotel)}
                               className="bg-gradient-to-r from-orange-600 to-pink-600"
                             >
                               View Details
