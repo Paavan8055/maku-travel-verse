@@ -188,13 +188,13 @@ const App = () => (
                                         <Route path="/travel-fund" element={<TravelFundPage />} />
                                         <Route path="/join-fund" element={<JoinFundPage />} />
                                         <Route path="/booking-success" element={<BookingSuccessPage />} />
-                                         <Route path="/flights" element={<FlightsPage />} />
-                                         <Route path="/activities" element={<ActivitiesPage />} />
-                                        <Route path="/hotels" element={<HotelSearchPage />} />
+                                        <Route path="/flights" element={<FlightsEnhancedPage />} />
+                                        <Route path="/activities" element={<ActivitiesEnhancedPage />} />
+                                        <Route path="/hotels" element={<HotelsEnhancedPage />} />
                                        <Route path="/search" element={<UnifiedSearchPage />} />
-                                       <Route path="/search/hotels" element={<HotelSearchPage />} />
-                                       <Route path="/search/flights" element={<FlightSearchPage />} />
-                                       <Route path="/search/activities" element={<ActivitySearchPage />} />
+                                       <Route path="/search/hotels" element={<HotelsEnhancedPage />} />
+                                       <Route path="/search/flights" element={<FlightsEnhancedPage />} />
+                                       <Route path="/search/activities" element={<ActivitiesEnhancedPage />} />
                                        <Route path="/hotel-booking-review" element={<HotelBookingReviewPage />} />
                                         <Route path="/flight-booking-review" element={<FlightBookingReviewPage />} />
                                         <Route path="/flight-management" element={<FlightManagementPage />} />
