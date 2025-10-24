@@ -93,7 +93,7 @@ class RevenueAnalytics(BaseModel):
     """Revenue and financial metrics"""
     total_revenue: float
     revenue_by_category: Dict[str, float]
-    revenue_by_provider: List[Dict[str, float]]
+    revenue_by_provider: List[Dict[str, Any]]
     revenue_trend: List[Dict[str, Any]]
     top_revenue_destinations: List[Dict[str, Any]]
     avg_commission_rate: float
