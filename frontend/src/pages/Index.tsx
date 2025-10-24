@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SearchSection from "@/components/SearchSection";
 import MarketplacePills from "@/components/MarketplacePills";
+import LiveBookingFeed from "@/components/LiveBookingFeed";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { SessionRecoveryBanner } from "@/components/SessionRecoveryBanner";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
