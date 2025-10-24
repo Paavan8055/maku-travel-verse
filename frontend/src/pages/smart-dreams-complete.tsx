@@ -1,15 +1,16 @@
 /**
- * Complete Smart Dreams Platform - Dream Marketplace
- * Revolutionary: Users curate dreams → Providers compete with offers  
- * Integrates with: Travel Fund Manager (Laxmi), Plan Together, Gifting, Rewards
+ * Smart Dreams - Complete Dream Marketplace Platform
+ * Revolutionary: Users curate dreams → Providers compete with offers
+ * Integrated with: Travel Fund Manager (Laxmi), Plan Together, Gifting, Rewards, Off-Season
  */
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sparkles, Heart, Users, Gift, Wallet, TrendingDown,
-  MapPin, Plus, Target, TestTube2, Check, Hotel, Plane,
-  Star, DollarSign, Share2, Calendar
+  MapPin, Calendar, DollarSign, Star, Plus, Share2,
+  Plane, Hotel, Camera, Target, TestTube2, Check,
+  ArrowRight, Zap
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
@@ -19,27 +20,176 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { detectPersona } from '@/services/aiPersonalizationApi';
+
+interface Dream {
+  id: string;
+  title: string;
+  description: string;
+  destination: string;
+  imageUrl: string;
+  preferredDates: {
+    start: string;
+    end: string;
+    flexible: boolean;
+  };
+  budget: {
+    target: number;
+    saved: number;
+    currency: string;
+    monthlyGoal: number;
+  };
+  preferences: {
+    accommodation: string[];
+    activities: string[];
+    travelStyle: string;
+  };
+  collaborators: number;
+  giftContributions: number;
+  providerOffers: number;
+  status: 'dreaming' | 'saving' | 'offers' | 'booked';
+  createdAt: string;
+}
 
 const SmartDreamsComplete = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [view, setView] = useState<'myDreams'>('myDreams');
+  const [view, setView] = useState<'create' | 'myDreams' | 'marketplace'>('myDreams');
+  const [userPersona, setUserPersona] = useState<any>(null);
+  
+  // Create Dream Form State
+  const [dreamForm, setDreamForm] = useState({
+    title: '',
+    description: '',
+    destination: '',
+    startDate: '',
+    flexibleDates: false,
+    targetBudget: 0,
+    savedAmount: 0,
+    monthlyGoal: 0,
+    accommodationPrefs: [] as string[],
+    activityPrefs: [] as string[],
+    travelStyle: ''
+  });
+  
+  // Mock dreams for demonstration with real test data structure
+  const [dreams] = useState<Dream[]>([
+    {
+      id: '1',
+      title: 'Romantic Maldives Honeymoon',
+      description: 'Overwater villa, couples spa, candlelit dinners',
+      destination: 'Maldives',
+      imageUrl: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800',
+      preferredDates: { start: '2025-12-01', end: '2025-12-10', flexible: true },
+      budget: { target: 5000, saved: 1200, currency: 'USD', monthlyGoal: 400 },
+      preferences: {
+        accommodation: ['Luxury Resort', 'Overwater Villa'],
+        activities: ['Spa', 'Diving', 'Fine Dining'],
+        travelStyle: 'Romantic'
+      },
+      collaborators: 2,
+      giftContributions: 300,
+      providerOffers: 8,
+      status: 'offers',
+      createdAt: '2025-01-15'
+    },
+    {
+      id: '2',
+      title: 'Family Adventure in Japan',
+      description: 'Tokyo, Mt. Fuji, Kyoto temples, ryokan stay',
+      destination: 'Japan',
+      imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800',
+      preferredDates: { start: '2025-09-15', end: '2025-09-25', flexible: true },
+      budget: { target: 8000, saved: 2400, currency: 'USD', monthlyGoal: 600 },
+      preferences: {
+        accommodation: ['Family Hotel', 'Traditional Ryokan'],
+        activities: ['Cultural Tours', 'Theme Parks', 'Food Tours'],
+        travelStyle: 'Family Fun'
+      },
+      collaborators: 4,
+      giftContributions: 500,
+      providerOffers: 12,
+      status: 'saving',
+      createdAt: '2024-11-20'
+    }
+  ]);
 
+  useEffect(() => {
+    if (user?.id) {
+      detectPersona({ user_id: user.id })
+        .then(setUserPersona)
+        .catch(console.error);
+    }
+  }, [user]);
+
+  // Handler Functions - All Fully Wired
   const handleCreateDream = () => {
+    if (!dreamForm.title || !dreamForm.destination || !dreamForm.targetBudget) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in dream title, destination, and budget",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const dreamData = {
+      ...dreamForm,
+      userId: user?.id || 'guest',
+      createdAt: new Date().toISOString()
+    };
+
+    sessionStorage.setItem('dreamToFund', JSON.stringify(dreamData));
+
     toast({
-      title: "Create Dream",
-      description: "Let's set up your Travel Fund to start saving",
+      title: "Dream Created! 🎉",
+      description: "Setting up your Travel Fund Manager (Laxmi) to start saving",
     });
+
     navigate('/travel-fund?source=smart-dream');
   };
 
-  const handleAddFunds = () => {
-    navigate('/travel-fund');
+  const handleAddFunds = (dreamId: string) => {
+    navigate(`/travel-fund?dreamId=${dreamId}`);
   };
 
-  const handleInvite = () => {
-    navigate('/collaborative-planning');
+  const handleInviteCollaborators = (dreamId: string) => {
+    navigate(`/collaborative-planning?dreamId=${dreamId}`);
+  };
+
+  const handleEnableGifting = (dreamId: string) => {
+    navigate(`/gift-cards?dreamId=${dreamId}`);
+  };
+
+  const handleViewDreamOffers = (dreamId: string) => {
+    toast({
+      title: "Provider Offers",
+      description: "Viewing competing offers from hotels & airlines"
+    });
+    setView('marketplace');
+  };
+
+  const savingsProgress = (dream: Dream) => {
+    return Math.round((dream.budget.saved / dream.budget.target) * 100);
+  };
+
+  const getStatusColor = (status: Dream['status']) => {
+    switch (status) {
+      case 'dreaming': return 'bg-purple-100 text-purple-700';
+      case 'saving': return 'bg-blue-100 text-blue-700';
+      case 'offers': return 'bg-green-100 text-green-700';
+      case 'booked': return 'bg-orange-100 text-orange-700';
+    }
+  };
+
+  const getStatusLabel = (status: Dream['status']) => {
+    switch (status) {
+      case 'dreaming': return '💭 Dreaming';
+      case 'saving': return '💰 Saving';
+      case 'offers': return '🎯 Has Offers';
+      case 'booked': return '✅ Booked';
+    }
   };
 
   return (
@@ -54,125 +204,70 @@ const SmartDreamsComplete = () => {
             <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg px-4 py-2">
               Dream Curation Platform
             </Badge>
+            <Sparkles className="w-8 h-8 text-pink-600 animate-pulse" />
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-            Smart Dreams Marketplace
+            Create Your Dream Trips
           </h1>
           
           <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
-            Create your dream trip. Save with Travel Fund. Let hotels & airlines compete with exclusive offers.
+            Imagine, curate, and save for your perfect journey. Hotels and airlines compete to make your dreams come true with exclusive deals.
           </p>
 
-          <Button
-            onClick={handleCreateDream}
-            size="lg"
-            className="px-8 bg-gradient-to-r from-purple-600 to-pink-600"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Create Your Dream Trip
-          </Button>
-        </div>
-      </section>
+          {/* Key Value Props */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/travel-fund')}>
+              <Wallet className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold">Save with Travel Fund</p>
+            </Card>
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/collaborative-planning')}>
+              <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold">Plan Together</p>
+            </Card>
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/gift-cards')}>
+              <Gift className="w-8 h-8 text-pink-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold">Gift Dreams</p>
+            </Card>
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/nft')}>
+              <TrendingDown className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold">Best Deals</p>
+            </Card>
+          </div>
 
-      {/* How It Works */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-purple-600 to-orange-600 bg-clip-text text-transparent">
-            How It Revolutionizes Travel
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              {
-                icon: Sparkles,
-                title: '1. Dream It',
-                desc: 'Create your perfect trip',
-                features: ['AI helps refine', 'Visual planning', 'Flexible dates']
-              },
-              {
-                icon: Wallet,
-                title: '2. Save It',
-                desc: 'Use Travel Fund Manager',
-                features: ['Gradual savings', 'Gift contributions', 'Earn rewards']
-              },
-              {
-                icon: TrendingDown,
-                title: '3. Get Offers',
-                desc: 'Providers compete',
-                features: ['Direct deals', 'Off-season offers', 'No OTA fees']
-              },
-              {
-                icon: Plane,
-                title: '4. Book It',
-                desc: 'Choose best deal',
-                features: ['Instant booking', 'Best price', 'Full control']
-              }
-            ].map((step, idx) => (
-              <Card key={idx} className="p-6 text-center hover:shadow-xl transition-all">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
-                  <step.icon className="w-8 h-8 text-purple-600" />
-                </div>
-                <h3 className="font-bold text-lg mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 mb-4">{step.desc}</p>
-                <div className="space-y-1">
-                  {step.features.map((feat, i) => (
-                    <p key={i} className="text-xs text-gray-500 flex items-center gap-1">
-                      <Check className="w-3 h-3 text-green-600" />
-                      {feat}
-                    </p>
-                  ))}
-                </div>
-              </Card>
-            ))}
+          {/* View Toggle */}
+          <div className="flex items-center justify-center gap-4">
+            <Button
+              variant={view === 'create' ? 'default' : 'outline'}
+              onClick={() => setView('create')}
+              className="px-6"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Dream
+            </Button>
+            <Button
+              variant={view === 'myDreams' ? 'default' : 'outline'}
+              onClick={() => setView('myDreams')}
+              className="px-6"
+            >
+              <Heart className="w-4 h-4 mr-2" />
+              My Dreams ({dreams.length})
+            </Button>
+            <Button
+              variant={view === 'marketplace' ? 'default' : 'outline'}
+              onClick={() => setView('marketplace')}
+              className="px-6"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Marketplace
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Integrations */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">Integrated Ecosystem</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Wallet, name: 'Travel Fund', desc: 'Save & earn', onClick: () => navigate('/travel-fund') },
-              { icon: Users, name: 'Plan Together', desc: 'Collaborate', onClick: () => navigate('/collaborative-planning') },
-              { icon: Gift, name: 'Gifting', desc: 'Contributions', onClick: () => navigate('/gift-cards') },
-              { icon: Star, name: 'Rewards', desc: 'NFT & cashback', onClick: () => navigate('/nft') }
-            ].map((item, idx) => (
-              <Card 
-                key={idx} 
-                className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={item.onClick}
-              >
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-100 flex items-center justify-center">
-                  <item.icon className="w-6 h-6 text-purple-600" />
-                </div>
-                <h4 className="font-bold mb-1">{item.name}</h4>
-                <p className="text-xs text-gray-600">{item.desc}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Transparency */}
-      <section className="py-12 px-6 bg-purple-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <TestTube2 className="w-5 h-5 text-purple-600" />
-            <Badge className="bg-purple-100 text-purple-700">Pre-Revenue Startup</Badge>
-          </div>
-          <h3 className="font-bold text-lg mb-2">Building in Public</h3>
-          <p className="text-sm text-gray-700">
-            Smart Dreams is our revolutionary concept to disrupt traditional travel booking.
-            Create dreams, save with Travel Fund Manager (Laxmi), and let providers compete.
-            Test environment - launching soon!
-          </p>
-        </div>
-      </section>
-    </div>
-  );
-};
-
-export default SmartDreamsComplete;
+      {/* Create Dream View */}
+      {view === 'create' && (
+        <section className="py-12 px-6">
+          <div className="max-w-5xl mx-auto">
+            <Card className="p-8">
+              <h2 className="text-3xl font-bold mb-6 text-center">Design Your Dream Journey</h2>
