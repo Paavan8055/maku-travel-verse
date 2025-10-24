@@ -114,7 +114,11 @@ const EnhancedHotelsPage = () => {
 
   const handleSearch = async () => {
     if (!destination || !checkin || !checkout) {
-      setError('Please fill in all required fields');
+      toast({
+        title: "Missing Information",
+        description: "Please fill in destination and dates",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -129,9 +133,9 @@ const EnhancedHotelsPage = () => {
         guests,
         rooms,
         star_rating: filters.starRating.length > 0 ? filters.starRating : undefined,
-        guest_rating: filters.guestRating || undefined,
+        guest_rating: filters.guestRating > 0 ? filters.guestRating : undefined,
         amenities: filters.amenities.length > 0 ? filters.amenities : undefined,
-        price_range: filters.priceRange,
+        price_range: filters.priceRange.max < 1000 ? filters.priceRange : undefined,
         sort_by: sortBy,
         sort_order: 'asc',
         page: 1,
@@ -140,12 +144,25 @@ const EnhancedHotelsPage = () => {
 
       if (result.success) {
         setHotels(result.results);
+        if (result.results.length === 0) {
+          setError('No hotels found. Try adjusting your filters.');
+        }
+        toast({
+          title: "Search Complete",
+          description: `Found ${result.results.length} properties`,
+        });
       } else {
         setError('No hotels found. Please try different search criteria.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Hotel search error:', error);
-      setError('Search failed. Please try again.');
+      setError(error.response?.data?.detail || 'Search failed. Please try again.');
+      setHotels([]);
+      toast({
+        title: "Search Failed",
+        description: "Unable to search hotels. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -154,7 +171,7 @@ const EnhancedHotelsPage = () => {
   const createAlert = async (hotel: HotelResult) => {
     try {
       await createPriceAlert({
-        user_id: 'guest',
+        user_id: user?.id || 'guest',
         search_criteria: {
           type: 'hotel',
           destination: hotel.name,
@@ -163,10 +180,25 @@ const EnhancedHotelsPage = () => {
         target_price: hotel.price_per_night * 0.9,
         currency: hotel.currency
       });
-      alert('Price alert created! We\'ll notify you of price drops.');
+      
+      toast({
+        title: "Price Alert Created",
+        description: `We'll notify you when ${hotel.name} drops below $${Math.round(hotel.price_per_night * 0.9)}`,
+      });
     } catch (error) {
       console.error('Price alert failed:', error);
+      toast({
+        title: "Alert Failed",
+        description: "Unable to create price alert. Please try again.",
+        variant: "destructive"
+      });
     }
+  };
+
+  const handleHotelSelect = (hotel: HotelResult) => {
+    // Store hotel for booking flow
+    sessionStorage.setItem('selectedHotel', JSON.stringify(hotel));
+    navigate(`/hotels/checkout?hotelId=${hotel.hotel_id}`);
   };
 
   return (
