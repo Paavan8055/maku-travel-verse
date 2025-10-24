@@ -490,7 +490,7 @@ const EnhancedFlightsPage = () => {
                           Alert
                         </Button>
                         <Button
-                          onClick={() => navigate(`/flights/review?flightId=${flight.flight_id}`)}
+                          onClick={() => handleFlightSelect(flight)}
                           className="bg-gradient-to-r from-blue-600 to-cyan-600"
                         >
                           Select
