@@ -142,6 +142,55 @@ const SmartDreamsComplete = () => {
     }
   }, [user]);
 
+  const handleCreateDream = () => {
+    if (!dreamForm.title || !dreamForm.destination || !dreamForm.targetBudget) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in dream title, destination, and budget",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create dream and navigate to Travel Fund Manager
+    const dreamData = {
+      ...dreamForm,
+      userId: user?.id || 'guest',
+      createdAt: new Date().toISOString()
+    };
+
+    // Store dream in session for Travel Fund creation
+    sessionStorage.setItem('dreamToFund', JSON.stringify(dreamData));
+
+    toast({
+      title: "Dream Created!",
+      description: "Let's set up your Travel Fund (Laxmi) to start saving",
+    });
+
+    // Navigate to Travel Fund Manager to create Laxmi wallet for this dream
+    navigate('/travel-fund?source=smart-dream');
+  };
+
+  const handleViewDreamOffers = (dreamId: string) => {
+    // Navigate to marketplace view for specific dream
+    navigate(`/smart-dreams/offers/${dreamId}`);
+  };
+
+  const handleInviteCollaborators = (dreamId: string) => {
+    // Navigate to Plan Together
+    navigate(`/collaborative-planning?dreamId=${dreamId}`);
+  };
+
+  const handleEnableGifting = (dreamId: string) => {
+    // Navigate to gift card sharing
+    navigate(`/gift-cards?dreamId=${dreamId}`);
+  };
+
+  const handleAddFunds = (dreamId: string) => {
+    // Navigate to Travel Fund Manager (Laxmi)
+    navigate(`/travel-fund?dreamId=${dreamId}`);
+  };
+
   const savingsProgress = (dream: Dream) => {
     return Math.round((dream.budget.saved / dream.budget.target) * 100);
   };
