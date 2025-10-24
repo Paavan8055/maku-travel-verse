@@ -86,19 +86,19 @@ const SmartDreamsPage = () => {
 
           {/* Key Value Props */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
-            <Card className="p-4 hover:shadow-lg transition-shadow">
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/travel-fund')}>
               <Wallet className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="text-sm font-semibold">Save with Laxmi</p>
+              <p className="text-sm font-semibold">Save with Travel Fund</p>
             </Card>
-            <Card className="p-4 hover:shadow-lg transition-shadow">
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/collaborative-planning')}>
               <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <p className="text-sm font-semibold">Plan Together</p>
             </Card>
-            <Card className="p-4 hover:shadow-lg transition-shadow">
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/gift-cards')}>
               <Gift className="w-8 h-8 text-pink-600 mx-auto mb-2" />
               <p className="text-sm font-semibold">Gift Dreams</p>
             </Card>
-            <Card className="p-4 hover:shadow-lg transition-shadow">
+            <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/nft')}>
               <TrendingDown className="w-8 h-8 text-orange-600 mx-auto mb-2" />
               <p className="text-sm font-semibold">Best Deals</p>
             </Card>
