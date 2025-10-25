@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { dreamLibrary, DreamPackage } from '@/data/dreamLibrary';
 import { useToast } from '@/hooks/use-toast';
 
-const DreamLibraryBrowser = () => {
+const DreamLibraryBrowser = ({ onSelectDream }: { onSelectDream?: (dream: DreamPackage) => void }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
