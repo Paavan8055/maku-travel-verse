@@ -49,9 +49,9 @@ async def provider_analytics_overview():
             status = provider.get('health_status', 'unknown')
             health_distribution[status] = health_distribution.get(status, 0) + 1
         
-        # Calculate averages
-        avg_response_time = sum([p.get('avg_response_time_ms', 0) for p in providers.data]) / total_providers if total_providers > 0 else 0
-        avg_success_rate = sum([p.get('success_rate_percent', 0) for p in providers.data]) / total_providers if total_providers > 0 else 0
+        # Calculate averages (handle None values)
+        avg_response_time = sum([p.get('avg_response_time_ms') or 0 for p in providers.data]) / total_providers if total_providers > 0 else 0
+        avg_success_rate = sum([p.get('success_rate_percent') or 0 for p in providers.data]) / total_providers if total_providers > 0 else 0
         
         # Top performers (by success rate)
         top_performers = sorted(
