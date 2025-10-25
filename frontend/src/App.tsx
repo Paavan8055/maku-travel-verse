@@ -116,6 +116,7 @@ const B2BPartnerDashboard = createLazyRoute(() => import("./pages/B2BPartnerDash
 const PartnerOnboardingWizard = createLazyRoute(() => import("./pages/PartnerOnboardingWizard"));
 const NextGenPartnerDashboard = createLazyRoute(() => import("./pages/NextGenPartnerDashboard"));
 const AdminProviderOnboarding = createLazyRoute(() => import("./pages/admin/AdminProviderOnboarding"));
+const ProviderAnalyticsDashboard = createLazyRoute(() => import("./pages/admin/ProviderAnalyticsDashboard"));
 const AIIntelligenceHub = createLazyRoute(() => import("./pages/ai-intelligence-hub"));
 const AIDemoPage = createLazyRoute(() => import("./pages/ai-demo"));
 
