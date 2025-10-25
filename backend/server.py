@@ -5448,6 +5448,7 @@ app.include_router(payment_router)  # Payment Gateway
 app.include_router(marketplace_router)  # Provider & Partner Marketplace
 app.include_router(provider_analytics_router)  # Provider Analytics Dashboard
 app.include_router(bridge_router)  # Cross-Chain Bridge
+app.include_router(unified_search_router)  # Unified Search with Provider Rotation
 
 # Register OpenAI ChatGPT Pro router if available
 if OPENAI_ENABLED:
