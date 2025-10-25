@@ -113,6 +113,9 @@ const SmartDreamHub = createLazyRoute(() => import("./pages/smart-dream-hub"));
 const SmartDreams = createLazyRoute(() => import("./pages/SmartDreams"));
 const DestinationDeepDive = createLazyRoute(() => import("./pages/DestinationDeepDive"));
 const B2BPartnerDashboard = createLazyRoute(() => import("./pages/B2BPartnerDashboard"));
+const PartnerOnboardingWizard = createLazyRoute(() => import("./pages/PartnerOnboardingWizard"));
+const NextGenPartnerDashboard = createLazyRoute(() => import("./pages/NextGenPartnerDashboard"));
+const AdminProviderOnboarding = createLazyRoute(() => import("./pages/admin/AdminProviderOnboarding"));
 const AIIntelligenceHub = createLazyRoute(() => import("./pages/ai-intelligence-hub"));
 const AIDemoPage = createLazyRoute(() => import("./pages/ai-demo"));
 
