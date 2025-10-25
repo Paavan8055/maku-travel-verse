@@ -1,0 +1,24 @@
+{
+  "environments": {
+    "lovable": {
+      "name": "Lovable State",
+      "description": "Original state with current features and implementations",
+      "backend_url": "https://maku-travel-ai.preview.emergentagent.com",
+      "source": "lovable",
+      "active": false
+    },
+    "emergent": {
+      "name": "Emergent State", 
+      "description": "Enhanced state with CTO recommendations and improvements",
+      "backend_url": "https://maku-travel-ai.preview.emergentagent.com",
+      "source": "emergent",
+      "active": true
+    }
+  },
+  "current_environment": "emergent",
+  "switch_mode": "manual",
+  "last_updated": "2025-10-11T01:02:34+11:00",
+  "timezone": "Australia/Sydney",
+  "deployment_ready": true,
+  "deployment_date": "2025-10-11"
+}
