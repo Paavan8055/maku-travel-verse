@@ -217,6 +217,8 @@ const App = () => (
                                         <Route path="/invite-friends" element={<InviteFriendsPage />} />
                                         <Route path="/environment-manager" element={<EnvironmentManager />} />
                                         <Route path="/smart-dreams" element={<SmartDreams />} />
+                                        <Route path="/destinations/:country" element={<DestinationDeepDive />} />
+                                        <Route path="/partner-bidding" element={<B2BPartnerDashboard />} />
                                         <Route path="/ai-intelligence" element={<AIIntelligenceHub />} />
                                         <Route path="/ai-demo" element={<AIDemoPage />} />
                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
