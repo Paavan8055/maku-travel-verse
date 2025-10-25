@@ -374,15 +374,8 @@ export const dreamLibrary: DreamPackage[] = [
     seasonality: 'May-Sep',
     category: 'adventure-cultural'
   }
-]
+];
 
-    country: 'Greece',
-    imageUrl: 'https://images.unsplash.com/photo-1748617508605-1b520bfa231d?w=800&h=600&fit=crop&q=85',
-    duration: '14 nights',
-    ageGroup: ['young-adults', 'groups', 'party-lovers'],
-    travelStyle: ['adventure', 'party', 'cultural'],
-    budget: {
-      base: 3200,
       premium: 6000,
       luxury: 12000
     },
