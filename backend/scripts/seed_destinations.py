@@ -73,7 +73,7 @@ DESTINATIONS = {
         ],
         'local_businesses': [
             {'name': 'Tokyo Ramen Master Class', 'type': 'workshop', 'verified': True, 'insider_tip': 'Learn from 3rd generation ramen chef', 'price_range': '¥¥¥', 'contact': '{"booking": "tokyoramen.jp"}'},
-            {'name': 'Kyoto Tea Ceremony', 'type': 'experience', 'verified': True, 'insider_tip': 'Traditional machiya house, kimono included', 'price_range': '¥¥', 'contact': '{"website': "kyoto-tea.com"}'},
+            {'name': 'Kyoto Tea Ceremony', 'type': 'experience', 'verified': True, 'insider_tip': 'Traditional machiya house, kimono included', 'price_range': '¥¥', 'contact': '{"website": "kyoto-tea.com"}'},
             {'name': 'Osaka Street Kart', 'type': 'activity', 'verified': True, 'insider_tip': 'Go-kart tour, costume rental', 'price_range': '¥¥¥', 'contact': '{"booking": "maricar.com"}'},
         ]
     },
