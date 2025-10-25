@@ -41,7 +41,7 @@ class UniversalProviderManager:
         """
         Load active providers from Supabase registry
         This allows adding providers without code changes
-        \"\"\"
+        """
         try:
             # Fetch active providers ordered by priority
             response = await supabase_client.table('provider_registry').select('*').eq('is_active', True).order('priority').execute()
@@ -52,22 +52,22 @@ class UniversalProviderManager:
             for provider_config in self.registry:
                 await self._load_provider(provider_config, supabase_client)
             
-            logger.info(f\"✅ Loaded {len(self.providers)} active providers from registry\")
+            logger.info(f"✅ Loaded {len(self.providers)} active providers from registry")
             
         except Exception as e:
-            logger.error(f\"Failed to load provider registry: {e}\")
+            logger.error(f"Failed to load provider registry: {e}")
             # Fallback to hardcoded config
             self._load_fallback_providers()
     
     async def _load_provider(self, config: Dict[str, Any], supabase_client):
-        \"\"\"Load individual provider instance\"\"\"
+        """Load individual provider instance"""
         try:
             provider_name = config['provider_name']
             
             # Get adapter class path
             adapter_path = self.provider_adapters.get(provider_name)
             if not adapter_path:
-                logger.warning(f\"No adapter found for provider: {provider_name}\")
+                logger.warning(f"No adapter found for provider: {provider_name}")
                 return
             
             # Dynamically import provider class
@@ -85,20 +85,20 @@ class UniversalProviderManager:
             if config['requires_authentication']:
                 auth_success = await provider_instance.authenticate()
                 if not auth_success:
-                    logger.warning(f\"Provider {provider_name} authentication failed\")
+                    logger.warning(f"Provider {provider_name} authentication failed")
                     return
             
             # Store in active providers
             self.providers[provider_name] = provider_instance
-            logger.info(f\"✅ Provider {provider_name} loaded and authenticated\")
+            logger.info(f"✅ Provider {provider_name} loaded and authenticated")
             
         except Exception as e:
-            logger.error(f\"Failed to load provider {config.get('provider_name')}: {e}\")
+            logger.error(f"Failed to load provider {config.get('provider_name')}: {e}")
     
     async def _get_provider_credentials(self, provider_id: str, supabase_client) -> Dict[str, str]:
-        \"\"\"
+        """
         Retrieve provider credentials from Supabase Vault
-        \"\"\"
+        """
         try:
             response = await supabase_client.table('provider_credentials').select('*').eq('provider_id', provider_id).eq('is_active', True).execute()
             
@@ -111,7 +111,7 @@ class UniversalProviderManager:
             return credentials
             
         except Exception as e:
-            logger.error(f\"Failed to retrieve credentials: {e}\")
+            logger.error(f"Failed to retrieve credentials: {e}")
             return {}
     
     async def search_with_rotation(
@@ -121,7 +121,7 @@ class UniversalProviderManager:
         region: Optional[str] = None,
         eco_priority: bool = True
     ) -> Dict[str, Any]:
-        \"\"\"
+        """
         Execute search with intelligent provider rotation
         
         Args:
@@ -132,16 +132,16 @@ class UniversalProviderManager:
         
         Returns:
             Search results with provider metadata
-        \"\"\"
+        """
         
         # Get eligible providers
         eligible_providers = self._get_eligible_providers(service_type, region, eco_priority)
         
         if not eligible_providers:
             return {
-                \"success\": False,
-                \"error\": \"No providers available for this search\",
-                \"provider\": None
+                "success": False,
+                "error": "No providers available for this search",
+                "provider": None
             }
         
         rotation_log = []
@@ -161,39 +161,39 @@ class UniversalProviderManager:
                 response_time = (datetime.now() - start_time).total_seconds() * 1000
                 
                 rotation_log.append({
-                    \"provider\": provider_name,
-                    \"success\": result.success,
-                    \"response_time_ms\": response_time,
-                    \"results_count\": len(result.results) if result.success else 0
+                    "provider": provider_name,
+                    "success": result.success,
+                    "response_time_ms": response_time,
+                    "results_count": len(result.results) if result.success else 0
                 })
                 
                 if result.success and len(result.results) > 0:
-                    logger.info(f\"✅ Search successful via {provider_name} ({response_time:.0f}ms)\")
+                    logger.info(f"✅ Search successful via {provider_name} ({response_time:.0f}ms)")
                     
                     return {
-                        \"success\": True,
-                        \"provider\": provider_name,
-                        \"results\": result.results,
-                        \"total_results\": result.total_results,
-                        \"response_time_ms\": response_time,
-                        \"rotation_log\": rotation_log
+                        "success": True,
+                        "provider": provider_name,
+                        "results": result.results,
+                        "total_results": result.total_results,
+                        "response_time_ms": response_time,
+                        "rotation_log": rotation_log
                     }
                 
             except Exception as e:
-                logger.warning(f\"Provider {provider_name} failed: {e}\")
+                logger.warning(f"Provider {provider_name} failed: {e}")
                 rotation_log.append({
-                    \"provider\": provider_name,
-                    \"success\": False,
-                    \"error\": str(e)
+                    "provider": provider_name,
+                    "success": False,
+                    "error": str(e)
                 })
                 continue
         
         # All providers failed
         return {
-            \"success\": False,
-            \"error\": \"All providers failed\",
-            \"provider\": None,
-            \"rotation_log\": rotation_log
+            "success": False,
+            "error": "All providers failed",
+            "provider": None,
+            "rotation_log": rotation_log
         }
     
     def _get_eligible_providers(
@@ -202,9 +202,9 @@ class UniversalProviderManager:
         region: Optional[str],
         eco_priority: bool
     ) -> List[str]:
-        \"\"\"
+        """
         Get sorted list of eligible providers based on criteria
-        \"\"\"
+        """
         eligible = []
         
         for provider_name, provider in self.providers.items():
@@ -238,7 +238,7 @@ class UniversalProviderManager:
         return [p['name'] for p in eligible]
     
     async def health_check_all(self) -> Dict[str, Any]:
-        \"\"\"Run health check on all providers\"\"\"
+        """Run health check on all providers"""
         health_results = {}
         
         tasks = [
@@ -257,7 +257,7 @@ class UniversalProviderManager:
         return health_results
     
     async def _check_provider_health(self, name: str, provider) -> Dict[str, Any]:
-        \"\"\"Check individual provider health\"\"\"
+        """Check individual provider health"""
         try:
             result = await provider.health_check()
             return {
