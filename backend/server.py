@@ -5470,3 +5470,19 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+    # Stop health monitoring scheduler
+    try:
+        from provider_health_scheduler import stop_health_monitoring
+        stop_health_monitoring()
+    except Exception as e:
+        logger.warning(f"Could not stop health monitoring: {e}")
+
+@app.on_event("startup")
+async def startup_provider_monitoring():
+    """Start provider health monitoring on server startup"""
+    try:
+        from provider_health_scheduler import start_health_monitoring
+        start_health_monitoring()
+        logger.info("✅ Provider health monitoring started")
+    except Exception as e:
+        logger.warning(f"⚠️  Could not start health monitoring: {e}")
