@@ -342,12 +342,6 @@ export const dreamLibrary: DreamPackage[] = [
     category: 'romantic-cultural'
   },
   {
-    id: 'dream-7',
-    title: 'Greece Island Hopping',
-    tagline: 'Mykonos, Santorini, Crete adventure',
-    destination: 'Greek Islands',
-  ,
-  {
     id: 'dream-11',
     title: 'Peru Machu Picchu Trek',
     tagline: 'Inca Trail to lost city',
