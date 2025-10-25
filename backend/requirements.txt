@@ -138,3 +138,4 @@ cryptography==41.0.7
 sentry-sdk[fastapi]==1.39.2
 emergentintegrations
 httpx
+APScheduler==3.11.0
