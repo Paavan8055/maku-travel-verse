@@ -281,7 +281,7 @@ VALUES
 
 **Verify `.env` has:**
 ```env
-VITE_REACT_APP_BACKEND_URL=https://maku-travel-ai.preview.emergentagent.com
+VITE_REACT_APP_BACKEND_URL=https://smart-dreams-hub.preview.emergentagent.com
 VITE_SUPABASE_URL=https://iomeddeasarntjhqzndu.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key
 VITE_OFFSEASON_FEATURES=true

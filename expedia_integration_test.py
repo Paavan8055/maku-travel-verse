@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BASE_URL = "https://maku-travel-ai.preview.emergentagent.com/api"
+BASE_URL = "https://smart-dreams-hub.preview.emergentagent.com/api"
 TEST_USER_ID = "expedia_test_user_2024"
 
 # Test credentials as specified in the review request

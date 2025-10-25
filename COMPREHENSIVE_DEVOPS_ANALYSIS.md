@@ -38,7 +38,7 @@ Your repository implements a sophisticated **dual-preview environment system**:
 #### Lovable Environment:
 - **Purpose**: Original baseline with current production features
 - **Source**: `lovable`
-- **Backend URL**: `https://maku-travel-ai.preview.emergentagent.com`
+- **Backend URL**: `https://smart-dreams-hub.preview.emergentagent.com`
 - **Status**: Currently marked as active in preview-config.json
 - **Deployment**: Original Vercel-based pipeline
 

@@ -517,13 +517,13 @@ OFFSEASON_FEATURES=true  # Staging only
 railway up
 
 # Check health
-curl https://maku-travel-ai.preview.emergentagent.com/api/healthz
+curl https://smart-dreams-hub.preview.emergentagent.com/api/healthz
 ```
 
 #### Step 3: Netlify Frontend Build
 ```bash
 # Set environment variables in Netlify dashboard
-VITE_API_BASE=https://maku-travel-ai.preview.emergentagent.com
+VITE_API_BASE=https://smart-dreams-hub.preview.emergentagent.com
 VITE_OFFSEASON_FEATURES=true  # Staging only
 
 # Trigger build
@@ -589,7 +589,7 @@ netlify deploy --prod
 ### KPI Snapshot Script
 ```bash
 # Run KPI snapshot (cron job or manual)
-curl -X GET https://maku-travel-ai.preview.emergentagent.com/api/admin/offseason/kpi-snapshot
+curl -X GET https://smart-dreams-hub.preview.emergentagent.com/api/admin/offseason/kpi-snapshot
 
 # Response
 {

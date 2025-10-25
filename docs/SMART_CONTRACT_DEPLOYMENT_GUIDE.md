@@ -255,7 +255,7 @@ npx hardhat verify --network mumbai YOUR_MAKU_NFT_ADDRESS
 
 ### Test 1: Check Token Contract
 ```bash
-curl -X GET "https://maku-travel-ai.preview.emergentagent.com/api/blockchain/network-info"
+curl -X GET "https://smart-dreams-hub.preview.emergentagent.com/api/blockchain/network-info"
 
 # Expected response:
 {
@@ -271,7 +271,7 @@ curl -X GET "https://maku-travel-ai.preview.emergentagent.com/api/blockchain/net
 
 ### Test 2: Mint Free Bronze NFT
 ```bash
-curl -X POST "https://maku-travel-ai.preview.emergentagent.com/api/blockchain/nft/mint" \
+curl -X POST "https://smart-dreams-hub.preview.emergentagent.com/api/blockchain/nft/mint" \
   -H "Content-Type: application/json" \
   -d '{
     "wallet_address": "0xYOUR_WALLET_ADDRESS",

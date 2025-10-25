@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timedelta
 
 # Get backend URL from environment
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://maku-travel-ai.preview.emergentagent.com')
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://smart-dreams-hub.preview.emergentagent.com')
 BASE_URL = f"{BACKEND_URL}/api"
 
 print(f"🚀 PRODUCTION DEPLOYMENT BACKEND TESTING")

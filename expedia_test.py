@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://maku-travel-ai.preview.emergentagent.com/api"
+BASE_URL = "https://smart-dreams-hub.preview.emergentagent.com/api"
 TEST_USER_ID = "traveler_alex_2024"
 
 class ExpediaIntegrationTester:
