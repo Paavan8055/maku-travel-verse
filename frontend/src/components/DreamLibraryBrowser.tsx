@@ -59,12 +59,15 @@ const DreamLibraryBrowser = ({ onSelectDream }: { onSelectDream?: (dream: DreamP
   const handleSelectDream = (dream: DreamPackage) => {
     sessionStorage.setItem('selectedDream', JSON.stringify(dream));
     
-    toast({
-      title: "Dream Selected! ✨",
-      description: `${dream.title} - Setting up your Travel Fund`
-    });
-
-    navigate(`/travel-fund?dreamId=${dream.id}&source=smart-dream`);
+    if (onSelectDream) {
+      onSelectDream(dream);
+    } else {
+      toast({
+        title: "Dream Selected! ✨",
+        description: `${dream.title} - Setting up your Travel Fund`
+      });
+      navigate(`/travel-fund?dreamId=${dream.id}&source=smart-dream`);
+    }
   };
 
   return (
