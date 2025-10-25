@@ -142,36 +142,6 @@ async def list_providers(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch providers: {str(e)}")
 
-@router.get("/providers/{provider_id}", response_model=Dict[str, Any])
-async def get_provider_details(provider_id: str):
-    """Get detailed information about a specific provider"""
-    try:
-        supabase = get_supabase_client()
-        result = supabase.table('provider_registry').select('*').eq('id', provider_id).execute()
-        
-        if not result.data:
-            raise HTTPException(status_code=404, detail=f"Provider {provider_id} not found")
-        
-        provider = result.data[0]
-        
-        # Get recent health logs
-        health_logs = supabase.table('provider_health_logs')\
-            .select('*')\
-            .eq('provider_id', provider_id)\
-            .order('check_time', desc=True)\
-            .limit(10)\
-            .execute()
-        
-        return {
-            "success": True,
-            "provider": provider,
-            "recent_health_checks": health_logs.data
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch provider details: {str(e)}")
-
 @router.get("/providers/active", response_model=Dict[str, Any])
 async def list_active_providers(
     provider_type: Optional[str] = Query(None, description="Filter by provider type"),
@@ -204,6 +174,36 @@ async def list_active_providers(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch active providers: {str(e)}")
+
+@router.get("/providers/{provider_id}", response_model=Dict[str, Any])
+async def get_provider_details(provider_id: str):
+    """Get detailed information about a specific provider"""
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table('provider_registry').select('*').eq('id', provider_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail=f"Provider {provider_id} not found")
+        
+        provider = result.data[0]
+        
+        # Get recent health logs
+        health_logs = supabase.table('provider_health_logs')\
+            .select('*')\
+            .eq('provider_id', provider_id)\
+            .order('check_time', desc=True)\
+            .limit(10)\
+            .execute()
+        
+        return {
+            "success": True,
+            "provider": provider,
+            "recent_health_checks": health_logs.data
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch provider details: {str(e)}")
 
 @router.get("/providers/rotation/{service_type}", response_model=Dict[str, Any])
 async def get_provider_rotation(
