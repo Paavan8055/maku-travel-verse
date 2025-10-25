@@ -53,10 +53,10 @@ async def provider_analytics_overview():
         avg_response_time = sum([p.get('avg_response_time_ms') or 0 for p in providers.data]) / total_providers if total_providers > 0 else 0
         avg_success_rate = sum([p.get('success_rate_percent') or 0 for p in providers.data]) / total_providers if total_providers > 0 else 0
         
-        # Top performers (by success rate)
+        # Top performers (by success rate, handle None values)
         top_performers = sorted(
             providers.data,
-            key=lambda x: (x.get('success_rate_percent', 0), -x.get('avg_response_time_ms', 9999)),
+            key=lambda x: (x.get('success_rate_percent') or 0, -(x.get('avg_response_time_ms') or 9999)),
             reverse=True
         )[:5]
         
