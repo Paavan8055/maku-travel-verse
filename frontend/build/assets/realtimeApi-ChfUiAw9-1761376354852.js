@@ -1,1 +1,0 @@
-import{a as t}from"./index-8DBfw8dd-1761376354852.js";const a="https://maku-travel-ai.preview.emergentagent.com";async function c(r){try{return(await t.post(`${a}/api/realtime/price-alerts`,r)).data.alert}catch(e){throw console.error("Failed to create price alert:",e),e}}export{c};
