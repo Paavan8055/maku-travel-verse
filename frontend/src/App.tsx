@@ -222,6 +222,8 @@ const App = () => (
                                         <Route path="/smart-dreams" element={<SmartDreams />} />
                                         <Route path="/destinations/:country" element={<DestinationDeepDive />} />
                                         <Route path="/partner-bidding" element={<B2BPartnerDashboard />} />
+                                        <Route path="/partner-onboarding" element={<PartnerOnboardingWizard />} />
+                                        <Route path="/partner-dashboard" element={<NextGenPartnerDashboard />} />
                                         <Route path="/ai-intelligence" element={<AIIntelligenceHub />} />
                                         <Route path="/ai-demo" element={<AIDemoPage />} />
                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
