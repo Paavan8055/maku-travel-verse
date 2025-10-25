@@ -188,7 +188,7 @@ const DestinationDeepDive = () => {
                   <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
                   <TabsTrigger value="activities">Activities</TabsTrigger>
                   <TabsTrigger value="local">Local Businesses</TabsTrigger>
-                </Tabs>
+                </TabsList>
 
                 <TabsContent value="hidden">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
