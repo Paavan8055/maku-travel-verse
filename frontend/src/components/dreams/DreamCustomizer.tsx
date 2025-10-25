@@ -59,8 +59,8 @@ const DreamCustomizer = ({ dream }: DreamCustomizerProps) => {
     sessionStorage.setItem('dreamToFund', JSON.stringify(customizedDream));
 
     toast({
-      title: \"Dream Customized! \ud83c\udf89\",
-      description: \"Setting up your Travel Fund Manager with $\" + totalCost.toLocaleString(),
+      title: "Dream Customized! 🎉",
+      description: "Setting up your Travel Fund Manager with $" + totalCost.toLocaleString(),
     });
 
     navigate(`/travel-fund?dreamId=${dream.id}&amount=${totalCost}&source=smart-dream`);
