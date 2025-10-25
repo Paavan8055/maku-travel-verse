@@ -6,7 +6,7 @@ Integrates all provider adapters with intelligent rotation
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from providers.universal_provider_manager import universal_provider_manager
 from providers.base_provider import SearchRequest
 from supabase import create_client
