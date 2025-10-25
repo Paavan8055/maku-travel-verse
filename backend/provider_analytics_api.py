@@ -75,8 +75,8 @@ async def provider_analytics_overview():
                 {
                     "provider_name": p.get('provider_name'),
                     "display_name": p.get('display_name'),
-                    "success_rate": p.get('success_rate_percent', 0),
-                    "avg_response_time_ms": p.get('avg_response_time_ms', 0),
+                    "success_rate": p.get('success_rate_percent') or 0,
+                    "avg_response_time_ms": p.get('avg_response_time_ms') or 0,
                     "health_status": p.get('health_status', 'unknown')
                 }
                 for p in top_performers
