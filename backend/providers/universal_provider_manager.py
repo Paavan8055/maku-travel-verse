@@ -56,8 +56,9 @@ class UniversalProviderManager:
             
         except Exception as e:
             logger.error(f"Failed to load provider registry: {e}")
-            # Fallback to hardcoded config
-            self._load_fallback_providers()
+            # Fallback to hardcoded config (not implemented yet)
+            # self._load_fallback_providers()
+            logger.warning("No fallback providers configured - continuing with empty provider list")
     
     async def _load_provider(self, config: Dict[str, Any], supabase_client):
         """Load individual provider instance"""
