@@ -105,10 +105,13 @@ success, response, rt = test_endpoint(
 if success and response:
     providers = response.get('providers', [])
     print(f"   ✓ Total providers: {len(providers)}")
-    healthy_count = sum(1 for p in providers if p.get('status') == 'healthy')
-    print(f"   ✓ Healthy providers: {healthy_count}/{len(providers)}")
-    for provider in providers[:5]:
-        print(f"   ✓ {provider.get('name')}: {provider.get('status')} ({provider.get('response_time_ms')}ms)")
+    if providers and isinstance(providers[0], dict):
+        healthy_count = sum(1 for p in providers if p.get('status') == 'healthy')
+        print(f"   ✓ Healthy providers: {healthy_count}/{len(providers)}")
+        for provider in providers[:5]:
+            print(f"   ✓ {provider.get('name')}: {provider.get('status')} ({provider.get('response_time_ms')}ms)")
+    else:
+        print(f"   ✓ Provider list format: {type(providers[0]) if providers else 'empty'}")
 
 # Test 1.3: Provider Health Check (POST)
 print("\n📍 Test 1.3: POST /api/providers/health-check")
