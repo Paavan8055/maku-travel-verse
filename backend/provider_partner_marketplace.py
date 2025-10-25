@@ -7,10 +7,25 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import date, datetime
-from supabase_config import get_supabase_client
+from supabase import create_client, Client
+import os
 import random
 
 router = APIRouter(prefix="/api", tags=["Provider & Partner Marketplace"])
+
+# Supabase client initialization
+def get_supabase_client() -> Client:
+    """Get Supabase client from environment"""
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+    
+    if not supabase_url or not supabase_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Supabase configuration missing. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
+        )
+    
+    return create_client(supabase_url, supabase_key)
 
 # ============================================================================
 # Pydantic Models
