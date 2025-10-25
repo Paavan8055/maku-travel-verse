@@ -1170,6 +1170,14 @@ integration_tasks:
   - feature: "Real-Time Features - Live Booking Activity"
     backend_endpoint: "/api/realtime/system/health"
     frontend_component: "frontend/src/components/MarketplaceSection.tsx"
+
+  - feature: "Smart Dreams & Bidding Marketplace - Comprehensive Frontend Testing"
+    backend_endpoint: "N/A - Frontend UI Testing"
+    frontend_component: "frontend/src/pages/SmartDreams.tsx, DestinationDeepDive.tsx, B2BPartnerDashboard.tsx"
+    status: "critical_issue_found"
+    priority: "high"
+    testing_agent_notes: "🚨 CRITICAL ROUTING BUG: /smart-dreams redirects to homepage. Destination Deep Dive and B2B Partner Dashboard working perfectly."
+
     status: "pending"
     priority: "high"
   
