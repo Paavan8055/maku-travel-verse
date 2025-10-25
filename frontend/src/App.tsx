@@ -250,6 +250,7 @@ const App = () => (
                           <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
                           <Route path="smart-dreams" element={<AdminSmartDreamsPage />} />
                           <Route path="providers" element={<AdminProviderOnboarding />} />
+                          <Route path="providers/analytics" element={<ProviderAnalyticsDashboard />} />
                           
                           {/* Monitoring Routes */}
                           <Route path="monitoring" element={<AdminMonitoring />} />
