@@ -32,6 +32,7 @@ class ProviderConfig(BaseModel):
     is_test_mode: bool
     capabilities: ProviderCapabilities
     supported_regions: List[str]
+    commission_rate: Optional[float] = 0.15  # Default 15%
 
 class SearchRequest(BaseModel):
     """Universal search request"""
