@@ -6,6 +6,7 @@ Tests all provider adapters, rotation logic, and analytics
 import pytest
 import asyncio
 from datetime import datetime, date, timedelta
+from typing import Dict
 from providers.base_provider import ProviderConfig, SearchRequest, ProviderCapabilities
 from providers.sabre_adapter import SabreProvider
 from providers.hotelbeds_adapter import HotelBedsProvider
