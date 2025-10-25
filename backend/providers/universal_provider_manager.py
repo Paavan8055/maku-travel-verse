@@ -26,7 +26,7 @@ class UniversalProviderManager:
         self._register_default_adapters()
     
     def _register_default_adapters(self):
-        \"\"\"Register built-in provider adapters\"\"\"
+        """Register built-in provider adapters"""
         self.provider_adapters = {
             'sabre': 'providers.sabre_adapter.SabreProvider',
             'hotelbeds': 'providers.hotelbeds_adapter.HotelBedsProvider',
@@ -38,7 +38,7 @@ class UniversalProviderManager:
         }
     
     async def load_providers_from_registry(self, supabase_client):
-        \"\"\"
+        """
         Load active providers from Supabase registry
         This allows adding providers without code changes
         \"\"\"
