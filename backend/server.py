@@ -56,6 +56,9 @@ from analytics_dashboard import analytics_router
 from realtime_features import realtime_router
 from payment_gateway import payment_router
 
+# Import provider & partner marketplace
+from provider_partner_marketplace import router as marketplace_router
+
 # Import OpenAI ChatGPT Pro integration
 try:
     from openai_endpoints import openai_router
