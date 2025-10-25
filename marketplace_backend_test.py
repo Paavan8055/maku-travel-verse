@@ -404,8 +404,9 @@ print("="*80 + "\n")
 if partner_id:
     # Test 11: Create a new bid
     print("Test 11: Create New Bid")
+    import uuid
     bid_data = {
-        "user_dream_id": "test_dream_123",
+        "user_dream_id": str(uuid.uuid4()),  # Use valid UUID format
         "bid_type": "hotel",
         "offer_price": 250.00,
         "original_price": 350.00,
