@@ -5,9 +5,12 @@ Seeds: Providers, Local Businesses, Test Partners, Inventory
 
 import os
 import sys
-from supabase import create_client
 from datetime import datetime, timedelta
 import random
+
+# Load environment from .env if available
+from dotenv import load_dotenv
+load_dotenv()
 
 # Supabase setup
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://iomeddeasarntjhqzndu.supabase.co')
@@ -15,9 +18,16 @@ SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 
 if not SUPABASE_SERVICE_KEY:
     print("❌ SUPABASE_SERVICE_ROLE_KEY not found in environment")
+    print("   Please set SUPABASE_SERVICE_ROLE_KEY in backend/.env")
     sys.exit(1)
 
-supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+try:
+    from supabase import create_client
+    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    print(f"✅ Connected to Supabase: {SUPABASE_URL}")
+except Exception as e:
+    print(f"❌ Failed to connect to Supabase: {e}")
+    sys.exit(1)
 
 def seed_providers():
     """Seed provider registry with all major providers"""
