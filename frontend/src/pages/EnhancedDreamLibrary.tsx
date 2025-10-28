@@ -20,6 +20,7 @@ interface DreamPackage {
   country: string;
   region: string;
   image_url: string;
+  image_gallery?: string[];  // Multiple images for gallery view
   duration_days: number;
   age_groups: string[];
   travel_styles: string[];
