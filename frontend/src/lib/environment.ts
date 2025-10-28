@@ -5,8 +5,8 @@ export const environment = {
   
   // Supabase configuration (primary backend)
   supabase: {
-    url: 'https://iomeddeasarntjhqzndu.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvbWVkZGVhc2FybnRqaHF6bmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzODk0NjksImV4cCI6MjA2OTk2NTQ2OX0.tZ50J9PPa6ZqDdPF0-WPYwoLO-aGBIf6Qtjr7dgYrDI'
+    url: import.meta.env.VITE_SUPABASE_URL || 'https://iomeddeasarntjhqzndu.supabase.co',
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY!
   },
   
   // Firebase configuration (analytics, real-time features)
