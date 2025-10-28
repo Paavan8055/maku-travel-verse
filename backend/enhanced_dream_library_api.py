@@ -512,7 +512,7 @@ MIDDLE_EAST_DREAMS = [
         "destination": "Amman, Petra, Wadi Rum, Dead Sea",
         "country": "Jordan",
         "region": "Middle East",
-        "image_url": "https://images.unsplash.com/photo-1578895101408-1a36b834405b?w=1200",
+        "image_url": "https://images.unsplash.com/photo-1579208679245-1636894560fe?w=1200",
         "duration_days": 7,
         "age_groups": ["adventurers", "history-buffs", "photographers", "families"],
         "travel_styles": ["cultural", "adventure", "heritage", "desert"],
