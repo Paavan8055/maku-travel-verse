@@ -3,14 +3,14 @@
     "lovable": {
       "name": "Lovable State",
       "description": "Original state with current features and implementations",
-      "backend_url": "https://smart-dreams-hub.preview.emergentagent.com",
+      "backend_url": "https://dream-marketplace.preview.emergentagent.com",
       "source": "lovable",
       "active": false
     },
     "emergent": {
       "name": "Emergent State", 
       "description": "Enhanced state with CTO recommendations and improvements",
-      "backend_url": "https://smart-dreams-hub.preview.emergentagent.com",
+      "backend_url": "https://dream-marketplace.preview.emergentagent.com",
       "source": "emergent",
       "active": true
     }

@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://smart-dreams-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://dream-marketplace.preview.emergentagent.com/api"
 
 class Colors:
     GREEN = '\033[92m'

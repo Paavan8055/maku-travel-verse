@@ -56,7 +56,7 @@ COMPONENTS:
 
 PURPOSE: AI-powered travel recommendations, personality analysis, journey optimization
 EXTERNAL DEPENDENCIES:
-- Emergent LLM Key: sk-emergent-853C8D6Ff435a784bF
+- Emergent LLM Key: sk-emergent-YOUR_KEY_HERE
 - GPT-4o-mini model integration
 - Hugging Face free APIs (development)
 - OpenAI free tier (development)
@@ -423,7 +423,7 @@ DELIVERABLES:
 ### **Current Deployment Gap**
 ```
 IDENTIFIED ISSUE:
-- Development environment: https://smart-dreams-hub.preview.emergentagent.com
+- Development environment: https://dream-marketplace.preview.emergentagent.com
 - Production website: https://maku.travel/ (Netlify)
 - NO AUTOMATIC SYNC: Changes in dev environment don't deploy to live site
 

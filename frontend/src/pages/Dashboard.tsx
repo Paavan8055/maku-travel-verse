@@ -19,6 +19,13 @@ export default function Dashboard() {
   const { bookings, loading, error } = useBookings();
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
 
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user && !loading) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
   useEffect(() => {
     if (bookings && bookings.length > 0) {
       // Sort bookings by creation date in descending order

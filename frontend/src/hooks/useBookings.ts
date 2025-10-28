@@ -41,6 +41,13 @@ export const useBookings = () => {
       const { data, error: fetchError } = await supabase.rpc('get_user_bookings');
       
       if (fetchError) {
+        // If RPC function doesn't exist, just log and return empty array
+        if (fetchError.message?.includes('function') || fetchError.message?.includes('not found')) {
+          logger.warn('Bookings RPC function not found, returning empty bookings');
+          setBookings([]);
+          setLoading(false);
+          return;
+        }
         throw fetchError;
       }
 
@@ -80,6 +87,8 @@ export const useBookings = () => {
     } catch (err: any) {
       logger.error('Error fetching bookings:', err);
       setError(err.message || 'Failed to fetch bookings');
+      // Don't crash the app, just set empty bookings
+      setBookings([]);
     } finally {
       setLoading(false);
     }

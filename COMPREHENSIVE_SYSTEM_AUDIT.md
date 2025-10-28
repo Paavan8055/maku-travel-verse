@@ -11,7 +11,7 @@ This comprehensive audit examines the entire Maku.Travel platform to understand 
 
 ### **What is Emergent LLM Key?**
 ```
-🔑 Your Current Key: sk-emergent-853C8D6Ff435a784bF
+🔑 Your Current Key: sk-emergent-YOUR_KEY_HERE
 💰 Cost Structure: Credit-based pricing model
 🆓 Free Tier: 5 credits/month + 10 daily credits
 💵 Paid Tiers: $20/month (100 credits), $200/month (750 credits)
@@ -107,7 +107,7 @@ FINDINGS:
 
 #### **File: /app/backend/.env**
 ```env
-EMERGENT_LLM_KEY=sk-emergent-853C8D6Ff435a784bF  # PAID KEY IN USE
+EMERGENT_LLM_KEY=sk-emergent-YOUR_KEY_HERE  # PAID KEY IN USE
 ```
 
 #### **AI Endpoint Consumption Analysis**
@@ -632,7 +632,7 @@ async def travel_dna_dev_friendly(user_id: str, request_data: dict):
 
 #### **Current AI/LLM Status**
 ```
-🔑 EMERGENT KEY: sk-emergent-853C8D6Ff435a784bF (ACTIVE - CONSUMING CREDITS)
+🔑 EMERGENT KEY: sk-emergent-YOUR_KEY_HERE (ACTIVE - CONSUMING CREDITS)
 💰 COST CONCERN: High development credit usage
 🤖 BOT STATUS: Multiple implementations, unclear which is working
 🔧 INTEGRATION: Partial AI integration with fallback to static responses

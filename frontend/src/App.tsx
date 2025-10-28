@@ -73,7 +73,6 @@ const TravelFundPage = createLazyRoute(() => import("./pages/travel-fund"));
 const JoinFundPage = createLazyRoute(() => import("./pages/join-fund"));
 const TravelPreferencesPage = createLazyRoute(() => import("./pages/travel-preferences"));
 const InviteFriendsPage = createLazyRoute(() => import("./pages/invite-friends"));
-const AdminDashboard = createLazyRoute(() => import("./pages/AdminDashboard"));
 const AdminAuth = createLazyRoute(() => import("./pages/AdminAuth"));
 const AdminSmartDreamsPage = createLazyRoute(() => import("./pages/admin/smart-dreams"));
 const DeploymentTestPage = createLazyRoute(() => import("./pages/admin/deployment-test"));
@@ -113,9 +112,9 @@ const SmartDreamHub = createLazyRoute(() => import("./pages/smart-dream-hub"));
 const SmartDreams = createLazyRoute(() => import("./pages/SmartDreams"));
 const EnhancedDreamLibrary = createLazyRoute(() => import("./pages/EnhancedDreamLibrary"));
 const DestinationDeepDive = createLazyRoute(() => import("./pages/DestinationDeepDive"));
-const B2BPartnerDashboard = createLazyRoute(() => import("./pages/B2BPartnerDashboard"));
+const UnifiedPartnerDashboard = createLazyRoute(() => import("./pages/UnifiedPartnerDashboard"));
 const PartnerOnboardingWizard = createLazyRoute(() => import("./pages/PartnerOnboardingWizard"));
-const NextGenPartnerDashboard = createLazyRoute(() => import("./pages/NextGenPartnerDashboard"));
+const UnifiedAdminDashboard = createLazyRoute(() => import("./pages/UnifiedAdminDashboard"));
 const AdminProviderOnboarding = createLazyRoute(() => import("./pages/admin/AdminProviderOnboarding"));
 const ProviderAnalyticsDashboard = createLazyRoute(() => import("./pages/admin/ProviderAnalyticsDashboard"));
 const AIIntelligenceHub = createLazyRoute(() => import("./pages/ai-intelligence-hub"));
@@ -123,8 +122,6 @@ const AIDemoPage = createLazyRoute(() => import("./pages/ai-demo"));
 
 // Off-Season Occupancy Engine Routes (Feature Flagged)
 const OffseasonPartnersPage = createLazyRoute(() => import("./pages/OffseasonPartners"));
-const OffseasonPartnerDashboardPage = createLazyRoute(() => import("./pages/OffseasonPartnerDashboard"));
-const OffseasonAdminDashboardPage = createLazyRoute(() => import("./pages/OffseasonAdminDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -224,9 +221,8 @@ const App = () => (
                                         <Route path="/smart-dreams" element={<SmartDreams />} />
                                         <Route path="/dream-library" element={<EnhancedDreamLibrary />} />
                                         <Route path="/destinations/:country" element={<DestinationDeepDive />} />
-                                        <Route path="/partner-bidding" element={<B2BPartnerDashboard />} />
                                         <Route path="/partner-onboarding" element={<PartnerOnboardingWizard />} />
-                                        <Route path="/partner-dashboard" element={<NextGenPartnerDashboard />} />
+                                        <Route path="/partner-dashboard" element={<UnifiedPartnerDashboard />} />
                                         <Route path="/ai-intelligence" element={<AIIntelligenceHub />} />
                                         <Route path="/ai-demo" element={<AIDemoPage />} />
                                         <Route path="/sitemap.xml" element={<SitemapRoute />} />
@@ -235,8 +231,7 @@ const App = () => (
                                         {import.meta.env.VITE_OFFSEASON_FEATURES === 'true' && (
                                           <>
                                             <Route path="/offseason-partners" element={<OffseasonPartnersPage />} />
-                                            <Route path="/dashboard/partners" element={<OffseasonPartnerDashboardPage />} />
-                                            <Route path="/admin/offseason" element={<OffseasonAdminDashboardPage />} />
+                                            <Route path="/dashboard/partners" element={<UnifiedPartnerDashboard />} />
                                           </>
                                         )}
                                         
@@ -247,8 +242,8 @@ const App = () => (
                                          </AdminGuard>
                                        }>
                                          {/* Dashboard Routes */}
-                          <Route index element={<AdminOverviewPage />} />
-                          <Route path="dashboard" element={<AdminOverviewPage />} />
+                          <Route index element={<UnifiedAdminDashboard />} />
+                          <Route path="dashboard" element={<UnifiedAdminDashboard />} />
                           <Route path="dashboard/alerts" element={<AdminAlertsPage />} />
                           <Route path="smart-dreams" element={<AdminSmartDreamsPage />} />
                           <Route path="providers" element={<AdminProviderOnboarding />} />

@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 const DashboardLazy = lazy(() => import('@/pages/Dashboard').then(module => ({ default: module.default })));
 const SearchLazy = lazy(() => import('@/pages/Search').then(module => ({ default: module.default })));
 const BookingLazy = lazy(() => import('@/pages/BookingDetails').then(module => ({ default: module.default })));
-const AdminLazy = lazy(() => import('@/pages/AdminDashboard').then(module => ({ default: module.default })));
+const AdminLazy = lazy(() => import('@/pages/UnifiedAdminDashboard').then(module => ({ default: module.default })));
 
 // Custom loading components for different sections
 export const PageLoader: React.FC<{ height?: string }> = ({ height = 'h-96' }) => (

@@ -2,7 +2,7 @@
 ## Complete Endpoint Reference (v2.1.0)
 
 **Last Updated**: January 25, 2026  
-**Base URL**: https://smart-dreams-hub.preview.emergentagent.com/api  
+**Base URL**: https://dream-marketplace.preview.emergentagent.com/api  
 **API Version**: 2.1.0
 
 ---
