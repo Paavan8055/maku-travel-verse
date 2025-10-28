@@ -315,7 +315,7 @@ INDIA_DREAMS = [
         "destination": "Kochi, Alleppey, Munnar",
         "country": "India",
         "region": "Asia",
-        "image_url": "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=1200",
+        "image_url": "https://images.unsplash.com/photo-1588068747940-76c095269f83?w=1200",
         "duration_days": 9,
         "age_groups": ["wellness-seekers", "couples", "honeymooners", "nature-lovers"],
         "travel_styles": ["wellness", "nature", "romantic", "cruise"],
