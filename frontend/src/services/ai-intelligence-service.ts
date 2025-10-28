@@ -14,7 +14,7 @@ import {
 import logger from '@/utils/logger';
 
 class AIIntelligenceService {
-  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://api.maku.travel';
+  private readonly backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8001');
 
   /**
    * Analyze user's travel DNA based on individual and social data
