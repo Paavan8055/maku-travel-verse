@@ -488,7 +488,7 @@ const UnifiedPartnerDashboard = () => {
                         <div className="grid grid-cols-5 gap-4 text-sm">
                           <div className="flex items-center gap-2 text-slate-600">
                             <Calendar className="w-4 h-4" />
-                            <span>{campaign.startDate}</span>
+                            <span>{campaign.start_date}</span>
                           </div>
                           <div className="flex items-center gap-2 text-slate-600">
                             <DollarSign className="w-4 h-4" />
@@ -496,7 +496,7 @@ const UnifiedPartnerDashboard = () => {
                           </div>
                           <div className="flex items-center gap-2 text-slate-600">
                             <Users className="w-4 h-4" />
-                            <span>{campaign.currentAllocation}/{campaign.maxAllocation}</span>
+                            <span>{campaign.current_allocation}/{campaign.max_allocation}</span>
                           </div>
                           <div className="flex items-center gap-2 text-slate-600">
                             <TrendingUp className="w-4 h-4" />
@@ -504,7 +504,7 @@ const UnifiedPartnerDashboard = () => {
                           </div>
                           <div className="text-slate-600">
                             <span className="font-medium">
-                              {Math.round((campaign.currentAllocation / campaign.maxAllocation) * 100)}%
+                              {Math.round((campaign.current_allocation / campaign.max_allocation) * 100)}%
                             </span> utilized
                           </div>
                         </div>
