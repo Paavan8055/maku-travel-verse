@@ -68,6 +68,9 @@ from cross_chain_bridge_api import router as bridge_router
 # Import unified search API
 from unified_search_api import router as unified_search_router
 
+# Import destination content API
+from destination_content_api import router as destination_router
+
 # Import OpenAI ChatGPT Pro integration
 try:
     from openai_endpoints import openai_router
