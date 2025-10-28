@@ -24,50 +24,25 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface DreamOpportunity {
-  dreamId: string;
-  userId: string;
-  destination: string;
-  budget: { min: number; max: number };
-  dates: { start: string; end: string; flexible: boolean };
-  travelers: number;
-  preferences: string[];
-  urgency: 'high' | 'medium' | 'low';
-  savingsProgress: number;
-  activeBids: number;
-  yourBidRank?: number;
-}
-
-interface Campaign {
-  id: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  discount: number;
-  minAllocation: number;
-  maxAllocation: number;
-  currentAllocation: number;
-  status: string;
-  revenue: number;
-}
+import { partnerApi, DreamOpportunity, Campaign, PartnerStats } from '@/services/partnerApi';
 
 const UnifiedPartnerDashboard = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(false);
   
   // Analytics Stats
-  const [stats, setStats] = useState({
-    occupancy_rate: 0,
-    adr: 0,
-    revpar: 0,
-    bookings_this_month: 0,
-    revenue_this_month: 0,
-    avg_lead_time: 0,
-    bid_win_rate: 0,
-    active_dreams: 0,
-    your_active_bids: 0,
-    won_this_month: 0
+  const [stats, setStats] = useState<PartnerStats>({
+    occupancy_rate: 72.5,
+    adr: 245,
+    revpar: 177.6,
+    bookings_this_month: 47,
+    revenue_this_month: 45230,
+    avg_lead_time: 23,
+    bid_win_rate: 67,
+    active_dreams: 47,
+    your_active_bids: 12,
+    won_this_month: 23
   });
 
   // Bidding Opportunities
@@ -87,70 +62,37 @@ const UnifiedPartnerDashboard = () => {
   });
 
   useEffect(() => {
-    fetchPartnerStats();
-    fetchOpportunities();
-    fetchCampaigns();
+    fetchAllData();
   }, []);
 
-  const fetchPartnerStats = async () => {
-    // TODO: Connect to real API
-    setStats({
-      occupancy_rate: 72.5,
-      adr: 245,
-      revpar: 177.6,
-      bookings_this_month: 47,
-      revenue_this_month: 45230,
-      avg_lead_time: 23,
-      bid_win_rate: 67,
-      active_dreams: 47,
-      your_active_bids: 12,
-      won_this_month: 23
-    });
-  };
-
-  const fetchOpportunities = async () => {
-    // TODO: Connect to real API
-    setOpportunities([
-      {
-        dreamId: 'dream-user-123',
-        userId: 'user-456',
-        destination: 'Maldives',
-        budget: { min: 5000, max: 7500 },
-        dates: { start: '2025-05-15', end: '2025-05-22', flexible: true },
-        travelers: 2,
-        preferences: ['Overwater villa', 'Spa', 'Diving'],
-        urgency: 'high',
-        savingsProgress: 65,
-        activeBids: 8,
-        yourBidRank: 3
-      }
-    ]);
-  };
-
-  const fetchCampaigns = async () => {
-    // TODO: Connect to real API
-    setCampaigns([
-      {
-        id: '1',
-        title: 'Summer Off-Season Special',
-        startDate: '2025-06-01',
-        endDate: '2025-08-31',
-        discount: 40,
-        minAllocation: 10,
-        maxAllocation: 50,
-        currentAllocation: 35,
-        status: 'active',
-        revenue: 67500
-      }
-    ]);
+  const fetchAllData = async () => {
+    setLoading(false); // Show UI immediately
+    try {
+      const [statsData, oppsData, campaignsData] = await Promise.all([
+        partnerApi.getStats(),
+        partnerApi.getOpportunities(),
+        partnerApi.getCampaigns()
+      ]);
+      setStats(statsData);
+      setOpportunities(oppsData);
+      setCampaigns(campaignsData);
+    } catch (error) {
+      console.error('Failed to fetch partner data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: API call to create campaign
-    toast({ title: 'Success', description: 'Campaign created successfully' });
-    setShowCampaignForm(false);
-    fetchCampaigns();
+    try {
+      await partnerApi.createCampaign(newCampaign);
+      toast({ title: 'Success', description: 'Campaign created successfully' });
+      setShowCampaignForm(false);
+      fetchAllData();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to create campaign', variant: 'destructive' });
+    }
   };
 
   const getUrgencyColor = (urgency: string) => {
