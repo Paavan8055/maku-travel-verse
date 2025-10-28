@@ -222,6 +222,7 @@ const App = () => (
                                         <Route path="/invite-friends" element={<InviteFriendsPage />} />
                                         <Route path="/environment-manager" element={<EnvironmentManager />} />
                                         <Route path="/smart-dreams" element={<SmartDreams />} />
+                                        <Route path="/dream-library" element={<EnhancedDreamLibrary />} />
                                         <Route path="/destinations/:country" element={<DestinationDeepDive />} />
                                         <Route path="/partner-bidding" element={<B2BPartnerDashboard />} />
                                         <Route path="/partner-onboarding" element={<PartnerOnboardingWizard />} />
