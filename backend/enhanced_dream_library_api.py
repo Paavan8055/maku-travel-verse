@@ -470,7 +470,7 @@ ASIA_DREAMS = [
         "destination": "Ubud, Canggu, Uluwatu",
         "country": "Indonesia",
         "region": "Asia",
-        "image_url": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200",
+        "image_url": "https://images.unsplash.com/photo-1583090883675-aef1d1d37452?w=1200",
         "duration_days": 12,
         "age_groups": ["wellness-seekers", "digital-nomads", "yogis", "couples"],
         "travel_styles": ["wellness", "cultural", "beach", "spiritual"],
