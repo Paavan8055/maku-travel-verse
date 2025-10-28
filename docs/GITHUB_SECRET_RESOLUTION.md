@@ -9,7 +9,7 @@ GitHub detected an OpenAI API key in commit `232833e59c83d2dab4d3e203d37fd7513f9
 
 **The exposed API key MUST be rotated immediately:**
 1. Go to https://platform.openai.com/api-keys
-2. Delete the compromised key: `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`
+2. Delete the compromised key that starts with: `sk-svcacct-FlmF...` (REDACTED)
 3. Generate a new API key
 4. Update your Railway/Netlify environment variables with the new key
 5. **NEVER** commit the new key to Git
