@@ -717,36 +717,6 @@ async def get_featured_dreams(
     }
 
 
-@router.get("/{dream_id}")
-async def get_dream_details(dream_id: str):
-    """
-    Get complete dream package details with real provider data
-    
-    Args:
-        dream_id: Dream package ID
-        
-    Returns:
-        Full dream details including Viator activities and Expedia hotels
-    """
-    all_dreams = INDIA_DREAMS + ASIA_DREAMS + MIDDLE_EAST_DREAMS
-    
-    dream = next((d for d in all_dreams if d['id'] == dream_id), None)
-    
-    if not dream:
-        raise HTTPException(status_code=404, detail=f"Dream package '{dream_id}' not found")
-    
-    return {
-        "success": True,
-        "dream": dream,
-        "data_sources": {
-            "activities": "Viator API (real test data)",
-            "hotels": "Expedia TAAP API (real test data)",
-            "local_businesses": "MAKU curated network",
-            "hidden_gems": "Expert local curation"
-        }
-    }
-
-
 @router.get("/promotions/active")
 async def get_active_promotions():
     """
