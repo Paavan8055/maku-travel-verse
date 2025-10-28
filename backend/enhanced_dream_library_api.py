@@ -58,7 +58,7 @@ INDIA_DREAMS = [
         "destination": "Delhi, Agra, Jaipur",
         "country": "India",
         "region": "Asia",
-        "image_url": "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1200",
+        "image_url": "https://images.unsplash.com/photo-1660294119408-3c9d91425c8b?w=1200",
         "duration_days": 7,
         "age_groups": ["families", "culture-enthusiasts", "photographers", "seniors"],
         "travel_styles": ["cultural", "heritage", "photography", "guided"],
