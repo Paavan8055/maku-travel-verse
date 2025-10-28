@@ -74,6 +74,9 @@ from destination_content_api import router as destination_router
 # Import enhanced dream library API
 from enhanced_dream_library_api import router as dream_library_router
 
+# Import partner dashboard API
+from partner_dashboard_api import router as partner_dashboard_router
+
 # Import OpenAI ChatGPT Pro integration
 try:
     from openai_endpoints import openai_router
