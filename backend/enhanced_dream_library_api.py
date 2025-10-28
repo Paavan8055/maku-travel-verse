@@ -59,6 +59,11 @@ INDIA_DREAMS = [
         "country": "India",
         "region": "Asia",
         "image_url": "https://images.unsplash.com/photo-1660294119408-3c9d91425c8b?w=1200",
+        "image_gallery": [
+            "https://images.unsplash.com/photo-1660294119408-3c9d91425c8b?w=1200",
+            "https://images.unsplash.com/photo-1660294119408-a0ddf71872e2?w=1200",
+            "https://images.pexels.com/photos/2387871/pexels-photo-2387871.jpeg?w=1200"
+        ],
         "duration_days": 7,
         "age_groups": ["families", "culture-enthusiasts", "photographers", "seniors"],
         "travel_styles": ["cultural", "heritage", "photography", "guided"],
