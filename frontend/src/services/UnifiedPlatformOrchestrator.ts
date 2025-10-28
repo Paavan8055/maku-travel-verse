@@ -244,7 +244,11 @@ export class UnifiedPlatformOrchestrator {
    * Update specific module based on cross-module trigger
    */
   private async updateModule(moduleName: string, update: CrossModuleUpdate): Promise<UpdateResult> {
-    const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://api.maku.travel';
+    const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL!;
+    
+    if (!backendUrl) {
+      throw new Error('VITE_REACT_APP_BACKEND_URL environment variable is required');
+    }
 
     switch (moduleName) {
       case 'nft':
