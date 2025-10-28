@@ -60,7 +60,7 @@ If you want to completely remove the secret from Git history:
 2. **Create a passwords file:**
    ```bash
    cat > /tmp/secrets.txt << EOF
-   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
+   sk-svcacct-REDACTED-EXPOSED-KEY-STARTS-WITH-FlmF
    EOF
    ```
 
