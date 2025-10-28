@@ -171,21 +171,32 @@ export function ExecutiveDashboard() {
             High-level business metrics and system performance overview
           </p>
         </div>
-        <Badge variant="default" className="text-sm">
-          Real-time Data
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="text-sm">
+            Last updated: {lastUpdate.toLocaleTimeString()}
+          </Badge>
+          <Button 
+            onClick={fetchRealMetrics} 
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Key Performance Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpiCards.map((kpi) => (
-          <Card key={kpi.title}>
+          <Card key={kpi.title} className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
               {kpi.icon}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{kpi.value}</div>
+              <div className="text-2xl font-bold">{loading ? '...' : kpi.value}</div>
               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                 <TrendingUp className="h-3 w-3 text-green-500" />
                 <span className="text-green-500">{kpi.change}</span>
