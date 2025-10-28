@@ -132,7 +132,7 @@ yarl==1.20.1
 zipp==3.23.0
 # Enhanced Provider Dependencies
 asyncio-throttle==1.0.2
-# web3==6.11.3  # Blockchain - disabled for Emergent deployment
+web3==6.11.3
 # eth-account==0.10.0  # Blockchain - disabled
 # cryptography==41.0.7  # Duplicate - using 45.0.7 above
 sentry-sdk[fastapi]==1.39.2
