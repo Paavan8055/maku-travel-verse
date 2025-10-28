@@ -79,3 +79,7 @@ dmypy.json
 !.env.template
 !.env.example
 !.env.production.template
+-e 
+# Environment files
+*.env
+*.env.*
