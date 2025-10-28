@@ -134,7 +134,7 @@ zipp==3.23.0
 asyncio-throttle==1.0.2
 # web3==6.11.3  # Blockchain - disabled for Emergent deployment
 eth-account==0.10.0
-cryptography==41.0.7
+# cryptography==41.0.7  # Duplicate - using 45.0.7 above
 sentry-sdk[fastapi]==1.39.2
 emergentintegrations
 httpx
