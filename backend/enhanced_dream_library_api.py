@@ -321,6 +321,11 @@ INDIA_DREAMS = [
         "country": "India",
         "region": "Asia",
         "image_url": "https://images.unsplash.com/photo-1588068747940-76c095269f83?w=1200",
+        "image_gallery": [
+            "https://images.unsplash.com/photo-1588068747940-76c095269f83?w=1200",
+            "https://images.unsplash.com/photo-1644186087611-a47c59d3f786?w=1200",
+            "https://images.unsplash.com/photo-1682441777246-4b06575911ee?w=1200"
+        ],
         "duration_days": 9,
         "age_groups": ["wellness-seekers", "couples", "honeymooners", "nature-lovers"],
         "travel_styles": ["wellness", "nature", "romantic", "cruise"],
