@@ -104,15 +104,6 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,  
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Security configuration for blockchain readiness
 security = HTTPBearer()
 ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', Fernet.generate_key())
