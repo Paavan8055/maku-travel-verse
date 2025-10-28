@@ -486,6 +486,11 @@ ASIA_DREAMS = [
         "country": "Indonesia",
         "region": "Asia",
         "image_url": "https://images.unsplash.com/photo-1583090883675-aef1d1d37452?w=1200",
+        "image_gallery": [
+            "https://images.unsplash.com/photo-1583090883675-aef1d1d37452?w=1200",
+            "https://images.unsplash.com/photo-1554689021-c9e70753d301?w=1200",
+            "https://images.unsplash.com/photo-1694967456363-78bf85deaa17?w=1200"
+        ],
         "duration_days": 12,
         "age_groups": ["wellness-seekers", "digital-nomads", "yogis", "couples"],
         "travel_styles": ["wellness", "cultural", "beach", "spiritual"],
