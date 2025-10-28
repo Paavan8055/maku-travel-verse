@@ -431,7 +431,7 @@ ASIA_DREAMS = [
         "destination": "Phuket, Phi Phi, Krabi, Railay",
         "country": "Thailand",
         "region": "Asia",
-        "image_url": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200",
+        "image_url": "https://images.unsplash.com/photo-1688647291819-09e0d69a6af2?w=1200",
         "duration_days": 10,
         "age_groups": ["young-adults", "backpackers", "beach-lovers", "divers"],
         "travel_styles": ["beach", "adventure", "party", "budget"],
