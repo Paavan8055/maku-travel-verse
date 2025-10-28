@@ -5451,6 +5451,7 @@ app.include_router(bridge_router)  # Cross-Chain Bridge
 app.include_router(unified_search_router)  # Unified Search with Provider Rotation
 app.include_router(destination_router)  # Destination Content
 app.include_router(dream_library_router)  # Enhanced Dream Library
+app.include_router(partner_dashboard_router)  # Partner Dashboard APIs
 
 # Register OpenAI ChatGPT Pro router if available
 if OPENAI_ENABLED:
