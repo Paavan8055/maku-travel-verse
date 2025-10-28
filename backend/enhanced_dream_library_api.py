@@ -442,6 +442,11 @@ ASIA_DREAMS = [
         "country": "Thailand",
         "region": "Asia",
         "image_url": "https://images.unsplash.com/photo-1688647291819-09e0d69a6af2?w=1200",
+        "image_gallery": [
+            "https://images.unsplash.com/photo-1688647291819-09e0d69a6af2?w=1200",
+            "https://images.unsplash.com/photo-1673702649339-2e8a7ee07e6a?w=1200",
+            "https://images.pexels.com/photos/3334821/pexels-photo-3334821.jpeg?w=1200"
+        ],
         "duration_days": 10,
         "age_groups": ["young-adults", "backpackers", "beach-lovers", "divers"],
         "travel_styles": ["beach", "adventure", "party", "budget"],
