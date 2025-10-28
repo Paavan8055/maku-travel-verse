@@ -113,7 +113,7 @@ EXPEDIA_API_KEY=your_production_key
 EXPEDIA_API_SECRET=your_production_secret
 
 # OpenAI
-OPENAI_API_KEY=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
+OPENAI_API_KEY=sk-proj-YOUR_OPENAI_API_KEY_HERE
 
 # Emergent LLM
 EMERGENT_LLM_KEY=sk-emergent-853C8D6Ff435a784bF
