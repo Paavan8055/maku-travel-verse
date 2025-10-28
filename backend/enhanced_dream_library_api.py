@@ -533,6 +533,11 @@ MIDDLE_EAST_DREAMS = [
         "country": "Jordan",
         "region": "Middle East",
         "image_url": "https://images.unsplash.com/photo-1579208679245-1636894560fe?w=1200",
+        "image_gallery": [
+            "https://images.unsplash.com/photo-1579208679245-1636894560fe?w=1200",
+            "https://images.unsplash.com/photo-1557544779-3e2ac6c1c21b?w=1200",
+            "https://images.unsplash.com/flagged/photo-1557804601-d70ccb3d4f70?w=1200"
+        ],
         "duration_days": 7,
         "age_groups": ["adventurers", "history-buffs", "photographers", "families"],
         "travel_styles": ["cultural", "adventure", "heritage", "desert"],
