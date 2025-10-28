@@ -111,6 +111,7 @@ const SitemapRoute = createLazyRoute(() => import("./components/SitemapRoute"));
 const EnvironmentManager = createLazyRoute(() => import("./pages/EnvironmentManager"));
 const SmartDreamHub = createLazyRoute(() => import("./pages/smart-dream-hub"));
 const SmartDreams = createLazyRoute(() => import("./pages/SmartDreams"));
+const EnhancedDreamLibrary = createLazyRoute(() => import("./pages/EnhancedDreamLibrary"));
 const DestinationDeepDive = createLazyRoute(() => import("./pages/DestinationDeepDive"));
 const B2BPartnerDashboard = createLazyRoute(() => import("./pages/B2BPartnerDashboard"));
 const PartnerOnboardingWizard = createLazyRoute(() => import("./pages/PartnerOnboardingWizard"));
