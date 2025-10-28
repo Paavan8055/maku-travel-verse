@@ -262,7 +262,7 @@ const UnifiedPartnerDashboard = () => {
               {/* Opportunities */}
               <div className="space-y-4">
                 {opportunities.map((opp) => (
-                  <Card key={opp.dreamId} className="p-6 hover:shadow-lg transition-shadow">
+                  <Card key={opp.dream_id} className="p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <div className="flex items-center gap-3 mb-2">
@@ -270,23 +270,23 @@ const UnifiedPartnerDashboard = () => {
                           <Badge className={getUrgencyColor(opp.urgency)}>
                             {opp.urgency} urgency
                           </Badge>
-                          {opp.yourBidRank && (
+                          {opp.your_bid_rank && (
                             <Badge className="bg-purple-100 text-purple-700">
-                              Your bid: #{opp.yourBidRank}
+                              Your bid: #{opp.your_bid_rank}
                             </Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-slate-600">
                           <span><Users className="w-4 h-4 inline mr-1" />{opp.travelers} travelers</span>
-                          <span><Calendar className="w-4 h-4 inline mr-1" />{opp.dates.start}</span>
-                          <span><DollarSign className="w-4 h-4 inline mr-1" />${opp.budget.min}-${opp.budget.max}</span>
+                          <span><Calendar className="w-4 h-4 inline mr-1" />{opp.date_start}</span>
+                          <span><DollarSign className="w-4 h-4 inline mr-1" />${opp.budget_min}-${opp.budget_max}</span>
                         </div>
                       </div>
 
                       <div className="text-right">
                         <p className="text-sm text-slate-600 mb-1">Savings Progress</p>
-                        <p className="text-3xl font-bold text-green-600">{opp.savingsProgress}%</p>
-                        <Badge className="mt-2">{opp.activeBids} Active Bids</Badge>
+                        <p className="text-3xl font-bold text-green-600">{opp.savings_progress}%</p>
+                        <Badge className="mt-2">{opp.active_bids} Active Bids</Badge>
                       </div>
                     </div>
 
@@ -297,7 +297,7 @@ const UnifiedPartnerDashboard = () => {
                         {opp.preferences.map((pref, idx) => (
                           <Badge key={idx} variant="outline">{pref}</Badge>
                         ))}
-                        {opp.dates.flexible && (
+                        {opp.flexible_dates && (
                           <Badge className="bg-orange-100 text-orange-700">
                             <TrendingDown className="w-3 h-3 mr-1" />
                             Flexible Dates
@@ -307,7 +307,7 @@ const UnifiedPartnerDashboard = () => {
                     </div>
 
                     {/* AI Suggestion */}
-                    {opp.dates.flexible && (
+                    {opp.flexible_dates && (
                       <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-green-800">
                           💡 <strong>AI Suggestion:</strong> Offer 25-30% discount for off-season dates to win bid and optimize occupancy!
