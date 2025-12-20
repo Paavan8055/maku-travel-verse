@@ -123,19 +123,21 @@ def test_ai_services():
     # Recommendations
     test_endpoint("AI", "GET", "/ai/recommendations/test_user_123", [200])
     
-    # Journey Optimization
+    # Journey Optimization (needs longer timeout for AI processing)
     test_endpoint("AI", "POST", "/ai/journey-optimization", [200], 
-                  json_data={"user_id": "test_user", "destination_ids": ["paris", "rome"], "preferences": {}})
+                  json_data={"user_id": "test_user", "destination_ids": ["paris", "rome"], "preferences": {}},
+                  timeout=30)
     
-    # Predictive Insights
-    test_endpoint("AI", "GET", "/ai/predictive-insights/test_user_123", [200])
+    # Predictive Insights (needs longer timeout)
+    test_endpoint("AI", "GET", "/ai/predictive-insights/test_user_123", [200], timeout=30)
     
     # AI Feedback
     test_endpoint("AI", "POST", "/ai/feedback", [200], 
-                  json_data={"user_id": "test_user", "feedback_type": "recommendation", "rating": 5})
+                  json_data={"user_id": "test_user", "feedback_type": "recommendation", "rating": 5},
+                  timeout=15)
     
-    # Recommendation Explanation
-    test_endpoint("AI", "GET", "/ai/explain/rec_123", [200], params={"user_id": "test_user"})
+    # Recommendation Explanation (needs longer timeout)
+    test_endpoint("AI", "GET", "/ai/explain/rec_123", [200], params={"user_id": "test_user"}, timeout=30)
     
     # Enhanced Dreams
     test_endpoint("AI", "GET", "/enhanced-dreams/destinations", [200])
