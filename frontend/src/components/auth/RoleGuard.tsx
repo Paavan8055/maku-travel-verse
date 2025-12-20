@@ -193,6 +193,32 @@ export const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  // Handle navigation in useEffect to avoid React warnings
+  useEffect(() => {
+    if (loading || authLoading) return;
+
+    // Require authentication
+    if (!user) {
+      navigate('/admin', { replace: true });
+      return;
+    }
+
+    // Require admin role
+    if (!permissions.canAccessAdmin) {
+      logger.warn('Unauthorized admin access attempt', { userId: user.id });
+      toast({
+        title: "Access Denied",
+        description: "You do not have admin privileges. Please contact your administrator.",
+        variant: "destructive"
+      });
+      navigate('/', { replace: true });
+      return;
+    }
+
+    setAccessChecked(true);
+  }, [user, permissions, loading, authLoading, navigate, toast]);
 
   // Wait for both auth and permissions to load
   if (loading || authLoading) {
@@ -203,25 +229,21 @@ export const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }
     );
   }
 
-  // Require authentication
-  if (!user) {
-    navigate('/admin', { replace: true });
-    return null;
+  // Wait for access check to complete
+  if (!accessChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  // Require admin role
-  if (!permissions.canAccessAdmin) {
-    logger.warn('Unauthorized admin access attempt', { userId: user.id });
-    toast({
-      title: "Access Denied",
-      description: "You do not have admin privileges. Please contact your administrator.",
-      variant: "destructive"
-    });
-    navigate('/', { replace: true });
-    return null;
+  // Only render children if user has admin access
+  if (user && permissions.canAccessAdmin) {
+    return <>{children}</>;
   }
 
-  return <>{children}</>;
+  return null;
 };
 
 /**
