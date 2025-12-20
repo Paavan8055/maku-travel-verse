@@ -71,7 +71,7 @@ rm .github/workflows/monitoring.yml
 If you want full monitoring, you need to configure GitHub secrets:
 
 **Required Secrets** (in GitHub repository settings):
-- `FRONTEND_URL` - Your frontend URL (e.g., `https://your-app.preview.emergentagent.com`)
+- `FRONTEND_URL` - Your frontend URL (e.g., `https://maku-refactor.preview.emergentagent.com`)
 - `BACKEND_URL` - Your backend URL (e.g., `https://your-api.example.com`)
 - `SUPABASE_URL` - Your Supabase project URL
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key

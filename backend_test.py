@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://makulive-preview.preview.emergentagent.com/api"
+BACKEND_URL = "https://maku-refactor.preview.emergentagent.com/api"
 
 # Test results tracking
 test_results = {
