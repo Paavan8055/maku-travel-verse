@@ -106,15 +106,6 @@ export default function EnhancedDreamLibrary() {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    if (category.includes('wellness')) return <Sparkles className="w-4 h-4" />;
-    if (category.includes('adventure')) return <Mountain className="w-4 h-4" />;
-    if (category.includes('cultural')) return <Camera className="w-4 h-4" />;
-    if (category.includes('luxury')) return <Award className="w-4 h-4" />;
-    if (category.includes('beach')) return <Palmtree className="w-4 h-4" />;
-    return <Star className="w-4 h-4" />;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50">
       {/* Hero Section */}
