@@ -155,15 +155,12 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
       // Redirect to fallback path
       navigate(fallbackPath, { replace: true });
     } else {
-      // Log successful access (including bypass)
+      // Log successful access
       logAccessAttempt(location.pathname, requiredRole, true);
-      if (allowBypass) {
-        logger.info(`Admin bypass enabled for ${location.pathname}`);
-      }
     }
-  }, [loading, permissions, requiredRole, navigate, fallbackPath, showAccessDenied, location.pathname, toast, accessDeniedShown, allowBypass]);
+  }, [loading, permissions, requiredRole, navigate, fallbackPath, showAccessDenied, location.pathname, toast, accessDeniedShown]);
 
-  // If user doesn't have access and no bypass, show loading or deny access
+  // If user doesn't have access, show loading or deny access
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -173,7 +170,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   }
 
   // Check if user has required access
-  const hasAccess = checkRoleAccess(permissions, requiredRole) || allowBypass;
+  const hasAccess = checkRoleAccess(permissions, requiredRole);
 
   if (!hasAccess) {
     return null; // Component will redirect via useEffect
