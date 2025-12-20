@@ -57,16 +57,16 @@ def log_test(domain: str, endpoint: str, passed: bool, status_code: int = None, 
         test_results["domains"][domain]["failed"] += 1
 
 def test_endpoint(domain: str, method: str, endpoint: str, expected_status: List[int] = [200], 
-                  json_data: Dict = None, params: Dict = None, check_fields: List[str] = None) -> Tuple[bool, int, float]:
+                  json_data: Dict = None, params: Dict = None, check_fields: List[str] = None, timeout: int = 10) -> Tuple[bool, int, float]:
     """Generic endpoint tester"""
     url = f"{BACKEND_URL}{endpoint}"
     start_time = time.time()
     
     try:
         if method == "GET":
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=timeout)
         elif method == "POST":
-            response = requests.post(url, json=json_data, params=params, timeout=10)
+            response = requests.post(url, json=json_data, params=params, timeout=timeout)
         else:
             return False, 0, 0
         
