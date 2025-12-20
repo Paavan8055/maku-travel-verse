@@ -300,9 +300,9 @@ def test_integration_nft_payment():
         blockchain_response = requests.get(f"{BACKEND_URL}/blockchain/network-info", timeout=10)
         blockchain_elapsed = (time.time() - start) * 1000
         
-        # Check payment gateway
+        # Check payment gateway (correct endpoint)
         start = time.time()
-        payment_response = requests.get(f"{BACKEND_URL}/payment/methods", timeout=10)
+        payment_response = requests.get(f"{BACKEND_URL}/payments/methods/available", timeout=10)
         payment_elapsed = (time.time() - start) * 1000
         
         passed = blockchain_response.status_code == 200 and payment_response.status_code == 200
