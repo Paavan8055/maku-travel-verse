@@ -698,7 +698,7 @@ def test_provider_health_checks():
     
     try:
         start = time.time()
-        response = requests.get(f"{BACKEND_URL}/providers/health", timeout=10)
+        response = requests.get(f"{BACKEND_URL}/marketplace/health", timeout=10)
         elapsed = (time.time() - start) * 1000
         
         passed = response.status_code == 200
