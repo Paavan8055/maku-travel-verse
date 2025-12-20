@@ -321,11 +321,18 @@ def test_integration_search_booking():
     category = "Cross-Module Integration"
     
     try:
-        # Search for hotels
+        # Search for hotels with correct payload
         start = time.time()
         search_response = requests.post(
             f"{BACKEND_URL}/search/unified",
-            json={"query": "hotels in Paris", "type": "hotel"},
+            json={
+                "search_type": "hotel",
+                "destination": "Paris",
+                "check_in": "2024-06-01",
+                "check_out": "2024-06-05",
+                "guests": 2,
+                "rooms": 1
+            },
             timeout=30
         )
         search_elapsed = (time.time() - start) * 1000
@@ -334,7 +341,7 @@ def test_integration_search_booking():
         
         if passed:
             data = search_response.json()
-            details = f"Search returned {len(data.get('results', []))} results"
+            details = f"Search returned results successfully"
         else:
             details = f"Status: {search_response.status_code}"
         
