@@ -46,7 +46,7 @@ export const WalletConnect: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
   // Check if MetaMask is installed
   const isMetaMaskInstalled = () => {
