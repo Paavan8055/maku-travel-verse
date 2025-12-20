@@ -273,16 +273,16 @@ def test_integration_admin_providers():
     category = "Cross-Module Integration"
     
     try:
-        # Get provider analytics from admin
+        # Get provider analytics from admin (correct endpoint)
         start = time.time()
-        response = requests.get(f"{BACKEND_URL}/admin/providers/analytics", timeout=10)
+        response = requests.get(f"{BACKEND_URL}/admin/providers/analytics/overview", timeout=10)
         elapsed = (time.time() - start) * 1000
         
         passed = response.status_code == 200
         
         if passed:
             data = response.json()
-            details = f"Provider analytics accessible, status: {response.status_code}"
+            details = f"Provider analytics accessible, {data.get('total_providers', 0)} providers"
         else:
             details = f"Status: {response.status_code}"
         
