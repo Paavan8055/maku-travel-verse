@@ -722,7 +722,14 @@ def test_provider_fallback():
         start = time.time()
         response = requests.post(
             f"{BACKEND_URL}/search/unified",
-            json={"query": "hotels in Tokyo", "type": "hotel"},
+            json={
+                "search_type": "hotel",
+                "destination": "Tokyo",
+                "check_in": "2024-06-01",
+                "check_out": "2024-06-05",
+                "guests": 2,
+                "rooms": 1
+            },
             timeout=30
         )
         elapsed = (time.time() - start) * 1000
