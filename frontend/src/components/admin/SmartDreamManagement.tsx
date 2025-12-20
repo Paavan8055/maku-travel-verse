@@ -656,7 +656,7 @@ export const SmartDreamManagement = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-purple-600">
-                    {providerAnalytics.summary.success_rate_24h.toFixed(1)}%
+                    {providerAnalytics?.summary?.success_rate_24h?.toFixed(1) || '0.0'}%
                   </div>
                   <p className="text-xs text-muted-foreground">
                     last 24 hours
@@ -727,11 +727,11 @@ export const SmartDreamManagement = () => {
                               </span>
                               <span className="flex items-center space-x-1">
                                 <Target className="h-3 w-3" />
-                                <span>{provider.performance_score.toFixed(1)}% performance</span>
+                                <span>{provider?.performance_score?.toFixed(1) || '0.0'}% performance</span>
                               </span>
                               <span className="flex items-center space-x-1">
                                 <DollarSign className="h-3 w-3" />
-                                <span>${provider.cost_per_request.toFixed(3)}/req</span>
+                                <span>${provider?.cost_per_request?.toFixed(3) || '0.000'}/req</span>
                               </span>
                               <span className="flex items-center space-x-1">
                                 <Timer className="h-3 w-3" />
@@ -739,7 +739,7 @@ export const SmartDreamManagement = () => {
                               </span>
                               <span className="flex items-center space-x-1">
                                 <MapPin className="h-3 w-3" />
-                                <span className="capitalize">{provider.metadata.region.replace('_', ' ')}</span>
+                                <span className="capitalize">{provider?.metadata?.region?.replace('_', ' ') || 'Global'}</span>
                               </span>
                             </div>
                           </div>
@@ -781,23 +781,25 @@ export const SmartDreamManagement = () => {
                       </div>
                       
                       {/* Provider Specialties */}
-                      <div className="mt-3 flex flex-wrap gap-1">
-                        {provider.metadata.specialties.map((specialty, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {specialty.replace('_', ' ')}
-                          </Badge>
-                        ))}
-                      </div>
+                      {provider?.metadata?.specialties && (
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {provider.metadata.specialties.map((specialty, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {specialty.replace('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                       
                       {/* Issues if any */}
-                      {provider.metadata.issues && provider.metadata.issues.length > 0 && (
+                      {provider?.metadata?.issues && provider.metadata.issues.length > 0 && (
                         <div className="mt-2">
                           <div className="flex items-center space-x-2 mb-1">
                             <AlertTriangle className="h-4 w-4 text-orange-500" />
                             <span className="text-sm font-medium text-orange-600">Issues:</span>
                           </div>
                           <div className="flex flex-wrap gap-1">
-                            {provider.metadata.issues.map((issue, index) => (
+                            {provider.metadata?.issues?.map((issue, index) => (
                               <Badge key={index} variant="destructive" className="text-xs">
                                 {issue.replace('_', ' ')}
                               </Badge>
@@ -832,8 +834,8 @@ export const SmartDreamManagement = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className="text-right">
-                            <div className="text-sm font-semibold">{stats.avg_score.toFixed(1)}%</div>
-                            <div className="text-xs text-gray-500">{stats.success_rate.toFixed(1)}% success</div>
+                            <div className="text-sm font-semibold">{stats?.avg_score?.toFixed(1) || '0.0'}%</div>
+                            <div className="text-xs text-gray-500">{stats?.success_rate?.toFixed(1) || '0.0'}% success</div>
                           </div>
                           <div className="w-20 bg-gray-200 rounded-full h-2">
                             <div 
@@ -869,7 +871,7 @@ export const SmartDreamManagement = () => {
                           </div>
                         </div>
                         <Badge variant="default">
-                          {provider.score.toFixed(1)}%
+                          {provider?.score?.toFixed(1) || '0.0'}%
                         </Badge>
                       </div>
                     ))}
@@ -892,13 +894,13 @@ export const SmartDreamManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      ${providerAnalytics.cost_analytics.total_cost_24h.toFixed(2)}
+                      ${providerAnalytics?.cost_analytics?.total_cost_24h?.toFixed(2) || '0.00'}
                     </div>
                     <div className="text-sm text-green-600">Total Cost</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">
-                      ${providerAnalytics.cost_analytics.avg_cost_per_request.toFixed(3)}
+                      ${providerAnalytics?.cost_analytics?.avg_cost_per_request?.toFixed(3) || '0.000'}
                     </div>
                     <div className="text-sm text-blue-600">Avg Cost/Request</div>
                   </div>

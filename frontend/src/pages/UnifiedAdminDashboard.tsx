@@ -9,7 +9,7 @@
  * - Security & compliance
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
   Lock, Eye, Target, Boxes, ArrowRight
 } from 'lucide-react';
 import axios from 'axios';
+import { usePolling } from '@/hooks/usePolling';
 
 const BACKEND_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
@@ -47,13 +48,7 @@ const UnifiedAdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchSystemHealth();
-    const interval = setInterval(fetchSystemHealth, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchSystemHealth = async () => {
+  const fetchSystemHealth = useCallback(async () => {
     try {
       setLoading(false); // Set loading false first to show UI immediately
       
@@ -98,7 +93,10 @@ const UnifiedAdminDashboard = () => {
     } finally {
       setLoading(false); // Ensure loading is always set to false
     }
-  };
+  }, []);
+
+  // Use the custom polling hook to prevent flickering and memory leaks
+  usePolling(fetchSystemHealth, 30000, true);
 
   const quickActions = [
     {

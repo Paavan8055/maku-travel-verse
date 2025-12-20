@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Activity, TrendingUp, TrendingDown, Server, Zap, Shield, DollarSign, Clock } from 'lucide-react';
 import axios from 'axios';
+import { usePolling } from '@/hooks/usePolling';
 
 const BACKEND_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
@@ -32,7 +33,7 @@ export default function ProviderAnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       // Fetch overview
       const overviewRes = await axios.get(`${BACKEND_URL}/api/admin/providers/analytics/overview`);
@@ -47,21 +48,10 @@ export default function ProviderAnalyticsDashboard() {
       console.error('Failed to fetch provider analytics:', error);
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    fetchAnalytics();
-
-    // Auto-refresh every 30 seconds if enabled
-    let interval: NodeJS.Timeout | null = null;
-    if (autoRefresh) {
-      interval = setInterval(fetchAnalytics, 30000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [autoRefresh]);
+  // Use the custom polling hook to prevent flickering
+  usePolling(fetchAnalytics, 30000, autoRefresh);
 
   const getHealthColor = (status: string) => {
     switch (status) {
@@ -162,7 +152,7 @@ export default function ProviderAnalyticsDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-blue-600">{overview.avg_success_rate_percent.toFixed(1)}%</div>
+                <div className="text-3xl font-bold text-blue-600">{overview?.avg_success_rate_percent?.toFixed(1) || '0.0'}%</div>
                 <p className="text-xs text-gray-500 mt-1">Average across providers</p>
               </CardContent>
             </Card>
@@ -235,7 +225,7 @@ export default function ProviderAnalyticsDashboard() {
                     {/* Success Rate */}
                     <div className="text-center">
                       <p className="text-xs text-gray-500">Success</p>
-                      <p className="font-semibold text-blue-600">{provider.success_rate_percent.toFixed(1)}%</p>
+                      <p className="font-semibold text-blue-600">{provider?.success_rate_percent?.toFixed(1) || '0.0'}%</p>
                     </div>
 
                     {/* Status Badge */}

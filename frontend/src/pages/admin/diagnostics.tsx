@@ -1,7 +1,7 @@
 import React from 'react';
-import { AdminGuard } from '@/features/auth/components/AdminGuard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AutomatedTestRunner } from '@/components/diagnostics/AutomatedTestRunner';
 import { ProductionDiagnostics } from '@/components/diagnostics/ProductionDiagnostics';
 import PaymentDebugger from '@/components/debugging/PaymentDebugger';
 import { BookingTestPanel } from '@/components/debug/BookingTestPanel';
@@ -18,12 +18,11 @@ import {
 
 const AdminDiagnosticsPage = () => {
   return (
-    <AdminGuard>
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Monitor className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-bold">System Diagnostics</h1>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Monitor className="h-6 w-6 text-primary" />
+        <h1 className="text-3xl font-bold">System Diagnostics</h1>
+      </div>
 
         <Tabs defaultValue="system" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
@@ -150,7 +149,6 @@ const AdminDiagnosticsPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AdminGuard>
   );
 };
 

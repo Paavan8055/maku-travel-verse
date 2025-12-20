@@ -54,8 +54,15 @@ export const useNotifications = () => {
           metadata: n.metadata
         }));
 
-        setNotifications(formattedNotifications);
-        setUnreadCount(data.unreadCount);
+        // Only update state if data has actually changed (prevents unnecessary re-renders)
+        setNotifications(prev => {
+          const hasChanged = JSON.stringify(prev) !== JSON.stringify(formattedNotifications);
+          return hasChanged ? formattedNotifications : prev;
+        });
+        
+        setUnreadCount(prev => {
+          return prev !== data.unreadCount ? data.unreadCount : prev;
+        });
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -70,7 +77,8 @@ export const useNotifications = () => {
 
     fetchNotifications();
 
-    // Subscribe to real-time changes
+    // Subscribe to real-time changes with debounce to prevent flickering
+    let refetchTimeout: NodeJS.Timeout;
     const channel = supabase
       .channel('notifications_changes')
       .on(
@@ -82,12 +90,17 @@ export const useNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         () => {
-          fetchNotifications(); // Refetch when changes occur
+          // Debounce refetch to prevent rapid flickering
+          clearTimeout(refetchTimeout);
+          refetchTimeout = setTimeout(() => {
+            fetchNotifications();
+          }, 500); // Wait 500ms before refetching
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(refetchTimeout);
       supabase.removeChannel(channel);
     };
   }, [user]);

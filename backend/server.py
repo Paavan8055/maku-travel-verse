@@ -77,6 +77,9 @@ from enhanced_dream_library_api import router as dream_library_router
 # Import partner dashboard API
 from partner_dashboard_api import router as partner_dashboard_router
 
+# Import automated test runner
+from automated_test_api import router as automated_test_router
+
 # Import OpenAI ChatGPT Pro integration
 try:
     from openai_endpoints import openai_router
@@ -5452,6 +5455,7 @@ app.include_router(unified_search_router)  # Unified Search with Provider Rotati
 app.include_router(destination_router)  # Destination Content
 app.include_router(dream_library_router)  # Enhanced Dream Library
 app.include_router(partner_dashboard_router)  # Partner Dashboard APIs
+app.include_router(automated_test_router)  # Automated Test Runner
 
 # Register OpenAI ChatGPT Pro router if available
 if OPENAI_ENABLED:

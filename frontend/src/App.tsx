@@ -80,7 +80,7 @@ const AdminLayout = createLazyRoute(() => import("./components/admin/AdminLayout
 const AdminOverviewPage = createLazyRoute(() => import("./pages/admin/dashboard/overview"));
 const AdminAlertsPage = createLazyRoute(() => import("./pages/admin/dashboard/alerts"));
 const AdminMonitoring = createLazyRoute(() => import("./pages/admin/monitoring"));
-const AdminRealTimeMonitoringPage = createLazyRoute(() => import("./pages/admin/monitoring/real-time"));
+const AdminRealTimeMonitoringPage = createLazyRoute(() => import("./pages/admin/monitoring/AIRealTimeMonitoring"));
 const AdminProvidersPage = createLazyRoute(() => import("./pages/admin/monitoring/providers"));
 
 const AdminLogsPage = createLazyRoute(() => import("./pages/admin/monitoring/logs"));
@@ -89,7 +89,7 @@ const AdminBookingsPage = createLazyRoute(() => import("./pages/admin/operations
 const AdminUsersPage = createLazyRoute(() => import("./pages/admin/operations/users"));
 const AdminTestingPage = createLazyRoute(() => import("./pages/admin/operations/testing"));
 const AdminAgentsPage = createLazyRoute(() => import("./pages/admin/operations/agents"));
-const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnostics"));
+const AdminDiagnosticsPage = createLazyRoute(() => import("./pages/admin/diagnostics-enhanced"));
 const AdminSecurityPage = createLazyRoute(() => import("./pages/admin/security/access"));
 const AdminAuditPage = createLazyRoute(() => import("./pages/admin/security/audit"));
 const AdminSearchAnalyticsPage = createLazyRoute(() => import("./pages/admin/analytics/search"));

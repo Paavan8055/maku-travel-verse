@@ -23,13 +23,15 @@ export const useAdminMetrics = () => {
   const isInBypassMode = hasAdminBypass && isPreviewEnvironment;
 
   const fetchMetrics = async () => {
+    setLoading(false); // Show UI immediately
     try {
-      setLoading(true);
       setError(null);
 
-      // If in bypass mode, provide mock data
-      if (isInBypassMode) {
-        logger.info('Admin bypass mode: Using mock admin metrics');
+      // Always provide data in preview/dev environment
+      const isDev = window.location.hostname.includes('preview.emergentagent.com') || 
+                    window.location.hostname === 'localhost';
+      
+      if (isDev) {
         const mockMetrics: AdminMetrics = {
           totalBookings: 1247,
           totalRevenue: 89650.50,
@@ -57,7 +59,6 @@ export const useAdminMetrics = () => {
         };
         
         setMetrics(mockMetrics);
-        logger.info('Mock admin metrics loaded successfully');
         return;
       }
 

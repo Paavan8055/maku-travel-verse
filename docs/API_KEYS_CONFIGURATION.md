@@ -6,7 +6,7 @@ This document provides a comprehensive guide to all API keys and provider config
 ---
 
 ## Current Preview URL
-**Environment:** https://dream-marketplace.preview.emergentagent.com
+**Environment:** https://makulive-preview.preview.emergentagent.com
 
 ---
 

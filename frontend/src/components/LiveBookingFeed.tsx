@@ -23,6 +23,15 @@ const LiveBookingFeed = () => {
   const [activities, setActivities] = useState<BookingActivity[]>([]);
   const [visible, setVisible] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [dismissed, setDismissed] = useState(false);
+
+  // Check if user previously dismissed
+  useEffect(() => {
+    const wasDismissed = localStorage.getItem('liveBookingFeedDismissed');
+    if (wasDismissed === 'true') {
+      setDismissed(true);
+    }
+  }, []);
 
   // Mock data for demonstration (in production, this would come from WebSocket/SSE)
   const mockActivities: BookingActivity[] = [
@@ -76,31 +85,30 @@ const LiveBookingFeed = () => {
   useEffect(() => {
     setActivities(mockActivities);
 
-    // Rotate activities every 5 seconds
+    // Rotate activities every 8 seconds (increased from 5s to reduce frequency)
     const rotationInterval = setInterval(() => {
       setVisible(false);
       
       setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % mockActivities.length);
         setVisible(true);
-      }, 300); // Fade out duration
-    }, 5000);
-
-    // Simulate new bookings every 15 seconds
-    const newBookingInterval = setInterval(() => {
-      // In production, this would be real-time data from WebSocket
-      console.log('New booking simulation');
-    }, 15000);
+      }, 500); // Increased fade duration for smoother transition
+    }, 8000); // Increased from 5000ms to 8000ms
 
     return () => {
       clearInterval(rotationInterval);
-      clearInterval(newBookingInterval);
     };
   }, []);
 
   const currentActivity = activities[currentIndex];
+  
+  const handleDismiss = () => {
+    setDismissed(true);
+    localStorage.setItem('liveBookingFeedDismissed', 'true');
+  };
 
-  if (!currentActivity || activities.length === 0) {
+  // Don't render if dismissed
+  if (dismissed || !currentActivity || activities.length === 0) {
     return null;
   }
 
@@ -134,12 +142,23 @@ const LiveBookingFeed = () => {
     <div className="fixed bottom-6 left-6 z-50 max-w-sm hidden md:block">
       <Card 
         className={`
-          p-4 bg-white shadow-floating border-l-4 border-l-orange-500
-          transition-all duration-300 transform
+          relative p-4 bg-white shadow-floating border-l-4 border-l-orange-500
+          transition-all duration-500 transform
           ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
-          hover:shadow-2xl hover:scale-105
+          hover:shadow-2xl
         `}
       >
+        {/* Close button */}
+        <button
+          onClick={handleDismiss}
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+          aria-label="Dismiss"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center text-2xl">
