@@ -190,24 +190,22 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
 };
 
 /**
- * Admin Guard Component (simplified for development)
+ * Admin Guard Component (Secure RBAC Implementation)
+ * 
+ * SECURITY NOTE: This component now enforces proper role-based access control
+ * in ALL environments (production, preview, and localhost).
+ * 
+ * Users must have the 'admin' role assigned in Supabase to access admin routes.
+ * No bypasses or shortcuts are allowed.
  */
 export const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { permissions, loading } = useUserRole();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Development bypass - allow admin access without login in preview/localhost
-  const isDev = window.location.hostname.includes('preview.emergentagent.com') || 
-                window.location.hostname === 'localhost' ||
-                window.location.hostname === '127.0.0.1';
-
-  // In preview/dev, skip all auth checks and show admin panel directly
-  if (isDev) {
-    return <>{children}</>;
-  }
-
-  // Production mode - require authentication
-  if (loading) {
+  // Wait for both auth and permissions to load
+  if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -215,8 +213,21 @@ export const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }
     );
   }
 
+  // Require authentication
   if (!user) {
     navigate('/admin', { replace: true });
+    return null;
+  }
+
+  // Require admin role
+  if (!permissions.canAccessAdmin) {
+    logger.warn('Unauthorized admin access attempt', { userId: user.id });
+    toast({
+      title: "Access Denied",
+      description: "You do not have admin privileges. Please contact your administrator.",
+      variant: "destructive"
+    });
+    navigate('/', { replace: true });
     return null;
   }
 
