@@ -1018,7 +1018,7 @@ def test_admin_partner_dashboard():
     
     try:
         start = time.time()
-        response = requests.get(f"{BACKEND_URL}/admin/partners/dashboard", timeout=10)
+        response = requests.get(f"{BACKEND_URL}/partners/stats", timeout=10)
         elapsed = (time.time() - start) * 1000
         
         passed = response.status_code == 200
