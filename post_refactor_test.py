@@ -246,10 +246,11 @@ def test_provider_services():
     test_endpoint("Providers", "GET", "/offseason/deals", [200, 404])
     test_endpoint("Providers", "GET", "/offseason/partners", [200, 404])
     
-    # Provider Marketplace
-    test_endpoint("Providers", "GET", "/providers/marketplace", [200, 404])
-    test_endpoint("Providers", "GET", "/providers/available", [200, 404])
-    test_endpoint("Providers", "GET", "/providers/status", [200, 404])
+    # Provider Marketplace (corrected endpoints)
+    test_endpoint("Providers", "GET", "/providers/registry", [200, 404])
+    test_endpoint("Providers", "GET", "/providers/active", [200, 404])
+    test_endpoint("Providers", "GET", "/marketplace/health", [200, 404])
+    test_endpoint("Providers", "GET", "/marketplace/stats", [200, 404])
 
 def test_automation_services():
     """Test Automation Services domain"""
