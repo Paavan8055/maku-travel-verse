@@ -36,61 +36,58 @@ db = client[os.environ['DB_NAME']]
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import NFT integration endpoints
-from nft_integration_endpoints import nft_router
-from admin_nft_endpoints import admin_nft_router
-from unified_ai_orchestrator import unified_ai_router
-from credit_optimization import optimized_ai_router
-from free_ai_provider import free_ai_provider
+# ============================================================================
+# MODULAR ROUTER IMPORTS - Organized by domain
+# ============================================================================
 
-# Import off-season occupancy engine
-from offseason_endpoints import offseason_router
+# NFT & Blockchain Services (routers/nft/)
+from routers.nft.nft_integration_endpoints import nft_router
+from routers.nft.cross_chain_bridge_api import router as bridge_router
 
-# Import email system
+# Admin Services (routers/admin/)
+from routers.admin.admin_nft_endpoints import admin_nft_router
+from routers.admin.partner_dashboard_api import router as partner_dashboard_router
+
+# AI Services (routers/ai/)
+from routers.ai.unified_ai_orchestrator import unified_ai_router
+from routers.ai.credit_optimization import optimized_ai_router
+from routers.ai.free_ai_provider import free_ai_provider
+from routers.ai.ai_personalization import personalization_router
+from routers.ai.enhanced_dream_library_api import router as dream_library_router
+
+# Analytics Services (routers/analytics/)
+from routers.analytics.analytics_dashboard import analytics_router
+from routers.analytics.provider_analytics_api import router as provider_analytics_router
+from routers.analytics.realtime_features import realtime_router
+
+# Provider Services (routers/providers/)
+from routers.providers.offseason_endpoints import offseason_router
+from routers.providers.provider_partner_marketplace import router as marketplace_router
+
+# Search Services (routers/search/)
+from routers.search.advanced_search import advanced_search_router
+from routers.search.unified_search_api import router as unified_search_router
+from routers.search.destination_content_api import router as destination_router
+
+# Booking & Payment Services (routers/booking/)
+from routers.booking.payment_gateway import payment_router
+
+# Automation Services (routers/automation/)
+from routers.automation.automated_test_api import router as automated_test_router
+
+# Utility Services (keep in root)
 from email_system import email_router
 
-# Import advanced search
-from advanced_search import advanced_search_router
-from ai_personalization import personalization_router
-from analytics_dashboard import analytics_router
-from realtime_features import realtime_router
-from payment_gateway import payment_router
-
-# Import provider & partner marketplace
-from provider_partner_marketplace import router as marketplace_router
-
-# Import provider analytics dashboard
-from provider_analytics_api import router as provider_analytics_router
-
-# Import cross-chain bridge API
-from cross_chain_bridge_api import router as bridge_router
-
-# Import unified search API
-from unified_search_api import router as unified_search_router
-
-# Import destination content API
-from destination_content_api import router as destination_router
-
-# Import enhanced dream library API
-from enhanced_dream_library_api import router as dream_library_router
-
-# Import partner dashboard API
-from partner_dashboard_api import router as partner_dashboard_router
-
-# Import automated test runner
-from automated_test_api import router as automated_test_router
-
-# Import OpenAI ChatGPT Pro integration
+# Optional AI Services (with fallback)
 try:
-    from openai_endpoints import openai_router
+    from routers.ai.openai_endpoints import openai_router
     OPENAI_ENABLED = True
 except ImportError as e:
     logger.warning(f"OpenAI endpoints not available: {e}")
     OPENAI_ENABLED = False
 
-# Import Smart Dreams V2 (AI Scoring + Rotation)
 try:
-    from smart_dreams_endpoints import smart_dreams_router
+    from routers.ai.smart_dreams_endpoints import smart_dreams_router
     SMART_DREAMS_V2_ENABLED = True
 except ImportError as e:
     logger.warning(f"Smart Dreams V2 endpoints not available: {e}")
