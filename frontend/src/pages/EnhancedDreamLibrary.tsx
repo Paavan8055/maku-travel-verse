@@ -12,6 +12,16 @@ import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
+// Helper function to get category icon
+const getCategoryIcon = (category: string) => {
+  if (category.includes('wellness')) return <Sparkles className="w-4 h-4" />;
+  if (category.includes('adventure')) return <Mountain className="w-4 h-4" />;
+  if (category.includes('cultural')) return <Camera className="w-4 h-4" />;
+  if (category.includes('luxury')) return <Award className="w-4 h-4" />;
+  if (category.includes('beach')) return <Palmtree className="w-4 h-4" />;
+  return <Star className="w-4 h-4" />;
+};
+
 interface DreamPackage {
   id: string;
   title: string;
