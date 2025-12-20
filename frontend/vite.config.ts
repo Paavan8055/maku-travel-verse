@@ -36,6 +36,10 @@ export default defineConfig(({ mode }) => ({
   define: {
     // Force cache busting with build timestamp
     __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
+    // Polyfill process.env for browser compatibility
+    'process.env.NODE_ENV': JSON.stringify(mode),
+    'process.env.REACT_APP_BACKEND_URL': JSON.stringify(process.env.REACT_APP_BACKEND_URL || ''),
+    'process.env.VITE_GEMINI_API_KEY': JSON.stringify(process.env.VITE_GEMINI_API_KEY || ''),
   },
   envPrefix: "VITE_",
 }));
