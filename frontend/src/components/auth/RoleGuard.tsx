@@ -65,23 +65,9 @@ export const useUserRole = () => {
         return;
       }
 
-      // DEVELOPMENT MODE: Grant admin access to all authenticated users
-      const isDev = window.location.hostname.includes('preview.emergentagent.com') || 
-                    window.location.hostname === 'localhost';
-      
-      if (isDev) {
-        // In development, all logged-in users are admins
-        setPermissions({
-          canAccessAdmin: true,
-          canAccessDebug: true,
-          canAccessPartner: true,
-          canViewMetrics: true,
-          canManageUsers: true,
-          userRole: 'admin'
-        });
-        setLoading(false);
-        return;
-      }
+      // IMPORTANT: Removed insecure development bypass
+      // Proper RBAC now enforced in all environments including preview
+      // All users must have proper role assignments in Supabase
 
       // PRODUCTION MODE: Check actual roles
       try {
