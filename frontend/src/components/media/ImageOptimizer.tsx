@@ -258,7 +258,7 @@ export const ImageOptimizer: React.FC<ImageOptimizerProps> = ({
             height={height}
             sizes={sizes}
             loading="eager"
-            fetchPriority={fetchPriority}
+            fetchpriority={fetchPriority}
             decoding="sync"
             className={cn(
               'w-full h-full object-cover transition-opacity duration-300',
