@@ -1081,7 +1081,7 @@ def test_admin_system_health():
     
     try:
         start = time.time()
-        response = requests.get(f"{BACKEND_URL}/analytics/system-health", timeout=10)
+        response = requests.get(f"{BACKEND_URL}/realtime/system/health", timeout=10)
         elapsed = (time.time() - start) * 1000
         
         passed = response.status_code == 200
