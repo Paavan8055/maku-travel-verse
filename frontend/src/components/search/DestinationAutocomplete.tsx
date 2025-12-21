@@ -27,6 +27,7 @@ interface DestinationAutocompleteProps {
   placeholder?: string;
   className?: string;
   searchType?: "city" | "airport" | "both" | "hotel";
+  testId?: string;
 }
 
 export const DestinationAutocomplete = ({
