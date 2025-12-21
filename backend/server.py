@@ -5445,13 +5445,13 @@ app.include_router(personalization_router)  # AI Personalization
 app.include_router(analytics_router)  # Analytics Dashboard
 app.include_router(realtime_router)  # Real-Time Features
 app.include_router(payment_router)  # Payment Gateway
+app.include_router(partner_dashboard_router)  # Partner Dashboard APIs (must be before marketplace for /partners/stats)
 app.include_router(marketplace_router)  # Provider & Partner Marketplace
 app.include_router(provider_analytics_router)  # Provider Analytics Dashboard
 app.include_router(bridge_router)  # Cross-Chain Bridge
 app.include_router(unified_search_router)  # Unified Search with Provider Rotation
 app.include_router(destination_router)  # Destination Content
 app.include_router(dream_library_router)  # Enhanced Dream Library
-app.include_router(partner_dashboard_router)  # Partner Dashboard APIs
 app.include_router(automated_test_router)  # Automated Test Runner
 
 # Register OpenAI ChatGPT Pro router if available
