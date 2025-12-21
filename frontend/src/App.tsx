@@ -175,7 +175,7 @@ const App = () => (
                                        <Toaster />
                                        <Sonner />
                                   
-                                    <BrowserRouter>
+                                    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                                       <main id="main-content">
                                       <Routes>
                                         <Route path="/" element={<Index />} />
