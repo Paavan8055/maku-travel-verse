@@ -91,7 +91,7 @@ def test_advanced_search():
             "destination": "Paris",
             "check_in": tomorrow,
             "check_out": next_week,
-            "guests": 2,
+            "guests": {"adults": 2, "children": 0},
             "rooms": 1
         }
         
