@@ -424,6 +424,69 @@ async def provide_contextual_assistance(request: AIRequest, context: PlatformCon
         logger.error(f"Contextual AI assistance failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+async def generate_travel_rewards_insights(user_data: Dict) -> List[Dict]:
+    """Generate insights combining travel history and rewards data"""
+    insights = []
+    try:
+        booking_count = len(user_data.get('booking_history', []))
+        rewards_balance = user_data.get('rewards_data', {}).get('balance', 0)
+        
+        if booking_count > 5 and rewards_balance > 1000:
+            insights.append({
+                "type": "rewards_optimization",
+                "title": "Maximize Your Rewards",
+                "description": f"You have {rewards_balance} rewards points. Consider using them on your next booking to save {rewards_balance * 0.01:.2f} USD.",
+                "priority": "high"
+            })
+    except Exception as e:
+        logger.error(f"Error generating travel rewards insights: {e}")
+    return insights
+
+async def generate_smart_dreams_ai_insights(user_data: Dict) -> List[Dict]:
+    """Generate insights from Smart Dreams data using AI"""
+    insights = []
+    try:
+        dreams_data = user_data.get('smart_dreams_data', {})
+        dream_count = len(dreams_data.get('dreams', []))
+        
+        if dream_count > 0:
+            insights.append({
+                "type": "smart_dreams",
+                "title": "Your Dream Destinations Await",
+                "description": f"You have {dream_count} dream destinations saved. AI recommends starting with the most popular one first for better deals.",
+                "priority": "medium"
+            })
+    except Exception as e:
+        logger.error(f"Error generating smart dreams insights: {e}")
+    return insights
+
+async def generate_provider_tier_insights(user_data: Dict) -> List[Dict]:
+    """Generate insights about provider tiers and optimizations"""
+    insights = []
+    try:
+        tier = user_data.get('user_tier', 'explorer')
+        nft_count = user_data.get('nft_count', 0)
+        
+        if tier == 'explorer' and nft_count < 3:
+            insights.append({
+                "type": "tier_upgrade",
+                "title": "Upgrade to Bronze Tier",
+                "description": "Mint 3 NFTs to unlock Bronze tier benefits including 3% cashback on all bookings.",
+                "priority": "medium"
+            })
+        elif tier == 'bronze' and nft_count < 10:
+            insights.append({
+                "type": "tier_upgrade",
+                "title": "Path to Silver Tier",
+                "description": f"You're {10 - nft_count} NFTs away from Silver tier (6% cashback).",
+                "priority": "low"
+            })
+    except Exception as e:
+        logger.error(f"Error generating provider tier insights: {e}")
+    return insights
+
+
 @unified_ai_router.get("/cross-module-insights/{user_id}")
 async def generate_cross_module_insights(user_id: str):
     """Generate insights that span multiple platform modules"""
