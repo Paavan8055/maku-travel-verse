@@ -36,7 +36,8 @@ export const DestinationAutocomplete = ({
   onDestinationSelect,
   placeholder = "Where to?",
   className,
-  searchType = "city"
+  searchType = "city",
+  testId
 }: DestinationAutocompleteProps) => {
   const [suggestions, setSuggestions] = useState<Destination[]>([]);
   const [isLoading, setIsLoading] = useState(false);
