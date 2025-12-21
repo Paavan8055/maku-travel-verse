@@ -589,6 +589,7 @@ const FlightSearchPage = () => {
                   onDestinationSelect={handleOriginSelect}
                   placeholder="From where?"
                   searchType="airport"
+                  testId="flight-origin-input"
                 />
               </div>
 
@@ -600,6 +601,7 @@ const FlightSearchPage = () => {
                   onDestinationSelect={handleDestinationSelect}
                   placeholder="Where to?"
                   searchType="airport"
+                  testId="flight-destination-input"
                 />
               </div>
 
