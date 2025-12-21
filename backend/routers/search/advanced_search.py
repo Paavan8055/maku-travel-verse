@@ -67,8 +67,8 @@ class AdvancedHotelSearchRequest(BaseModel):
     """Enhanced hotel search with advanced filters"""
     # Basic search
     destination: str = Field(..., description="Destination city or region")
-    checkin: str = Field(..., description="Check-in date YYYY-MM-DD")
-    checkout: str = Field(..., description="Check-out date YYYY-MM-DD")
+    check_in: str = Field(..., description="Check-in date YYYY-MM-DD")
+    check_out: str = Field(..., description="Check-out date YYYY-MM-DD")
     guests: Dict[str, int] = Field({"adults": 2, "children": 0}, description="Guest counts")
     rooms: int = Field(1, ge=1, le=10, description="Number of rooms")
     
@@ -94,7 +94,7 @@ class AdvancedHotelSearchRequest(BaseModel):
     # Cache control
     use_cache: bool = Field(True, description="Use cached results if available")
     
-    @validator('checkin', 'checkout')
+    @validator('check_in', 'check_out')
     def validate_dates(cls, v):
         try:
             datetime.strptime(v, '%Y-%m-%d')
