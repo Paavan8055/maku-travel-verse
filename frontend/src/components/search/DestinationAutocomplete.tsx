@@ -380,6 +380,7 @@ export const DestinationAutocomplete = ({
             }
           }}
           className={cn("pl-10 pr-12", className)}
+          data-testid={testId}
         />
         {isGettingLocation && (
           <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin" />
