@@ -471,8 +471,8 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-border py-4 animate-slideIn bg-white/95 backdrop-blur-md">
-            <div className="space-y-1">
+          <div className="md:hidden border-t border-border py-4 animate-slideIn bg-white backdrop-blur-md shadow-lg z-50 absolute top-full left-0 right-0">
+            <div className="space-y-1 px-4">
               {/* Main Navigation */}
               <div className="space-y-1 pb-3 border-b border-gray-100">
                 <Button variant="ghost" className="w-full justify-start hover:bg-orange-50" onClick={() => {
