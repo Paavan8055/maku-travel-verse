@@ -12,19 +12,15 @@ export interface SentryConfig {
 export const initializeSentry = async (config: SentryConfig) => {
   // Only initialize if DSN is provided and we're not in development mode
   if (!config.dsn || process.env.NODE_ENV === 'development') {
-    console.log('Sentry not initialized - missing DSN or in development mode');
+    // Silent return - no console warnings in production
     return;
   }
 
   try {
     // Check if Sentry is already available
     if (typeof window !== 'undefined' && (window as any).Sentry) {
-      console.log('Sentry already initialized');
       return;
     }
-    
-    console.log('Sentry configuration ready - DSN provided');
-    console.log('To complete setup: npm install @sentry/react');
     
     // Store config for later use when Sentry package is available
     (window as any).sentryConfig = config;
@@ -34,7 +30,10 @@ export const initializeSentry = async (config: SentryConfig) => {
     // ... rest of initialization
     
   } catch (error) {
-    console.error('Failed to initialize Sentry:', error);
+    // Silent error - don't pollute console in production
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to initialize Sentry:', error);
+    }
   }
 };
 
