@@ -155,17 +155,28 @@ const App = () => (
                               <UniversalAIProvider>
                                  <TooltipProvider>
                                     <div className="min-h-screen bg-background text-foreground">
+                                      {/* Skip to main content link for accessibility */}
+                                      <a 
+                                        href="#main-content" 
+                                        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-600 focus:text-white focus:rounded"
+                                      >
+                                        Skip to main content
+                                      </a>
+                                      
                                       <Helmet>
                                         <meta name="theme-color" content="#ffffff" />
                                         <meta name="apple-mobile-web-app-capable" content="yes" />
                                         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
                                         <meta name="format-detection" content="telephone=no" />
+                                        <meta property="og:image" content="https://maku-refactor.preview.emergentagent.com/og-image.jpg" />
+                                        <meta name="twitter:image" content="https://maku-refactor.preview.emergentagent.com/og-image.jpg" />
                                       </Helmet>
                                       
                                        <Toaster />
                                        <Sonner />
                                   
                                     <BrowserRouter>
+                                      <main id="main-content">
                                       <Routes>
                                         <Route path="/" element={<Index />} />
                                         <Route path="/auth" element={<Auth />} />
