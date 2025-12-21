@@ -302,6 +302,7 @@ const App = () => (
                                          <Route path="deployment-test" element={<DeploymentTestPage />} />
                                        </Route>
                                     </Routes>
+                                    </main>
                                   </BrowserRouter>
                                  </div>
                                    </TooltipProvider>
