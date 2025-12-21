@@ -60,9 +60,11 @@ class ProviderRotationEnforcer:
                     missing_keys.append(f"{provider}: {key}")
         
         if missing_keys:
-            error_msg = f"PROVIDER CONFIGURATION ERROR - Missing required keys:\n" + "\n".join(f"  - {k}" for k in missing_keys)
-            logger.error(error_msg)
-            logger.warning("Some providers will be unavailable. Add missing keys to .env to enable full rotation.")
+            # Log as WARNING instead of ERROR since this is expected in preview environments
+            logger.warning(f"⚠️  Provider Configuration - Missing keys for full rotation:")
+            for key in missing_keys:
+                logger.warning(f"  - {key}")
+            logger.info("ℹ️  Application will function with available providers. Add keys to enable full rotation.")
         else:
             logger.info("✅ All provider keys configured - full rotation enabled")
     
