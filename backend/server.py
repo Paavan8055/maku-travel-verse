@@ -1134,8 +1134,8 @@ async def free_development_chat(request_data: dict):
 async def analyze_travel_dna(user_id: str, request_data: dict):
     """Analyze user's travel DNA using FREE APIs during development"""
     try:
-        # Import free AI provider
-        from free_ai_provider import free_ai_provider
+        # Import free AI provider from refactored location
+        from routers.ai.free_ai_provider import free_ai_provider
         
         # Check if we should use free APIs (development mode)
         if os.environ.get('DEVELOPMENT_MODE', 'true').lower() == 'true':
