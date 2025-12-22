@@ -64,6 +64,7 @@ function CheckoutInner() {
 
   // Extract parameters
   const hotelId = searchParams.get("hotelId")!;
+  const hotelName = searchParams.get("hotelName") || "Hotel Booking";
   const offerId = searchParams.get("offerId")!;
   const checkIn = searchParams.get("checkIn")!;
   const checkOut = searchParams.get("checkOut")!;
